@@ -663,6 +663,65 @@
             box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16) !important;
         }
 
+        #course-management .course-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin: 0 0 20px;
+        }
+
+        #course-management .course-stat-card {
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 14px 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 88px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #course-management .course-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        #course-management .course-stat-label {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #course-management .course-stat-value {
+            margin: 4px 0 0;
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+
+        #course-management .course-stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #ffffff;
+            flex: 0 0 42px;
+        }
+
+        #course-management .course-stat-card.active .course-stat-icon { background: #1d4ed8; }
+        #course-management .course-stat-card.pending .course-stat-icon { background: #d97706; }
+        #course-management .course-stat-card.draft .course-stat-icon { background: #7c3aed; }
+        #course-management .course-stat-card.archived .course-stat-icon { background: #475569; }
+
         /* Placeholder Content */
         .placeholder-content {
             background: white;
@@ -1177,20 +1236,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 760px;
-        }
-
-        .course-view-open-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 2px;
-            color: #2563eb;
-            text-decoration: none;
-            font-size: 0.82rem;
-        }
-
-        .course-view-open-tab:hover {
-            text-decoration: underline;
         }
 
         .course-view-close {
@@ -2126,6 +2171,10 @@
                 grid-template-columns: 1fr;
             }
 
+            #course-management .course-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
             .pipeline-grid {
                 grid-template-columns: 1fr;
             }
@@ -2133,6 +2182,12 @@
             .lms-hero-chip {
                 min-width: 0;
                 width: 100%;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 992px) {
+            #course-management .course-stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
@@ -2787,6 +2842,59 @@
                         <a href="{{ route('admin.courses.create') }}" style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-plus"></i> Add Course
                         </a>
+                    </div>
+                </div>
+
+                @php
+                    $activeCoursesCount = $courses->count();
+                    $pendingCoursesCount = $pendingCourses->count();
+                    $draftCoursesCount = 0;
+                    $archivedCoursesCount = $archivedCourses->count();
+                @endphp
+                <div class="course-stats-grid">
+                    <div class="course-stat-card active"
+                         role="button"
+                         tabindex="0"
+                         onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Active Courses</p>
+                            <p class="course-stat-value">{{ $activeCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-graduation-cap"></i></span>
+                    </div>
+                    <div class="course-stat-card pending"
+                         role="button"
+                         tabindex="0"
+                         onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Pending Courses</p>
+                            <p class="course-stat-value">{{ $pendingCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                    </div>
+                    <div class="course-stat-card draft"
+                         role="button"
+                         tabindex="0"
+                         onclick="window.location.href='{{ route('admin.courses.create') }}'"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Draft Courses</p>
+                            <p id="draftCoursesCount" class="course-stat-value">{{ $draftCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-file-pen"></i></span>
+                    </div>
+                    <div class="course-stat-card archived"
+                         role="button"
+                         tabindex="0"
+                         onclick="openArchivedCoursesModal()"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Archived Courses</p>
+                            <p class="course-stat-value">{{ $archivedCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
                     </div>
                 </div>
                 
@@ -3580,11 +3688,6 @@
                         <option value="Social Governance">Social Governance</option>
                     </select>
                 </div>
-                <!-- Course Video (optional) -->
-                <div class="form-group">
-                    <label>Course Video (optional)</label>
-                    <input type="file" name="video" accept="video/mp4,video/webm,video/ogg">
-                </div>
                 <div class="form-group">
                     <label>Course Image (Leave blank to keep current)</label>
                     <input type="file" name="image" accept="image/*">
@@ -3603,9 +3706,6 @@
             <div class="course-view-modal-header">
                 <div class="course-view-modal-title-wrap">
                     <h2 id="view_course_name" class="course-view-modal-title">Course Details</h2>
-                    <a id="view_course_open_tab" class="course-view-open-tab" href="#" target="_blank" rel="noopener">
-                        <i class="fas fa-up-right-from-square"></i> Open in new tab
-                    </a>
                 </div>
                 <button type="button" class="course-view-close" onclick="closeViewCourseModal()" aria-label="Close">
                     &times;
@@ -4893,6 +4993,39 @@
             document.getElementById('archivedCoursesModal').style.display = "none";
         }
 
+        function getDraftCoursesDashboardCount() {
+            try {
+                let count = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    if (key === 'draft_course_create' || key.startsWith('draft_course_edit_')) {
+                        const raw = localStorage.getItem(key);
+                        if (raw && raw !== '{}' && raw !== 'null') {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function refreshDraftCoursesDashboardCount() {
+            const valueNode = document.getElementById('draftCoursesCount');
+            if (!valueNode) return;
+            valueNode.textContent = String(getDraftCoursesDashboardCount());
+        }
+
+        document.addEventListener('DOMContentLoaded', refreshDraftCoursesDashboardCount);
+        window.addEventListener('focus', refreshDraftCoursesDashboardCount);
+        window.addEventListener('storage', function(event) {
+            if (!event.key || event.key === 'draft_course_create' || event.key.startsWith('draft_course_edit_')) {
+                refreshDraftCoursesDashboardCount();
+            }
+        });
+
         @if(session('open_archived_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             openArchivedCoursesModal();
@@ -4908,14 +5041,10 @@
             const title = document.getElementById('view_course_name');
             const loader = document.getElementById('viewCourseLoading');
             const iframe = document.getElementById('view_course_iframe');
-            const openInNewTabLink = document.getElementById('view_course_open_tab');
             const courseUrl = courseShowUrlTemplate.replace('__COURSE_ID__', encodeURIComponent(course.id));
 
             if (title) {
                 title.innerText = course.name ? course.name : 'Course Details';
-            }
-            if (openInNewTabLink) {
-                openInNewTabLink.href = courseUrl;
             }
             if (loader) {
                 loader.style.display = 'flex';
