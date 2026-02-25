@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trainer Dashboard - CAPDEV PRO</title>
+    <title>Coach Dashboard - CAPDEV PRO</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -1228,7 +1228,7 @@
 
                 <div class="course-grid">
                     @forelse($myCourses as $course)
-                        <div class="course-card">
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1259,7 +1259,7 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}">Enter Class</a>
+                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
                         </div>
@@ -1280,7 +1280,7 @@
                 
                 <div class="course-grid">
                     @forelse($myCourses as $course)
-                        <div class="course-card">
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1311,7 +1311,7 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}">Enter Class</a>
+                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
                         </div>

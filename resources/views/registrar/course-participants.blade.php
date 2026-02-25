@@ -160,7 +160,7 @@
                 <div class="meta">
                     <span><i class="fas fa-layer-group"></i> {{ $course->subject_area ?: 'Uncategorized' }}</span>
                 </div>
-                <p class="info">Select trainers and trainees to be active in this course. Selecting a trainee who previously requested to join will approve them.</p>
+                <p class="info">Select coaches and trainees to be active in this course. Selecting a trainee who previously requested to join will approve them.</p>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(13,110,253,0.12); color:#0d6efd;">
@@ -168,7 +168,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>{{ $trainersCount }}</h3>
-                            <p>Total Trainers</p>
+                            <p>Total Coaches</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -197,19 +197,19 @@
             @csrf
             @method('PUT')
             <div class="tabs">
-                <button type="button" class="tab-btn active" data-tab="trainers"><i class="fas fa-user-tie"></i> Trainers</button>
+                <button type="button" class="tab-btn active" data-tab="trainers"><i class="fas fa-user-tie"></i> Coaches</button>
                 <button type="button" class="tab-btn" data-tab="trainees"><i class="fas fa-user-graduate"></i> Trainees</button>
             </div>
             <div id="tab-trainers" class="tab-panel active">
             <div class="card">
-                <h3><i class="fas fa-list"></i> Trainers Summary</h3>
+                <h3><i class="fas fa-list"></i> Coaches Summary</h3>
                 <div class="body">
                     @if(isset($assignedTrainers) && $assignedTrainers->count())
                         @php $assignedIds = $course->users->where('role','trainer')->pluck('id')->toArray(); @endphp
                         <div class="summary-controls">
-                            <div class="search" style="flex:1"><i class="fas fa-search"></i><input id="trainer_summary_search" type="text" placeholder="Search trainer or course"></div>
+                            <div class="search" style="flex:1"><i class="fas fa-search"></i><input id="trainer_summary_search" type="text" placeholder="Search coach or course"></div>
                             <select id="trainer_summary_scope" aria-label="Scope">
-                                <option value="all">All trainers</option>
+                                <option value="all">All coaches</option>
                                 <option value="assigned">Assigned only</option>
                             </select>
                             <select id="trainer_summary_filter" aria-label="Filter by total courses">
@@ -258,12 +258,12 @@
                             </div>
                         </div>
                     @else
-                        <div class="info">No trainers found.</div>
+                        <div class="info">No coaches found.</div>
                     @endif
                 </div>
             </div>
             <div class="card">
-                <h3><i class="fas fa-user-tie"></i> Trainers</h3>
+                <h3><i class="fas fa-user-tie"></i> Coaches</h3>
                 <div class="body">
                     @php
                         $currentTrainers = $course->users->where('role','trainer')->pluck('id')->toArray();
@@ -277,7 +277,7 @@
                                 <div class="search"><i class="fas fa-search"></i><input id="filter_available_trainers" type="text" placeholder="Find by name"></div>
                             </div>
                             <div class="shell">
-                                <div id="available_trainers" class="list" aria-label="Available trainers">
+                                <div id="available_trainers" class="list" aria-label="Available coaches">
                                     @foreach($availableTrainers as $user)
                                         <label class="item" data-id="{{ $user->id }}" data-name="{{ strtolower($user->name) }}">
                                             <input type="checkbox">
@@ -300,7 +300,7 @@
                                 <div class="search"><i class="fas fa-search"></i><input id="filter_selected_trainers" type="text" placeholder="Find by name"></div>
                             </div>
                             <div class="shell">
-                                <div id="selected_trainers" class="list" aria-label="Selected trainers">
+                                <div id="selected_trainers" class="list" aria-label="Selected coaches">
                                     @foreach($potentialTrainers as $user)
                                         @if(in_array($user->id, $currentTrainers))
                                             <label class="item" data-id="{{ $user->id }}" data-name="{{ strtolower($user->name) }}">
@@ -314,7 +314,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="info">Move trainers to Selected to assign them to this course.</div>
+                    <div class="info">Move coaches to Selected to assign them to this course.</div>
                 </div>
             </div>
             </div>

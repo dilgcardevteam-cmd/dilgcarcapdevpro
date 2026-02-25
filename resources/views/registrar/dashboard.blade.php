@@ -1209,7 +1209,7 @@
                         <div class="dist-total">{{ $totalUsers }} total users</div>
                     </div>
                     <div class="dist-row">
-                        <div class="dist-label">Trainers</div>
+                        <div class="dist-label">Coaches</div>
                         <div class="dist-bar"><div class="dist-blue" style="width: {{ $pct($distTrainers,$totalUsers) }}%"></div></div>
                         <div class="dist-total" style="margin-top:4px">{{ $distTrainers }} ({{ $pct($distTrainers,$totalUsers) }}%)</div>
                     </div>
@@ -1262,7 +1262,7 @@
                                     <optgroup label="Roles">
                                         <option value="role:admin">Admin</option>
                                         <option value="role:registrar">Registrar</option>
-                                        <option value="role:trainer">Trainer</option>
+                                        <option value="role:trainer">Coach</option>
                                         <option value="role:trainee">Trainee</option>
                                     </optgroup>
                                     <optgroup label="Status">
@@ -1339,7 +1339,7 @@
                                         <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
                                         <div class="course-footer">
                                         <div class="course-counts">
-                                                <span title="Trainers"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Trainer' : 'Trainers' }}</span></span>
+                                                <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
                                                 <span title="Trainees"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Trainee' : 'Trainees' }}</span></span>
                                         </div>
                                             <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
@@ -1472,7 +1472,7 @@
                             style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px;">
                         <option value="admin">Admin</option>
                         <option value="registrar">Registrar</option>
-                        <option value="trainer">Trainer</option>
+                        <option value="trainer">Coach</option>
                         <option value="trainee">Trainee</option>
                     </select>
                 </div>
@@ -1750,6 +1750,8 @@
             const val = cb.value;
             const label = val === 'freeze'
                 ? 'Blocked'
+                : val === 'trainer'
+                    ? 'Coach'
                 : val.charAt(0).toUpperCase() + val.slice(1);
             const chip = document.createElement('div');
             chip.className = 'active-filter-chip';

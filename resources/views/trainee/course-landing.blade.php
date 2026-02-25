@@ -23,6 +23,13 @@
         .header-toggle{background:none;border:none;color:#002C76;font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
         .header-toggle:hover{background:#f0f2f7}
         .header-right{display:flex;align-items:center;gap:15px}
+        .header-section-title{margin-left:12px;font-size:1.08rem;color:var(--primary-blue);font-weight:700;letter-spacing:-.01em}
+        .profile-menu{position:relative}
+        .user-profile{display:flex;align-items:center;gap:10px;color:var(--dark-text)}
+        .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+        .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
+        .profile-dropdown .dropdown-item:hover{background:#f8fafc}
+        .profile-dropdown .danger{color:#b91c1c}
         .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height))}
         .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
         .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
@@ -36,7 +43,7 @@
         .sidebar.collapsed .nav-text{display:none}
         .sidebar.collapsed .nav-link{justify-content:center;padding:15px}
         .sidebar.collapsed .nav-icon{margin-right:0}
-        .main-content{flex:1;padding:30px;overflow-y:auto;background-color:var(--bg-color)}
+        .main-content{flex:1;padding:24px;overflow-y:auto;background:linear-gradient(180deg,#f7f9fc 0%,#f2f5fa 100%)}
         .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
         .back-link i{margin-right:8px}
         :root{--app-sidebar-w:250px;--app-header-h:80px}
@@ -56,32 +63,33 @@
         .app-header-left{display:flex;align-items:center;gap:12px}
         .app-header-logo{height:48px}
         .app-header-right a{color:#1a1a1a;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px}
-        .page{max-width:1100px;margin:18px auto 40px;padding:0 16px}
-        .hero{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
-        .hero-top{position:relative;height:200px;background:#e9eef9;display:flex;align-items:center;justify-content:center}
+        .page{max-width:1220px;margin:22px auto 42px;padding:0 18px}
+        .hero{background:#fff;border:1px solid #dbe2ee;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.08)}
+        .hero-top{position:relative;height:230px;background:#e9eef9;display:flex;align-items:center;justify-content:center}
         .hero-top img{width:100%;height:100%;object-fit:cover}
+        .hero-top::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.08) 0%,rgba(15,23,42,.35) 100%);pointer-events:none}
         .chip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#0f3b8f;border:1px solid #dbeafe;border-radius:999px;padding:6px 10px;font-weight:700}
-        .hero-body{padding:16px}
-        .title{margin:4px 0 10px;font-size:1.8rem;letter-spacing:-0.02em;color:#0f3b8f}
-        .tabs{display:inline-flex;gap:8px;margin: 10px 0 0;padding:6px;background:#eef2ff;border-radius:12px;border:1px solid var(--border)}
+        .hero-body{padding:20px 22px}
+        .title{margin:6px 0 12px;font-size:2rem;letter-spacing:-0.02em;color:#0f3b8f;line-height:1.2}
+        .tabs{display:inline-flex;gap:8px;margin:12px 0 0;padding:6px;background:#eef2ff;border-radius:12px;border:1px solid var(--border)}
         .tab{padding:10px 14px;border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;color:#0f172a}
         .tab:hover{background:#fff;border-color:#e5e7eb}
         .tab.active{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 6px 12px rgba(13,110,253,0.25)}
-        .content{margin-top:14px}
-        .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+        .content{margin-top:16px}
+        .card{background:#fff;border:1px solid #dbe2ee;border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
         .stream-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--border)}
         .stream-item:last-child{border-bottom:none}
         .avatar{width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f}
         .muted{color:var(--muted);font-size:.9rem}
         .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
         @media (max-width: 900px){ .split{grid-template-columns:1fr} }
-        .container-box{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px}
+        .container-box{background:#fff;border:1px solid #dde5f1;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
         .section-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:800;color:#0f3b8f}
         .ann-actions{display:flex;align-items:center;gap:12px;margin-bottom:10px}
         .chip-action{background:#e8f0ff;color:#0f3b8f;border:1px solid #cfe0ff;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
         .chip-stat{background:#e8f0ff;color:#0f3b8f;border:1px solid #cfe0ff;border-radius:999px;padding:8px 12px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:default}
         .link-action{color:#0f3b8f;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-weight:600}
-        .announce-card{background:#f3f7ff;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+        .announce-card{background:#f3f7ff;border:1px solid #d9e4f7;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,.05)}
         .announce-card{position:relative}
         .announce-head{display:flex;align-items:center;gap:10px;padding:12px 16px}
         .announce-ava{width:36px;height:36px;border-radius:50%;background:#d1e3ff;color:#144d9a;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -103,6 +111,17 @@
         .people{display:grid;grid-template-columns: 1fr 1fr;gap:16px}
         .people ul{list-style:none;margin:0;padding:0}
         .people li{padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:#f8fafc}
+        .participant-item-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:#f8fafc;color:#0f172a;cursor:pointer;text-align:left;font:inherit;transition:all .2s ease}
+        .participant-item-btn:hover{background:#edf3ff;border-color:#c7d7f8}
+        .participant-view-modal{width:460px;max-width:calc(100% - 30px);background:#fff;border:1px solid #dbe4ef;border-radius:14px;box-shadow:0 20px 45px rgba(15,23,42,.25);overflow:hidden}
+        .participant-view-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+        .participant-view-title{margin:0;font-size:1rem;color:#0f3b8f;font-weight:800}
+        .participant-view-close{border:1px solid #d1d5db;background:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;color:#475569}
+        .participant-view-close:hover{background:#f1f5f9;color:#0f172a}
+        .participant-view-body{padding:14px 16px}
+        .participant-view-row{margin-bottom:10px}
+        .participant-view-label{display:block;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:4px}
+        .participant-view-value{color:#0f172a;font-weight:600}
         @media (max-width: 800px){ .people{grid-template-columns: 1fr} }
         .progress-wrap{display:flex;align-items:center;gap:16px}
         .progress-ring{width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--brand) var(--deg,0deg), #e5e7eb 0);display:flex;align-items:center;justify-content:center;color:#0f3b8f;font-weight:800}
@@ -112,7 +131,7 @@
         .discussion .post{display:flex;gap:10px;padding:12px 0;border-bottom:1px dashed var(--border)}
         .discussion textarea{width:100%;min-height:70px;border:1px solid var(--border);border-radius:10px;padding:10px;resize:vertical}
         .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:50}
-        .modal{width:640px;max-width:calc(100% - 32px);background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.2);overflow:hidden}
+        .modal{width:680px;max-width:calc(100% - 32px);background:#fff;border:1px solid #dbe4ef;border-radius:16px;box-shadow:0 22px 48px rgba(15,23,42,.25);overflow:hidden}
         .modal-editor{padding:14px 16px 0;background:#f8fafc}
         .modal-editor textarea{width:100%;min-height:140px;border:none;outline:none;background:transparent;font-size:1.05rem;color:#0f172a;resize:vertical}
         .modal-toolbar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#fff}
@@ -126,8 +145,8 @@
         .counter{font-size:.85rem;color:#64748b}
         .error-text{color:#b91c1c;font-size:.9rem;margin-top:6px}
         .forum-list{display:flex;flex-direction:column;gap:12px}
-        .forum-card{display:block;border:1px solid var(--border);background:#fff;border-radius:12px;padding:14px 16px;transition:box-shadow .2s ease, transform .05s ease,border-color .2s ease;border-left:4px solid #e5e7eb}
-        .forum-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.06)}
+        .forum-card{display:block;border:1px solid #dbe4f0;background:#fff;border-radius:12px;padding:14px 16px;transition:box-shadow .2s ease, transform .08s ease,border-color .2s ease;border-left:4px solid #d8deea}
+        .forum-card:hover{box-shadow:0 10px 20px rgba(15,23,42,.08);transform:translateY(-1px)}
         .forum-card.selected{outline:3px solid #0f3b8f;outline-offset:0;border-color:#bfd7ff}
         .asm-details{display:none;margin-top:10px;background:#f1f6ff;border:1px solid #d6e4ff;border-radius:10px;padding:12px;color:#0f172a}
         .forum-title{font-weight:700;color:#0f172a}
@@ -135,6 +154,33 @@
         .modal-editor input[type="text"]{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px}
         .modal-editor textarea{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px}
         .modal-editor input[type="text"]:focus,.modal-editor textarea:focus{outline:2px solid rgba(13,110,253,.25);outline-offset:2px}
+        .discussion-modal{width:760px;max-width:calc(100% - 28px);border:1px solid #d7e3f5;box-shadow:0 24px 56px rgba(15,23,42,.28)}
+        #discussionModal .discussion-modal-header{padding:14px 18px;border-bottom:1px solid #e2e8f0;background:linear-gradient(180deg,#f8fbff 0%,#f3f7ff 100%)}
+        #discussionModal .discussion-modal-title{margin:0;font-size:1.05rem;font-weight:800;color:#0f3b8f;display:flex;align-items:center;gap:8px}
+        #discussionModal .discussion-modal-sub{margin-top:4px;color:#64748b;font-size:.9rem}
+        #discussionModal .discussion-close{position:absolute;right:14px;top:12px;width:34px;height:34px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#475569;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;line-height:1}
+        #discussionModal .discussion-close:hover{background:#f1f5f9;color:#0f172a}
+        #discussionModal .discussion-modal-body{padding:16px 18px 8px;background:#fff}
+        #discussionModal .discussion-label{display:block;margin-bottom:6px;font-weight:700;color:#475569;font-size:.9rem}
+        #discussionModal #discussionTitle,
+        #discussionModal #discussionBody{border:1px solid #d8e1ee;border-radius:12px;padding:12px;box-sizing:border-box}
+        #discussionModal #discussionTitle:focus,
+        #discussionModal #discussionBody:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+        #discussionModal .discussion-file{display:block;width:100%;padding:10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc}
+        #discussionModal .discussion-modal-actions{padding:12px 18px;border-top:1px solid #e2e8f0;background:#f8fafc}
+        #discussionModal #discussionSubmit{min-width:156px;justify-content:center}
+        .main-content::-webkit-scrollbar{width:10px}
+        .main-content::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
+        .main-content::-webkit-scrollbar-track{background:transparent}
+        @media (max-width: 900px){
+            .main-content{padding:14px}
+            .page{padding:0 10px;margin-top:14px}
+            .hero-top{height:180px}
+            .hero-body{padding:14px}
+            .title{font-size:1.45rem}
+            .tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+            .tab{width:100%}
+        }
     </style>
     <script>
         var currentEditCard = null;
@@ -261,6 +307,20 @@
             var m=document.getElementById('discussionModal');
             if(m){m.style.display='none';}
         }
+        function openParticipantView(name, email, role){
+            var m = document.getElementById('participantViewModal');
+            var n = document.getElementById('participantViewName');
+            var r = document.getElementById('participantViewRole');
+            var e = document.getElementById('participantViewEmail');
+            if(n){ n.textContent = name || '-'; }
+            if(r){ r.textContent = role || '-'; }
+            if(e){ e.textContent = email || '-'; }
+            if(m){ m.style.display = 'flex'; }
+        }
+        function closeParticipantView(){
+            var m = document.getElementById('participantViewModal');
+            if(m){ m.style.display = 'none'; }
+        }
         function updateDiscussionCounts(){
             var t=document.getElementById('discussionTitle');
             var b=document.getElementById('discussionBody');
@@ -269,9 +329,11 @@
             var submit=document.getElementById('discussionSubmit');
             var tlen = t ? t.value.length : 0;
             var blen = b ? b.value.length : 0;
+            var titleFilled = t ? t.value.trim().length > 0 : false;
+            var bodyFilled = b ? b.value.trim().length > 0 : false;
             if(tc){ tc.textContent = tlen + '/200'; }
             if(bc){ bc.textContent = blen + ' chars'; }
-            var valid = (tlen>=5 && tlen<=200) && (blen>=10);
+            var valid = titleFilled && bodyFilled;
             if(submit){
                 submit.disabled = !valid;
                 submit.classList.toggle('btn-blue', valid);
@@ -511,7 +573,7 @@
         }
         function insertAnnouncement(body){
             var trainerLetter='T';
-            var trainerName='Trainer';
+            var trainerName='Coach';
             var preview=document.getElementById('annPreview');
             var listPanel=document.getElementById('annListPanel');
             var time=new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
@@ -542,6 +604,12 @@
                 insertAnnouncement(body);
             }
             closeAnnouncementModal();
+        }
+        function toggleProfileMenu(e){
+            e.stopPropagation();
+            var d = document.getElementById('profileDropdown');
+            if(!d) return;
+            d.style.display = (d.style.display==='block') ? 'none' : 'block';
         }
         document.addEventListener('DOMContentLoaded', function(){
             
@@ -579,6 +647,21 @@
                 }
                 document.querySelectorAll('.dots-menu').forEach(m=>m.style.display='none');
             });
+            document.addEventListener('click', function(ev){
+                var menu = document.querySelector('.profile-menu');
+                var d = document.getElementById('profileDropdown');
+                if(menu && d && !menu.contains(ev.target)){
+                    d.style.display = 'none';
+                }
+                if(ev.target && ev.target.id === 'participantViewModal'){
+                    closeParticipantView();
+                }
+            });
+            document.addEventListener('keydown', function(ev){
+                if(ev.key === 'Escape'){
+                    closeParticipantView();
+                }
+            });
         });
     </script>
     </head>
@@ -598,6 +681,34 @@
     <header class="header">
         <div class="header-left">
             <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div id="headerSectionTitle" class="header-section-title">Classroom</div>
+        </div>
+        <div class="header-right">
+            <div class="profile-menu">
+                <div class="user-profile" onclick="toggleProfileMenu(event)" style="cursor: pointer;">
+                    @php
+                        $avatarSrc = Auth::user()->profile_picture
+                            ? asset('storage/' . Auth::user()->profile_picture)
+                            : asset('images/user.png');
+                    @endphp
+                    <img src="{{ $avatarSrc }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
+                </div>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a class="dropdown-item" href="{{ route('profile.setup') }}">
+                        <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
+                    </a>
+                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                        <i class="fas fa-life-ring"></i> <span>Help & Support</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                        @csrf
+                        <button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </header>
     <div class="dashboard-container">
@@ -655,7 +766,7 @@
                         <button id="tabBtnStream" class="tab active" onclick="switchTo('Stream')" role="tab" aria-controls="paneStream" aria-selected="true">Stream</button>
                         <button id="tabBtnClasswork" class="tab" onclick="switchTo('Classwork')" role="tab" aria-controls="paneClasswork" aria-selected="false" tabindex="-1">Classwork</button>
                         <button id="tabBtnForum" class="tab" onclick="switchTo('Forum')" role="tab" aria-controls="paneForum" aria-selected="false" tabindex="-1">Forum</button>
-                        <button id="tabBtnPeople" class="tab" onclick="switchTo('People')" role="tab" aria-controls="panePeople" aria-selected="false" tabindex="-1">People</button>
+                        <button id="tabBtnPeople" class="tab" onclick="switchTo('People')" role="tab" aria-controls="panePeople" aria-selected="false" tabindex="-1">Participants</button>
                     </div>
                 </div>
             </div>
@@ -701,7 +812,7 @@
                                 <button class="chip-action" onclick="currentEditCard=null; openAnnouncementModal()"><i class="fas fa-pen"></i> New announcement</button>
                             </div>
                             @php
-                                $trainer = optional($course->users->firstWhere('role','trainer'))->name ?? 'Trainer';
+                                $trainer = optional($course->users->firstWhere('role','trainer'))->name ?? 'Coach';
                                 $announcements = $announcements ?? collect();
                             @endphp
                             <div id="annPreview">
@@ -768,7 +879,7 @@
                         <a class="link-action" href="javascript:void(0)" onclick="backToStreamMain()"><i class="fas fa-arrow-left"></i> Back</a>
                     </div>
                     @php
-                        $trainer = optional($course->users->firstWhere('role','trainer'))->name ?? 'Trainer';
+                        $trainer = optional($course->users->firstWhere('role','trainer'))->name ?? 'Coach';
                         $announcements = $announcements ?? collect();
                     @endphp
                     @if($announcements->isEmpty())
@@ -1004,12 +1115,16 @@
                 @endphp
                 <div class="people">
                     <div>
-                        <div style="font-weight:800;margin-bottom:8px;">Trainers</div>
+                        <div style="font-weight:800;margin-bottom:8px;">Coaches</div>
                         <ul>
                             @forelse($trainers as $t)
-                                <li><i class="fas fa-user-tie" style="color:#0f3b8f;"></i> {{ $t->name }}</li>
+                                <li style="padding:0;border:none;background:transparent;margin:0;">
+                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($t->name), @json($t->email), 'Coach')">
+                                        <i class="fas fa-user-tie" style="color:#0f3b8f;"></i> {{ $t->name }}
+                                    </button>
+                                </li>
                             @empty
-                                <li class="muted">No trainers listed.</li>
+                                <li class="muted">No coaches listed.</li>
                             @endforelse
                         </ul>
                     </div>
@@ -1017,12 +1132,38 @@
                         <div style="font-weight:800;margin-bottom:8px;">Classmates</div>
                         <ul>
                             @forelse($classmates as $s)
-                                <li><i class="fas fa-user" style="color:#0f3b8f;"></i> {{ $s->name }}</li>
+                                <li style="padding:0;border:none;background:transparent;margin:0;">
+                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($s->name), @json($s->email), 'Classmate')">
+                                        <i class="fas fa-user" style="color:#0f3b8f;"></i> {{ $s->name }}
+                                    </button>
+                                </li>
                             @empty
                                 <li class="muted">No classmates listed.</li>
                             @endforelse
                         </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="participantViewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="participantViewTitle">
+        <div class="participant-view-modal">
+            <div class="participant-view-header">
+                <h3 id="participantViewTitle" class="participant-view-title">Participant Details</h3>
+                <button type="button" class="participant-view-close" onclick="closeParticipantView()" aria-label="Close">&times;</button>
+            </div>
+            <div class="participant-view-body">
+                <div class="participant-view-row">
+                    <span class="participant-view-label">Name</span>
+                    <div id="participantViewName" class="participant-view-value">-</div>
+                </div>
+                <div class="participant-view-row">
+                    <span class="participant-view-label">Role</span>
+                    <div id="participantViewRole" class="participant-view-value">-</div>
+                </div>
+                <div class="participant-view-row" style="margin-bottom:0;">
+                    <span class="participant-view-label">Email</span>
+                    <div id="participantViewEmail" class="participant-view-value">-</div>
                 </div>
             </div>
         </div>
@@ -1059,28 +1200,32 @@
         </div>
     </div>
     <div id="discussionModal" class="modal-overlay">
-        <div class="modal">
+        <div class="modal discussion-modal">
             <form id="discussionForm" action="{{ route('courses.discussions.store',$course) }}" method="POST" enctype="multipart/form-data" onsubmit="submitDiscussion(event)">
                 @csrf
                 @if(!empty($asTrainer))
                     <input type="hidden" name="as_trainer" value="1">
                 @endif
-                <div class="modal-editor">
-                    <label for="discussionTitle" class="muted" style="display:block;margin-bottom:4px;">Title</label>
+                <div class="discussion-modal-header" style="position:relative;">
+                    <button type="button" class="discussion-close" aria-label="Close" onclick="closeDiscussionModal()">&times;</button>
+                    <h3 class="discussion-modal-title"><i class="fas fa-comments"></i> Create Discussion</h3>
+                    <div class="discussion-modal-sub">Start a meaningful conversation with your class.</div>
+                </div>
+                <div class="modal-editor discussion-modal-body">
+                    <label for="discussionTitle" class="discussion-label">Title</label>
                     <input id="discussionTitle" name="title" type="text" maxlength="200" oninput="updateDiscussionCounts()" placeholder="Enter a clear, concise title" style="width:100%;font-size:1.05rem;color:#0f172a;">
                     <div class="counter" id="titleCount" aria-live="polite">0/200</div>
-                    <label for="discussionBody" class="muted" style="display:block;margin:10px 0 4px;">Content</label>
+                    <label for="discussionBody" class="discussion-label" style="margin-top:12px;">Content</label>
                     <textarea id="discussionBody" name="body" oninput="updateDiscussionCounts()" placeholder="Write at least 10 characters..." style="width:100%;min-height:140px;font-size:1rem;color:#0f172a;resize:vertical"></textarea>
                     <div class="counter" id="bodyCount" aria-live="polite">0 chars</div>
-                    <label for="discussionImage" class="muted" style="display:block;margin:10px 0 4px;">Image (optional)</label>
-                    <input id="discussionImage" name="image" type="file" accept="image/*" style="display:block;">
+                    <label for="discussionImage" class="discussion-label" style="margin-top:12px;">Image (optional)</label>
+                    <input id="discussionImage" name="image" class="discussion-file" type="file" accept="image/*" style="display:block;">
                     <div id="discussionError" class="error-text" role="alert"></div>
                 </div>
-                <div class="modal-actions">
+                <div class="modal-actions discussion-modal-actions">
                     <div></div>
                     <div class="post-cta">
-                        <a href="javascript:void(0)" onclick="closeDiscussionModal()" class="link-action">Cancel</a>
-                        <button id="discussionSubmit" class="btn btn-disabled" type="submit" disabled>Submit</button>
+                        <button id="discussionSubmit" class="btn btn-disabled" type="submit" disabled>Create Discussion</button>
                     </div>
                 </div>
             </form>

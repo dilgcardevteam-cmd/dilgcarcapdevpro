@@ -1102,7 +1102,7 @@
                 </div>
                 <div class="course-grid">
                     @forelse($myCourses as $course)
-                        <div class="course-card">
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainee.courses.show', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainee.courses.show', $course) }}';}">
                             <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
@@ -1117,7 +1117,7 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}">Enter Class</a>
+                                    <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
                         </div>
@@ -1156,7 +1156,10 @@
                 
                 <div class="course-grid">
                     @forelse($classroomCourses as $course)
-                        <div class="course-card">
+                        @php
+                            $st = $courseStatuses[$course->id] ?? 'active';
+                        @endphp
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
                             <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
@@ -1168,17 +1171,14 @@
                                 <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
-                                    @php
-                                        $st = $courseStatuses[$course->id] ?? 'active';
-                                    @endphp
                                     @if($st === 'pending')
                                         <span style="font-size: 0.85rem; color: #f57c00; font-weight: 700;">Pending Approval</span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" style="pointer-events:none; opacity:.6;">Enter Class</a>
+                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" style="pointer-events:none; opacity:.6;" onclick="event.stopPropagation();">Enter Class</a>
                                     @else
                                         <span style="font-size: 0.8rem; color: #777;">
                                             <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
                                         </span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}">Enter Class</a>
+                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                     @endif
                                 </div>
                             </div>
@@ -1414,11 +1414,11 @@
                                 <div style="color: var(--light-text); font-size: 0.9rem;">
                                     <span id="detail-category-badge" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Category</span>
                                     <span style="margin: 0 10px;">•</span>
-                                    <span id="detail-trainer">Trainer: </span>
+                                    <span id="detail-trainer">Coach: </span>
                                 </div>
                             </div>
                         </div>
-                        <button id="detail-enroll-btn" class="btn-view" style="background-color: var(--primary-green); padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                        <button id="detail-enroll-btn" class="btn-view" style="background-color: #C9282D; padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
                             <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
                         </button>
                     </div>
@@ -1633,7 +1633,7 @@
             document.getElementById('detail-description').innerText = course.description;
             document.getElementById('detail-category-badge').innerText = course.subject_area || 'General';
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
-            document.getElementById('detail-trainer').innerText = "Trainer: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
+            document.getElementById('detail-trainer').innerText = "Coach: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
             
             const hero = document.getElementById('detail-hero');
             if (course.image_path) {
