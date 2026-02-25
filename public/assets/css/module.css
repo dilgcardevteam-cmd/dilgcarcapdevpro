@@ -1,0 +1,189 @@
+.moduletitle{
+
+    margin: 3%;
+    border-radius: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   
+
+}
+
+.moduletitle h1{
+    padding: 3%;
+    color: gray;
+    text-align: center;
+    
+
+}
+
+
+.modulecontainer{
+    
+    margin: 5%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: -2%;
+    height: 250%;
+    
+    
+
+}
+.modulecontainer .activityinstance{
+    flex-direction: column;
+
+}
+
+.modulecontainer h2{
+    text-align: center;
+    font-size: 30px;
+
+}
+
+.container-inside{
+    display: flex;
+    justify-content: center;
+
+}
+
+.container-inside img{
+    max-width: 60%;
+    height: auto;
+    
+}
+
+.activityinstance{
+    margin: 1%;
+
+}
+
+.inside-text h2{
+   text-align: left;
+
+}
+
+.inside-text p{
+    font-size: 150%;
+ 
+ }
+ .inside-text{
+    margin: 0% 20% 0% 20%;
+
+ }
+
+.inside-text h3{
+    font-size: 180%;
+
+}
+.introduction h1{
+    font-size: 150%;
+    color: gray;
+
+}
+.introduction li{
+    font-size: 100%;
+
+}
+
+
+
+
+@media screen and (max-width: 3000px) {
+    .modulecontainer {
+        padding: 10px;
+    }
+    .aalink{
+    width: 100%;
+    height: 10%;
+    justify-content: center;
+    display: inline-flex;
+
+    }
+}
+
+@media  screen and (min-width: 480px) {
+    .modulecontainer {
+        padding: 5px;
+        height: auto
+    }
+}
+.activityinstance .aalink{
+    display: flex;
+    align-items: center;
+
+}
+.activityinstance .aalink img{
+    margin: 1%;
+
+}
+
+.link img{
+    width:5%;
+
+}
+.text{
+   padding-bottom: 4%;
+   margin-left: 2%;
+
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+  }
+  
+  .topic, .activity, .evaluation {
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    text-align: center;
+    height: 50%;
+  }
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+  }
+  
+  .topic, .activity, .evaluation {
+    padding: 10px;
+    background-color: #f0f0f0;
+    text-align: center;
+    transition: transform 0.3s ease; 
+  }
+  
+  .topic:hover, .activity:hover, .evaluation:hover {
+    transform: scale(1.1); 
+  }
+
+  .allcontainer{
+    height: 20%;
+
+  }
+
+  .topics, .activitys, .evaluations {
+    padding: 10px;
+    background-color: #f0f0f0;
+    text-align: center;
+    transition: transform 0.3s ease; 
+    height: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+     
+  }
+
+  .topics:hover, .activitys:hover, .evaluations:hover {
+    transform: scale(1.1); 
+  }
+  .topic{
+    background-color: red;
+
+  }
+
+  .activity{
+    background-color: rgb(89, 0, 255);
+
+  }
+
+  .evaluation{
+    background-color: rgb(168, 205, 17);
+
+  }
