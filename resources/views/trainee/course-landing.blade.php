@@ -187,7 +187,6 @@
         var isTrainer = {!! json_encode(!empty($asTrainer)) !!};
         function toggleSidebar(){
             var s=document.getElementById('sidebar');
-<<<<<<< HEAD
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
             try{
@@ -197,42 +196,6 @@
                 var collapsed = document.body.classList.contains('sidebar-collapsed');
                 if(sl){ sl.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
             }catch(e){}
-=======
-            if(!s) return;
-            s.classList.toggle('collapsed');
-            var collapsed = s.classList.contains('collapsed');
-            var hdr = document.querySelector('.header');
-            var cont = document.querySelector('.dashboard-container');
-            var logo = document.querySelector('.sidebar-logo');
-            var brand = document.getElementById('sidebarBrand');
-            if(collapsed){
-                s.style.width='70px';
-                if(hdr) hdr.style.left='70px';
-                if(cont) cont.style.marginLeft='70px';
-                if(logo){
-                    logo.style.height='44px';
-                    logo.style.width='44px';
-                    logo.style.display='block';
-                    logo.style.margin='0 auto';
-                    var small = logo.getAttribute('data-collapsed-src');
-                    if(small){ logo.src = small; }
-                }
-                if(brand){ brand.style.justifyContent='center'; }
-            }else{
-                s.style.width='250px';
-                if(hdr) hdr.style.left='250px';
-                if(cont) cont.style.marginLeft='250px';
-                if(logo){
-                    logo.style.height='70px';
-                    logo.style.width='auto';
-                    logo.style.display='';
-                    logo.style.margin='';
-                    var full = logo.getAttribute('data-full-src');
-                    if(full){ logo.src = full; }
-                }
-                if(brand){ brand.style.justifyContent='space-between'; }
-            }
->>>>>>> f3313f9881ddc5206406782df5472fc645eb2c3f
         }
         function buildAnnouncementHtml(body, time, trainerLetter, trainerName){
             body = body.replace(/</g,'&lt;');
@@ -742,15 +705,10 @@
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-<<<<<<< HEAD
             <div class="header-title" style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">
                 <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
             </div>
             <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
-=======
-            <div id="sidebarBrand" style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);justify-content:space-between">
-                <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro" style="height:70px">
->>>>>>> f3313f9881ddc5206406782df5472fc645eb2c3f
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
