@@ -85,6 +85,9 @@
         }
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+        .profile-dropdown .dropdown-meta{padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#f8fafc;pointer-events:none}
+        .profile-dropdown .dropdown-meta-name{font-weight:700;color:#111827;font-size:.9rem;line-height:1.2}
+        .profile-dropdown .dropdown-meta-role{font-size:.8rem;color:#6b7280;margin-top:2px;line-height:1.2;text-transform:capitalize}
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
@@ -1806,13 +1809,13 @@
                             <span id="header_profile_initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                         @endif
                     </div>
-                    <div id="headerProfileMeta" style="text-align: right; display: none;">
-                        <div style="font-weight: bold; color: var(--dark-text); font-size: 0.9rem;">{{ Auth::user()->name }}</div>
-                        <div style="font-size: 0.8rem; color: var(--light-text);">{{ ucfirst(Auth::user()->role) }}</div>
-                    </div>
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666;margin-left:6px"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-meta">
+                        <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
+                        <div class="dropdown-meta-role">{{ Auth::user()->role }}</div>
+                    </div>
                     <a class="dropdown-item" href="{{ route('dashboard') }}?tab=profile-section">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
@@ -3782,31 +3785,20 @@
         }
     </script>
     <script>
-        function setProfileMetaVisibility(isVisible){
-            var meta=document.getElementById('headerProfileMeta');
-            if(!meta) return;
-            meta.style.display=isVisible?'block':'none';
-        }
         function toggleProfileMenu(e){
             e.stopPropagation();
             var d=document.getElementById('profileDropdown');
             if(!d) return;
-            var willOpen=d.style.display!=='block';
-            d.style.display=willOpen?'block':'none';
-            setProfileMetaVisibility(willOpen);
+            d.style.display=(d.style.display==='block')?'none':'block';
         }
         function hideProfileMenu(){
             var d=document.getElementById('profileDropdown');
             if(d) d.style.display='none';
-            setProfileMetaVisibility(false);
         }
         document.addEventListener('click',function(ev){
             var menu=document.querySelector('.profile-menu');
             var d=document.getElementById('profileDropdown');
-            if(menu&&d&&!menu.contains(ev.target)){
-                d.style.display='none';
-                setProfileMetaVisibility(false);
-            }
+            if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
         });
     </script>
 </body>
