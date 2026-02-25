@@ -562,21 +562,11 @@
         <div class="header-left">
             <img class="header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
-        <div class="header-right">
-            <a href="{{ route('dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-        </div>
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
             <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
-                <div class="user-avatar" style="width:36px;height:36px;background-color:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:800;">
-                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
-                </div>
-                <div class="nav-text" style="display:flex;flex-direction:column;">
-                    <span style="font-weight:700;color:#fff;">Welcome</span>
-                    <span style="font-size:.9rem;color:rgba(255,255,255,.9)">{{ Auth::user()->name }}</span>
-                </div>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
