@@ -45,6 +45,8 @@
             height: var(--header-height);
             box-sizing: border-box;
             z-index: 1000;
+            margin-left: var(--sidebar-width);
+            transition: margin-left .3s ease;
         }
 
         .header-left {
@@ -66,6 +68,7 @@
             align-items: center;
             gap: 15px;
         }
+        .header-section-title{margin-left:12px;font-size:1.1rem;color:var(--primary-blue);font-weight:700;letter-spacing:-.01em}
 
         .user-profile {
             display: flex;
@@ -114,21 +117,32 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            margin-left: var(--sidebar-width);
+            transition: margin-left .3s ease;
         }
 
         /* Sidebar Styles */
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
             width: var(--sidebar-width);
             background-color: var(--primary-blue);
             color: white;
             transition: width 0.3s ease;
             display: flex;
             flex-direction: column;
+            z-index: 900;
         }
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
         }
+        .sidebar .header-title{display:flex;align-items:center;justify-content:center}
+        .sidebar .header-title img{display:block;height:60px}
+        .sidebar.collapsed .header-title{padding:12px 0}
+        .sidebar.collapsed .header-title img{height:40px;margin:0 auto}
 
         .sidebar-toggle {
             background: none;
@@ -743,16 +757,18 @@
             .dashboard-container {
                 flex-direction: column;
                 overflow: visible;
+                margin-left: 0;
             }
 
             .sidebar,
             .sidebar.collapsed {
                 width: 100%;
                 max-width: 100%;
+                position: static;
             }
 
             .sidebar-toggle {
-                display: none;
+                display: inline-block;
             }
 
             .nav-menu {
@@ -827,6 +843,8 @@
                 gap: 10px !important;
             }
         }
+        body.sidebar-collapsed .header { margin-left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .dashboard-container { margin-left: var(--sidebar-collapsed-width); }
 
         /* Profile Section (trainee aligned to admin design) */
         #profile-section .profile-page{display:flex;flex-direction:column;gap:24px}
@@ -871,10 +889,10 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" onerror="this.style.display='none'">
-            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()" style="color: var(--primary-blue); padding: 10px 14px; font-size: 1.2rem;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div id="headerSectionTitle" class="header-section-title">Dashboard</div>
         </div>
         <div class="header-right">
             <!-- Notification Bell -->
@@ -941,11 +959,10 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
+            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:60px">
+            </div>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:28px;max-width:120px;object-fit:contain;">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -1531,7 +1548,14 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
+            var s = document.getElementById('sidebar');
+            if(s){ s.classList.toggle('collapsed'); }
+            document.body.classList.toggle('sidebar-collapsed');
+            var LOGO_MAIN = "{{ asset('images/CAPDEV-PRO-LOGO.png') }}";
+            var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+            var sidebarLogo = document.getElementById('sidebarLogo');
+            var collapsed = document.body.classList.contains('sidebar-collapsed');
+            if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
         }
 
         function showContent(sectionId, element) {
@@ -1550,6 +1574,9 @@
                 });
                 element.classList.add('active');
             }
+            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile'};
+            var titleEl=document.getElementById('headerSectionTitle');
+            if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
         }
 
         function openCourseDetails(courseId) {
