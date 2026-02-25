@@ -1193,7 +1193,7 @@
                                     </optgroup>
                                     <optgroup label="Status">
                                         <option value="status:active">Active</option>
-                                        <option value="status:freeze">Freeze</option>
+                                        <option value="status:freeze">Blocked</option>
                                         <option value="status:pending">Pending</option>
                                     </optgroup>
                                 </select>
@@ -1409,7 +1409,7 @@
                             style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px;">
                         <option value="pending">Pending</option>
                         <option value="active">Active</option>
-                        <option value="freeze">Freeze</option>
+                        <option value="freeze">Blocked</option>
                     </select>
                 </div>
                 
@@ -1642,7 +1642,9 @@
         checkboxes.forEach(cb => {
             const type = cb.name === 'roles[]' ? 'role' : 'status';
             const val = cb.value;
-            const label = val.charAt(0).toUpperCase() + val.slice(1);
+            const label = val === 'freeze'
+                ? 'Blocked'
+                : val.charAt(0).toUpperCase() + val.slice(1);
             const chip = document.createElement('div');
             chip.className = 'active-filter-chip';
             chip.innerHTML = `
