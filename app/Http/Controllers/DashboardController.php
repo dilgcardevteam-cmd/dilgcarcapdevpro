@@ -302,13 +302,11 @@ class DashboardController extends Controller
         }
 
         $request->validate([
-            'job_title' => 'nullable|string|max:255',
             'additional_details' => 'nullable|string',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'display_type' => 'nullable|in:our_team,past_trainees',
         ]);
 
-        $user->job_title = $request->job_title;
         $user->additional_details = $request->additional_details;
         $user->display_type = $request->display_type;
 

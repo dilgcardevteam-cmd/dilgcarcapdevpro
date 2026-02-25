@@ -20,6 +20,7 @@
                         $roleClass = in_array($user->role, ['admin', 'registrar', 'trainer', 'trainee']) ? $user->role : 'trainee';
                         $statusValue = $user->status ?? 'active';
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
+                        $statusLabel = $statusValue === 'freeze' ? 'Blocked' : $statusValue;
                     @endphp
                     <tr>
                         <td>
@@ -33,7 +34,7 @@
                         <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $user->role }}</span></td>
                         <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
                         <td class="muted-cell">{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
-                        <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusValue }}</span></td>
+                        <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>
                         <td>
                             <div class="actions-inline">
                                 <button type="button" onclick='openEditModal(@json($user))' class="btn-table-action btn-action-manage">

@@ -380,6 +380,11 @@
             cursor: pointer;
         }
 
+        .stat-card.clickable:focus-visible {
+            outline: 2px solid #17489f;
+            outline-offset: 2px;
+        }
+
         .stat-icon {
             width: 48px;
             height: 48px;
@@ -535,6 +540,22 @@
             border-radius: 12px;
             padding: 10px;
             background: #f8fafc;
+        }
+
+        .pipeline-card.clickable {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pipeline-card.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+            border-color: #c9d7ea;
+        }
+
+        .pipeline-card.clickable:focus-visible {
+            outline: 2px solid #17489f;
+            outline-offset: 2px;
         }
 
         .pipeline-card span {
@@ -2323,17 +2344,6 @@
                                     Use this board to quickly spot bottlenecks and move training delivery forward.
                                 </p>
                             </div>
-                            <div class="lms-home-quick">
-                                <button type="button" class="lms-pill-btn" onclick="showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']))">
-                                    <i class="fas fa-users"></i> Review Users
-                                </button>
-                                <button type="button" class="lms-pill-btn" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))">
-                                    <i class="fas fa-book-open"></i> Manage Courses
-                                </button>
-                                <button type="button" class="lms-pill-btn" onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))">
-                                    <i class="fas fa-certificate"></i> Certifications
-                                </button>
-                            </div>
                         </div>
 
                         <div class="lms-hero-metrics">
@@ -2349,18 +2359,26 @@
                     </div>
 
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card clickable"
+                            role="button"
+                            tabindex="0"
+                            onclick="showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']))"
+                            onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                             <div class="stat-icon">
                                 <i class="fas fa-users"></i>
                             </div>
                             <div class="stat-info">
                                 <h3>{{ $userCount }}</h3>
                                 <p>Total Accounts</p>
-                                <div class="stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }}</div>
+                                <div class="stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }} | Blocked: {{ $frozenUsersSafe }}</div>
                             </div>
                         </div>
 
-                        <div class="stat-card tone-green">
+                        <div class="stat-card tone-green clickable"
+                            role="button"
+                            tabindex="0"
+                            onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
+                            onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                             <div class="stat-icon">
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
@@ -2371,18 +2389,25 @@
                             </div>
                         </div>
 
-                        <div class="stat-card tone-orange clickable" onclick="window.location.href='{{ route('admin.courses.pending') }}'">
+                        <div class="stat-card tone-orange clickable"
+                            role="button"
+                            tabindex="0"
+                            onclick="window.location.href='{{ route('admin.courses.pending') }}'"
+                            onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                             <div class="stat-icon">
                                 <i class="fas fa-hourglass-half"></i>
                             </div>
                             <div class="stat-info">
                                 <h3>{{ $pendingCoursesSafe }}</h3>
                                 <p>Pending Course Reviews</p>
-                                <div class="stat-meta">Click to open review queue</div>
                             </div>
                         </div>
 
-                        <div class="stat-card tone-slate">
+                        <div class="stat-card tone-slate clickable"
+                            role="button"
+                            tabindex="0"
+                            onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))"
+                            onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                             <div class="stat-icon">
                                 <i class="fas fa-award"></i>
                             </div>
@@ -2445,19 +2470,35 @@
                             </div>
 
                             <div class="pipeline-grid">
-                                <div class="pipeline-card">
+                                <div class="pipeline-card clickable"
+                                    role="button"
+                                    tabindex="0"
+                                    onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
+                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                                     <span>Active</span>
                                     <strong>{{ $activeCoursesSafe }}</strong>
                                 </div>
-                                <div class="pipeline-card">
+                                <div class="pipeline-card clickable"
+                                    role="button"
+                                    tabindex="0"
+                                    onclick="window.location.href='{{ route('admin.courses.pending') }}'"
+                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                                     <span>Pending</span>
                                     <strong>{{ $pendingCoursesSafe }}</strong>
                                 </div>
-                                <div class="pipeline-card">
+                                <div class="pipeline-card clickable"
+                                    role="button"
+                                    tabindex="0"
+                                    onclick="openArchivedCoursesModal()"
+                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                                     <span>Archived</span>
                                     <strong>{{ $archivedCoursesSafe }}</strong>
                                 </div>
-                                <div class="pipeline-card">
+                                <div class="pipeline-card clickable"
+                                    role="button"
+                                    tabindex="0"
+                                    onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))"
+                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                                     <span>Cert Templates</span>
                                     <strong>{{ $certificationSafe }}</strong>
                                 </div>
@@ -2507,7 +2548,7 @@
                                     <strong>{{ $pendingUsersSafe }}</strong>
                                 </li>
                                 <li>
-                                    <span>Frozen accounts</span>
+                                    <span>Blocked accounts</span>
                                     <strong>{{ $frozenUsersSafe }}</strong>
                                 </li>
                                 <li>
@@ -2564,7 +2605,7 @@
                                     </optgroup>
                                     <optgroup label="Status">
                                         <option value="status:active">Active</option>
-                                        <option value="status:freeze">Freeze</option>
+                                        <option value="status:freeze">Blocked</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -3021,11 +3062,6 @@
                     <!-- Right Column: Details -->
                     <div>
                         <div class="form-group">
-                            <label>Job Title</label>
-                            <input type="text" id="display_job_title" name="job_title" placeholder="e.g. Senior Instructor">
-                        </div>
-                        
-                        <div class="form-group">
                             <label>Additional Details (Short Bio)</label>
                             <textarea id="display_additional_details" name="additional_details" rows="3" placeholder="Brief professional summary..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
                         </div>
@@ -3093,15 +3129,6 @@
                                 <polyline points="7 3 7 8 15 8"></polyline>
                             </svg>
                         </button>
-                        <button type="button" id="btnDelete" onclick="deleteUser()" class="modal-action-btn modal-action-delete" title="Delete user" aria-label="Delete user">
-                            <svg class="modal-action-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                                <path d="M10 11v6"></path>
-                                <path d="M14 11v6"></path>
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -3141,17 +3168,6 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Job Title</label>
-                            <div class="field-with-icon">
-                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
-                                </svg>
-                                <input type="text" id="view_job_title" name="job_title" disabled>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
                             <label>Role</label>
                             <div class="field-with-icon">
                                 <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -3174,7 +3190,7 @@
                                 </svg>
                                 <select id="view_status" name="status" required disabled>
                                     <option value="active">Active</option>
-                                    <option value="freeze">Freeze</option>
+                                    <option value="freeze">Blocked</option>
                                     <option value="pending">Pending</option>
                                 </select>
                             </div>
@@ -3198,7 +3214,9 @@
                                     <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
-                                <input type="text" id="view_region" name="region" disabled>
+                                <select id="view_region" name="region" onchange="handleViewRegionChange(this)" disabled>
+                                    <option value="" disabled selected>Select Region</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -3209,16 +3227,20 @@
                                     <line x1="8" y1="3" x2="8" y2="19"></line>
                                     <line x1="16" y1="6" x2="16" y2="22"></line>
                                 </svg>
-                                <input type="text" id="view_province" name="province" disabled>
+                                <select id="view_province" name="province" onchange="handleViewProvinceChange(this)" disabled>
+                                    <option value="" disabled selected>Select Province</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>City</label>
+                            <label>City / Municipality</label>
                             <div class="field-with-icon">
                                 <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
                                     <polygon points="3,11 22,2 13,21 11,13 3,11"></polygon>
                                 </svg>
-                                <input type="text" id="view_city" name="city" disabled>
+                                <select id="view_city" name="city" onchange="handleViewCityChange(this)" disabled>
+                                    <option value="" disabled selected>Select City/Municipality</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -3228,7 +3250,9 @@
                                     <path d="M3 10.5 12 3l9 7.5"></path>
                                     <path d="M5 9.5V21h14V9.5"></path>
                                 </svg>
-                                <input type="text" id="view_barangay" name="barangay" disabled>
+                                <select id="view_barangay" name="barangay" disabled>
+                                    <option value="" disabled selected>Select Barangay</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -3267,10 +3291,6 @@
                     </div>
                 </div>
 
-            </form>
-            <form id="deleteUserForm" method="POST" style="display:none;">
-                @csrf
-                @method('DELETE')
             </form>
         </div>
     </div>
@@ -3757,6 +3777,308 @@
                 });
         }
 
+        const viewLocationHandlers = {
+            loadProvincesByRegion: null,
+            fetchCities: null,
+            loadBarangays: null,
+        };
+
+        function isViewUserEditMode() {
+            return document.getElementById('btnUpdate')?.style.display === 'inline-flex';
+        }
+
+        function syncViewLocationSelectState() {
+            const regionSelect = document.getElementById('view_region');
+            const provinceSelect = document.getElementById('view_province');
+            const citySelect = document.getElementById('view_city');
+            const barangaySelect = document.getElementById('view_barangay');
+            if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+
+            const isEditing = isViewUserEditMode();
+            const applyState = (selectElement, canSelect) => {
+                if (!selectElement) return;
+                selectElement.disabled = !isEditing || !canSelect;
+                if (selectElement.disabled) {
+                    selectElement.style.backgroundColor = '';
+                    selectElement.style.cursor = 'not-allowed';
+                    return;
+                }
+                selectElement.style.backgroundColor = 'white';
+                selectElement.style.cursor = 'pointer';
+            };
+
+            applyState(regionSelect, hasSelectableOptions(regionSelect));
+            applyState(provinceSelect, hasSelectableOptions(provinceSelect));
+            applyState(citySelect, hasSelectableOptions(citySelect));
+            applyState(barangaySelect, hasSelectableOptions(barangaySelect));
+        }
+
+        function initViewLocationDropdowns(selectedRegion = '', selectedProvince = '', selectedCity = '', selectedBarangay = '') {
+            const regionSelect = document.getElementById('view_region');
+            const provinceSelect = document.getElementById('view_province');
+            const citySelect = document.getElementById('view_city');
+            const barangaySelect = document.getElementById('view_barangay');
+            if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+
+            const resetSelect = (selectElement, placeholder) => {
+                selectElement.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+            };
+
+            const addFallbackOption = (selectElement, value, label = value) => {
+                if (!value) return null;
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                option.selected = true;
+                selectElement.appendChild(option);
+                return option;
+            };
+
+            function loadBarangays(cityCode, selectedBarangayValue = null) {
+                resetSelect(barangaySelect, 'Select Barangay');
+                syncViewLocationSelectState();
+
+                if (!cityCode) {
+                    if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                    syncViewLocationSelectState();
+                    return;
+                }
+
+                fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.sort((a, b) => a.name.localeCompare(b.name));
+                        let matched = false;
+                        data.forEach(barangay => {
+                            const option = document.createElement('option');
+                            option.value = barangay.name;
+                            option.textContent = barangay.name;
+                            if (selectedBarangayValue && selectedBarangayValue === barangay.name) {
+                                option.selected = true;
+                                matched = true;
+                            }
+                            barangaySelect.appendChild(option);
+                        });
+
+                        if (selectedBarangayValue && !matched) {
+                            addFallbackOption(barangaySelect, selectedBarangayValue);
+                        }
+
+                        syncViewLocationSelectState();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching barangays:', error);
+                        if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                        syncViewLocationSelectState();
+                    });
+            }
+
+            function fetchCities(code, isRegion, selectedCityValue = null, selectedBarangayValue = null) {
+                const url = isRegion
+                    ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
+                    : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
+
+                resetSelect(citySelect, 'Select City/Municipality');
+                resetSelect(barangaySelect, 'Select Barangay');
+                syncViewLocationSelectState();
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.sort((a, b) => a.name.localeCompare(b.name));
+                        let selectedCityCode = '';
+                        let matched = false;
+
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.name;
+                            option.dataset.code = city.code;
+                            option.textContent = city.name;
+                            if (selectedCityValue && selectedCityValue === city.name) {
+                                option.selected = true;
+                                selectedCityCode = city.code;
+                                matched = true;
+                            }
+                            citySelect.appendChild(option);
+                        });
+
+                        if (selectedCityValue && !matched) {
+                            addFallbackOption(citySelect, selectedCityValue);
+                        }
+
+                        syncViewLocationSelectState();
+                        if (selectedCityCode) {
+                            loadBarangays(selectedCityCode, selectedBarangayValue);
+                        } else if (selectedBarangayValue) {
+                            addFallbackOption(barangaySelect, selectedBarangayValue);
+                            syncViewLocationSelectState();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching cities:', error);
+                        if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                        if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                        syncViewLocationSelectState();
+                    });
+            }
+
+            function loadProvincesByRegion(regionCode, selectedProvinceValue = null, selectedCityValue = null, selectedBarangayValue = null) {
+                resetSelect(provinceSelect, 'Select Province');
+                resetSelect(citySelect, 'Select City/Municipality');
+                resetSelect(barangaySelect, 'Select Barangay');
+                syncViewLocationSelectState();
+
+                if (!regionCode) {
+                    if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+                    if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                    if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                    syncViewLocationSelectState();
+                    return;
+                }
+
+                fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.sort((a, b) => a.name.localeCompare(b.name));
+
+                        if (data.length === 0 && regionCode === '130000000') {
+                            const option = addFallbackOption(provinceSelect, regionSelect.value, regionSelect.value);
+                            if (option) {
+                                option.dataset.code = regionCode;
+                                option.dataset.isRegion = 'true';
+                            }
+                            syncViewLocationSelectState();
+                            fetchCities(regionCode, true, selectedCityValue, selectedBarangayValue);
+                            return;
+                        }
+
+                        let selectedProvinceCode = '';
+                        let matched = false;
+                        data.forEach(province => {
+                            const option = document.createElement('option');
+                            option.value = province.name;
+                            option.dataset.code = province.code;
+                            option.textContent = province.name;
+                            if (selectedProvinceValue && selectedProvinceValue === province.name) {
+                                option.selected = true;
+                                selectedProvinceCode = province.code;
+                                matched = true;
+                            }
+                            provinceSelect.appendChild(option);
+                        });
+
+                        if (selectedProvinceValue && !matched) {
+                            addFallbackOption(provinceSelect, selectedProvinceValue);
+                        }
+
+                        syncViewLocationSelectState();
+                        if (selectedProvinceCode) {
+                            fetchCities(selectedProvinceCode, false, selectedCityValue, selectedBarangayValue);
+                        } else if (selectedCityValue) {
+                            addFallbackOption(citySelect, selectedCityValue);
+                            if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                            syncViewLocationSelectState();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching provinces:', error);
+                        if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+                        if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                        if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                        syncViewLocationSelectState();
+                    });
+            }
+
+            viewLocationHandlers.loadProvincesByRegion = loadProvincesByRegion;
+            viewLocationHandlers.fetchCities = fetchCities;
+            viewLocationHandlers.loadBarangays = loadBarangays;
+
+            resetSelect(regionSelect, 'Select Region');
+            resetSelect(provinceSelect, 'Select Province');
+            resetSelect(citySelect, 'Select City/Municipality');
+            resetSelect(barangaySelect, 'Select Barangay');
+            syncViewLocationSelectState();
+
+            fetch('https://psgc.gitlab.io/api/regions/')
+                .then(response => response.json())
+                .then(data => {
+                    resetSelect(regionSelect, 'Select Region');
+                    data.sort((a, b) => a.name.localeCompare(b.name));
+
+                    let selectedRegionCode = '';
+                    let matched = false;
+                    data.forEach(region => {
+                        const option = document.createElement('option');
+                        option.value = region.name;
+                        option.dataset.code = region.code;
+                        option.textContent = `${region.name} (${region.regionName})`;
+                        if (selectedRegion && selectedRegion === region.name) {
+                            option.selected = true;
+                            selectedRegionCode = region.code;
+                            matched = true;
+                        }
+                        regionSelect.appendChild(option);
+                    });
+
+                    if (selectedRegion && !matched) {
+                        addFallbackOption(regionSelect, selectedRegion);
+                    }
+
+                    syncViewLocationSelectState();
+                    if (selectedRegionCode) {
+                        loadProvincesByRegion(selectedRegionCode, selectedProvince || null, selectedCity || null, selectedBarangay || null);
+                    } else {
+                        if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+                        if (selectedCity) addFallbackOption(citySelect, selectedCity);
+                        if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+                        syncViewLocationSelectState();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching regions:', error);
+                    if (selectedRegion) addFallbackOption(regionSelect, selectedRegion);
+                    if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+                    if (selectedCity) addFallbackOption(citySelect, selectedCity);
+                    if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+                    syncViewLocationSelectState();
+                });
+        }
+
+        function handleViewRegionChange(selectElement) {
+            const selectedOption = selectElement?.options?.[selectElement.selectedIndex];
+            const regionCode = selectedOption?.dataset?.code || '';
+            if (typeof viewLocationHandlers.loadProvincesByRegion === 'function') {
+                viewLocationHandlers.loadProvincesByRegion(regionCode);
+            }
+        }
+
+        function handleViewProvinceChange(selectElement) {
+            const selectedOption = selectElement?.options?.[selectElement.selectedIndex];
+            const provinceCode = selectedOption?.dataset?.code || '';
+            const isRegion = selectedOption?.dataset?.isRegion === 'true';
+
+            if (!provinceCode) {
+                const citySelect = document.getElementById('view_city');
+                const barangaySelect = document.getElementById('view_barangay');
+                if (citySelect) citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
+                if (barangaySelect) barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+                syncViewLocationSelectState();
+                return;
+            }
+
+            if (typeof viewLocationHandlers.fetchCities === 'function') {
+                viewLocationHandlers.fetchCities(provinceCode, isRegion);
+            }
+        }
+
+        function handleViewCityChange(selectElement) {
+            const selectedOption = selectElement?.options?.[selectElement.selectedIndex];
+            const cityCode = selectedOption?.dataset?.code || '';
+            if (typeof viewLocationHandlers.loadBarangays === 'function') {
+                viewLocationHandlers.loadBarangays(cityCode);
+            }
+        }
+
         function enableProfileEdit() {
             isProfileEditing = true;
             document.getElementById('btnEditProfile').style.display = 'none';
@@ -3918,7 +4240,9 @@
             checkboxes.forEach(cb => {
                 const type = cb.name === 'roles[]' ? 'role' : 'status';
                 const val = cb.value;
-                const label = val.charAt(0).toUpperCase() + val.slice(1); 
+                const label = val === 'freeze'
+                    ? 'Blocked'
+                    : val.charAt(0).toUpperCase() + val.slice(1);
                 
                 const chip = document.createElement('div');
                 chip.className = 'active-filter-chip';
@@ -4103,7 +4427,6 @@
             // Populate Form Fields
             document.getElementById('display_user_name_header').innerText = 'Edit Display Details: ' + user.name;
             document.getElementById('display_user_id').value = user.id;
-            document.getElementById('display_job_title').value = user.job_title || '';
             document.getElementById('display_additional_details').value = user.additional_details || '';
             document.getElementById('display_type').value = user.display_type || '';
             
@@ -4161,19 +4484,15 @@
             const formatLabel = (value) => {
                 const raw = String(value || '').trim();
                 if (!raw) return '-';
+                if (raw.toLowerCase() === 'freeze') return 'Blocked';
                 return raw.charAt(0).toUpperCase() + raw.slice(1);
             };
              
             // Populate fields
             document.getElementById('view_name').value = user.name;
-            document.getElementById('view_job_title').value = user.job_title || '';
             document.getElementById('view_email').value = user.email;
             document.getElementById('view_role').value = user.role;
             document.getElementById('view_status').value = user.status;
-            document.getElementById('view_region').value = user.region || '';
-            document.getElementById('view_province').value = user.province || '';
-            document.getElementById('view_city').value = user.city || '';
-            document.getElementById('view_barangay').value = user.barangay || '';
             document.getElementById('view_password').value = ''; // Reset password field
 
             const initial = document.getElementById('modalUserInitial');
@@ -4200,11 +4519,15 @@
 
             // Set Form Action
             form.action = `/users/${user.id}`;
-            const deleteForm = document.getElementById('deleteUserForm');
-            if (deleteForm) deleteForm.action = `/users/${user.id}`;
 
             // Reset UI to View Mode
             disableEditMode();
+            initViewLocationDropdowns(
+                user.region || '',
+                user.province || '',
+                user.city || '',
+                user.barangay || ''
+            );
 
             modal.style.display = 'flex';
         }
@@ -4233,7 +4556,7 @@
             document.getElementById('btnEdit').style.display = 'none';
             document.getElementById('btnCancel').style.display = 'inline-flex';
             document.getElementById('btnUpdate').style.display = 'inline-flex';
-            document.getElementById('btnDelete').style.display = 'none';
+            syncViewLocationSelectState();
         }
 
         function disableEditMode() {
@@ -4255,7 +4578,7 @@
             document.getElementById('btnEdit').style.display = 'inline-flex';
             document.getElementById('btnCancel').style.display = 'none';
             document.getElementById('btnUpdate').style.display = 'none';
-            document.getElementById('btnDelete').style.display = 'inline-flex';
+            syncViewLocationSelectState();
         }
 
         function togglePasswordVisibility() {
@@ -4275,14 +4598,8 @@
         }
 
         function submitUpdate() {
-            document.getElementById('btnDelete').style.display = 'inline-flex';
             if (confirm('Are you sure you want to update this user?')) {
                 document.getElementById('viewUserForm').submit();
-            }
-        }
-        function deleteUser() {
-            if (confirm('Delete this user? This action cannot be undone.')) {
-                document.getElementById('deleteUserForm').submit();
             }
         }
 
