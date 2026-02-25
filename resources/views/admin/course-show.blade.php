@@ -7,10 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .header { background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100; }
-        .header-left { display:flex; align-items:center; gap:12px; }
-        .header-title img { height:40px; display:block; }
-        .header-right { display:flex; align-items:center; gap:10px; }
         body {
             font-family: 'DM Sans', sans-serif;
             margin: 0;
@@ -21,21 +17,8 @@
 
         .page-container {
             max-width: 1200px;
-            margin: 40px auto;
+            margin: 24px auto;
             padding: 0 20px 40px;
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: #007bff;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .back-link i {
-            margin-right: 8px;
         }
 
         .layout {
@@ -94,20 +77,24 @@
 
         .image-inner {
             width: 100%;
-            padding-top: 75%;
             position: relative;
             background-color: #f5f5f5;
+            min-height: 220px;
+            max-height: min(70vh, 560px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .image-actions.overlay { position:absolute; top:10px; right:10px; display:flex; gap:8px; z-index:5; }
         .image-actions.overlay .btn { box-shadow:0 4px 10px rgba(0,0,0,0.12); }
 
         .image-inner img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            display: block;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            max-height: min(70vh, 560px);
+            object-fit: contain;
         }
 
         .image-actions { display:flex; justify-content:flex-end; gap:10px; margin-bottom:10px; }
@@ -209,20 +196,19 @@
             .layout {
                 grid-template-columns: 1fr;
             }
+
+            .image-inner {
+                min-height: 180px;
+                max-height: 52vh;
+            }
+
+            .image-inner img {
+                max-height: 52vh;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
-        </div>
-        <div class="header-right">
-            <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link" style="margin:0;">Back to Course Management</a>
-        </div>
-    </header>
     <div class="page-container">
         <div class="top-row">
             <h1 style="font-size: 1.6rem; color: #001f54; margin: 0 0 6px;">
@@ -377,6 +363,9 @@
                     <form action="{{ route('courses.destroy', $course) }}" method="POST" onsubmit="return confirm('Archive this course?');" style="margin:0;">
                         @csrf
                         @method('DELETE')
+                        @if(request()->boolean('embedded'))
+                            <input type="hidden" name="embedded" value="1">
+                        @endif
                         <button type="submit" class="btn btn-archive">
                             <i class="fas fa-box-archive"></i> Archive
                         </button>

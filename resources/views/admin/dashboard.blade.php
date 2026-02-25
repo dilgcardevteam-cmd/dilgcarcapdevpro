@@ -118,6 +118,7 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
         /* Sidebar Styles */
@@ -129,6 +130,8 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            position: relative;
+            z-index: 40;
         }
 
         .sidebar.collapsed {
@@ -192,6 +195,8 @@
             padding: 30px;
             overflow-y: auto;
             background-color: var(--bg-color);
+            position: relative;
+            z-index: 1;
         }
 
         .content-section {
@@ -661,6 +666,144 @@
         #course-management a:focus-visible .course-card {
             transform: translateY(-6px);
             box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16) !important;
+        }
+
+        #course-management .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        #course-management .add-course-card {
+            height: 280px;
+            border: 2px dashed #93c5fd;
+            border-radius: 10px;
+            background: linear-gradient(160deg, #f8fbff 0%, #eef6ff 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #1d4ed8;
+            cursor: pointer;
+        }
+
+        #course-management .add-course-plus {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #1d4ed8;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            box-shadow: 0 10px 20px rgba(29, 78, 216, 0.3);
+        }
+
+        #course-management .add-course-title {
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+
+        #course-management .course-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin: 0 0 20px;
+        }
+
+        #course-management .course-stat-card {
+            border: 1px solid #dbe2ea;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 14px 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 88px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #course-management .course-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        #course-management .course-stat-label {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #course-management .course-stat-value {
+            margin: 4px 0 0;
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+
+        #course-management .course-stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #ffffff;
+            flex: 0 0 42px;
+        }
+
+        #course-management .course-stat-card.active .course-stat-icon { background: #1d4ed8; }
+        #course-management .course-stat-card.pending .course-stat-icon { background: #d97706; }
+        #course-management .course-stat-card.draft .course-stat-icon { background: #7c3aed; }
+        #course-management .course-stat-card.archived .course-stat-icon { background: #475569; }
+
+        #course-create .course-create-shell {
+            background: #ffffff;
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        #courseCreateFrame {
+            width: 100%;
+            height: calc(100vh - 245px);
+            min-height: 760px;
+            border: 0;
+            background: #ffffff;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        #course-create:not(.active) #courseCreateFrame {
+            pointer-events: none;
+            visibility: hidden;
+            height: 0;
+            min-height: 0;
+        }
+
+        #course-create.active #courseCreateFrame {
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        /* Legacy add-course modal is superseded by the in-content course-create section. */
+        #addCourseModal {
+            display: none !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
         }
 
         /* Placeholder Content */
@@ -1177,20 +1320,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 760px;
-        }
-
-        .course-view-open-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 2px;
-            color: #2563eb;
-            text-decoration: none;
-            font-size: 0.82rem;
-        }
-
-        .course-view-open-tab:hover {
-            text-decoration: underline;
         }
 
         .course-view-close {
@@ -2126,6 +2255,15 @@
                 grid-template-columns: 1fr;
             }
 
+            #course-management .course-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #courseCreateFrame {
+                min-height: 560px;
+                height: calc(100vh - 220px);
+            }
+
             .pipeline-grid {
                 grid-template-columns: 1fr;
             }
@@ -2133,6 +2271,17 @@
             .lms-hero-chip {
                 min-width: 0;
                 width: 100%;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 992px) {
+            #course-management .course-stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            #courseCreateFrame {
+                min-height: 640px;
+                height: calc(100vh - 230px);
             }
         }
 
@@ -2433,7 +2582,7 @@
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
-                <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
@@ -2784,9 +2933,59 @@
                         <button onclick="openArchivedCoursesModal()" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
                             <i class="fas fa-box-archive"></i> Archived Courses
                         </button>
-                        <a href="{{ route('admin.courses.create') }}" style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plus"></i> Add Course
-                        </a>
+                    </div>
+                </div>
+
+                @php
+                    $activeCoursesCount = $courses->count();
+                    $pendingCoursesCount = $pendingCourses->count();
+                    $draftCoursesCount = 0;
+                    $archivedCoursesCount = $archivedCourses->count();
+                @endphp
+                <div class="course-stats-grid">
+                    <div class="course-stat-card active"
+                         role="button"
+                         tabindex="0"
+                         onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Active Courses</p>
+                            <p class="course-stat-value">{{ $activeCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-graduation-cap"></i></span>
+                    </div>
+                    <div class="course-stat-card pending"
+                         role="button"
+                         tabindex="0"
+                         onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Pending Courses</p>
+                            <p class="course-stat-value">{{ $pendingCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                    </div>
+                    <div class="course-stat-card draft"
+                         role="button"
+                         tabindex="0"
+                         onclick="openAddCourseModal()"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Draft Courses</p>
+                            <p id="draftCoursesCount" class="course-stat-value">{{ $draftCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-file-pen"></i></span>
+                    </div>
+                    <div class="course-stat-card archived"
+                         role="button"
+                         tabindex="0"
+                         onclick="openArchivedCoursesModal()"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Archived Courses</p>
+                            <p class="course-stat-value">{{ $archivedCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
                     </div>
                 </div>
                 
@@ -2796,31 +2995,42 @@
                     </div>
                 @endif
 
-                @if($courses->isEmpty())
-                    <div class="placeholder-content">
-                        <p>No Course Added Yet</p>
-                    </div>
-                @else
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
-                        @foreach($courses as $course)
-                            <div class="course-card"
-                                 role="button"
-                                 tabindex="0"
-                                 onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name]))'
-                                 onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
-                                 style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
-                                @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                                <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
-                                <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                                    <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
-                                    <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                </div>
+                <div class="course-grid">
+                    <button type="button" class="course-card add-course-card" onclick="openAddCourseModal()" aria-label="Add Course" style="border:0;">
+                        <span class="add-course-plus"><i class="fas fa-plus"></i></span>
+                        <p class="add-course-title">Add Course</p>
+                    </button>
+                    @foreach($courses as $course)
+                        <div class="course-card"
+                             role="button"
+                             tabindex="0"
+                             onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name]))'
+                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
+                             style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
+                            @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
+                            <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
+                            <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                                <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
                             </div>
-                        @endforeach
-                    </div>
-                @endif
+                        </div>
+                    @endforeach
+                </div>
 
                 <!-- Archived Courses list removed; use modal via the 'Archived Courses' button -->
+            </section>
+
+            <!-- Course Create Section -->
+            <section id="course-create" class="content-section {{ request('tab') == 'course-create' ? 'active' : '' }}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
+                    <button type="button" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-arrow-left"></i> Back to Course Management
+                    </button>
+                </div>
+                <div class="course-create-shell">
+                    <iframe id="courseCreateFrame" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', ['embedded' => 1]) : '' }}"></iframe>
+                </div>
             </section>
 
             <!-- Pending Courses Section -->
@@ -3580,11 +3790,6 @@
                         <option value="Social Governance">Social Governance</option>
                     </select>
                 </div>
-                <!-- Course Video (optional) -->
-                <div class="form-group">
-                    <label>Course Video (optional)</label>
-                    <input type="file" name="video" accept="video/mp4,video/webm,video/ogg">
-                </div>
                 <div class="form-group">
                     <label>Course Image (Leave blank to keep current)</label>
                     <input type="file" name="image" accept="image/*">
@@ -3603,9 +3808,6 @@
             <div class="course-view-modal-header">
                 <div class="course-view-modal-title-wrap">
                     <h2 id="view_course_name" class="course-view-modal-title">Course Details</h2>
-                    <a id="view_course_open_tab" class="course-view-open-tab" href="#" target="_blank" rel="noopener">
-                        <i class="fas fa-up-right-from-square"></i> Open in new tab
-                    </a>
                 </div>
                 <button type="button" class="course-view-close" onclick="closeViewCourseModal()" aria-label="Close">
                     &times;
@@ -4457,7 +4659,7 @@
             initProfileLocationDropdowns();
             // Check for validation errors and reopen modals if necessary
             @if($errors->create_course->any())
-                document.getElementById('addCourseModal').style.display = 'block';
+                openAddCourseModal();
             @endif
 
             @if($errors->update_course->any())
@@ -4557,7 +4759,16 @@
                     const cards = document.querySelectorAll('#course-management .course-card');
                     
                     cards.forEach(card => {
-                        const title = card.querySelector('h3').textContent.toLowerCase();
+                        if (card.classList.contains('add-course-card')) {
+                            card.style.display = '';
+                            return;
+                        }
+                        const titleNode = card.querySelector('h3');
+                        if (!titleNode) {
+                            card.style.display = '';
+                            return;
+                        }
+                        const title = titleNode.textContent.toLowerCase();
                         if (title.includes(filter)) {
                             card.style.display = '';
                         } else {
@@ -4797,9 +5008,16 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            const requestedTab = new URLSearchParams(window.location.search).get('tab');
+            const params = new URLSearchParams(window.location.search);
+            const requestedTab = params.get('tab');
             if (requestedTab === 'profile-section') {
                 showProfile();
+            }
+
+            if (requestedTab === 'course-create') {
+                openAddCourseModal();
+            } else if (requestedTab === 'course-management' && params.get('open_add_course') === '1') {
+                openAddCourseModal();
             }
 
             const forceProfile = {{ isset($forceProfile) && $forceProfile ? 'true' : 'false' }};
@@ -4809,12 +5027,22 @@
             }
         });
 
-        // Add Course Modal
+        const courseCreateEmbeddedUrl = @json(route('admin.courses.create', ['embedded' => 1]));
+
+        function ensureCourseCreateFrameLoaded() {
+            const frame = document.getElementById('courseCreateFrame');
+            if (frame && !frame.getAttribute('src')) {
+                frame.setAttribute('src', courseCreateEmbeddedUrl);
+            }
+        }
+
+        // Add Course in Dashboard Main Content
         function openAddCourseModal() {
-            document.getElementById('addCourseModal').style.display = "block";
+            ensureCourseCreateFrameLoaded();
+            showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }
         function closeAddCourseModal() {
-            document.getElementById('addCourseModal').style.display = "none";
+            showContent('course-management', document.querySelector(".menu-item[onclick*='course-management']"));
         }
 
         // Edit Course Modal
@@ -4893,6 +5121,39 @@
             document.getElementById('archivedCoursesModal').style.display = "none";
         }
 
+        function getDraftCoursesDashboardCount() {
+            try {
+                let count = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (!key) continue;
+                    if (key === 'draft_course_create' || key.startsWith('draft_course_edit_')) {
+                        const raw = localStorage.getItem(key);
+                        if (raw && raw !== '{}' && raw !== 'null') {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function refreshDraftCoursesDashboardCount() {
+            const valueNode = document.getElementById('draftCoursesCount');
+            if (!valueNode) return;
+            valueNode.textContent = String(getDraftCoursesDashboardCount());
+        }
+
+        document.addEventListener('DOMContentLoaded', refreshDraftCoursesDashboardCount);
+        window.addEventListener('focus', refreshDraftCoursesDashboardCount);
+        window.addEventListener('storage', function(event) {
+            if (!event.key || event.key === 'draft_course_create' || event.key.startsWith('draft_course_edit_')) {
+                refreshDraftCoursesDashboardCount();
+            }
+        });
+
         @if(session('open_archived_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             openArchivedCoursesModal();
@@ -4908,14 +5169,11 @@
             const title = document.getElementById('view_course_name');
             const loader = document.getElementById('viewCourseLoading');
             const iframe = document.getElementById('view_course_iframe');
-            const openInNewTabLink = document.getElementById('view_course_open_tab');
-            const courseUrl = courseShowUrlTemplate.replace('__COURSE_ID__', encodeURIComponent(course.id));
+            const courseUrlBase = courseShowUrlTemplate.replace('__COURSE_ID__', encodeURIComponent(course.id));
+            const courseUrl = `${courseUrlBase}?embedded=1`;
 
             if (title) {
                 title.innerText = course.name ? course.name : 'Course Details';
-            }
-            if (openInNewTabLink) {
-                openInNewTabLink.href = courseUrl;
             }
             if (loader) {
                 loader.style.display = 'flex';

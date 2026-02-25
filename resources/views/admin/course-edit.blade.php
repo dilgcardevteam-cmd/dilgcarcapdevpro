@@ -19,13 +19,7 @@
             --bg: #f4f6f9;
         }
         body { font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: var(--text); }
-        .header { background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100; }
-        .header-left { display:flex; align-items:center; gap:12px; }
-        .header-title img { height:40px; display:block; }
-        .header-right { display:flex; align-items:center; gap:10px; }
         .page-container { max-width: 1120px; margin: 40px auto; padding: 0 20px 40px; }
-        .back-link { text-decoration: none; color: #007bff; display: inline-flex; align-items: center; margin-bottom: 20px; font-size: 0.9rem; }
-        .back-link i { margin-right: 8px; }
         h1 { color: #001f54; margin: 0 0 16px; letter-spacing: -0.02em; }
         .card { background: var(--surface); border-radius: 16px; box-shadow: 0 8px 22px rgba(15,23,42,0.06); padding: 24px; border:1px solid var(--border); }
         .form-group { margin-bottom: 16px; }
@@ -79,9 +73,16 @@
         .tab.disabled { opacity: 0.5; cursor: not-allowed; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .progress { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .step { display: inline-flex; align-items:center; gap:6px; padding: 6px 12px; border-radius: 999px; background: #eef2ff; color:#0f172a; font-weight:700; font-size: .85rem; border:1px solid #e5e7eb; }
-        .step.done { background: #ecfeff; color: #0f766e; border-color:#99f6e4; }
+        .progress { margin-bottom: 12px; }
+        .progress-track { width: 100%; height: 10px; border-radius: 999px; background: #e2e8f0; border: 1px solid #dbe2ea; overflow: hidden; }
+        .progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, #0d6efd 0%, #00a859 100%); transition: width .25s ease; }
+        .progress-status { margin-top: 6px; font-size: .82rem; color: #475569; font-weight: 700; }
+        .progress-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+        .step { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; color: #334155; font-weight: 700; font-size: .84rem; border: 1px solid #e5e7eb; transition: all .2s ease; }
+        .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
+        .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
+        .step.done .step-index { background: #10b981; color: #ffffff; }
+        @media (max-width: 640px){ .progress-steps { grid-template-columns: 1fr; } }
         .error-text { color: #dc2626; font-size: 0.85rem; margin-top: 6px; }
         .editor-toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
         .editor-toolbar button { padding: 6px 8px; border: 1px solid #e5e7eb; background: #f8fafc; border-radius: 6px; cursor: pointer; }
@@ -137,24 +138,20 @@
     <script>
         window.isEdit = true;
     </script>
-    </head>
+</head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
-        </div>
-        <div class="header-right">
-            <a href="{{ route('admin.courses.show', $course) }}" class="back-link" style="margin:0;">Back to Course</a>
-        </div>
-    </header>
     <div class="page-container">
         <h1>Edit Course</h1>
         <div class="card" aria-live="polite">
-            <div class="progress">
-                <span id="step1" class="step">1. Details</span>
-                <span id="step2" class="step">2. Modules</span>
+            <div class="progress" role="status" aria-live="polite" aria-label="Course setup progress">
+                <div class="progress-track" aria-hidden="true">
+                    <div id="courseProgressFill" class="progress-fill"></div>
+                </div>
+                <div id="courseProgressText" class="progress-status">0% complete</div>
+                <div class="progress-steps">
+                    <span id="step1" class="step"><span class="step-index">1</span><span>Details</span></span>
+                    <span id="step2" class="step"><span class="step-index">2</span><span>Modules</span></span>
+                </div>
             </div>
             <div class="tabs" role="tablist">
                 <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
@@ -212,17 +209,6 @@
                                         <img src="{{ asset('storage/'.$course->image_path) }}" alt="Course Image">
                                     @else
                                         <span style="color:#94a3b8;">No image selected</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="section" style="margin-top:12px;">
-                                <div class="section-title"><i class="fas fa-video"></i> Course Video (optional)</div>
-                                <input id="video" type="file" name="video" accept="video/mp4,video/webm,video/ogg" aria-describedby="videoFileError">
-                                <div id="videoFileError" class="error-text" style="display:none;"></div>
-                                <div class="hint">Max 200MB. MP4, WebM, Ogg.</div>
-                                <div class="hint inline" id="videoInfo" @if(empty($course->video_path)) style="display:none;" @endif>
-                                    @if($course->video_path)
-                                        <a href="{{ asset('storage/'.$course->video_path) }}" target="_blank" rel="noopener">View current video</a>
                                     @endif
                                 </div>
                             </div>
@@ -745,20 +731,11 @@
             const desc = document.getElementById('description');
             const subj = document.getElementById('subject_area');
             const image = document.getElementById('image');
-            const videoFile = document.getElementById('video');
             const setError = (el, msgId, msg) => { const n = document.getElementById(msgId); if(msg){ n.style.display='block'; n.textContent = msg; el.setAttribute('aria-invalid', 'true'); } else { n.style.display='none'; n.textContent=''; el.removeAttribute('aria-invalid'); } };
             if(!name.value.trim() || name.value.length > 100){ ok = false; setError(name,'nameError','Name is required (max 100).'); } else setError(name,'nameError','');
             if(!desc.value.trim() || desc.value.length > 1000){ ok = false; setError(desc,'descError','Description is required, max 1000 characters.'); } else setError(desc,'descError','');
             if(!subj.value){ ok = false; setError(subj,'subjectError','Select a subject area.'); } else setError(subj,'subjectError','');
             setError(image,'imageError','');
-            if(videoFile.files && videoFile.files[0]){
-                const f = videoFile.files[0];
-                const okType = ['video/mp4','video/webm','video/ogg'].includes(f.type);
-                const okSize = f.size <= 200*1024*1024;
-                if(!okType || !okSize){ ok = false; setError(videoFile,'videoFileError','Video must be MP4/WebM/Ogg and ≤200MB.'); } else setError(videoFile,'videoFileError','');
-            } else {
-                setError(videoFile,'videoFileError','');
-            }
             return ok;
         }
         function validateModules(){
@@ -778,11 +755,46 @@
             if(!ok){ err.style.display='block'; err.textContent='Add at least one module with topic titles (max 80 chars).'; } else { err.style.display='none'; err.textContent=''; }
             return ok;
         }
+        function isDetailsStepComplete(){
+            const name = document.getElementById('name');
+            const desc = document.getElementById('description');
+            const subj = document.getElementById('subject_area');
+            const image = document.getElementById('image');
+
+            const validName = !!name && !!name.value.trim() && name.value.trim().length <= 100;
+            const validDesc = !!desc && !!desc.value.trim() && desc.value.trim().length <= 1000;
+            const validSubj = !!subj && !!subj.value;
+
+            if (!validName || !validDesc || !validSubj) return false;
+
+            if (image && image.required) {
+                if (!image.files || !image.files[0]) return false;
+                const f = image.files[0];
+                const okType = !!f.type && f.type.startsWith('image/');
+                const okSize = f.size <= 5 * 1024 * 1024;
+                if (!okType || !okSize) return false;
+            }
+
+            return true;
+        }
+        function isModulesStepComplete(){
+            return document.querySelectorAll('.module-wrapper').length > 0;
+        }
         function updateProgress(){
             const step1 = document.getElementById('step1');
             const step2 = document.getElementById('step2');
-            step1.classList.toggle('done', validateDetails());
-            step2.classList.toggle('done', validateModules());
+            const progressFill = document.getElementById('courseProgressFill');
+            const progressText = document.getElementById('courseProgressText');
+            const detailsDone = isDetailsStepComplete();
+            const modulesDone = isModulesStepComplete();
+
+            step1.classList.toggle('done', detailsDone);
+            step2.classList.toggle('done', modulesDone);
+
+            const completedCount = (detailsDone ? 1 : 0) + (modulesDone ? 1 : 0);
+            const percent = Math.round((completedCount / 2) * 100);
+            if (progressFill) progressFill.style.width = `${percent}%`;
+            if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/2 steps)`;
         }
         function switchTo(tab){
             document.getElementById('tab1').classList.toggle('active', tab===1);
@@ -802,7 +814,7 @@
             document.getElementById('tabBtn2').addEventListener('click', ()=> switchTo(2));
             document.getElementById('backToDetails').addEventListener('click', ()=> switchTo(1));
             document.getElementById('nextToModules').addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } });
-            ['name','description','subject_area','image','video'].forEach(id=>{
+            ['name','description','subject_area','image'].forEach(id=>{
                 const el = document.getElementById(id);
                 el && el.addEventListener('input', updateProgress);
                 el && el.addEventListener('change', updateProgress);

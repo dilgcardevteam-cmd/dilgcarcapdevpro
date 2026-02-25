@@ -51,8 +51,14 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function create()
+    public function create(Request $request)
     {
+        if (auth()->check() && auth()->user()->role === 'admin' && !$request->boolean('embedded')) {
+            return redirect()->route('dashboard', [
+                'tab' => 'course-create',
+            ]);
+        }
+
         return view('admin.course-create');
     }
 
@@ -185,6 +191,16 @@ class CourseController extends Controller
             if (!$course->users()->where('user_id', auth()->id())->exists()) {
                 $course->users()->attach(auth()->id(), ['status' => 'active']);
             }
+        }
+
+        if ($request->boolean('embedded')) {
+            $target = route('dashboard', ['tab' => 'course-management']);
+            $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            return response(
+                "<!doctype html><html><body><script>window.top.location.href={$encodedTarget};</script></body></html>",
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
         }
 
         return redirect()->route('dashboard', ['tab' => 'course-management'])
@@ -638,7 +654,7 @@ class CourseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Course $course)
+    public function destroy(Request $request, Course $course)
     {
         // Don't delete image immediately as we are soft deleting
         // if ($course->image_path) {
@@ -647,9 +663,32 @@ class CourseController extends Controller
         
         $course->delete();
 
+        if ($request->boolean('embedded')) {
+            session()->flash('success_course', 'Course archived successfully.');
+            $target = route('dashboard', ['tab' => 'course-management']);
+            $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            return response(
+                "<!doctype html><html><body><script>
+                    try {
+                        if (window.top && window.top !== window) {
+                            if (typeof window.top.closeViewCourseModal === 'function') {
+                                window.top.closeViewCourseModal();
+                            }
+                            window.top.location.href = {$encodedTarget};
+                        } else {
+                            window.location.href = {$encodedTarget};
+                        }
+                    } catch (e) {
+                        window.location.href = {$encodedTarget};
+                    }
+                </script></body></html>",
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
+        }
+
         return redirect()->route('dashboard', ['tab' => 'course-management'])
-            ->with('success_course', 'Course archived successfully.')
-            ->with('open_archived_modal', true);
+            ->with('success_course', 'Course archived successfully.');
     }
 
     public function restore($id)
