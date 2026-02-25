@@ -45,6 +45,10 @@
             height: var(--header-height);
             box-sizing: border-box;
             z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
         }
 
         .header-left {
@@ -236,7 +240,36 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            margin-top: var(--header-height);
+            margin-left: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
         }
+
+        /* Hero */
+        .control-hero{background:linear-gradient(135deg,#002C76 0%, #0b57d0 55%, #1e88e5 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+        .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
+        .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
+        .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
+        .hero-btn:hover{background:rgba(255,255,255,.12)}
+
+        .profile-menu{position:relative}
+        .profile-dropdown{position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+        .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
+        .profile-dropdown .dropdown-item:hover{background:#f8fafc}
+        .profile-dropdown .danger{color:#b91c1c}
+        .profile-trigger{display:flex;align-items:center;gap:8px;cursor:pointer}
+        .profile-caret{font-size:.9rem;color:#666}
+        .profile-trigger.open .profile-caret{transform:rotate(180deg);transition:transform .2s}
+
+        .sidebar-brand{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
+        .sidebar-logo{height:70px}
+        .sidebar.collapsed .sidebar-brand{justify-content:center;padding:8px 0}
+        .sidebar.collapsed .sidebar-logo{height:44px;width:44px;margin:0 auto;display:block;object-fit:contain}
+        .header-toggle{background:none;border:none;color:var(--primary-blue);font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+        .header-toggle:hover{background:#f0f2f7}
+        .header-section-title{margin-left:12px;font-weight:700;color:var(--primary-blue);font-size:1.2rem;letter-spacing:-.01em}
 
         /* Sidebar Styles */
         .sidebar {
@@ -246,10 +279,20 @@
             transition: width 0.3s ease;
             display: flex;
             flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
         }
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
+        }
+        .sidebar-collapsed .header{
+            left: var(--sidebar-collapsed-width);
+        }
+        .sidebar-collapsed .dashboard-container{
+            margin-left: var(--sidebar-collapsed-width);
         }
 
         .sidebar-toggle {
@@ -382,6 +425,7 @@
             align-items: center;
             margin-bottom: 25px;
         }
+        .section-header{display:none}
 
         .section-title {
             font-size: 1.5rem;
@@ -997,10 +1041,10 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" onerror="this.style.display='none'">
-            </div>
+            <button class="header-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div id="header-section-title" class="header-section-title">Dashboard</div>
         </div>
         <div class="header-right">
             <!-- Notification Bell -->
@@ -1041,31 +1085,41 @@
                 </div>
             </div>
 
-            <div class="user-profile" onclick="showProfile()" style="cursor: pointer;">
-                @if(Auth::user()->profile_picture)
-                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-                @else
-                    <div class="user-avatar">
-                        {{ substr(Auth::user()->name, 0, 1) }}
-                    </div>
-                @endif
-                <span>{{ Auth::user()->name }}</span>
+            <div class="profile-menu">
+                <div class="profile-trigger" onclick="toggleProfileMenu()">
+                    @if(Auth::user()->profile_picture)
+                        <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover">
+                    @else
+                        <div class="user-avatar">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
+                        </div>
+                    @endif
+                    <i class="fas fa-chevron-down profile-caret"></i>
+                </div>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <a class="dropdown-item" href="{{ route('profile.setup') }}">
+                        <i class="fas fa-user-cog"></i> <span>Profile</span>
+                    </a>
+                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                        <i class="fas fa-life-ring"></i> <span>Help & Support</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                        @csrf
+                        <button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </form>
         </div>
     </header>
 
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
+            <div class="sidebar-brand">
+                <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
+            </div>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this)">
@@ -1110,8 +1164,18 @@
                 </div>
                 @endif
 
-                <div class="section-header">
-                    <h2 class="section-title">Dashboard Overview</h2>
+                <div class="control-hero">
+                    <div class="control-hero-top">
+                        <div>
+                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            <div class="control-hero-sub">Monitor learning outcomes and efficiently manage classes.</div>
+                        </div>
+                        <div class="hero-actions">
+                            <a class="hero-btn" href="#" onclick="showContent('my-courses', document.querySelector('a[onclick*=\'my-courses\']'))"><i class="fas fa-chalkboard-teacher"></i> Manage Courses</a>
+                            <a class="hero-btn" href="#" onclick="showContent('calendar', document.querySelector('a[onclick*=\'calendar\']'))"><i class="fas fa-calendar-alt"></i> Calendar</a>
+                            <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Stats Cards -->
@@ -1134,11 +1198,29 @@
                             <p>Total Students</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ isset($calendarEvents) ? $calendarEvents->count() : 0 }}</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }}</h3>
+                            <p>New Notifications</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Course List (Shortcut) -->
                 <div class="section-header">
-                    <h2 class="section-title">My Courses</h2>
+                    <h2 class="section-title">Dashboard</h2>
                 </div>
 
                 <div class="course-grid">
@@ -1683,7 +1765,16 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
+            var s=document.getElementById('sidebar');
+            s.classList.toggle('collapsed');
+            var collapsed=s.classList.contains('collapsed');
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            var logo=document.querySelector('.sidebar-logo');
+            if(logo){
+                var full=logo.getAttribute('data-full-src');
+                var small=logo.getAttribute('data-collapsed-src');
+                logo.src=collapsed?small:full;
+            }
         }
 
         function showContent(id, element) {
@@ -1698,6 +1789,7 @@
                 });
                 element.classList.add('active');
             }
+            updateHeaderTitle(id);
         }
 
         function openCourseDetails(courseId) {
@@ -2091,7 +2183,41 @@
                 if (dropdown) dropdown.style.display = 'none';
             }
         });
+        function toggleProfileMenu(){
+            var d=document.getElementById('profileDropdown');
+            var trigger=document.querySelector('.profile-trigger');
+            if(!d) return;
+            var open=d.style.display==='block';
+            d.style.display=open?'none':'block';
+            if(trigger){
+                trigger.classList.toggle('open', !open);
+            }
+        }
+        document.addEventListener('click',function(ev){
+            var menu=document.querySelector('.profile-menu');
+            var d=document.getElementById('profileDropdown');
+            if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
+        });
+        function updateHeaderTitle(id){
+            var titleEl=document.getElementById('header-section-title');
+            if(!titleEl) return;
+            var section=document.getElementById(id);
+            var title='Dashboard';
+            if(section){
+                var h=section.querySelector('.section-title');
+                if(h){ title=h.textContent.trim(); }
+                else if(id==='course-details-view'){
+                    var dt=document.getElementById('detail-title');
+                    if(dt){ title=dt.textContent.trim(); }
+                } else if(id==='dashboard-home'){ title='Dashboard'; }
+            }
+            titleEl.textContent=title;
+        }
+        document.addEventListener('DOMContentLoaded',function(){
+            var active=document.querySelector('.content-section.active');
+            var id=active?active.id:'dashboard-home';
+            updateHeaderTitle(id);
+        });
     </script>
 </body>
 </html>
-
