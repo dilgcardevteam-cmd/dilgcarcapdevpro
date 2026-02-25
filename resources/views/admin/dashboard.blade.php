@@ -446,6 +446,16 @@
             box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
         }
 
+        #profile-section .profile-page-panel.account-panel {
+            border-color: #d8e5ff;
+            background: linear-gradient(160deg, #f7fbff 0%, #ffffff 58%);
+        }
+
+        #profile-section .profile-page-panel.location-panel {
+            border-color: #dbead2;
+            background: linear-gradient(160deg, #f8fcf5 0%, #ffffff 58%);
+        }
+
         #profile-section .profile-page-panel-wide {
             grid-column: 1 / -1;
         }
@@ -460,6 +470,74 @@
             color: #64748b;
             font-weight: 700;
             margin-bottom: 14px;
+        }
+
+        #profile-section .profile-page-panel-header-rich {
+            margin-bottom: 16px;
+            text-transform: none;
+            letter-spacing: normal;
+            align-items: flex-start;
+        }
+
+        #profile-section .profile-page-header-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        #profile-section .profile-page-panel.account-panel .profile-page-header-icon {
+            background: #e0ebff;
+            color: #1d4ed8;
+        }
+
+        #profile-section .profile-page-panel.location-panel .profile-page-header-icon {
+            background: #e3f2db;
+            color: #2f7a15;
+        }
+
+        #profile-section .profile-page-header-icon .icon-feather {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #profile-section .profile-page-panel-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #profile-section .profile-page-panel-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+        }
+
+        #profile-section .profile-page-panel-note {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        #profile-section .profile-page-panel.account-panel .form-group,
+        #profile-section .profile-page-panel.location-panel .form-group {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
         }
 
         #profile-section .profile-page-fields {
@@ -480,6 +558,23 @@
             font-weight: 700;
             letter-spacing: 0.05em;
             text-transform: uppercase;
+        }
+
+        #profile-section .profile-field-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #profile-section .profile-field-icon {
+            width: 13px;
+            height: 13px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
         }
 
         #profile-section .profile-input {
@@ -2055,41 +2150,105 @@
                         </div>
 
                         <div class="profile-page-grid">
-                            <div class="profile-page-panel">
-                                <div class="profile-page-panel-header">Account</div>
+                            <div class="profile-page-panel account-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                            <path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path>
+                                        </svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Account</span>
+                                        <span class="profile-page-panel-note">Identity and contact details</span>
+                                    </div>
+                                </div>
                                 <div class="profile-page-fields">
                                     <div class="form-group">
-                                        <label>Full Name</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                                <path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path>
+                                            </svg>
+                                            Full Name
+                                        </label>
                                         <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="profile-input">
                                     </div>
                                     <div class="form-group">
-                                        <label>Email Address</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M3 6h18v12H3z"></path>
+                                                <polyline points="3,7 12,13 21,7"></polyline>
+                                            </svg>
+                                            Email Address
+                                        </label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input">
                                     </div>
                                     <div class="form-group">
-                                        <label>Job Title</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
+                                            </svg>
+                                            Job Title
+                                        </label>
                                         <input type="text" name="job_title" value="{{ Auth::user()->job_title }}" readonly class="profile-input">
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="profile-page-panel">
-                                <div class="profile-page-panel-header">Location</div>
+                            <div class="profile-page-panel location-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24">
+                                            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Location</span>
+                                        <span class="profile-page-panel-note">Assigned service area details</span>
+                                    </div>
+                                </div>
                                 <div class="profile-page-fields">
                                     <div class="form-group">
-                                        <label>Region</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                                                <circle cx="12" cy="10" r="3"></circle>
+                                            </svg>
+                                            Region
+                                        </label>
                                         <input type="text" name="region" value="{{ Auth::user()->region }}" readonly class="profile-input">
                                     </div>
                                     <div class="form-group">
-                                        <label>Province</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <polygon points="1,6 1,22 8,19 16,22 23,19 23,3 16,6 8,3 1,6"></polygon>
+                                                <line x1="8" y1="3" x2="8" y2="19"></line>
+                                                <line x1="16" y1="6" x2="16" y2="22"></line>
+                                            </svg>
+                                            Province
+                                        </label>
                                         <input type="text" name="province" value="{{ Auth::user()->province }}" readonly class="profile-input">
                                     </div>
                                     <div class="form-group">
-                                        <label>City / Municipality</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <polygon points="3,11 22,2 13,21 11,13 3,11"></polygon>
+                                            </svg>
+                                            City / Municipality
+                                        </label>
                                         <input type="text" name="city" value="{{ Auth::user()->city }}" readonly class="profile-input">
                                     </div>
                                     <div class="form-group">
-                                        <label>Barangay</label>
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M3 10.5 12 3l9 7.5"></path>
+                                                <path d="M5 9.5V21h14V9.5"></path>
+                                            </svg>
+                                            Barangay
+                                        </label>
                                         <input type="text" name="barangay" value="{{ Auth::user()->barangay }}" readonly class="profile-input">
                                     </div>
                                 </div>
