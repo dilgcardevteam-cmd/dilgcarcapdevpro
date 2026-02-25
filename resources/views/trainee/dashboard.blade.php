@@ -814,6 +814,43 @@
             }
         }
 
+        /* Profile Section (trainee aligned to admin design) */
+        #profile-section .profile-page{display:flex;flex-direction:column;gap:24px}
+        #profile-section .profile-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+        #profile-section .profile-page-title{margin:0;font-size:2rem;color:var(--primary-blue);letter-spacing:-.02em}
+        #profile-section .profile-page-subtitle{margin:6px 0 0;color:#6b7280;font-size:.95rem;max-width:560px}
+        #profile-section .profile-page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        #profile-section .profile-page-btn{border:1px solid transparent;border-radius:999px;padding:10px 18px;font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease;box-shadow:0 6px 14px rgba(15,23,42,.12)}
+        #profile-section .profile-page-btn:active{transform:translateY(1px);box-shadow:0 3px 8px rgba(15,23,42,.14)}
+        #profile-section .profile-page-btn.edit{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+        #profile-section .profile-page-btn.cancel{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+        #profile-section .profile-page-btn.save{background:var(--primary-green);color:#fff}
+        #profile-section .profile-page-btn.save:hover{background:#6aa832}
+        #profile-section .profile-page-alert{display:flex;align-items:center;gap:10px;background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:12px 14px;border-radius:12px;font-weight:600;font-size:.92rem}
+        #profile-section .profile-page-banner{display:flex;align-items:center;gap:20px;padding:20px;border-radius:16px;border:1px solid #e2e8f0;background:radial-gradient(circle at top left, rgba(127,183,61,.12), transparent 50%),radial-gradient(circle at top right, rgba(0,44,118,.12), transparent 48%),#fff;box-shadow:0 12px 24px rgba(15,23,42,.08)}
+        #profile-section .profile-page-avatar{width:92px;height:92px;border-radius:22px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:3px solid #fff;box-shadow:0 10px 18px rgba(15,23,42,.18)}
+        #profile-section .profile-page-avatar img{width:100%;height:100%;object-fit:cover}
+        #profile-section .profile-page-identity{flex:1;min-width:0}
+        #profile-section .profile-page-name{font-size:1.4rem;color:var(--primary-blue);font-weight:700;margin-bottom:6px}
+        #profile-section .profile-page-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#475569;font-size:.9rem}
+        #profile-section .profile-page-chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#e8effd;color:#1e3a8a;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.68rem}
+        #profile-section .profile-page-upload{margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        #profile-section .profile-page-upload input[type=file]{font-size:.82rem}
+        #profile-section .profile-page-upload input[type=file]::file-selector-button{border:none;background:var(--primary-blue);color:#fff;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer;margin-right:10px}
+        #profile-section .profile-page-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+        #profile-section .profile-page-panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 6px 14px rgba(15,23,42,.06)}
+        #profile-section .profile-page-panel-wide{grid-column:1 / -1}
+        #profile-section .profile-page-panel-header{display:flex;align-items:center;gap:10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#64748b;font-weight:700;margin-bottom:14px}
+        #profile-section .profile-page-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+        #profile-section .profile-page-fields .form-group{margin-bottom:0}
+        #profile-section .profile-page-fields label{display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+        #profile-section .profile-input{width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;box-sizing:border-box;background:#f8fafc;color:#0f172a;transition:border-color .2s ease,box-shadow .2s ease}
+        #profile-section .profile-input:focus{outline:none;border-color:#2f5aa8;box-shadow:0 0 0 3px rgba(47,90,168,.15)}
+        #profile-section .profile-input[readonly]{background:#f1f5f9;color:#475569;cursor:not-allowed}
+        #profile-section .profile-page-help{color:#64748b;font-size:.8rem;display:block;margin-top:6px}
+        @media(max-width:1100px){#profile-section .profile-page-grid{grid-template-columns:1fr}#profile-section .profile-page-fields{grid-template-columns:1fr}}
+        @media(max-width:768px){#profile-section .profile-page-banner{flex-direction:column;align-items:flex-start}#profile-section .profile-page-actions{width:100%}}
+
     </style>
 </head>
 <body>
@@ -935,7 +972,7 @@
         <div class="main-content">
             
             <!-- Dashboard Home Section -->
-            <div id="dashboard-home" class="content-section active">
+            <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
                 @if(session('success_join'))
                 <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     <i class="fas fa-check-circle"></i> {{ session('success_join') }}
@@ -1175,96 +1212,121 @@
             </div>
 
             <!-- Profile Section -->
-            <div id="profile-section" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">My Profile</h2>
-                </div>
-                <div style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;">
-                    <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        
-                        <div style="display: flex; align-items: center; margin-bottom: 30px;">
-                            <div style="position: relative; margin-right: 20px;">
-                                @if(Auth::user()->profile_picture)
-                                    <img id="profile_preview" src="{{ asset('storage/' . Auth::user()->profile_picture) }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-blue);">
-                                @else
-                                    <div id="profile_initials" style="width: 100px; height: 100px; background-color: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 3rem;">
-                                        {{ substr(Auth::user()->name, 0, 1) }}
-                                    </div>
-                                    <img id="profile_preview" src="" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-blue); display: none;">
-                                @endif
-                                
-                                <div id="profile_upload_container" style="display: none; margin-top: 10px; text-align: center;">
-                                    <label for="profile_picture_input" style="cursor: pointer; color: var(--primary-blue); font-size: 0.9rem; font-weight: 500;">
-                                        <i class="fas fa-camera"></i> Change Photo
-                                    </label>
-                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="previewProfileImage(this)" style="display: none;">
-                                </div>
-                            </div>
+            <div id="profile-section" class="content-section {{ request('tab') == 'profile-section' ? 'active' : '' }}">
+                <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="profile-page">
+                        <div class="profile-page-header">
                             <div>
-                                <h2 style="margin: 0; color: var(--primary-blue);">{{ Auth::user()->name }}</h2>
-                                <p style="margin: 5px 0 0; color: var(--light-text);">{{ ucfirst(Auth::user()->role) }}</p>
+                                <h1 class="profile-page-title">My Profile</h1>
+                                <p class="profile-page-subtitle">Keep your account information current and review your access details in one place.</p>
                             </div>
-                            <div style="margin-left: auto;">
-                                <button type="button" id="btnEditProfile" class="btn-view" onclick="enableProfileEdit()">
-                                    <i class="fas fa-edit"></i> Edit Profile
+                            <div class="profile-page-actions">
+                                <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
+                                    <i class="fas fa-pen"></i>
+                                    Edit Profile
                                 </button>
-                                <button type="button" id="btnCancelProfile" class="btn-cancel" onclick="cancelProfileEdit()" style="display: none; margin-right: 10px;">
+                                <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display: none;">
+                                    <i class="fas fa-xmark"></i>
                                     Cancel
                                 </button>
-                                <button type="submit" id="btnSaveProfile" class="btn-confirm" style="display: none;">
+                                <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display: none;">
+                                    <i class="fas fa-save"></i>
                                     Save Changes
                                 </button>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div class="form-group">
-                                <label class="form-label">Full Name</label>
-                                <input type="text" name="name" class="form-control profile-input" value="{{ Auth::user()->name }}" readonly required>
+                        @if(session('success_profile'))
+                            <div class="profile-page-alert">
+                                <i class="fas fa-circle-check"></i>
+                                <span>{{ session('success_profile') }}</span>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" name="email" class="form-control profile-input" value="{{ Auth::user()->email }}" readonly required>
+                        @endif
+
+                        <div class="profile-page-banner">
+                            <div class="profile-page-avatar">
+                                @php
+                                    $avatarSrc = Auth::user()->profile_picture
+                                        ? asset('storage/' . Auth::user()->profile_picture)
+                                        : asset('images/user.png');
+                                @endphp
+                                <img id="profile_preview" src="{{ $avatarSrc }}" alt="Profile picture">
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Job Title</label>
-                                <input type="text" name="job_title" class="form-control profile-input" value="{{ Auth::user()->job_title ?? '' }}" readonly placeholder="Not set">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Region</label>
-                                <input type="text" name="region" class="form-control profile-input" value="{{ Auth::user()->region ?? '' }}" readonly placeholder="Not set">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Province</label>
-                                <input type="text" name="province" class="form-control profile-input" value="{{ Auth::user()->province ?? '' }}" readonly placeholder="Not set">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">City/Municipality</label>
-                                <input type="text" name="city" class="form-control profile-input" value="{{ Auth::user()->city ?? '' }}" readonly placeholder="Not set">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Barangay</label>
-                                <input type="text" name="barangay" class="form-control profile-input" value="{{ Auth::user()->barangay ?? '' }}" readonly placeholder="Not set">
+
+                            <div class="profile-page-identity">
+                                <div class="profile-page-name">{{ Auth::user()->name }}</div>
+                                <div class="profile-page-meta">
+                                    <span class="profile-page-chip">{{ strtoupper(Auth::user()->role ?? '') }}</span>
+                                    <span>{{ Auth::user()->email }}</span>
+                                </div>
+
+                                <div id="profile_upload_container" class="profile-page-upload" style="display: none;">
+                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="previewProfileImage(this)">
+                                    <span class="profile-page-help">PNG or JPG, square crop works best.</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div id="password_change_section" style="display: none; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                            <h3 style="color: var(--primary-blue); margin-bottom: 15px;">Change Password <span style="font-size: 0.8rem; color: #666; font-weight: normal;">(Leave blank to keep current)</span></h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div class="form-group">
-                                    <label class="form-label">New Password</label>
-                                    <input type="password" name="password" class="form-control profile-input">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Confirm Password</label>
-                                    <input type="password" name="password_confirmation" class="form-control profile-input">
+                        <div class="profile-page-grid">
+                            <div class="profile-page-panel">
+                                <div class="profile-page-panel-header">Account</div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label>Full Name</label>
+                                        <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="profile-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email Address</label>
+                                        <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Job Title</label>
+                                        <input type="text" name="job_title" value="{{ Auth::user()->job_title ?? '' }}" readonly class="profile-input" placeholder="Not set">
+                                    </div>
                                 </div>
                             </div>
+
+                            <div class="profile-page-panel">
+                                <div class="profile-page-panel-header">Location</div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label>Region</label>
+                                        <input type="text" name="region" value="{{ Auth::user()->region ?? '' }}" readonly class="profile-input" placeholder="Not set">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Province</label>
+                                        <input type="text" name="province" value="{{ Auth::user()->province ?? '' }}" readonly class="profile-input" placeholder="Not set">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>City / Municipality</label>
+                                        <input type="text" name="city" value="{{ Auth::user()->city ?? '' }}" readonly class="profile-input" placeholder="Not set">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Barangay</label>
+                                        <input type="text" name="barangay" value="{{ Auth::user()->barangay ?? '' }}" readonly class="profile-input" placeholder="Not set">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="password_change_section" class="profile-page-panel profile-page-panel-wide" style="display: none;">
+                                <div class="profile-page-panel-header">Security</div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label>New Password</label>
+                                        <input type="password" name="password" class="profile-input" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Confirm Password</label>
+                                        <input type="password" name="password_confirmation" class="profile-input" readonly>
+                                    </div>
+                                </div>
+                                <div class="profile-page-help">Leave blank to keep your current password.</div>
+                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Course Details View -->
@@ -2035,4 +2097,3 @@
     </script>
 </body>
 </html>
-

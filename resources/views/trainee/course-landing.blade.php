@@ -19,12 +19,17 @@
         body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans', sans-serif;}
         :root{--app-sidebar-w:250px;--app-header-h:80px}
         .with-app-side{padding-left:var(--app-sidebar-w)}
+        .side-collapsed{--app-sidebar-w:70px}
         .app-side{position:fixed;left:0;top:var(--app-header-h);bottom:0;width:var(--app-sidebar-w);background:#002C76;color:#fff;z-index:25;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.12)}
         .app-side .app-side-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
         .app-side .app-initial{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.25);font-weight:800}
         .app-side a{color:rgba(255,255,255,.9);text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
         .app-side a:hover{background:rgba(255,255,255,.08)}
-        @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none} }
+        .app-side.collapsed .app-side-header div:nth-child(2){display:none}
+        .app-side.collapsed a span{display:none}
+        .app-side.collapsed a{justify-content:center}
+        .app-side.collapsed .app-initial{margin:0 auto}
+        @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none}.app-side.side-open{display:flex;box-shadow:0 18px 38px rgba(0,0,0,.25)} }
         .app-header{background:#fff;min-height:80px;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
         .app-header-left{display:flex;align-items:center;gap:12px}
         .app-header-logo{height:48px}
@@ -147,6 +152,16 @@
             document.getElementById('tabBtn'+id).classList.add('active');
             document.getElementById('pane'+id).style.display='block';
         }
+        function toggleAppSide(){
+            var side=document.querySelector('.app-side');
+            var body=document.body;
+            if(window.innerWidth<=900){
+                if(side){ side.classList.toggle('side-open'); }
+            }else{
+                if(side){ side.classList.toggle('collapsed'); }
+                if(body){ body.classList.toggle('side-collapsed'); }
+            }
+        }
         document.addEventListener('DOMContentLoaded', function(){
             try{
                 var params = new URLSearchParams(window.location.search);
@@ -155,12 +170,11 @@
                     'stream':'Stream',
                     'classwork':'Classwork',
                     'forum':'Forum',
-                    'people':'People',
-                    'grades':'Grades'
+                    'people':'People'
                 };
                 if(tab){
                     var norm = map[String(tab).toLowerCase()] || tab;
-                    if(['Stream','Classwork','Forum','People','Grades'].includes(norm)){
+                    if(['Stream','Classwork','Forum','People'].includes(norm)){
                         switchTo(norm);
                         return;
                     }
@@ -509,7 +523,7 @@
         });
     </script>
     </head>
-<body class="with-app-side">
+    <body class="with-app-side">
     <div id="deleteConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delTitle">
         <div class="modal">
             <div class="modal-editor" style="padding:16px">
@@ -524,6 +538,7 @@
     </div>
     <header class="app-header">
         <div class="app-header-left">
+            <button type="button" class="round-btn" onclick="toggleAppSide()" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
             <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right">
@@ -551,6 +566,7 @@
             </div>
         @endif
         <div class="hero">
+            <span>atest</span>
             <div class="hero-top">
                 @if ($course->image_path)
                     @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
@@ -567,7 +583,6 @@
                     <button id="tabBtnClasswork" class="tab" onclick="switchTo('Classwork')" role="tab" aria-controls="paneClasswork" aria-selected="false" tabindex="-1">Classwork</button>
                     <button id="tabBtnForum" class="tab" onclick="switchTo('Forum')" role="tab" aria-controls="paneForum" aria-selected="false" tabindex="-1">Forum</button>
                     <button id="tabBtnPeople" class="tab" onclick="switchTo('People')" role="tab" aria-controls="panePeople" aria-selected="false" tabindex="-1">People</button>
-                    <button id="tabBtnGrades" class="tab" onclick="switchTo('Grades')" role="tab" aria-controls="paneGrades" aria-selected="false" tabindex="-1">Grades</button>
                 </div>
             </div>
         </div>
@@ -937,9 +952,6 @@
                     </div>
                 </div>
             </div>
-            <div id="paneGrades" class="card" role="tabpanel" aria-labelledby="tabBtnGrades" style="display:none">
-                <div class="muted">Your grades will appear here.</div>
-            </div>
         </div>
     </div>
     <div id="announceModal" class="modal-overlay">
@@ -1179,4 +1191,3 @@
     </script>
 </body>
 </html>
-
