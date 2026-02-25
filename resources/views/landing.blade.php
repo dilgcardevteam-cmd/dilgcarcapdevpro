@@ -829,7 +829,7 @@
                 </p>
             </div>
             <div class="hero-image">
-            <img src="{{ asset('images/DILG IMAGE.png') }}" alt="DILG-CAR LMS Hero Image">
+            <img src="{{ asset('images/DILG.png') }}" alt="DILG-CAR LMS Hero Image">
         </div>
         </section>
 

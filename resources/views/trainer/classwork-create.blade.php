@@ -8,17 +8,17 @@
 <style>
 :root{--brand:#0f3b8f;--muted:#64748b;--border:#e5e7eb;--bg:#f4f6f9}
 body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-serif}
-.page{max-width:1000px;margin:20px auto;padding:0 16px}
+.page{max-width:1200px;margin:0 auto;padding:0 20px}
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .back{color:var(--brand);text-decoration:none;display:inline-flex;gap:8px;align-items:center;border:1px solid var(--border);padding:8px 12px;border-radius:999px;background:#fff}
-.tabs{display:flex;border-bottom:1px solid var(--border);gap:4px}
-.tab{border:none;background:none;padding:10px 14px;font-weight:700;color:#334155;cursor:pointer;border-bottom:2px solid transparent}
+.tabs{display:flex;border-bottom:1px solid var(--border);gap:8px;margin-bottom:12px}
+.tab{border:none;background:none;padding:12px 16px;font-weight:700;color:#334155;cursor:pointer;border-bottom:2px solid transparent}
 .tab.active{color:var(--brand);border-color:var(--brand)}
-.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.04);margin-top:12px;transition:box-shadow .2s ease,border-color .2s ease}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.field{flex:1 1 260px;display:flex;flex-direction:column;gap:6px}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 8px 22px rgba(0,0,0,.06);margin-top:14px;transition:box-shadow .2s ease,border-color .2s ease}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.field{flex:1 1 320px;display:flex;flex-direction:column;gap:8px}
 .label{font-weight:700;color:#1f2937}
-.input,.select,.textarea{border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff;transition:border-color .15s ease,box-shadow .2s ease}
+.input,.select,.textarea{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;transition:border-color .15s ease,box-shadow .2s ease;font-size:1rem}
 .input:hover,.select:hover,.textarea:hover{border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(15,59,143,.08)}
 .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn-blue{background:var(--brand);color:#fff}
@@ -43,6 +43,42 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
 </style>
 </head>
 <body>
+<header class="header" style="background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:80px;box-sizing:border-box;z-index:1000;position:fixed;top:0;left:250px;right:0">
+  <div style="display:flex;align-items:center">
+    <button style="background:none;border:none;color:#002C76;font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <div id="header-section-title" style="margin-left:12px;font-weight:700;color:#002C76;font-size:1.2rem;letter-spacing:-.01em">Create Classwork</div>
+  </div>
+  <div class="profile-menu" style="position:relative">
+    @if(Auth::user()->profile_picture)
+      <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onclick="toggleProfileMenu()">
+    @else
+      <div style="width:35px;height:35px;background-color:#002C76;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer" onclick="toggleProfileMenu()">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
+    @endif
+    <i class="fas fa-chevron-down profile-caret" style="margin-left:8px"></i>
+    <div id="profileDropdown" style="position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none">
+      <a class="dropdown-item" href="{{ route('profile.setup') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-user-cog"></i> <span>Profile</span></a>
+      <a class="dropdown-item" href="{{ route('trainer.courses.create') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-plus-circle"></i> <span>Create Course</span></a>
+      <a class="dropdown-item" href="mailto:support@capdevpro.local" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
+      <form method="POST" action="{{ route('logout') }}" style="margin:0">
+        @csrf
+        <button type="submit" class="dropdown-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#b91c1c;background:none;border:none;text-align:left;width:100%"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+      </form>
+    </div>
+  </div>
+</header>
+<div class="dashboard-container" style="display:flex;flex:1;overflow:hidden;margin-top:80px;margin-left:250px;height:calc(100vh - 80px)">
+  <div class="sidebar" id="sidebar" style="width:250px;background-color:#002C76;color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh">
+    <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.12)">
+      <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro" style="height:70px">
+    </div>
+    <ul class="nav-menu" style="list-style:none;padding:0;margin:0">
+      <li style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-tachometer-alt" style="width:25px;text-align:center;margin-right:15px"></i><span>Dashboard</span></a></li>
+      <li style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=my-courses" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-chalkboard-teacher" style="width:25px;text-align:center;margin-right:15px"></i><span>My Courses</span></a></li>
+      <li style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=calendar" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-calendar-alt" style="width:25px;text-align:center;margin-right:15px"></i><span>Calendar</span></a></li>
+      <li style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=announcements" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-bullhorn" style="width:25px;text-align:center;margin-right:15px"></i><span>Announcements</span></a></li>
+    </ul>
+  </div>
+  <div class="main-content" style="flex:1;padding:36px;overflow:auto;background:#f4f6f9">
 <div class="page">
     <div class="topbar">
         <h1 style="margin:0;font-size:1.4rem">Create Classwork</h1>
@@ -171,6 +207,37 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
         </form>
     </div>
 </div>
+</div>
+</div>
+<script>
+function toggleSidebar(){
+  var s=document.getElementById('sidebar');
+  s.classList.toggle('collapsed');
+  var logo=document.querySelector('.sidebar-logo');
+  var collapsed=s.classList.contains('collapsed');
+  if(collapsed){
+    s.style.width='70px';
+    if(logo){ logo.style.height='44px'; logo.style.width='44px'; logo.src=logo.getAttribute('data-collapsed-src'); }
+    document.querySelector('.dashboard-container').style.marginLeft='70px';
+    document.querySelector('.header').style.left='70px';
+  }else{
+    s.style.width='250px';
+    if(logo){ logo.style.height='70px'; logo.style.width='auto'; logo.src=logo.getAttribute('data-full-src'); }
+    document.querySelector('.dashboard-container').style.marginLeft='250px';
+    document.querySelector('.header').style.left='250px';
+  }
+}
+function toggleProfileMenu(){
+  var d=document.getElementById('profileDropdown');
+  if(!d) return;
+  d.style.display = d.style.display==='block' ? 'none' : 'block';
+}
+document.addEventListener('click',function(ev){
+  var menu=document.querySelector('.profile-menu');
+  var d=document.getElementById('profileDropdown');
+  if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
+});
+</script>
 
 <!-- Test Bank Modal -->
 <div id="bankModal" class="tb-overlay" aria-hidden="true">
@@ -517,5 +584,3 @@ document.getElementById('tbDelConfirm').onclick = async function(){
 </script>
 </body>
 </html>
-
-

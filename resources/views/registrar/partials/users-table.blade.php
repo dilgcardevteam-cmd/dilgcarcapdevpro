@@ -18,6 +18,7 @@
                     @php
                         $location = trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
                         $roleClass = in_array($user->role, ['admin', 'registrar', 'trainer', 'trainee']) ? $user->role : 'trainee';
+                        $roleLabel = $user->role === 'trainer' ? 'coach' : $user->role;
                         $statusValue = $user->status ?? 'active';
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
                         $statusLabel = $statusValue === 'freeze' ? 'Blocked' : $statusValue;
@@ -31,7 +32,7 @@
                         </td>
                         <td><span class="mono-text">{{ $user->account_id ?? '-' }}</span></td>
                         <td>{{ $user->email }}</td>
-                        <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $user->role }}</span></td>
+                        <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $roleLabel }}</span></td>
                         <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
                         <td class="muted-cell">{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
                         <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>

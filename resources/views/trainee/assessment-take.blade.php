@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     @if(session('success'))<div class="muted" style="margin-bottom:8px">{{ session('success') }}</div>@endif
     @php $hasQuestions = is_array($questions) && count($questions) > 0; @endphp
     @unless($hasQuestions)
-      <div class="muted" style="margin:8px 0">No questions are available for this assessment. Please inform your trainer.</div>
+      <div class="muted" style="margin:8px 0">No questions are available for this assessment. Please inform your coach.</div>
     @endunless
     <form id="takeForm" method="POST" action="{{ route('trainee.assessments.submit', $assessment) }}">
       @csrf

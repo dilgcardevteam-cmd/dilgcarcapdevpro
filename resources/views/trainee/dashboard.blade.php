@@ -214,7 +214,7 @@
             flex: 1;
             padding: 30px;
             overflow-y: auto;
-            background-color: var(--bg-color);
+            background-color: #ffffff;
         }
 
         /* Cards */
@@ -277,7 +277,7 @@
         .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
         .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
         .hero-btn:hover{background:rgba(255,255,255,.12)}
-        .hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
         .hero-metric{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px}
         .hero-metric h4{margin:0 0 6px;font-size:.95rem;color:#fff}
         .hero-meter{height:8px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
@@ -332,6 +332,17 @@
         .course-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+        }
+
+        .course-card[role="button"],
+        .course-card[role="link"] {
+            cursor: pointer;
+        }
+
+        .course-card[role="button"]:focus-visible,
+        .course-card[role="link"]:focus-visible {
+            outline: 2px solid rgba(0, 44, 118, 0.35);
+            outline-offset: 2px;
         }
 
         .course-image {
@@ -1006,30 +1017,23 @@
                             <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
                             <div class="control-hero-sub">Monitor your learning progress and quickly access your classes.</div>
                         </div>
-                        <div class="hero-actions">
-                            @if(isset($myCourses) && $myCourses->isNotEmpty())
-                            <a class="hero-btn" href="#" onclick="showContent('classroom', document.querySelector('a[onclick*=\'classroom\']'))"><i class="fas fa-door-open"></i> Enter Classroom</a>
-                            @else
-                            <a class="hero-btn" href="#" style="pointer-events:none;opacity:.6"><i class="fas fa-door-open"></i> Enter Classroom</a>
-                            @endif
-                            <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
-                        </div>
                     </div>
                     <div class="hero-metrics">
                         <div class="hero-metric">
                             <h4>Available Courses</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $totalAvailableCourses }}</div>
-                            <div class="hero-meter"><span style="width: {{ min(100, ($totalAvailableCourses ?? 0)*10) }}%"></span></div>
                         </div>
                         <div class="hero-metric">
                             <h4>Courses Joined</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $totalCoursesJoined }}</div>
-                            <div class="hero-meter"><span style="width: {{ min(100, ($totalCoursesJoined ?? 0)*20) }}%"></span></div>
                         </div>
                         <div class="hero-metric">
                             <h4>Pending Enrollments</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $pendingCoursesCount ?? 0 }}</div>
-                            <div class="hero-meter"><span style="background:#f57c00;width: {{ min(100, ($pendingCoursesCount ?? 0)*20) }}%"></span></div>
+                        </div>
+                        <div class="hero-metric">
+                            <h4>Finished Courses</h4>
+                            <div style="font-size:1.4rem;font-weight:800">{{ $completedCoursesCount ?? 0 }}</div>
                         </div>
                     </div>
                 </div>
@@ -1044,6 +1048,39 @@
                 </div>
                 @endif
 
+                <!-- Enrolled Courses (Active Only) -->
+                <div class="section-header">
+                    <h2 class="section-title">Enrolled Courses</h2>
+                </div>
+                <div class="course-grid">
+                    @forelse($myCourses as $course)
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainee.courses.show', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainee.courses.show', $course) }}';}">
+                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            <div class="course-content">
+                                <div class="course-title">{{ $course->name }}</div>
+                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+                                <div class="course-footer">
+                                    <span style="font-size: 0.8rem; color: #777;">
+                                        <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
+                                    </span>
+                                    <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align: center; padding: 28px; color: #6b7280;">
+                            <i class="fas fa-graduation-cap" style="font-size: 2.2rem; opacity: 0.6;"></i>
+                            <div style="margin-top: 8px;">You are not enrolled in any active courses yet.</div>
+                        </div>
+                    @endforelse
+                </div>
+
                 <!-- Available Courses List -->
                 <div class="section-header">
                     <h2 class="section-title">Available Courses</h2>
@@ -1051,15 +1088,42 @@
 
                 <div class="course-grid">
                     @forelse($availableCourses as $course)
-                        <div class="course-card">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                        <div class="course-card" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $courseImage = asset('storage/' . $course->image_path);
+                                } else {
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="openEnrollModal({{ $course->id }})">Enroll Now</button>
-                                        <button class="btn-view" onclick="openCourseDetails({{ $course->id }})">Details</button>
+                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        <button class="btn-view" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
                                     </div>
                                 </div>
                             </div>
@@ -1068,33 +1132,6 @@
                         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
                             <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
                             <p>No available courses at the moment.</p>
-                        </div>
-                    @endforelse
-                </div>
-
-                <!-- Enrolled Courses (Active Only) -->
-                <div class="section-header">
-                    <h2 class="section-title">Enrolled Courses</h2>
-                </div>
-                <div class="course-grid">
-                    @forelse($myCourses as $course)
-                        <div class="course-card">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
-                            <div class="course-content">
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-                                <div class="course-footer">
-                                    <span style="font-size: 0.8rem; color: #777;">
-                                        <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
-                                    </span>
-                                    <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}">Enter Class</a>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div style="grid-column: 1/-1; text-align: center; padding: 28px; color: #6b7280;">
-                            <i class="fas fa-graduation-cap" style="font-size: 2.2rem; opacity: 0.6;"></i>
-                            <div style="margin-top: 8px;">You are not enrolled in any active courses yet.</div>
                         </div>
                     @endforelse
                 </div>
@@ -1122,27 +1159,42 @@
                             <p>Pending Enrolled Courses</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $completedCoursesCount ?? 0 }}</h3>
+                            <p>Finished Courses</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="course-grid">
                     @forelse($classroomCourses as $course)
-                        <div class="course-card">
+                        @php
+                            $st = $courseStatuses[$course->id] ?? 'active';
+                        @endphp
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
                             <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
-                                    @php
-                                        $st = $courseStatuses[$course->id] ?? 'active';
-                                    @endphp
                                     @if($st === 'pending')
                                         <span style="font-size: 0.85rem; color: #f57c00; font-weight: 700;">Pending Approval</span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" style="pointer-events:none; opacity:.6;">Enter Class</a>
+                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" style="pointer-events:none; opacity:.6;" onclick="event.stopPropagation();">Enter Class</a>
                                     @else
                                         <span style="font-size: 0.8rem; color: #777;">
                                             <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
                                         </span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}">Enter Class</a>
+                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                     @endif
                                 </div>
                             </div>
@@ -1363,10 +1415,6 @@
                                         <label>Email Address</label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input" required>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Job Title</label>
-                                        <input type="text" name="job_title" value="{{ Auth::user()->job_title ?? '' }}" readonly class="profile-input" placeholder="Not set">
-                                    </div>
                                 </div>
                             </div>
 
@@ -1419,25 +1467,30 @@
                 
                 <!-- Course Header -->
                 <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <div id="detail-header-icon" style="width: 60px; height: 60px; background: var(--primary-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
-                            <i class="fas fa-chalkboard"></i>
-                        </div>
-                        <div>
-                            <h1 id="detail-title" style="margin: 0 0 5px; color: var(--primary-blue); font-size: 1.8rem;">Course Title</h1>
-                            <div style="color: var(--light-text); font-size: 0.9rem;">
-                                <span id="detail-category-badge" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Category</span>
-                                <span style="margin: 0 10px;">•</span>
-                                <span id="detail-trainer">Trainer: </span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 20px; min-width: 0;">
+                            <div id="detail-header-icon" style="width: 60px; height: 60px; background: var(--primary-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <div>
+                                <h1 id="detail-title" style="margin: 0 0 5px; color: var(--primary-blue); font-size: 1.8rem;">Course Title</h1>
+                                <div style="color: var(--light-text); font-size: 0.9rem;">
+                                    <span id="detail-category-badge" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Category</span>
+                                    <span style="margin: 0 10px;">•</span>
+                                    <span id="detail-trainer">Coach: </span>
+                                </div>
                             </div>
                         </div>
+                        <button id="detail-enroll-btn" class="btn-view" style="background-color: #C9282D; padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
+                        </button>
                     </div>
                 </div>
 
                 <!-- Tabs Navigation -->
                 <div style="display: flex; border-bottom: 1px solid #ddd; margin-bottom: 25px; background: white; padding: 0 20px; border-radius: 10px 10px 0 0;">
                     <button class="tab-btn active" onclick="switchCourseTab('description')">Overview</button>
-                    <button class="tab-btn" onclick="switchCourseTab('curriculum')">Curriculum</button>
+                    <button class="tab-btn" onclick="switchCourseTab('curriculum')">Topics</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -1451,30 +1504,20 @@
                         <p id="detail-description" style="line-height: 1.8; color: #444; white-space: pre-line; font-size: 1.05rem;">
                             Course description goes here...
                         </p>
-                        <div id="detail-video-container" style="margin-top: 20px;"></div>
-
-                        <div id="detail-enroll-container" style="margin-top: 30px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px; display: none; align-items: center; gap: 15px;">
-                            <button id="detail-enroll-btn" class="btn-view" style="background-color: var(--primary-green); padding: 12px 25px; font-size: 1rem;" onclick="openEnrollModal()">
-                                <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
-                            </button>
-                            <span id="detail-status-text" style="font-weight: bold; font-size: 1.1rem;"></span>
-                        </div>
 
                         <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
                             <h4 style="margin-top: 0; color: var(--dark-text);">Subject Areas</h4>
                             <p id="detail-subject-area" style="color: var(--light-text);">General</p>
-                        </div>
-
-                        <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
-                            <h4 style="margin-top: 0; color: var(--dark-text);"></h4>
-                            <div id="curriculum-list-overview" class="acc-list"></div>
                         </div>
                     </div>
 
                     <!-- Curriculum Tab -->
                     <div id="tab-curriculum" class="course-tab-content">
                         <h3 class="curriculum-title">Here’s what you will learn.</h3>
-                        <div id="curriculum-list" class="acc-list"></div>
+                        <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
+                            <h4 style="margin-top: 0; color: var(--dark-text);"></h4>
+                            <div id="curriculum-list" class="acc-list"></div>
+                        </div>
                     </div>
 
                     <!-- Removed tabs: Classwork, People, Grades -->
@@ -1600,6 +1643,11 @@
         }
 
         function showContent(sectionId, element) {
+            const evt = window.event;
+            if (evt && typeof evt.preventDefault === 'function') {
+                evt.preventDefault();
+            }
+
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
@@ -1618,6 +1666,15 @@
             var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile','certificates':'Certificates'};
             var titleEl=document.getElementById('headerSectionTitle');
             if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
+
+            const url = new URL(window.location.href);
+            if (sectionId === 'dashboard-home') {
+                url.searchParams.delete('tab');
+            } else {
+                url.searchParams.set('tab', sectionId);
+            }
+            url.hash = '';
+            window.history.pushState({}, '', url.toString());
         }
 
         function openCourseDetails(courseId) {
@@ -1639,7 +1696,7 @@
             document.getElementById('detail-description').innerText = course.description;
             document.getElementById('detail-category-badge').innerText = course.subject_area || 'General';
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
-            document.getElementById('detail-trainer').innerText = "Trainer: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
+            document.getElementById('detail-trainer').innerText = "Coach: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
             
             const hero = document.getElementById('detail-hero');
             if (course.image_path) {
@@ -1648,63 +1705,24 @@
                 hero.style.backgroundImage = "url('https://via.placeholder.com/800x300?text=No+Image')";
             }
 
-            // Render curriculum accordions in both Overview and Curriculum tabs
+            // Render curriculum accordion in Topics tab
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');
-            renderCurriculum(course.modules, isEnrolled, 'curriculum-list-overview');
             enableCurriculumSelection('curriculum-list');
-            enableCurriculumSelection('curriculum-list-overview');
-
-            // Render course video if available
-            const videoWrap = document.getElementById('detail-video-container');
-            videoWrap.innerHTML = '';
-            const isVideoFile = (p)=>/\.(mp4|webm|ogg)$/i.test(p||'');
-            if (course.video_path && isVideoFile(course.video_path)) {
-                const src = `${storageBaseUrl}/${course.video_path}`;
-                videoWrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)"><source src="${src}"></video>`;
-            } else if (course.video_url) {
-                const url = course.video_url;
-                if (/youtube\.com|youtu\.be/.test(url)) {
-                    let id = null;
-                    const yt = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
-                    if (yt && yt[1]) id = yt[1];
-                    const embed = id ? `https://www.youtube.com/embed/${id}` : url;
-                    videoWrap.innerHTML = `<div style="position:relative;padding-top:56.25%"><iframe src="${embed}" title="Video" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px" allowfullscreen></iframe></div>`;
-                } else if (isVideoFile(url)) {
-                    videoWrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)"><source src="${url}"></video>`;
-                } else {
-                    videoWrap.innerHTML = `<a href="${url}" target="_blank" style="color: var(--primary-green); text-decoration: none;">Open course video</a>`;
-                }
-            }
 
             // Removed: population for People, Classwork, and Grades
 
-            // Update Enroll Button inside Description
+            // Update Enroll button in header
             const status = courseStatuses[courseId] || null;
-            const enrollContainer = document.getElementById('detail-enroll-container');
             const enrollBtn = document.getElementById('detail-enroll-btn');
-            const statusText = document.getElementById('detail-status-text');
-            
-            enrollContainer.style.display = 'flex'; // Default to visible container
+            enrollBtn.style.display = 'none';
             
             if (status === 'active') {
                 enrollBtn.style.display = 'none';
-                statusText.innerText = '✅ You are enrolled in this course';
-                statusText.style.color = 'var(--primary-green)';
-                enrollContainer.style.background = '#e8f5e9';
-                enrollContainer.style.border = '1px solid #c8e6c9';
             } else if (status === 'pending') {
                 enrollBtn.style.display = 'none';
-                statusText.innerText = '⏳ Enrollment Pending Approval';
-                statusText.style.color = '#f57c00';
-                enrollContainer.style.background = '#fff3e0';
-                enrollContainer.style.border = '1px solid #ffe0b2';
             } else {
                 // Not enrolled
                 enrollBtn.style.display = 'inline-block';
-                statusText.innerText = 'Join this course to access materials and assessments.';
-                statusText.style.color = '#666';
-                enrollContainer.style.background = '#fff';
-                enrollContainer.style.border = '1px solid #eee';
             }
 
             // Handle Enrolled vs Not Enrolled UI state

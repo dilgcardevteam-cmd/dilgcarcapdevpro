@@ -129,7 +129,6 @@ class AuthController extends Controller
                 'google_id' => $googleId,
                 'status' => 'pending',
                 'profile_completed' => false,
-                'job_title' => 'Trainer',
             ]);
 
             if ($emailVerified) {
@@ -247,7 +246,6 @@ class AuthController extends Controller
             'status' => 'pending',
             'profile_completed' => true,
             'profile_completed_at' => now(),
-            'job_title' => 'Trainer',
         ]);
 
         $this->notifyRegistrarsAboutNewUser($user);
