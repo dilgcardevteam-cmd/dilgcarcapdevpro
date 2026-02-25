@@ -311,7 +311,7 @@
                     <div class="field-list"></div>
                     <textarea name="modules[${moduleIndex}][topics][${idx}][fields_json]" style="display:none"></textarea>
                 </div>
-                <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onpointerdown="openRailFromAdd(this, event)" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
+                <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
             `;
             topics.appendChild(row);
             updateProgress();
@@ -899,11 +899,14 @@
             dm.addEventListener('mouseenter', ()=>{});
             dm.addEventListener('mouseleave', ()=>{});
             document.addEventListener('focusin', (e)=>{
+                const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
+                if(fromAddBtn){
+                    updateDMEditingMode(e.target);
+                    return;
+                }
                 const anchor = resolveAnchorFromTarget(e.target);
                 if(anchor) {
-                    const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
-                    const showMenu = !(anchor.matches('.topic-row') && !fromAddBtn);
-                    setActiveAnchor(anchor, { showMenu: showMenu });
+                    setActiveAnchor(anchor, { showMenu: false });
                 }
                 updateDMEditingMode(e.target);
             });
@@ -911,11 +914,14 @@
                 setTimeout(()=> updateDMEditingMode(document.activeElement), 0);
             });
             document.addEventListener('click', (e)=>{
+                const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
+                if(fromAddBtn){
+                    updateDMEditingMode(e.target);
+                    return;
+                }
                 const anchor = resolveAnchorFromTarget(e.target);
                 if(anchor) {
-                    const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
-                    const showMenu = !(anchor.matches('.topic-row') && !fromAddBtn);
-                    setActiveAnchor(anchor, { showMenu: showMenu });
+                    setActiveAnchor(anchor, { showMenu: false });
                 }
                 updateDMEditingMode(e.target);
             });
@@ -937,7 +943,7 @@
                         if(node.matches && (node.matches('.field-block, .q-title, .q-option, .editor, .module-title-input') || node.querySelector('.field-block'))){
                             if(document.activeElement && node.contains(document.activeElement)){
                                 const anchor = resolveAnchorFromTarget(document.activeElement);
-                                if(anchor){ setActiveAnchor(anchor); }
+                                if(anchor){ setActiveAnchor(anchor, { showMenu: false }); }
                             }
                         }
                     }
@@ -969,7 +975,7 @@
             }
             DM_STATE.lastPos = {x:-1, y:-1};
             positionDM();
-            if(options.showMenu === false){
+            if(options.showMenu !== true){
                 DM_STATE.menuTrigger = null;
                 hideDM();
                 return;
@@ -1026,19 +1032,14 @@
             });
         }
         function openRailFromAdd(btn, event){
-            const eventType = event?.type || '';
-            const now = Date.now();
-            if(eventType === 'click' && DM_STATE.lastPointerOpenAt && (now - DM_STATE.lastPointerOpenAt) < 450){
-                event.preventDefault();
-                event.stopPropagation();
-                return;
-            }
-            if(eventType === 'pointerdown'){
-                DM_STATE.lastPointerOpenAt = now;
-            }
             if(event){
                 event.preventDefault();
                 event.stopPropagation();
+            }
+            const isVisible = !!(DM_STATE.el && DM_STATE.el.classList.contains('visible'));
+            if(isVisible && DM_STATE.menuTrigger === btn){
+                clearActiveAnchor();
+                return;
             }
             const anchor = btn.closest('.subtopic-row') || btn.closest('.topic-row') || btn.closest('.module-header');
             if(anchor){
