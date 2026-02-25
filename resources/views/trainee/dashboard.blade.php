@@ -214,7 +214,7 @@
             flex: 1;
             padding: 30px;
             overflow-y: auto;
-            background-color: var(--bg-color);
+            background-color: #ffffff;
         }
 
         /* Cards */
@@ -277,7 +277,7 @@
         .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
         .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
         .hero-btn:hover{background:rgba(255,255,255,.12)}
-        .hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
         .hero-metric{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px}
         .hero-metric h4{margin:0 0 6px;font-size:.95rem;color:#fff}
         .hero-meter{height:8px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
@@ -332,6 +332,17 @@
         .course-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+        }
+
+        .course-card[role="button"],
+        .course-card[role="link"] {
+            cursor: pointer;
+        }
+
+        .course-card[role="button"]:focus-visible,
+        .course-card[role="link"]:focus-visible {
+            outline: 2px solid rgba(0, 44, 118, 0.35);
+            outline-offset: 2px;
         }
 
         .course-image {
@@ -1003,30 +1014,23 @@
                             <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
                             <div class="control-hero-sub">Monitor your learning progress and quickly access your classes.</div>
                         </div>
-                        <div class="hero-actions">
-                            @if(isset($myCourses) && $myCourses->isNotEmpty())
-                            <a class="hero-btn" href="#" onclick="showContent('classroom', document.querySelector('a[onclick*=\'classroom\']'))"><i class="fas fa-door-open"></i> Enter Classroom</a>
-                            @else
-                            <a class="hero-btn" href="#" style="pointer-events:none;opacity:.6"><i class="fas fa-door-open"></i> Enter Classroom</a>
-                            @endif
-                            <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
-                        </div>
                     </div>
                     <div class="hero-metrics">
                         <div class="hero-metric">
                             <h4>Available Courses</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $totalAvailableCourses }}</div>
-                            <div class="hero-meter"><span style="width: {{ min(100, ($totalAvailableCourses ?? 0)*10) }}%"></span></div>
                         </div>
                         <div class="hero-metric">
                             <h4>Courses Joined</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $totalCoursesJoined }}</div>
-                            <div class="hero-meter"><span style="width: {{ min(100, ($totalCoursesJoined ?? 0)*20) }}%"></span></div>
                         </div>
                         <div class="hero-metric">
                             <h4>Pending Enrollments</h4>
                             <div style="font-size:1.4rem;font-weight:800">{{ $pendingCoursesCount ?? 0 }}</div>
-                            <div class="hero-meter"><span style="background:#f57c00;width: {{ min(100, ($pendingCoursesCount ?? 0)*20) }}%"></span></div>
+                        </div>
+                        <div class="hero-metric">
+                            <h4>Finished Courses</h4>
+                            <div style="font-size:1.4rem;font-weight:800">{{ $completedCoursesCount ?? 0 }}</div>
                         </div>
                     </div>
                 </div>
@@ -1040,61 +1044,6 @@
                     <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                 </div>
                 @endif
-
-                <!-- Available Courses List -->
-                <div class="section-header">
-                    <h2 class="section-title">Available Courses</h2>
-                </div>
-
-                <div class="course-grid">
-                    @forelse($availableCourses as $course)
-                        <div class="course-card">
-                            @php
-                                $courseImage = null;
-                                if ($course->image_path) {
-                                    $courseImage = asset('storage/' . $course->image_path);
-                                } else {
-                                    $courseNameLower = strtolower($course->name);
-                                    if (str_contains($courseNameLower, 'research')) {
-                                        $courseImage = asset('images/Basic Research.png');
-                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
-                                        $courseImage = asset('images/Basic Services.png');
-                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
-                                        $courseImage = asset('images/Nature and Types.png');
-                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
-                                        $courseImage = asset('images/Creation.png');
-                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
-                                        $courseImage = asset('images/Local Autonomy.png');
-                                    } else {
-                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
-                                    }
-                                }
-                            @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
-                            <div class="course-content">
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-                                @php
-                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
-                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                                @endphp
-                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
-                                <div class="course-footer">
-                                    <div style="display: flex; gap: 5px;">
-                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="openEnrollModal({{ $course->id }})">Enroll Now</button>
-                                        <button class="btn-view" onclick="openCourseDetails({{ $course->id }})">Details</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
-                            <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                            <p>No available courses at the moment.</p>
-                        </div>
-                    @endforelse
-                </div>
 
                 <!-- Enrolled Courses (Active Only) -->
                 <div class="section-header">
@@ -1128,6 +1077,61 @@
                         </div>
                     @endforelse
                 </div>
+
+                <!-- Available Courses List -->
+                <div class="section-header">
+                    <h2 class="section-title">Available Courses</h2>
+                </div>
+
+                <div class="course-grid">
+                    @forelse($availableCourses as $course)
+                        <div class="course-card" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $courseImage = asset('storage/' . $course->image_path);
+                                } else {
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
+                            <div class="course-content">
+                                <div class="course-title">{{ $course->name }}</div>
+                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+                                <div class="course-footer">
+                                    <div style="display: flex; gap: 5px;">
+                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        <button class="btn-view" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
+                            <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <p>No available courses at the moment.</p>
+                        </div>
+                    @endforelse
+                </div>
             </div>
 
             <!-- Classroom Section -->
@@ -1150,6 +1154,15 @@
                         <div class="stat-info">
                             <h3>{{ $pendingCoursesCount ?? 0 }}</h3>
                             <p>Pending Enrolled Courses</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $completedCoursesCount ?? 0 }}</h3>
+                            <p>Finished Courses</p>
                         </div>
                     </div>
                 </div>

@@ -371,7 +371,9 @@
                         item.innerHTML = '<div class=\"forum-title\"><a href=\"'+data.redirect+'\" style=\"text-decoration:none;color:#0f172a\">'+(data.discussion?.title||'New discussion')+'</a></div><div class=\"forum-meta\">Just now</div>';
                         list.prepend(item);
                     }
-                    window.location.href = data.redirect;
+                    closeDiscussionModal();
+                    showSuccessToast('Discussion created.');
+                    setTimeout(function(){ window.location.href = data.redirect; }, 350);
                     return;
                 }
             }catch(e){
@@ -380,6 +382,21 @@
                 btn.textContent='Submit';
                 updateDiscussionCounts();
             }
+        }
+        function handleAnnouncementSubmit(ev){
+            ev.preventDefault();
+            var form = ev.target;
+            var title = document.getElementById('announceTitle');
+            var body = document.getElementById('announceText');
+            if(!form || !title || !body) return false;
+            if(title.value.trim()==='' || body.value.trim()===''){
+                updatePostButton();
+                return false;
+            }
+            closeAnnouncementModal();
+            showSuccessToast('Announcement posted.');
+            setTimeout(function(){ form.submit(); }, 350);
+            return false;
         }
         function showAnnouncementsList(){
             var main=document.getElementById('streamMain');
@@ -795,7 +812,6 @@
                                 <div class="progress-ring" id="overallRing" style="--deg: {{ $completion*3.6 }}deg">{{ $completion }}%</div>
                                 <div style="flex:1;">
                                     <div class="muted" style="margin-bottom:6px;">Overall progress <span id="overallDetail" class="muted" style="margin-left:6px"></span></div>
-                                    <div class="progress-bar"><div id="overallBar" style="width: {{ $completion }}%"></div></div>
                                 </div>
                             </div>
                             <div id="moduleProgressList" style="margin-top:10px"></div>
@@ -808,9 +824,20 @@
                                 </div>
                                 <a class="link-action" href="javascript:void(0)" onclick="showAnnouncementsList()"><i class="fas fa-list-ul"></i> View all</a>
                             </div>
-                            <div class="ann-actions">
-                                <button class="chip-action" onclick="currentEditCard=null; openAnnouncementModal()"><i class="fas fa-pen"></i> New announcement</button>
-                            </div>
+                            @php
+                                $currentUserId = \Illuminate\Support\Facades\Auth::id();
+                                $canPostAnnouncement = !empty($asTrainer)
+                                    || (\Illuminate\Support\Facades\Auth::check() && in_array((\Illuminate\Support\Facades\Auth::user()->role ?? null), ['trainer', 'coach'], true))
+                                    || ($course->users && $course->users->contains(function ($u) use ($currentUserId) {
+                                        return (int) $u->id === (int) $currentUserId
+                                            && in_array(($u->role ?? null), ['trainer', 'coach'], true);
+                                    }));
+                            @endphp
+                            @if($canPostAnnouncement)
+                                <div class="ann-actions">
+                                    <button class="chip-action" onclick="currentEditCard=null; openAnnouncementModal()"><i class="fas fa-pen"></i> New announcement</button>
+                                </div>
+                            @endif
                             @php
                                 $trainer = optional($course->users->firstWhere('role','trainer'))->name ?? 'Coach';
                                 $announcements = $announcements ?? collect();
@@ -1170,7 +1197,7 @@
     </div>
     <div id="announceModal" class="modal-overlay">
         <div class="modal">
-            <form method="POST" action="{{ route('courses.class-announcements.store', $course) }}">
+            <form method="POST" action="{{ route('courses.class-announcements.store', $course) }}" onsubmit="handleAnnouncementSubmit(event)">
             @csrf
             <div class="modal-editor">
                 <input type="text" name="title" id="announceTitle" placeholder="Title" oninput="updatePostButton()" style="width:100%;font-size:1.1rem;color:#0f172a;margin-bottom:6px;">
@@ -1365,10 +1392,9 @@
         // Live progress refresh for overall and per-module breakdown
         (function(){
             var ring = document.getElementById('overallRing');
-            var bar = document.getElementById('overallBar');
             var detail = document.getElementById('overallDetail');
             var list = document.getElementById('moduleProgressList');
-            if(!ring || !bar) return;
+            if(!ring) return;
             var url = "{{ route('courses.progress.json', $course) }}";
             function refreshProgress(){
                 fetch(url, {credentials:'same-origin'}).then(function(r){
@@ -1381,7 +1407,6 @@
                     var total = (j.overall && j.overall.total) || 0;
                     ring.style.setProperty('--deg', (pct*3.6)+'deg');
                     ring.textContent = pct+'%';
-                    bar.style.width = pct+'%';
                     if(detail){ detail.textContent = total ? '('+done+'/'+total+' subtopics)' : ''; }
                     if(list && Array.isArray(j.modules)){
                         list.innerHTML = j.modules.map(function(m){
@@ -1393,7 +1418,6 @@
                                    '<div style="flex:1;font-weight:700;color:#0f3b8f">'+title+'</div>'+
                                    '<div style="width:48px;text-align:right;font-weight:700;color:#0f3b8f">'+p+'%</div>'+
                                    '<div style="flex:2">'+
-                                   '<div class="progress-bar" style="height:6px"><div style="width:'+p+'%"></div></div>'+
                                    '<div class="muted" style="font-size:.8rem;margin-top:2px">'+d+'/'+t+'</div>'+
                                    '</div></div>';
                         }).join('');

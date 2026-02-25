@@ -222,7 +222,12 @@ class DashboardController extends Controller
                 $totalAvailableCourses = $availableCourses->count();
                 $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
 
-                $completedCoursesCount = 0; // Placeholder logic
+                $completedByStatus = $user->courses()->wherePivot('status', 'completed')->count();
+                $completedByCertification = $user->certifications()
+                    ->whereNotNull('certification_user.course_id')
+                    ->distinct('certification_user.course_id')
+                    ->count('certification_user.course_id');
+                $completedCoursesCount = max($completedByStatus, $completedByCertification);
                 $activeCoursesCount = $myCourses->count();
                 
                 // Fetch Announcements (global or course specific - for now fetching all global)

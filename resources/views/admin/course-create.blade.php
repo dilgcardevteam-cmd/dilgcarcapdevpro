@@ -100,6 +100,8 @@
         .editor { border: 1px solid #ddd; border-radius: 6px; padding: 10px; min-height: 120px; background: #fff; }
         .materials-panel { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-top:8px; }
         .fields-panel { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-top:10px; position:relative; }
+        .panel-add-btn { margin-top:8px; margin-left:auto; width:34px; height:34px; border-radius:999px; border:1px solid #d1d5db; background:#ffffff; color:#0038A7; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+        .panel-add-btn:hover { background:#f1f5ff; border-color:#b9c6ff; }
         .field-block { border:1px dashed #cbd5e1; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
         .field-block.selected-field { outline:2px solid #6366f1; }
         .q-block { border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
@@ -120,11 +122,11 @@
         #dynamicMenu { position: absolute; top: 0; left: 0; transform: translate(0,0); transition: transform 360ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms; z-index: 2000; opacity: 0; pointer-events: none; }
         #dynamicMenu.no-anim { transition: none !important; }
         #dynamicMenu .dm-container { display:flex; align-items:flex-start; gap:8px; }
-        #dynamicMenu .dm-rail { display:flex; flex-direction:column; gap:10px; padding:8px; border:1px solid #e5e7eb; background:#ffffff; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,0.12); }
-        #dynamicMenu .dm-trigger { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; background:#ffffff; cursor:pointer; box-shadow:0 8px 18px rgba(0,0,0,0.08); color:#111827; }
-        #dynamicMenu .dm-trigger:active { transform: scale(0.98); }
-        #dynamicMenu .rail-btn { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; background:#ffffff; cursor:pointer; color:#111827; }
-        #dynamicMenu .rail-btn:hover { background:#f8fafc; }
+        #dynamicMenu .dm-rail { display:flex; flex-direction:column; gap:10px; padding:10px; border:1px solid #dbe4f3; background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%); border-radius:14px; box-shadow:0 14px 30px rgba(15,23,42,0.18); min-width: 240px; opacity:0; transform:translateX(14px) scale(.98); transition:opacity .22s ease, transform .28s cubic-bezier(.2,.65,.2,1); }
+        #dynamicMenu.visible .dm-rail { opacity:1; transform:translateX(0) scale(1); }
+        #dynamicMenu .rail-btn { width:100%; min-height:44px; border-radius:10px; display:flex; align-items:center; justify-content:flex-start; gap:10px; border:1px solid #e5e7eb; background:#ffffff; cursor:pointer; color:#111827; padding:0 12px; text-align:left; transition:transform .15s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease; }
+        #dynamicMenu .rail-btn:hover { background:#f1f5ff; border-color:#c8d4ff; transform:translateY(-1px); box-shadow:0 8px 18px rgba(37,99,235,.15); }
+        #dynamicMenu .rail-label { font-size:.92rem; font-weight:700; color:#0f172a; }
         #dynamicMenu .dm-panel { display:none; min-width:260px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,0.12); padding:8px; }
         #dynamicMenu .dm-panel.open { display:block; }
         #dynamicMenu .dm-group-label { font-size:12px; color:#6b7280; padding:6px 10px; }
@@ -134,6 +136,7 @@
         #dynamicMenu .dm-sep { height:1px; background:#e5e7eb; margin:6px 8px; }
         #dynamicMenu.visible { opacity: 1; pointer-events: auto; }
         #dynamicMenu[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+        #dynamicMenu.is-editing .dm-rail { display:none; }
         .active-section { outline:2px solid #6366f1; border-radius:10px; }
         .toggle { display:inline-flex; align-items:center; gap:6px; }
         body.embedded-create {
@@ -263,28 +266,13 @@
     <div id="dynamicMenu" aria-hidden="true">
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
-                <button type="button" class="dm-trigger" id="dmTrigger" aria-haspopup="true" aria-expanded="false" title="Add">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button type="button" class="rail-btn" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i></button>
-                <button type="button" class="rail-btn" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i></button>
-                <button type="button" class="rail-btn" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i></button>
-                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i></button>
-                <button type="button" class="rail-btn" title="Add Subtopic" aria-label="Add Subtopic" onclick="dmAddSubtopic()"><i class="fas fa-list"></i></button>
-                <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i></button>
-                <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i></button>
+                <button type="button" class="rail-btn" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Text</span></button>
+                <button type="button" class="rail-btn" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
+                <button type="button" class="rail-btn" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
+                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Multiple Choice</span></button>
+                <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
+                <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
-            <div class="dm-panel" id="dmPanel" role="menu" aria-hidden="true" style="margin-left:8px;">
-                <div class="dm-group-label">Text</div>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span>Add Text</span></button>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span>Add Image (upload)</span></button>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span>Add Video (upload)</span></button>
-                <div class="dm-group-label">Question</div>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span>Multiple Choice</span></button>
-                <div class="dm-sep"></div>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddSubtopic()"><i class="fas fa-list"></i><span>Add Subtopic</span></button>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddTopic()"><i class="fas fa-list-ul"></i><span>Add Topic</span></button>
-                <button type="button" class="dm-item" role="menuitem" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span>Add Module</span></button>
             </div>
         </div>
     </div>
@@ -304,7 +292,6 @@
                     </div>
                     <div class="module-actions">
                         <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="removeModule(this, event)">Remove</button>
-                        <button type="button" class="btn btn-small" style="background:#0038A7;" onclick="addTopicFromHeader(this)">Add Topic</button>
                         <button type="button" class="chevron-btn" onclick="toggleChevron(this)"><i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
@@ -374,6 +361,7 @@
                     <div class="field-list"></div>
                     <textarea name="modules[${moduleIndex}][topics][${topicIndex}][subtopics][${sIdx}][fields_json]" style="display:none"></textarea>
                 </div>
+                <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onpointerdown="openRailFromAdd(this, event)" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
             `;
             subs.appendChild(sub);
             const panel = sub.querySelector('.fields-panel');
@@ -1132,6 +1120,7 @@
         let DM_STATE = {
             el: null,
             currentAnchor: null,
+            menuTrigger: null,
             hovering: false,
             hoverTimer: null,
             raf: null,
@@ -1151,32 +1140,42 @@
             const trigger = document.getElementById('dmTrigger');
             const panel = document.getElementById('dmPanel');
             function openPanel(){
+                if(!panel || !trigger) return;
                 panel.classList.add('open');
                 panel.setAttribute('aria-hidden','false');
                 trigger.setAttribute('aria-expanded','true');
                 requestDMReposition();
             }
             function closePanel(){
+                if(!panel || !trigger) return;
                 panel.classList.remove('open');
                 panel.setAttribute('aria-hidden','true');
                 trigger.setAttribute('aria-expanded','false');
                 requestDMReposition();
             }
-            trigger.addEventListener('click', (e)=>{
-                e.stopPropagation();
-                if(panel.classList.contains('open')) closePanel(); else openPanel();
-            });
+            if(trigger && panel){
+                trigger.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    if(panel.classList.contains('open')) closePanel(); else openPanel();
+                });
+            }
             document.addEventListener('click', (e)=>{
                 // Close panel on outside click
-                if(!dm.contains(e.target)) closePanel();
+                if(!dm.contains(e.target) && panel && trigger) closePanel();
                 // Clear selection and hide toolbar if click does not target a selectable anchor or the toolbar
                 const anchor = resolveAnchorFromTarget(e.target);
-                if(!anchor && !dm.contains(e.target)) {
+                const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
+                if(!anchor && !dm.contains(e.target) && !fromAddBtn) {
                     clearActiveAnchor();
                 }
             });
             dm.addEventListener('keydown', (e)=>{
-                if(e.key === 'Escape') { closePanel(); trigger.focus(); }
+                if(e.key === 'Escape') {
+                    if(panel && trigger){
+                        closePanel();
+                        trigger.focus();
+                    }
+                }
             });
 
             // Keyboard navigation: allow Tab/Shift+Tab naturally; add key handlers for Enter/Space
@@ -1194,11 +1193,24 @@
             // Track focus changes
             document.addEventListener('focusin', (e)=>{
                 const anchor = resolveAnchorFromTarget(e.target);
-                if(anchor) { setActiveAnchor(anchor); }
+                if(anchor) {
+                    const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
+                    const showMenu = !(anchor.matches('.topic-row') && !fromAddBtn);
+                    setActiveAnchor(anchor, { showMenu: showMenu });
+                }
+                updateDMEditingMode(e.target);
+            });
+            document.addEventListener('focusout', ()=>{
+                setTimeout(()=> updateDMEditingMode(document.activeElement), 0);
             });
             document.addEventListener('click', (e)=>{
                 const anchor = resolveAnchorFromTarget(e.target);
-                if(anchor) { setActiveAnchor(anchor); }
+                if(anchor) {
+                    const fromAddBtn = !!(e.target && e.target.closest && e.target.closest('.panel-add-btn'));
+                    const showMenu = !(anchor.matches('.topic-row') && !fromAddBtn);
+                    setActiveAnchor(anchor, { showMenu: showMenu });
+                }
+                updateDMEditingMode(e.target);
             });
 
             // Reposition on scroll/resize (capture for nested scrollables)
@@ -1247,19 +1259,29 @@
             if(moduleHeader) return moduleHeader;
             return null;
         }
-        function setActiveAnchor(anchor){
+        function setActiveAnchor(anchor, opts){
             if(!anchor || !isVisible(anchor)) { hideDM(); return; }
+            const options = opts || {};
             // Visual feedback
             document.querySelectorAll('.active-section').forEach(el=> el.classList.remove('active-section'));
             anchor.classList.add('active-section');
             DM_STATE.currentAnchor = anchor;
+            if(Object.prototype.hasOwnProperty.call(options, 'menuTrigger')){
+                DM_STATE.menuTrigger = options.menuTrigger || null;
+            }
             DM_STATE.lastPos = {x:-1, y:-1};
             positionDM();
+            if(options.showMenu === false){
+                DM_STATE.menuTrigger = null;
+                hideDM();
+                return;
+            }
             showDM(anchor);
         }
         function clearActiveAnchor(){
             document.querySelectorAll('.active-section').forEach(el=> el.classList.remove('active-section'));
             DM_STATE.currentAnchor = null;
+            DM_STATE.menuTrigger = null;
             hideDM();
         }
         function isVisible(el){
@@ -1284,9 +1306,23 @@
             const margin = 12;
             const rect = DM_STATE.currentAnchor.getBoundingClientRect();
             const dmRect = dm.getBoundingClientRect();
-            // Always place on the right side of the selected box
-            const targetX = rect.right + margin + window.scrollX;
-            const targetY = rect.top + rect.height/2 - dmRect.height/2 + window.scrollY;
+            const viewportLeft = window.scrollX;
+            const viewportRight = window.scrollX + window.innerWidth;
+            const viewportTop = window.scrollY;
+            const viewportBottom = window.scrollY + window.innerHeight;
+
+            let targetX;
+            let targetY;
+            if(DM_STATE.menuTrigger && isVisible(DM_STATE.menuTrigger)){
+                const tRect = DM_STATE.menuTrigger.getBoundingClientRect();
+                targetX = tRect.left + window.scrollX;
+                targetY = tRect.bottom + 8 + window.scrollY;
+            }else{
+                targetX = viewportRight - dmRect.width - margin;
+                targetY = rect.top + rect.height/2 - dmRect.height/2 + window.scrollY;
+            }
+            targetX = Math.max(viewportLeft + margin, Math.min(targetX, viewportRight - dmRect.width - margin));
+            targetY = Math.max(viewportTop + margin, Math.min(targetY, viewportBottom - dmRect.height - margin));
             const roundX = Math.round(targetX);
             const roundY = Math.round(targetY);
             if(DM_STATE.lastPos.x === roundX && DM_STATE.lastPos.y === roundY) return;
@@ -1300,6 +1336,44 @@
                 positionDM();
             });
         }
+        function openRailFromAdd(btn, event){
+            const eventType = event?.type || '';
+            const now = Date.now();
+            if(eventType === 'click' && DM_STATE.lastPointerOpenAt && (now - DM_STATE.lastPointerOpenAt) < 450){
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+            if(eventType === 'pointerdown'){
+                DM_STATE.lastPointerOpenAt = now;
+            }
+            if(event){
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const anchor = btn.closest('.subtopic-row') || btn.closest('.topic-row') || btn.closest('.module-header');
+            if(anchor){
+                setActiveAnchor(anchor, { showMenu: true, menuTrigger: btn });
+            }else{
+                DM_STATE.menuTrigger = btn;
+                showDM(document.querySelector('.topic-row') || document.querySelector('.module-header') || document.body);
+            }
+            if(DM_STATE.el){
+                DM_STATE.el.classList.remove('is-editing');
+            }
+        }
+        function updateDMEditingMode(target){
+            const dm = DM_STATE.el;
+            if(!dm){ return; }
+            const editable = target instanceof HTMLElement
+                ? target.closest('input[type="text"], textarea, [contenteditable="true"], .module-title-input, .q-title, .q-option')
+                : null;
+            if(editable && DM_STATE.currentAnchor && DM_STATE.currentAnchor.contains(editable)){
+                dm.classList.add('is-editing');
+            }else{
+                dm.classList.remove('is-editing');
+            }
+        }
         function showDM(anchor){
             const dm = DM_STATE.el;
             const fieldName = deriveFieldLabel(anchor) || 'field';
@@ -1310,11 +1384,13 @@
             dm.style.zIndex = '2000';
             dm.classList.add('visible');
             dm.setAttribute('aria-hidden','false');
+            updateDMEditingMode(document.activeElement);
             requestDMReposition();
         }
         function hideDM(){
             const dm = DM_STATE.el;
             dm.classList.remove('visible');
+            dm.classList.remove('is-editing');
             dm.setAttribute('aria-hidden','true');
         }
         function deriveFieldLabel(anchor){
@@ -1351,6 +1427,7 @@
                 if(last) setActiveAnchor(last);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         function dmAddImageUpload(){
             const anchor = DM_STATE.currentAnchor;
@@ -1370,6 +1447,7 @@
                 setSelectedField(last);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         function dmAddVideoUpload(){
             const anchor = DM_STATE.currentAnchor;
@@ -1389,6 +1467,7 @@
                 setSelectedField(last);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         function dmAddQuestion(){
             const sel = document.querySelector('.field-block.selected-field');
@@ -1412,6 +1491,7 @@
                 if(last) setActiveAnchor(last);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         function addReflectionField(panel){
             const list = panel.querySelector('.field-list');
@@ -1449,23 +1529,7 @@
                 if(last) setActiveAnchor(last);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
-        }
-        function dmAddSubtopic(){
-            const anchor = DM_STATE.currentAnchor;
-            let topicRow = anchor?.closest('.topic-row') || document.querySelector('.topic-row:last-of-type');
-            if(!topicRow){
-                const body = anchor?.closest('.module-body') || document.querySelector('.module-body');
-                if(body){
-                    addTopicInput(body);
-                    topicRow = body.querySelector('.topic-row:last-of-type');
-                }
-            }
-            if(topicRow){
-                addSubtopicRow(topicRow);
-                const sub = topicRow.querySelector('.subtopic-row:last-of-type');
-                if(sub && typeof setActiveAnchor === 'function'){ setActiveAnchor(sub); }
-            }
-            const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         // Removed dmAddImage/dmAddVideo (toolbar restricted to four buttons)
         function dmAddTopic(){
@@ -1477,12 +1541,14 @@
                 if(lastTopic) setActiveAnchor(lastTopic);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
         }
         function dmAddModule(){ 
             createModule(); 
             const lastHeader = document.querySelector('.module-wrapper:last-of-type .module-header');
             if(lastHeader) setActiveAnchor(lastHeader);
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open'); 
+            clearActiveAnchor();
         }
 
         // Simple test harness (invoke in console: DynamicMenuTests.runAll())

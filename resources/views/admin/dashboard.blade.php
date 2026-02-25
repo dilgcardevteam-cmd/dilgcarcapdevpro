@@ -5176,6 +5176,25 @@
 
         // View Course Modal
         const courseShowUrlTemplate = @json(route('admin.courses.show', ['course' => '__COURSE_ID__']));
+
+        function isCourseManagementTabActive() {
+            const section = document.getElementById('course-management');
+            return !!(section && section.classList.contains('active'));
+        }
+
+        function setCourseModalClickLock(isLocked) {
+            const header = document.querySelector('.header');
+            const dashboardContainer = document.querySelector('.dashboard-container');
+
+            if (header) {
+                header.style.pointerEvents = isLocked ? 'none' : '';
+            }
+
+            if (dashboardContainer) {
+                dashboardContainer.style.pointerEvents = isLocked ? 'none' : '';
+            }
+        }
+
         function openViewCourseModal(course) {
             if (!course || !course.id) return;
 
@@ -5207,6 +5226,7 @@
 
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            setCourseModalClickLock(isCourseManagementTabActive());
         }
 
         function closeViewCourseModal() {
@@ -5216,6 +5236,7 @@
 
             modal.style.display = 'none';
             document.body.style.overflow = '';
+            setCourseModalClickLock(false);
 
             if (iframe) {
                 iframe.onload = null;
@@ -5237,9 +5258,6 @@
 
             if (event.target == editUserModal) {
                 editUserModal.style.display = "none";
-            }
-            if (event.target == viewCourseModal) {
-                closeViewCourseModal();
             }
             if (event.target == archivedCoursesModal) {
                 closeArchivedCoursesModal();

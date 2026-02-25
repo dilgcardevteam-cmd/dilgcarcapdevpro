@@ -166,9 +166,7 @@
                 wrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px"><source src="${storageBaseUrl}/${course.video_path}"></video>`;
             } else if(course.video_url){
                 const url = course.video_url;
-                if(/youtube\.com|youtu\.be/.test(url)){
-                    wrap.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0f766e; text-decoration: none;">Open course video on YouTube</a>`;
-                } else if(isVideo(url)){
+                if(isVideo(url)){
                     wrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px"><source src="${url}"></video>`;
                 }
             }
