@@ -115,10 +115,9 @@
         .q-actions .left { display:flex; gap:8px; align-items:center; }
         .q-actions .right { display:flex; gap:8px; align-items:center; margin-left:auto; }
         .q-actions .divider { width:1px; height:20px; background:#e5e7eb; }
-        .kebab { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; background:#f8fafc; border-radius:8px; cursor:pointer; }
-        .kebab-menu { position:absolute; right:0; top:34px; display:none; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.08); min-width:160px; z-index:10; }
-        .kebab-menu button { display:block; width:100%; text-align:left; border:none; background:#fff; padding:8px 10px; cursor:pointer; }
-        .kebab-menu button:hover { background:#f1f5f9; }
+        .field-move-controls { display:inline-flex; align-items:center; gap:6px; }
+        .field-move-btn { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #d1d5db; background:#f8fafc; border-radius:8px; color:#334155; cursor:pointer; }
+        .field-move-btn:hover { background:#eef2ff; border-color:#c7d2fe; color:#1e3a8a; }
         #dynamicMenu { position: absolute; top: 0; left: 0; transform: translate(0,0); transition: transform 360ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms; z-index: 2000; opacity: 0; pointer-events: none; }
         #dynamicMenu.no-anim { transition: none !important; }
         #dynamicMenu .dm-container { display:flex; align-items:flex-start; gap:8px; }
@@ -528,17 +527,6 @@
             document.querySelectorAll('.field-block.selected-field').forEach(b=> b.classList.remove('selected-field'));
             block.classList.add('selected-field');
         }
-        function openKebab(btn){
-            const menu = btn.nextElementSibling;
-            if(!menu) return;
-            menu.style.display = (menu.style.display==='block') ? 'none' : 'block';
-            document.addEventListener('click', function onDoc(e){
-                if(!menu.contains(e.target) && e.target !== btn){
-                    menu.style.display='none';
-                    document.removeEventListener('click', onDoc);
-                }
-            });
-        }
         function moveFieldUp(btn){
             const block = btn.closest('.field-block');
             const panel = block.closest('.fields-panel');
@@ -580,17 +568,16 @@
                         <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate field"><i class="fas fa-clone"></i></button>
                         <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete field"><i class="fas fa-trash"></i></button>
                         <span class="divider"></span>
-                        <button type="button" class="kebab" onclick="openKebab(this)" aria-label="More actions">⋯</button>
-                        <div class="kebab-menu">
-                            <button type="button" onclick="moveFieldUp(this)">Move up</button>
-                            <button type="button" onclick="moveFieldDown(this)">Move down</button>
+                        <div class="field-move-controls" aria-label="Move field actions">
+                            <button type="button" class="field-move-btn" onclick="moveFieldUp(this)" title="Move up" aria-label="Move up"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" class="field-move-btn" onclick="moveFieldDown(this)" title="Move down" aria-label="Move down"><i class="fas fa-arrow-down"></i></button>
                         </div>
                     </div>
                 </div>
             `;
             list.appendChild(block);
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
-            block.addEventListener('click', (e)=> { if(!e.target.closest('.kebab-menu')) setSelectedField(block); });
+            block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
             if(origin && origin.closest){
                 const menuWrap = origin.closest('.add-menu');
                 if(menuWrap) menuWrap.style.display='none';
@@ -625,10 +612,9 @@
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
                             <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete question"><i class="fas fa-trash"></i></button>
                             <span class="divider"></span>
-                            <button type="button" class="kebab" onclick="openKebab(this)" aria-label="More actions">⋯</button>
-                            <div class="kebab-menu">
-                                <button type="button" onclick="moveFieldUp(this)">Move up</button>
-                                <button type="button" onclick="moveFieldDown(this)">Move down</button>
+                            <div class="field-move-controls" aria-label="Move field actions">
+                                <button type="button" class="field-move-btn" onclick="moveFieldUp(this)" title="Move up" aria-label="Move up"><i class="fas fa-arrow-up"></i></button>
+                                <button type="button" class="field-move-btn" onclick="moveFieldDown(this)" title="Move down" aria-label="Move down"><i class="fas fa-arrow-down"></i></button>
                             </div>
                         </div>
                     </div>
@@ -642,7 +628,7 @@
                 syncFieldsJSON(panel);
             });
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
-            block.addEventListener('click', (e)=> { if(!e.target.closest('.kebab-menu')) setSelectedField(block); });
+            block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
             if(origin && origin.closest){
                 const menuWrap = origin.closest('.add-menu');
                 if(menuWrap) menuWrap.style.display='none';
@@ -671,7 +657,7 @@
             `;
             current.parentElement.insertBefore(block, current.nextSibling);
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
-            block.addEventListener('click', (e)=> { if(!e.target.closest('.kebab-menu')) setSelectedField(block); });
+            block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
@@ -745,7 +731,7 @@
             clone.setAttribute('data-correct', newGroup);
             clone.querySelectorAll('.q-correct').forEach(r => { r.name = newGroup; r.checked = false; });
             clone.addEventListener('input', ()=> syncFieldsJSON(panel));
-            clone.addEventListener('click', (e)=> { if(!e.target.closest('.kebab-menu')) setSelectedField(clone); });
+            clone.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(clone); });
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
         }
@@ -1509,7 +1495,7 @@
             `;
             list.appendChild(block);
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
-            block.addEventListener('click', (e)=> { if(!e.target.closest('.kebab-menu')) setSelectedField(block); });
+            block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
         }
