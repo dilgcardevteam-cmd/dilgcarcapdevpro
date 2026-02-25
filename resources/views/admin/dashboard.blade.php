@@ -91,6 +91,27 @@
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
+        .user-profile-header{
+            padding:6px 8px;
+            border-radius:999px;
+            transition:transform .18s ease,box-shadow .22s ease,background-color .22s ease;
+        }
+        .user-profile-header:hover{
+            transform:translateY(-2px);
+            box-shadow:0 10px 18px rgba(15,23,42,.16);
+            background-color:#ffffff;
+        }
+        .user-profile-header:active{
+            transform:translateY(-1px);
+            box-shadow:0 5px 10px rgba(15,23,42,.14);
+        }
+        .user-profile-header .fa-chevron-down{
+            transition:transform .18s ease,color .18s ease;
+        }
+        .user-profile-header:hover .fa-chevron-down{
+            transform:translateY(-1px);
+            color:#4b5563 !important;
+        }
 
         /* Dashboard Container */
         .dashboard-container {
