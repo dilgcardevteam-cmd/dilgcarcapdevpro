@@ -29,11 +29,21 @@ class DashboardController extends Controller
                 $courses = Course::all();
                 $archivedCourses = Course::onlyTrashed()->get();
                 $certifications = Certification::all();
+                $recentCourses = Course::latest()->take(5)->get();
                 $pendingCoursesCount = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q){
                         $q->where('role', 'trainer');
                     })
                     ->count();
+                $activeUsersCount = User::where('status', 'active')->count();
+                $pendingUsersTotal = User::where('status', 'pending')->count();
+                $frozenUsersCount = User::where('status', 'freeze')->count();
+                $trainersCount = User::where('role', 'trainer')->count();
+                $traineesCount = User::where('role', 'trainee')->count();
+                $adminsCount = User::where('role', 'admin')->count();
+                $registrarsCount = User::where('role', 'registrar')->count();
+                $archivedCoursesCount = Course::onlyTrashed()->count();
+                $certificationCount = Certification::count();
                 
                 $query = User::query();
 
@@ -66,7 +76,26 @@ class DashboardController extends Controller
                     return view('admin.partials.users-table', compact('users'))->render();
                 }
 
-                return view('admin.dashboard', compact('userCount', 'users', 'courses', 'courseCount', 'archivedCourses', 'certifications', 'forceProfile', 'pendingCoursesCount'));
+                return view('admin.dashboard', compact(
+                    'userCount',
+                    'users',
+                    'courses',
+                    'courseCount',
+                    'archivedCourses',
+                    'certifications',
+                    'forceProfile',
+                    'pendingCoursesCount',
+                    'activeUsersCount',
+                    'pendingUsersTotal',
+                    'frozenUsersCount',
+                    'trainersCount',
+                    'traineesCount',
+                    'adminsCount',
+                    'registrarsCount',
+                    'archivedCoursesCount',
+                    'certificationCount',
+                    'recentCourses'
+                ));
             case 'registrar':
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();

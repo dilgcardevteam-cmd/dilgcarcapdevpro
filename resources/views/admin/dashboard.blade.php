@@ -219,52 +219,414 @@
             font-weight: 700;
         }
 
-        /* Stats Cards */
+        /* LMS Home */
+        .lms-home {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .lms-home-hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            padding: 24px 24px 22px;
+            background: linear-gradient(145deg, #002c76 0%, #17489f 58%, #1f7e3a 160%);
+            box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
+            color: #ffffff;
+        }
+
+        .lms-home-hero::before,
+        .lms-home-hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+        }
+
+        .lms-home-hero::before {
+            width: 220px;
+            height: 220px;
+            top: -110px;
+            right: -70px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+        }
+
+        .lms-home-hero::after {
+            width: 280px;
+            height: 280px;
+            bottom: -170px;
+            left: -90px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 74%);
+        }
+
+        .lms-home-headline {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .lms-home-kicker {
+            margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
+        .lms-welcome {
+            color: #ffffff;
+            margin: 0;
+            font-size: 2rem;
+            line-height: 1.12;
+        }
+
+        .lms-home-subtitle {
+            margin: 10px 0 0;
+            max-width: 700px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .lms-home-quick {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .lms-pill-btn {
+            border: 1px solid rgba(255, 255, 255, 0.38);
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .lms-pill-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.56);
+        }
+
+        .lms-hero-metrics {
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .lms-hero-chip {
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            border-radius: 12px;
+            padding: 10px 12px;
+            min-width: 168px;
+        }
+
+        .lms-hero-chip span {
+            display: block;
+            font-size: 0.74rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            opacity: 0.88;
+        }
+
+        .lms-hero-chip strong {
+            display: block;
+            margin-top: 2px;
+            font-size: 1.22rem;
+            line-height: 1.2;
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 0;
         }
 
         .stat-card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background-color: #ffffff;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid #dbe4f0;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
             display: flex;
             align-items: center;
-            transition: transform 0.3s;
+            gap: 12px;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            min-height: 92px;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        .stat-card.clickable {
+            cursor: pointer;
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(0, 44, 118, 0.1);
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.12rem;
+            flex-shrink: 0;
+            margin-right: 0;
             color: var(--primary-blue);
-            font-size: 1.5rem;
-            margin-right: 20px;
+            background: #eaf1ff;
+        }
+
+        .stat-card.tone-green .stat-icon {
+            background: #e8f7e8;
+            color: #1f7e3a;
+        }
+
+        .stat-card.tone-orange .stat-icon {
+            background: #fff2e2;
+            color: #b45309;
+        }
+
+        .stat-card.tone-slate .stat-icon {
+            background: #edf2f7;
+            color: #334155;
         }
 
         .stat-info h3 {
             margin: 0;
-            font-size: 2.5rem;
+            font-size: 1.66rem;
             color: var(--primary-blue);
             font-weight: 700;
+            line-height: 1.04;
         }
 
         .stat-info p {
-            margin: 5px 0 0;
+            margin: 3px 0 0;
             color: var(--light-text);
-            font-size: 1rem;
+            font-size: 0.86rem;
+        }
+
+        .stat-meta {
+            margin-top: 5px;
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: 1.55fr 1fr;
+            gap: 14px;
+        }
+
+        .insight-grid.insight-grid-alt {
+            grid-template-columns: 1.2fr 1fr;
+        }
+
+        .insight-panel {
+            background: #ffffff;
+            border: 1px solid #dbe4f0;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .insight-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .insight-panel-header h2 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.05rem;
+        }
+
+        .insight-panel-header span {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .role-bar-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .role-bar-item {
+            display: grid;
+            gap: 6px;
+        }
+
+        .role-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .role-bar-top label {
+            font-size: 0.83rem;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .role-bar-top strong {
+            font-size: 0.8rem;
+            color: #0f172a;
+        }
+
+        .role-bar-track {
+            width: 100%;
+            height: 9px;
+            background: #edf2f7;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .role-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #17489f 0%, #4f77cd 100%);
+        }
+
+        .role-bar-fill.green {
+            background: linear-gradient(90deg, #1f7e3a 0%, #46a562 100%);
+        }
+
+        .role-bar-fill.orange {
+            background: linear-gradient(90deg, #b45309 0%, #de8a40 100%);
+        }
+
+        .insight-footnote {
+            margin-top: 10px;
+            font-size: 0.79rem;
+            color: #64748b;
+        }
+
+        .pipeline-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pipeline-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            background: #f8fafc;
+        }
+
+        .pipeline-card span {
+            display: block;
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+        }
+
+        .pipeline-card strong {
+            display: block;
+            margin-top: 3px;
+            color: #0f172a;
+            font-size: 1.28rem;
+            line-height: 1.05;
+        }
+
+        .home-recent-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 10px;
+        }
+
+        .home-recent-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #ffffff;
+        }
+
+        .home-recent-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .home-recent-meta {
+            margin-top: 4px;
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+
+        .focus-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 8px;
+        }
+
+        .focus-list li {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 9px 11px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            color: #334155;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .focus-list strong {
+            font-size: 0.95rem;
+            color: #0f172a;
+        }
+
+        .focus-action {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: var(--primary-blue);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+
+        .focus-action:hover {
+            background: #123d8f;
         }
 
         /* Placeholder Content */
@@ -1608,6 +1970,27 @@
             font-weight: 600;
         }
 
+        @media (max-width: 640px) {
+            .lms-pill-btn,
+            .focus-action {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lms-hero-chip {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
         @media (max-width: 992px) {
             body {
                 height: auto;
@@ -1685,8 +2068,31 @@
                 margin-bottom: 18px;
             }
 
+            .lms-home-hero {
+                padding: 18px 18px 16px;
+            }
+
+            .lms-home-headline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .lms-home-quick {
+                justify-content: flex-start;
+            }
+
+            .lms-welcome {
+                font-size: 1.56rem;
+            }
+
             .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 14px;
+            }
+
+            .insight-grid,
+            .insight-grid.insight-grid-alt {
+                grid-template-columns: 1fr;
             }
 
             .modal-content {
@@ -1884,34 +2290,235 @@
         <main class="main-content">
             <!-- Dashboard Home Section -->
             <section id="dashboard-home" class="content-section {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}">
-                <h1 class="welcome-title">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
+                @php
+                    $totalUsersSafe = max((int) ($userCount ?? 0), 1);
+                    $activeUsersSafe = (int) ($activeUsersCount ?? 0);
+                    $pendingUsersSafe = (int) ($pendingUsersTotal ?? 0);
+                    $frozenUsersSafe = (int) ($frozenUsersCount ?? 0);
+                    $trainersSafe = (int) ($trainersCount ?? 0);
+                    $traineesSafe = (int) ($traineesCount ?? 0);
+                    $opsSafe = (int) ($adminsCount ?? 0) + (int) ($registrarsCount ?? 0);
+                    $approvalRate = (int) round(($activeUsersSafe / $totalUsersSafe) * 100);
+
+                    $activeCoursesSafe = (int) ($courseCount ?? 0);
+                    $pendingCoursesSafe = (int) ($pendingCoursesCount ?? 0);
+                    $archivedCoursesSafe = (int) ($archivedCoursesCount ?? 0);
+                    $certificationSafe = (int) ($certificationCount ?? 0);
+                    $totalCoursePipeline = max($activeCoursesSafe + $pendingCoursesSafe + $archivedCoursesSafe, 1);
+                    $pendingCourseShare = (int) round(($pendingCoursesSafe / $totalCoursePipeline) * 100);
+
+                    $trainerShare = (int) round(($trainersSafe / $totalUsersSafe) * 100);
+                    $traineeShare = (int) round(($traineesSafe / $totalUsersSafe) * 100);
+                    $opsShare = (int) round(($opsSafe / $totalUsersSafe) * 100);
+                @endphp
+
+                <div class="lms-home">
+                    <div class="lms-home-hero">
+                        <div class="lms-home-headline">
+                            <div>
+                                <p class="lms-home-kicker">Learning Management Control Center</p>
+                                <h1 class="welcome-title lms-welcome">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
+                                <p class="lms-home-subtitle">
+                                    Monitor learner onboarding, course readiness, and certification output in one view.
+                                    Use this board to quickly spot bottlenecks and move training delivery forward.
+                                </p>
+                            </div>
+                            <div class="lms-home-quick">
+                                <button type="button" class="lms-pill-btn" onclick="showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']))">
+                                    <i class="fas fa-users"></i> Review Users
+                                </button>
+                                <button type="button" class="lms-pill-btn" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))">
+                                    <i class="fas fa-book-open"></i> Manage Courses
+                                </button>
+                                <button type="button" class="lms-pill-btn" onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))">
+                                    <i class="fas fa-certificate"></i> Certifications
+                                </button>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ $userCount }}</h3>
-                            <p>Total Users</p>
+
+                        <div class="lms-hero-metrics">
+                            <div class="lms-hero-chip">
+                                <span>Account Activation</span>
+                                <strong>{{ $approvalRate }}%</strong>
+                            </div>
+                            <div class="lms-hero-chip">
+                                <span>Pending Course Share</span>
+                                <strong>{{ $pendingCourseShare }}%</strong>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-graduation-cap"></i>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ $userCount }}</h3>
+                                <p>Total Accounts</p>
+                                <div class="stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }}</div>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ $courseCount }}</h3>
-                            <p>Total Courses</p>
+
+                        <div class="stat-card tone-green">
+                            <div class="stat-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ $courseCount }}</h3>
+                                <p>Active Courses</p>
+                                <div class="stat-meta">Archived: {{ $archivedCoursesSafe }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card tone-orange clickable" onclick="window.location.href='{{ route('admin.courses.pending') }}'">
+                            <div class="stat-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ $pendingCoursesSafe }}</h3>
+                                <p>Pending Course Reviews</p>
+                                <div class="stat-meta">Click to open review queue</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card tone-slate">
+                            <div class="stat-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>{{ $certificationSafe }}</h3>
+                                <p>Certification Templates</p>
+                                <div class="stat-meta">Ready for issuance</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card" onclick="window.location.href='{{ route('admin.courses.pending') }}'" style="cursor: pointer;">
-                        <div class="stat-icon">
-                            <i class="fas fa-hourglass-half"></i>
+
+                    <div class="insight-grid">
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>User Distribution</h2>
+                                <span>{{ $userCount }} total users</span>
+                            </div>
+
+                            <div class="role-bar-list">
+                                <div class="role-bar-item">
+                                    <div class="role-bar-top">
+                                        <label>Trainers</label>
+                                        <strong>{{ $trainersSafe }} ({{ $trainerShare }}%)</strong>
+                                    </div>
+                                    <div class="role-bar-track">
+                                        <div class="role-bar-fill" style="width: {{ $trainerShare }}%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="role-bar-item">
+                                    <div class="role-bar-top">
+                                        <label>Trainees</label>
+                                        <strong>{{ $traineesSafe }} ({{ $traineeShare }}%)</strong>
+                                    </div>
+                                    <div class="role-bar-track">
+                                        <div class="role-bar-fill green" style="width: {{ $traineeShare }}%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="role-bar-item">
+                                    <div class="role-bar-top">
+                                        <label>Admin + Registrar</label>
+                                        <strong>{{ $opsSafe }} ({{ $opsShare }}%)</strong>
+                                    </div>
+                                    <div class="role-bar-track">
+                                        <div class="role-bar-fill orange" style="width: {{ $opsShare }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="insight-footnote">
+                                Use role mix to balance instructional capacity against learner demand.
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ $pendingCoursesCount ?? 0 }}</h3>
-                            <p>Pending Courses</p>
+
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Course Pipeline</h2>
+                                <span>Publishing health</span>
+                            </div>
+
+                            <div class="pipeline-grid">
+                                <div class="pipeline-card">
+                                    <span>Active</span>
+                                    <strong>{{ $activeCoursesSafe }}</strong>
+                                </div>
+                                <div class="pipeline-card">
+                                    <span>Pending</span>
+                                    <strong>{{ $pendingCoursesSafe }}</strong>
+                                </div>
+                                <div class="pipeline-card">
+                                    <span>Archived</span>
+                                    <strong>{{ $archivedCoursesSafe }}</strong>
+                                </div>
+                                <div class="pipeline-card">
+                                    <span>Cert Templates</span>
+                                    <strong>{{ $certificationSafe }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="insight-footnote">
+                                Keep pending reviews low to improve course launch velocity.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insight-grid insight-grid-alt">
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Recently Added Courses</h2>
+                                <span>Latest 5</span>
+                            </div>
+
+                            @if(isset($recentCourses) && $recentCourses->count())
+                                <ul class="home-recent-list">
+                                    @foreach($recentCourses as $recentCourse)
+                                        <li class="home-recent-item">
+                                            <p class="home-recent-title">{{ $recentCourse->name }}</p>
+                                            <div class="home-recent-meta">
+                                                {{ $recentCourse->subject_area ?? 'Uncategorized' }} | {{ $recentCourse->created_at->diffForHumans() }}
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <div class="home-recent-item">
+                                    <p class="home-recent-title">No recent course activity yet.</p>
+                                    <div class="home-recent-meta">Create a new course to start populating this feed.</div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Operational Focus</h2>
+                                <span>Immediate priorities</span>
+                            </div>
+
+                            <ul class="focus-list">
+                                <li>
+                                    <span>Pending user approvals</span>
+                                    <strong>{{ $pendingUsersSafe }}</strong>
+                                </li>
+                                <li>
+                                    <span>Frozen accounts</span>
+                                    <strong>{{ $frozenUsersSafe }}</strong>
+                                </li>
+                                <li>
+                                    <span>Course reviews waiting</span>
+                                    <strong>{{ $pendingCoursesSafe }}</strong>
+                                </li>
+                            </ul>
+
+                            <button type="button" class="focus-action" onclick="showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']))">
+                                <i class="fas fa-bolt"></i> Open User Queue
+                            </button>
                         </div>
                     </div>
                 </div>
