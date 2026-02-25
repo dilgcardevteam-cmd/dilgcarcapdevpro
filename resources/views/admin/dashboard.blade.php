@@ -2337,7 +2337,6 @@
                     <div class="lms-home-hero">
                         <div class="lms-home-headline">
                             <div>
-                                <p class="lms-home-kicker">Learning Management Control Center</p>
                                 <h1 class="welcome-title lms-welcome">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
                                 <p class="lms-home-subtitle">
                                     Monitor learner onboarding, course readiness, and certification output in one view.
@@ -2346,16 +2345,6 @@
                             </div>
                         </div>
 
-                        <div class="lms-hero-metrics">
-                            <div class="lms-hero-chip">
-                                <span>Account Activation</span>
-                                <strong>{{ $approvalRate }}%</strong>
-                            </div>
-                            <div class="lms-hero-chip">
-                                <span>Pending Course Share</span>
-                                <strong>{{ $pendingCourseShare }}%</strong>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="stats-grid">
