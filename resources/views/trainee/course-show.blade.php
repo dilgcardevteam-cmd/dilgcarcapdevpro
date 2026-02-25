@@ -11,17 +11,23 @@
         body{margin:0;font-family:'DM Sans', sans-serif;background:var(--bg);color:#111827}
         :root{--app-sidebar-w:250px;--app-header-h:80px}
         .with-app-side{padding-left:var(--app-sidebar-w)}
+        .side-collapsed{--app-sidebar-w:70px}
         .app-side{position:fixed;left:0;top:var(--app-header-h);bottom:0;width:var(--app-sidebar-w);background:#002C76;color:#fff;z-index:25;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.12)}
         .app-side .app-side-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
         .app-side .app-initial{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.25);font-weight:800}
         .app-side a{color:rgba(255,255,255,.9);text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
         .app-side a:hover{background:rgba(255,255,255,.08)}
-        @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none} }
+        .app-side.collapsed .app-side-header div:nth-child(2){display:none}
+        .app-side.collapsed a span{display:none}
+        .app-side.collapsed a{justify-content:center}
+        .app-side.collapsed .app-initial{margin:0 auto}
+        @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none}.app-side.side-open{display:flex;box-shadow:0 18px 38px rgba(0,0,0,.25)} }
         /* App Header */
         .app-header{background:#fff;min-height:80px;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
         .app-header-left{display:flex;align-items:center;gap:12px}
         .app-header-logo{height:48px}
         .app-header-right a{color:#1a1a1a;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px}
+        .round-btn{width:40px;height:40px;border-radius:50%;border:1px solid #dfe3ea;background:#fff;display:inline-flex;align-items:center;justify-content:center;color:#0f3b8f}
         /* Page Topbar (under header) */
         .topbar{display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:80px;z-index:10}
         .back{color:#0d6efd;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff}
@@ -90,16 +96,42 @@
         .view-only .mc-actions { display:none !important; }
         .view-only .mc .mc-option { pointer-events:none; cursor:default; }
     </style>
+        </style>
 </head>
-<body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }}">
+<body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }} with-app-side">
     <header class="app-header">
         <div class="app-header-left">
+            <button type="button" class="round-btn" onclick="toggleAppSide()" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
             <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
-        <div class="app-header-right">
-            <a href="{{ route('trainee.courses.show', $course) }}"><i class="fas fa-chalkboard"></i> Back to Class</a>
+        <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
+            <a href="{{ route('dashboard') }}" style="color:#0f3b8f"><i class="fas fa-home"></i> Back to Dashboard</a>
+            <div style="position:relative;color:#1a1a1a">
+                <i class="fas fa-bell"></i>
+                <span style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;font-size:.65rem;line-height:1;padding:2px 6px">0</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;color:#1a1a1a">
+                <div style="width:28px;height:28px;border-radius:50%;background:#e8f0ff;color:#0f3b8f;display:flex;align-items:center;justify-content:center;font-weight:800">
+                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
+                </div>
+                <span>{{ Auth::user()->name ?? 'Trainee User' }}</span>
+                <i class="fas fa-caret-down" style="color:#6b7280"></i>
+            </div>
         </div>
     </header>
+    <aside class="app-side">
+        <div class="app-side-header">
+            <div class="app-initial">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
+            <div>
+                <div style="font-weight:700">Welcome</div>
+                <div style="font-size:.85rem;opacity:.9">{{ Auth::user()->name }}</div>
+            </div>
+        </div>
+        <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        <a href="{{ route('dashboard') }}"><i class="fas fa-chalkboard-teacher"></i> <span>Classroom</span></a>
+        <a href="{{ route('dashboard') }}"><i class="fas fa-calendar-alt"></i> <span>Calendar</span></a>
+        <a href="{{ route('dashboard') }}"><i class="fas fa-bullhorn"></i> <span>Announcements</span></a>
+    </aside>
     
     <div class="topbar">
         <div></div>
@@ -143,6 +175,16 @@
         </main>
     </div>
     <script>
+        function toggleAppSide(){
+            var side=document.querySelector('.app-side');
+            var body=document.body;
+            if(window.innerWidth<=900){
+                if(side){ side.classList.toggle('side-open'); }
+            }else{
+                if(side){ side.classList.toggle('collapsed'); }
+                if(body){ body.classList.toggle('side-collapsed'); }
+            }
+        }
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
         const status = @json($status);
@@ -640,5 +682,3 @@
     </script>
 </body>
 </html>
-
-
