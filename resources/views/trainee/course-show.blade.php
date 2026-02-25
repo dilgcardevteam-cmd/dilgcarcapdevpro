@@ -35,7 +35,7 @@
         .sidebar{border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column}
         .sidebar h3{margin:12px 12px 8px;color:#fff;font-size:1rem}
         .search{padding:0 12px 12px}
-        .search input{width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;background:#fff}
+        .search input{width:90%;padding:8px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;background:#fff}
         .outline{overflow:auto;padding:8px 8px 16px}
         .module{border:1px solid var(--border);border-radius:10px;margin:8px;background:#fff}
         .module-header{display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;background:#f0f6ff;border-radius:10px 10px 0 0}
@@ -98,44 +98,19 @@
     </style>
         </style>
 </head>
-<body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }} with-app-side">
+<body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }}">
     <header class="app-header">
         <div class="app-header-left">
-            <button type="button" class="round-btn" onclick="toggleAppSide()" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
             <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
-            <a href="{{ route('dashboard') }}" style="color:#0f3b8f"><i class="fas fa-home"></i> Back to Dashboard</a>
-            <div style="position:relative;color:#1a1a1a">
-                <i class="fas fa-bell"></i>
-                <span style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:999px;font-size:.65rem;line-height:1;padding:2px 6px">0</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;color:#1a1a1a">
-                <div style="width:28px;height:28px;border-radius:50%;background:#e8f0ff;color:#0f3b8f;display:flex;align-items:center;justify-content:center;font-weight:800">
-                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
-                </div>
-                <span>{{ Auth::user()->name ?? 'Trainee User' }}</span>
-                <i class="fas fa-caret-down" style="color:#6b7280"></i>
-            </div>
+            <a href="{{ route('trainee.courses.show', $course) }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
         </div>
     </header>
-    <aside class="app-side">
-        <div class="app-side-header">
-            <div class="app-initial">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
-            <div>
-                <div style="font-weight:700">Welcome</div>
-                <div style="font-size:.85rem;opacity:.9">{{ Auth::user()->name }}</div>
-            </div>
-        </div>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-chalkboard-teacher"></i> <span>Classroom</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-calendar-alt"></i> <span>Calendar</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-bullhorn"></i> <span>Announcements</span></a>
-    </aside>
     
     <div class="topbar">
         <div></div>
-        <div style="font-weight:700;color:var(--blue)">{{ $course->name }}</div>
+        <div style="font-weight:700; font-size:1.60rem; color:var(--blue)">{{ $course->name }}</div>
         <div></div>
     </div>
     <div class="layout">
@@ -175,16 +150,6 @@
         </main>
     </div>
     <script>
-        function toggleAppSide(){
-            var side=document.querySelector('.app-side');
-            var body=document.body;
-            if(window.innerWidth<=900){
-                if(side){ side.classList.toggle('side-open'); }
-            }else{
-                if(side){ side.classList.toggle('collapsed'); }
-                if(body){ body.classList.toggle('side-collapsed'); }
-            }
-        }
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
         const status = @json($status);

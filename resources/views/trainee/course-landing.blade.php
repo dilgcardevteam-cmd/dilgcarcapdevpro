@@ -17,6 +17,27 @@
             --chip:#0b3a88;
         }
         body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans', sans-serif;}
+        :root{--primary-blue:#002C76;--primary-green:#7fb73d;--dark-text:#333333;--light-text:#58585b;--bg-color:#f4f6f9;--sidebar-width:250px;--sidebar-collapsed-width:70px;--header-height:80px}
+        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000}
+        .header-left{display:flex;align-items:center}
+        .header-logo{height:50px;margin-right:20px}
+        .header-right{display:flex;align-items:center;gap:15px}
+        .dashboard-container{display:flex;flex:1;overflow:hidden}
+        .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column}
+        .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
+        .sidebar-toggle{background:none;border:none;color:#fff;padding:15px;cursor:pointer;text-align:right;font-size:1.2rem}
+        .nav-menu{list-style:none;padding:0;margin:0;flex:1}
+        .nav-item{border-bottom:1px solid rgba(255,255,255,.1)}
+        .nav-link{display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .3s;cursor:pointer}
+        .nav-link:hover,.nav-link.active{background-color:rgba(255,255,255,.1);color:#fff;border-left:4px solid var(--primary-green)}
+        .nav-icon{width:25px;font-size:1.1rem;text-align:center;margin-right:15px}
+        .nav-text{display:inline}
+        .sidebar.collapsed .nav-text{display:none}
+        .sidebar.collapsed .nav-link{justify-content:center;padding:15px}
+        .sidebar.collapsed .nav-icon{margin-right:0}
+        .main-content{flex:1;padding:30px;overflow-y:auto;background-color:var(--bg-color)}
+        .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
+        .back-link i{margin-right:8px}
         :root{--app-sidebar-w:250px;--app-header-h:80px}
         .with-app-side{padding-left:var(--app-sidebar-w)}
         .side-collapsed{--app-sidebar-w:70px}
@@ -117,6 +138,7 @@
     <script>
         var currentEditCard = null;
         var isTrainer = {!! json_encode(!empty($asTrainer)) !!};
+        function toggleSidebar(){var s=document.getElementById('sidebar');if(s){s.classList.toggle('collapsed');}}
         function buildAnnouncementHtml(body, time, trainerLetter, trainerName){
             body = body.replace(/</g,'&lt;');
             return ''
@@ -523,7 +545,7 @@
         });
     </script>
     </head>
-    <body class="with-app-side">
+    <body>
     <div id="deleteConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delTitle">
         <div class="modal">
             <div class="modal-editor" style="padding:16px">
@@ -536,56 +558,81 @@
             </div>
         </div>
     </div>
-    <header class="app-header">
-        <div class="app-header-left">
-            <button type="button" class="round-btn" onclick="toggleAppSide()" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
-            <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+    <header class="header">
+        <div class="header-left">
+            <img class="header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
-        <div class="app-header-right">
-            <a href="{{ route('dashboard') }}"><i class="fas fa-home"></i> Back to Dashboard</a>
+        <div class="header-right">
+            <a href="{{ route('dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
         </div>
     </header>
-    <aside class="app-side">
-        <div class="app-side-header">
-            <div class="app-initial">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
-            <div>
-                <div style="font-weight:700">Welcome</div>
-                <div style="font-size:.85rem;opacity:.9">{{ Auth::user()->name }}</div>
-            </div>
-        </div>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-chalkboard-teacher"></i> <span>Classroom</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-calendar-alt"></i> <span>Calendar</span></a>
-        <a href="{{ route('dashboard') }}"><i class="fas fa-bullhorn"></i> <span>Announcements</span></a>
-    </aside>
-    <div class="page">
-        @if (session('success'))
-            <div id="flashSuccess" class="card" role="status" style="margin-bottom:12px;color:#0b7a33;border-color:#c1e7d2;background:#f0fff6;display:flex;justify-content:space-between;align-items:center">
-                <span>{{ session('success') }}</span>
-                <button type="button" aria-label="Close" onclick="var f=document.getElementById('flashSuccess'); if(f){f.remove();}" style="border:none;background:transparent;color:#065f46;font-weight:800;cursor:pointer;padding:6px 8px">×</button>
-            </div>
-        @endif
-        <div class="hero">
-            <span>atest</span>
-            <div class="hero-top">
-                @if ($course->image_path)
-                    @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                    <img src="{{ asset('storage/'.$course->image_path).'?v='.$ver }}" alt="Course banner">
-                @endif
-            </div>
-            <div class="hero-body">
-                @if (!empty($course->subject_area))
-                    <span class="chip"><i class="fas fa-layer-group"></i> {{ $course->subject_area }}</span>
-                @endif
-                <div class="title">{{ $course->name }}</div>
-                <div class="tabs" role="tablist">
-                    <button id="tabBtnStream" class="tab active" onclick="switchTo('Stream')" role="tab" aria-controls="paneStream" aria-selected="true">Stream</button>
-                    <button id="tabBtnClasswork" class="tab" onclick="switchTo('Classwork')" role="tab" aria-controls="paneClasswork" aria-selected="false" tabindex="-1">Classwork</button>
-                    <button id="tabBtnForum" class="tab" onclick="switchTo('Forum')" role="tab" aria-controls="paneForum" aria-selected="false" tabindex="-1">Forum</button>
-                    <button id="tabBtnPeople" class="tab" onclick="switchTo('People')" role="tab" aria-controls="panePeople" aria-selected="false" tabindex="-1">People</button>
+    <div class="dashboard-container">
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
+                <div class="user-avatar" style="width:36px;height:36px;background-color:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:800;">
+                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
+                </div>
+                <div class="nav-text" style="display:flex;flex-direction:column;">
+                    <span style="font-weight:700;color:#fff;">Welcome</span>
+                    <span style="font-size:.9rem;color:rgba(255,255,255,.9)">{{ Auth::user()->name }}</span>
                 </div>
             </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link">
+                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                        <span class="nav-text">Classroom</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span class="nav-text">Calendar</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link">
+                        <i class="fas fa-bullhorn nav-icon"></i>
+                        <span class="nav-text">Announcements</span>
+                    </a>
+                </li>
+            </ul>
         </div>
+        <div class="main-content">
+            @if (session('success'))
+                <div id="flashSuccess" class="card" role="status" style="margin-bottom:12px;color:#0b7a33;border-color:#c1e7d2;background:#f0fff6;display:flex;justify-content:space-between;align-items:center">
+                    <span>{{ session('success') }}</span>
+                    <button type="button" aria-label="Close" onclick="var f=document.getElementById('flashSuccess'); if(f){f.remove();}" style="border:none;background:transparent;color:#065f46;font-weight:800;cursor:pointer;padding:6px 8px">×</button>
+                </div>
+            @endif
+            <div class="hero">
+                <span>atest</span>
+                <div class="hero-top">
+                    @if ($course->image_path)
+                        @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
+                        <img src="{{ asset('storage/'.$course->image_path).'?v='.$ver }}" alt="Course banner">
+                    @endif
+                </div>
+                <div class="hero-body">
+                    @if (!empty($course->subject_area))
+                        <span class="chip"><i class="fas fa-layer-group"></i> {{ $course->subject_area }}</span>
+                    @endif
+                    <div class="title">{{ $course->name }}</div>
+                    <div class="tabs" role="tablist">
+                        <button id="tabBtnStream" class="tab active" onclick="switchTo('Stream')" role="tab" aria-controls="paneStream" aria-selected="true">Stream</button>
+                        <button id="tabBtnClasswork" class="tab" onclick="switchTo('Classwork')" role="tab" aria-controls="paneClasswork" aria-selected="false" tabindex="-1">Classwork</button>
+                        <button id="tabBtnForum" class="tab" onclick="switchTo('Forum')" role="tab" aria-controls="paneForum" aria-selected="false" tabindex="-1">Forum</button>
+                        <button id="tabBtnPeople" class="tab" onclick="switchTo('People')" role="tab" aria-controls="panePeople" aria-selected="false" tabindex="-1">People</button>
+                    </div>
+                </div>
+            </div>
         <div class="content">
             <div id="paneStream" class="card" role="tabpanel" aria-labelledby="tabBtnStream">
                 <div id="streamMain">
