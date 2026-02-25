@@ -953,6 +953,9 @@
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
+                    <a class="dropdown-item" href="#" onclick="showContent('certificates', null)">
+                        <i class="fas fa-certificate"></i> <span>Certificates</span>
+                    </a>
                     <a class="dropdown-item" href="mailto:support@capdevpro.local">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
@@ -971,7 +974,7 @@
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <img id="sidebarLogo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:60px">
+                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1);">
             </div>
@@ -1312,6 +1315,53 @@
                 </div>
             </div>
 
+            <!-- Certificates Section -->
+            <div id="certificates" class="content-section">
+                <div class="control-hero">
+                    <div class="control-hero-top">
+                        <div>
+                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            <div class="control-hero-sub">Review your learning achievements and earned certificates.</div>
+                        </div>
+                        <div class="hero-actions">
+                            <div class="hero-btn"><i class="fas fa-certificate"></i> Certificates Earned: {{ ($earnedCertificates ?? collect())->count() }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;border-bottom:1px solid #ddd;margin:0 0 16px;background:#fff;padding:0 20px;border-radius:10px 10px 0 0">
+                    <button class="tab-btn active" onclick="/* single tab */void(0)">My Learning Achievements</button>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;padding:16px">
+                    @php $list = $earnedCertificates ?? collect(); @endphp
+                    @if($list->isEmpty())
+                        <div class="empty-state">
+                            <i class="fas fa-certificate" style="font-size: 3rem; color: var(--primary-blue); margin-bottom: 10px;"></i>
+                            <h3>No Certificates Achieved Yet</h3>
+                        </div>
+                    @else
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+                            @foreach($list as $cert)
+                                @php
+                                    $issued = optional($cert->pivot)->issued_at ? \Carbon\Carbon::parse($cert->pivot->issued_at)->format('M d, Y') : null;
+                                @endphp
+                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,.05);overflow:hidden">
+                                    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:center;gap:10px">
+                                        <span style="display:inline-block;background:#d1fae5;color:#065f46;border-radius:6px;padding:4px 10px;font-weight:800;font-size:.8rem">Certificate</span>
+                                    </div>
+                                    <div style="padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px">
+                                        <i class="fas fa-certificate" style="font-size:3rem;color:var(--primary-blue)"></i>
+                                        <div style="letter-spacing:.15em;color:#6b7280;font-weight:700">COURSE</div>
+                                        <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
+                                    </div>
+                                    <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
+                                        Issued On: {{ $issued ?? '—' }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
             <!-- Profile Section -->
             <div id="profile-section" class="content-section {{ request('tab') == 'profile-section' ? 'active' : '' }}">
                 <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
@@ -1602,7 +1652,7 @@
             var s = document.getElementById('sidebar');
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
-            var LOGO_MAIN = "{{ asset('images/CAPDEV-PRO-LOGO.png') }}";
+            var LOGO_MAIN = "{{ asset('images/ddd-removebg-preview.png') }}";
             var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
             var sidebarLogo = document.getElementById('sidebarLogo');
             var collapsed = document.body.classList.contains('sidebar-collapsed');
@@ -1630,7 +1680,7 @@
                 });
                 element.classList.add('active');
             }
-            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile'};
+            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile','certificates':'Certificates'};
             var titleEl=document.getElementById('headerSectionTitle');
             if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
 
