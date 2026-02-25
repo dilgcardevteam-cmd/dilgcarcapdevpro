@@ -30,6 +30,11 @@ class DashboardController extends Controller
                 $archivedCourses = Course::onlyTrashed()->get();
                 $certifications = Certification::all();
                 $recentCourses = Course::latest()->take(5)->get();
+                $pendingCourses = \App\Models\Course::onlyTrashed()
+                    ->whereHas('users', function($q){
+                        $q->where('role', 'trainer');
+                    })
+                    ->get();
                 $pendingCoursesCount = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q){
                         $q->where('role', 'trainer');
@@ -82,6 +87,7 @@ class DashboardController extends Controller
                     'courses',
                     'courseCount',
                     'archivedCourses',
+                    'pendingCourses',
                     'certifications',
                     'forceProfile',
                     'pendingCoursesCount',

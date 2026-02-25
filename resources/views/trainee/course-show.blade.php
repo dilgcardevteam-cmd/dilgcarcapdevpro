@@ -23,16 +23,16 @@
         .app-side.collapsed .app-initial{margin:0 auto}
         @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none}.app-side.side-open{display:flex;box-shadow:0 18px 38px rgba(0,0,0,.25)} }
         /* App Header */
-        .app-header{background:#fff;min-height:80px;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+        .app-header{background:#fff;min-height:80px;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;margin-left:var(--app-sidebar-w);transition:margin-left .3s ease}
         .app-header-left{display:flex;align-items:center;gap:12px}
         .app-header-logo{height:48px}
         .app-header-right a{color:#1a1a1a;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px}
         .round-btn{width:40px;height:40px;border-radius:50%;border:1px solid #dfe3ea;background:#fff;display:inline-flex;align-items:center;justify-content:center;color:#0f3b8f}
         /* Page Topbar (under header) */
-        .topbar{display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:80px;z-index:10}
+        .topbar{display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:80px;z-index:10;margin-left:var(--app-sidebar-w);transition:margin-left .3s ease}
         .back{color:#0d6efd;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff}
-        .layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 56px)}
-        .sidebar{border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column}
+        .layout{display:block;margin-left:var(--app-sidebar-w)}
+        .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--app-sidebar-w);border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column;z-index:900}
         .sidebar h3{margin:12px 12px 8px;color:#fff;font-size:1rem}
         .search{padding:0 12px 12px}
         .search input{width:90%;padding:8px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;background:#fff}
@@ -95,6 +95,9 @@
         .view-only .sub-item .dot,
         .view-only .mc-actions { display:none !important; }
         .view-only .mc .mc-option { pointer-events:none; cursor:default; }
+        body.side-collapsed .app-header{margin-left:70px}
+        body.side-collapsed .topbar{margin-left:70px}
+        body.side-collapsed .layout{margin-left:70px}
     </style>
         </style>
 </head>
@@ -114,7 +117,7 @@
         <div></div>
     </div>
     <div class="layout">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <h3><i class="fas fa-list-ul"></i> Course Outline</h3>
             <div class="search"><input id="outlineSearch" type="text" placeholder="Search course outline"></div>
             <div id="outline" class="outline"></div>

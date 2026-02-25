@@ -18,12 +18,12 @@
         }
         body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans', sans-serif;}
         :root{--primary-blue:#002C76;--primary-green:#7fb73d;--dark-text:#333333;--light-text:#58585b;--bg-color:#f4f6f9;--sidebar-width:250px;--sidebar-collapsed-width:70px;--header-height:80px}
-        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000}
+        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000;margin-left:var(--sidebar-width);transition:margin-left .3s ease}
         .header-left{display:flex;align-items:center}
         .header-logo{height:50px;margin-right:20px}
         .header-right{display:flex;align-items:center;gap:15px}
-        .dashboard-container{display:flex;flex:1;overflow:hidden}
-        .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column}
+        .dashboard-container{display:flex;flex:1;overflow:hidden;margin-left:var(--sidebar-width);transition:margin-left .3s ease}
+        .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;z-index:900}
         .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
         .sidebar-toggle{background:none;border:none;color:#fff;padding:15px;cursor:pointer;text-align:right;font-size:1.2rem}
         .nav-menu{list-style:none;padding:0;margin:0;flex:1}
@@ -36,6 +36,8 @@
         .sidebar.collapsed .nav-link{justify-content:center;padding:15px}
         .sidebar.collapsed .nav-icon{margin-right:0}
         .main-content{flex:1;padding:30px;overflow-y:auto;background-color:var(--bg-color)}
+        body.sidebar-collapsed .header{margin-left:var(--sidebar-collapsed-width)}
+        body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed-width)}
         .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
         .back-link i{margin-right:8px}
         :root{--app-sidebar-w:250px;--app-header-h:80px}
@@ -138,7 +140,18 @@
     <script>
         var currentEditCard = null;
         var isTrainer = {!! json_encode(!empty($asTrainer)) !!};
-        function toggleSidebar(){var s=document.getElementById('sidebar');if(s){s.classList.toggle('collapsed');}}
+        function toggleSidebar(){
+            var s=document.getElementById('sidebar');
+            if(s){ s.classList.toggle('collapsed'); }
+            document.body.classList.toggle('sidebar-collapsed');
+            try{
+                var LOGO_MAIN = "{{ asset('images/CAPDEV-PRO-LOGO.png') }}";
+                var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+                var sl = document.getElementById('sidebarLogo');
+                var collapsed = document.body.classList.contains('sidebar-collapsed');
+                if(sl){ sl.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
+            }catch(e){}
+        }
         function buildAnnouncementHtml(body, time, trainerLetter, trainerName){
             body = body.replace(/</g,'&lt;');
             return ''
@@ -560,12 +573,17 @@
     </div>
     <header class="header">
         <div class="header-left">
-            <img class="header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+            <button class="sidebar-toggle" onclick="toggleSidebar()" style="color: var(--primary-blue); padding:10px 14px; font-size:1.2rem;"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="header-right">
+            <a href="{{ route('dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
         </div>
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="header-title" style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:60px">
+            </div>
             <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
             </div>
             <ul class="nav-menu">
