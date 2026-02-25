@@ -1100,6 +1100,9 @@
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile</span>
                     </a>
+                    <a class="dropdown-item" href="{{ route('trainer.courses.create') }}">
+                        <i class="fas fa-plus-circle"></i> <span>Create Course</span>
+                    </a>
                     <a class="dropdown-item" href="mailto:support@capdevpro.local">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>

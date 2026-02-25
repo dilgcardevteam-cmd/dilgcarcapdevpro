@@ -18,12 +18,13 @@
         }
         body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans', sans-serif;}
         :root{--primary-blue:#002C76;--primary-green:#7fb73d;--dark-text:#333333;--light-text:#58585b;--bg-color:#f4f6f9;--sidebar-width:250px;--sidebar-collapsed-width:70px;--header-height:80px}
-        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000}
+        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000;position:fixed;top:0;left:var(--sidebar-width);right:0}
         .header-left{display:flex;align-items:center}
-        .header-logo{height:50px;margin-right:20px}
+        .header-toggle{background:none;border:none;color:#002C76;font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+        .header-toggle:hover{background:#f0f2f7}
         .header-right{display:flex;align-items:center;gap:15px}
-        .dashboard-container{display:flex;flex:1;overflow:hidden}
-        .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column}
+        .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height))}
+        .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
         .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
         .sidebar-toggle{background:none;border:none;color:#fff;padding:15px;cursor:pointer;text-align:right;font-size:1.2rem}
         .nav-menu{list-style:none;padding:0;margin:0;flex:1}
@@ -138,7 +139,43 @@
     <script>
         var currentEditCard = null;
         var isTrainer = {!! json_encode(!empty($asTrainer)) !!};
-        function toggleSidebar(){var s=document.getElementById('sidebar');if(s){s.classList.toggle('collapsed');}}
+        function toggleSidebar(){
+            var s=document.getElementById('sidebar');
+            if(!s) return;
+            s.classList.toggle('collapsed');
+            var collapsed = s.classList.contains('collapsed');
+            var hdr = document.querySelector('.header');
+            var cont = document.querySelector('.dashboard-container');
+            var logo = document.querySelector('.sidebar-logo');
+            var brand = document.getElementById('sidebarBrand');
+            if(collapsed){
+                s.style.width='70px';
+                if(hdr) hdr.style.left='70px';
+                if(cont) cont.style.marginLeft='70px';
+                if(logo){
+                    logo.style.height='44px';
+                    logo.style.width='44px';
+                    logo.style.display='block';
+                    logo.style.margin='0 auto';
+                    var small = logo.getAttribute('data-collapsed-src');
+                    if(small){ logo.src = small; }
+                }
+                if(brand){ brand.style.justifyContent='center'; }
+            }else{
+                s.style.width='250px';
+                if(hdr) hdr.style.left='250px';
+                if(cont) cont.style.marginLeft='250px';
+                if(logo){
+                    logo.style.height='70px';
+                    logo.style.width='auto';
+                    logo.style.display='';
+                    logo.style.margin='';
+                    var full = logo.getAttribute('data-full-src');
+                    if(full){ logo.src = full; }
+                }
+                if(brand){ brand.style.justifyContent='space-between'; }
+            }
+        }
         function buildAnnouncementHtml(body, time, trainerLetter, trainerName){
             body = body.replace(/</g,'&lt;');
             return ''
@@ -560,13 +597,13 @@
     </div>
     <header class="header">
         <div class="header-left">
-            <img class="header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+            <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         </div>
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
+            <div id="sidebarBrand" style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);justify-content:space-between">
+                <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro" style="height:70px">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
