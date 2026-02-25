@@ -918,7 +918,6 @@
                             : asset('images/user.png');
                     @endphp
                     <img src="{{ $avatarSrc }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-                    <span>{{ Auth::user()->name }}</span>
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
@@ -942,17 +941,11 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <div class="user-avatar" style="width:36px;height:36px;background-color: rgba(255,255,255,0.25);">
-                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
-                </div>
-                <div class="nav-text" style="display:flex; flex-direction:column;">
-                    <span style="font-weight:700; color:#fff;">Welcome</span>
-                    <span style="font-size:0.9rem; color:rgba(255,255,255,0.9)">{{ Auth::user()->name }}</span>
-                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:28px;max-width:120px;object-fit:contain;">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -995,11 +988,10 @@
                         </div>
                         <div class="hero-actions">
                             @if(isset($myCourses) && $myCourses->isNotEmpty())
-                            <a class="hero-btn" href="{{ route('trainee.courses.show', $myCourses->first()) }}"><i class="fas fa-door-open"></i> Enter Class</a>
+                            <a class="hero-btn" href="#" onclick="showContent('classroom', document.querySelector('a[onclick*=\'classroom\']'))"><i class="fas fa-door-open"></i> Enter Classroom</a>
                             @else
-                            <a class="hero-btn" href="#" style="pointer-events:none;opacity:.6"><i class="fas fa-door-open"></i> Enter Class</a>
+                            <a class="hero-btn" href="#" style="pointer-events:none;opacity:.6"><i class="fas fa-door-open"></i> Enter Classroom</a>
                             @endif
-                            <a class="hero-btn" href="#" onclick="showContent('dashboard-home', document.querySelector('a[onclick*=\'dashboard-home\']'))"><i class="fas fa-search"></i> Browse Courses</a>
                             <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
                         </div>
                     </div>
@@ -1031,43 +1023,6 @@
                     <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                 </div>
                 @endif
-
-                <div class="section-header">
-                    <h2 class="section-title">Dashboard Overview</h2>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon bg-blue">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ $totalAvailableCourses }}</h3>
-                            <p>Total Available Courses</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-green">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ $totalCoursesJoined }}</h3>
-                            <p>Courses Joined</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-orange">
-                            <i class="fas fa-hourglass-half"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ $pendingCoursesCount ?? 0 }}</h3>
-                            <p>Pending Enrolled Courses</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pending courses are summarized in Dashboard Overview -->
 
                 <!-- Available Courses List -->
                 <div class="section-header">
@@ -1129,6 +1084,27 @@
             <div id="classroom" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">My Classroom</h2>
+                </div>
+                
+                <div class="stats-grid" style="margin-top:-6px;margin-bottom:20px">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $totalCoursesJoined }}</h3>
+                            <p>Courses Joined</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $pendingCoursesCount ?? 0 }}</h3>
+                            <p>Pending Enrolled Courses</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="course-grid">

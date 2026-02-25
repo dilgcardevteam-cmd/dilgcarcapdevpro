@@ -217,7 +217,7 @@ class DashboardController extends Controller
                 $availableCourses = $availableCourses->get();
                 
                 $totalAvailableCourses = $availableCourses->count();
-                $totalCoursesJoined = $user->courses()->count();
+                $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
 
                 $completedCoursesCount = 0; // Placeholder logic
                 $activeCoursesCount = $myCourses->count();
