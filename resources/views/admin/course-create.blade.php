@@ -136,6 +136,14 @@
         #dynamicMenu[aria-hidden="true"] { opacity: 0; pointer-events: none; }
         .active-section { outline:2px solid #6366f1; border-radius:10px; }
         .toggle { display:inline-flex; align-items:center; gap:6px; }
+        body.embedded-create {
+            background-color: transparent;
+        }
+        body.embedded-create .page-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 6px 10px 12px;
+        }
     </style>
     @if($errors->create_course->any())
         <script>
@@ -146,8 +154,8 @@
         </script>
     @endif
 </head>
-<body>
-    @if(empty($forTrainer))
+<body class="{{ request()->boolean('embedded') ? 'embedded-create' : '' }}">
+    @if(empty($forTrainer) && !request()->boolean('embedded'))
     <header class="header">
         <div class="header-left">
             <div class="header-title">
@@ -187,6 +195,9 @@
             @endif
             <form id="courseForm" action="{{ !empty($forTrainer) ? route('trainer.courses.store') : route('courses.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
+                @if(request()->boolean('embedded'))
+                    <input type="hidden" name="embedded" value="1">
+                @endif
                 <div id="tab1" class="tab-content active">
                     <div class="two-col">
                         <div class="left">

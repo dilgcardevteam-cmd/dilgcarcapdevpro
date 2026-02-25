@@ -363,6 +363,9 @@
                     <form action="{{ route('courses.destroy', $course) }}" method="POST" onsubmit="return confirm('Archive this course?');" style="margin:0;">
                         @csrf
                         @method('DELETE')
+                        @if(request()->boolean('embedded'))
+                            <input type="hidden" name="embedded" value="1">
+                        @endif
                         <button type="submit" class="btn btn-archive">
                             <i class="fas fa-box-archive"></i> Archive
                         </button>
