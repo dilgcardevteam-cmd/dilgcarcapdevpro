@@ -167,8 +167,7 @@
             } else if(course.video_url){
                 const url = course.video_url;
                 if(/youtube\.com|youtu\.be/.test(url)){
-                    const m=url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]+)/); const id=m&&m[1]?m[1]:null;
-                    wrap.innerHTML = `<div style="position:relative;padding-top:56.25%"><iframe src="${id?`https://www.youtube.com/embed/${id}`:url}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px" allowfullscreen></iframe></div>`;
+                    wrap.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0f766e; text-decoration: none;">Open course video on YouTube</a>`;
                 } else if(isVideo(url)){
                     wrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px"><source src="${url}"></video>`;
                 }

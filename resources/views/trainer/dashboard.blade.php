@@ -1229,7 +1229,29 @@
                 <div class="course-grid">
                     @forelse($myCourses as $course)
                         <div class="course-card">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $courseImage = asset('storage/' . $course->image_path);
+                                } else {
+                                    // Fallback to local images based on course name
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
@@ -1259,7 +1281,29 @@
                 <div class="course-grid">
                     @forelse($myCourses as $course)
                         <div class="course-card">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $courseImage = asset('storage/' . $course->image_path);
+                                } else {
+                                    // Fallback to local images based on course name
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
@@ -1594,10 +1638,6 @@
                             <div class="form-group">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="email" class="form-control profile-input" value="{{ Auth::user()->email }}" readonly style="background-color: #f8f9fa; cursor: default;">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Job Title / Position</label>
-                                <input type="text" name="job_title" class="form-control profile-input" value="{{ Auth::user()->job_title ?? '' }}" readonly style="background-color: #f8f9fa; cursor: default;">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Region</label>

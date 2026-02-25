@@ -1049,10 +1049,37 @@
                 <div class="course-grid">
                     @forelse($availableCourses as $course)
                         <div class="course-card">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $courseImage = asset('storage/' . $course->image_path);
+                                } else {
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
                                         <button class="btn-view" style="background-color: var(--primary-green);" onclick="openEnrollModal({{ $course->id }})">Enroll Now</button>
@@ -1080,6 +1107,12 @@
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
@@ -1128,6 +1161,12 @@
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                @php
+                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                @endphp
+                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     @php
                                         $st = $courseStatuses[$course->id] ?? 'active';
@@ -1313,10 +1352,6 @@
                                         <label>Email Address</label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input" required>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Job Title</label>
-                                        <input type="text" name="job_title" value="{{ Auth::user()->job_title ?? '' }}" readonly class="profile-input" placeholder="Not set">
-                                    </div>
                                 </div>
                             </div>
 
@@ -1369,25 +1404,30 @@
                 
                 <!-- Course Header -->
                 <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <div id="detail-header-icon" style="width: 60px; height: 60px; background: var(--primary-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
-                            <i class="fas fa-chalkboard"></i>
-                        </div>
-                        <div>
-                            <h1 id="detail-title" style="margin: 0 0 5px; color: var(--primary-blue); font-size: 1.8rem;">Course Title</h1>
-                            <div style="color: var(--light-text); font-size: 0.9rem;">
-                                <span id="detail-category-badge" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Category</span>
-                                <span style="margin: 0 10px;">•</span>
-                                <span id="detail-trainer">Trainer: </span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 20px; min-width: 0;">
+                            <div id="detail-header-icon" style="width: 60px; height: 60px; background: var(--primary-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <div>
+                                <h1 id="detail-title" style="margin: 0 0 5px; color: var(--primary-blue); font-size: 1.8rem;">Course Title</h1>
+                                <div style="color: var(--light-text); font-size: 0.9rem;">
+                                    <span id="detail-category-badge" style="background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Category</span>
+                                    <span style="margin: 0 10px;">•</span>
+                                    <span id="detail-trainer">Trainer: </span>
+                                </div>
                             </div>
                         </div>
+                        <button id="detail-enroll-btn" class="btn-view" style="background-color: var(--primary-green); padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
+                        </button>
                     </div>
                 </div>
 
                 <!-- Tabs Navigation -->
                 <div style="display: flex; border-bottom: 1px solid #ddd; margin-bottom: 25px; background: white; padding: 0 20px; border-radius: 10px 10px 0 0;">
                     <button class="tab-btn active" onclick="switchCourseTab('description')">Overview</button>
-                    <button class="tab-btn" onclick="switchCourseTab('curriculum')">Curriculum</button>
+                    <button class="tab-btn" onclick="switchCourseTab('curriculum')">Topics</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -1401,30 +1441,20 @@
                         <p id="detail-description" style="line-height: 1.8; color: #444; white-space: pre-line; font-size: 1.05rem;">
                             Course description goes here...
                         </p>
-                        <div id="detail-video-container" style="margin-top: 20px;"></div>
-
-                        <div id="detail-enroll-container" style="margin-top: 30px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px; display: none; align-items: center; gap: 15px;">
-                            <button id="detail-enroll-btn" class="btn-view" style="background-color: var(--primary-green); padding: 12px 25px; font-size: 1rem;" onclick="openEnrollModal()">
-                                <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
-                            </button>
-                            <span id="detail-status-text" style="font-weight: bold; font-size: 1.1rem;"></span>
-                        </div>
 
                         <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
                             <h4 style="margin-top: 0; color: var(--dark-text);">Subject Areas</h4>
                             <p id="detail-subject-area" style="color: var(--light-text);">General</p>
-                        </div>
-
-                        <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
-                            <h4 style="margin-top: 0; color: var(--dark-text);"></h4>
-                            <div id="curriculum-list-overview" class="acc-list"></div>
                         </div>
                     </div>
 
                     <!-- Curriculum Tab -->
                     <div id="tab-curriculum" class="course-tab-content">
                         <h3 class="curriculum-title">Here’s what you will learn.</h3>
-                        <div id="curriculum-list" class="acc-list"></div>
+                        <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
+                            <h4 style="margin-top: 0; color: var(--dark-text);"></h4>
+                            <div id="curriculum-list" class="acc-list"></div>
+                        </div>
                     </div>
 
                     <!-- Removed tabs: Classwork, People, Grades -->
@@ -1550,6 +1580,11 @@
         }
 
         function showContent(sectionId, element) {
+            const evt = window.event;
+            if (evt && typeof evt.preventDefault === 'function') {
+                evt.preventDefault();
+            }
+
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
@@ -1568,6 +1603,15 @@
             var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile'};
             var titleEl=document.getElementById('headerSectionTitle');
             if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
+
+            const url = new URL(window.location.href);
+            if (sectionId === 'dashboard-home') {
+                url.searchParams.delete('tab');
+            } else {
+                url.searchParams.set('tab', sectionId);
+            }
+            url.hash = '';
+            window.history.pushState({}, '', url.toString());
         }
 
         function openCourseDetails(courseId) {
@@ -1598,63 +1642,24 @@
                 hero.style.backgroundImage = "url('https://via.placeholder.com/800x300?text=No+Image')";
             }
 
-            // Render curriculum accordions in both Overview and Curriculum tabs
+            // Render curriculum accordion in Topics tab
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');
-            renderCurriculum(course.modules, isEnrolled, 'curriculum-list-overview');
             enableCurriculumSelection('curriculum-list');
-            enableCurriculumSelection('curriculum-list-overview');
-
-            // Render course video if available
-            const videoWrap = document.getElementById('detail-video-container');
-            videoWrap.innerHTML = '';
-            const isVideoFile = (p)=>/\.(mp4|webm|ogg)$/i.test(p||'');
-            if (course.video_path && isVideoFile(course.video_path)) {
-                const src = `${storageBaseUrl}/${course.video_path}`;
-                videoWrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)"><source src="${src}"></video>`;
-            } else if (course.video_url) {
-                const url = course.video_url;
-                if (/youtube\.com|youtu\.be/.test(url)) {
-                    let id = null;
-                    const yt = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
-                    if (yt && yt[1]) id = yt[1];
-                    const embed = id ? `https://www.youtube.com/embed/${id}` : url;
-                    videoWrap.innerHTML = `<div style="position:relative;padding-top:56.25%"><iframe src="${embed}" title="Video" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px" allowfullscreen></iframe></div>`;
-                } else if (isVideoFile(url)) {
-                    videoWrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)"><source src="${url}"></video>`;
-                } else {
-                    videoWrap.innerHTML = `<a href="${url}" target="_blank" style="color: var(--primary-green); text-decoration: none;">Open course video</a>`;
-                }
-            }
 
             // Removed: population for People, Classwork, and Grades
 
-            // Update Enroll Button inside Description
+            // Update Enroll button in header
             const status = courseStatuses[courseId] || null;
-            const enrollContainer = document.getElementById('detail-enroll-container');
             const enrollBtn = document.getElementById('detail-enroll-btn');
-            const statusText = document.getElementById('detail-status-text');
-            
-            enrollContainer.style.display = 'flex'; // Default to visible container
+            enrollBtn.style.display = 'none';
             
             if (status === 'active') {
                 enrollBtn.style.display = 'none';
-                statusText.innerText = '✅ You are enrolled in this course';
-                statusText.style.color = 'var(--primary-green)';
-                enrollContainer.style.background = '#e8f5e9';
-                enrollContainer.style.border = '1px solid #c8e6c9';
             } else if (status === 'pending') {
                 enrollBtn.style.display = 'none';
-                statusText.innerText = '⏳ Enrollment Pending Approval';
-                statusText.style.color = '#f57c00';
-                enrollContainer.style.background = '#fff3e0';
-                enrollContainer.style.border = '1px solid #ffe0b2';
             } else {
                 // Not enrolled
                 enrollBtn.style.display = 'inline-block';
-                statusText.innerText = 'Join this course to access materials and assessments.';
-                statusText.style.color = '#666';
-                enrollContainer.style.background = '#fff';
-                enrollContainer.style.border = '1px solid #eee';
             }
 
             // Handle Enrolled vs Not Enrolled UI state

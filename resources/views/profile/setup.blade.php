@@ -525,36 +525,49 @@
                         </div>
 
                         <h3 class="section-title">Address</h3>
+                        @php
+                            $profileRegion = old('region', $user->region);
+                            $profileProvince = old('province', $user->province);
+                            $profileCity = old('city', $user->city);
+                            $profileBarangay = old('barangay', $user->barangay);
+                        @endphp
                         <div class="grid">
                             <div class="form-group">
                                 <label>Region <span class="require">*</span></label>
-                                <input type="text" name="region" value="{{ old('region', $user->region) }}" required>
+                                <select id="setup_region" name="region" required data-selected="{{ $profileRegion }}">
+                                    <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                    @if($profileRegion)
+                                        <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Province <span class="require">*</span></label>
-                                <input type="text" name="province" value="{{ old('province', $user->province) }}" required>
+                                <select id="setup_province" name="province" required data-selected="{{ $profileProvince }}">
+                                    <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                    @if($profileProvince)
+                                        <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>City/Municipality <span class="require">*</span></label>
-                                <input type="text" name="city" value="{{ old('city', $user->city) }}" required>
+                                <select id="setup_city" name="city" required data-selected="{{ $profileCity }}">
+                                    <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                    @if($profileCity)
+                                        <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Barangay <span class="require">*</span></label>
-                                <input type="text" name="barangay" value="{{ old('barangay', $user->barangay) }}" required>
+                                <select id="setup_barangay" name="barangay" required data-selected="{{ $profileBarangay }}">
+                                    <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
+                                    @if($profileBarangay)
+                                        <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
+                                    @endif
+                                </select>
                             </div>
-                        </div>
-
-                        <h3 class="section-title">Job Details</h3>
-                        <div class="grid">
-                            <div class="form-group single-col">
-                                <label>Job/Position Title</label>
-                                <input type="text" value="{{ $user->job_title }}" readonly>
-                            </div>
-                        </div>
-
-                        <h3 class="section-title">Short Bio (Optional)</h3>
-                        <div class="form-group">
-                            <textarea name="description" placeholder="Tell us about your background...">{{ old('description', $user->description) }}</textarea>
                         </div>
 
                         <div class="actions">
@@ -619,6 +632,247 @@
                 </div>
             </div>
         </div>
-    </div>
 </div>
+
+<script>
+function initSetupLocationDropdowns() {
+    const regionSelect = document.getElementById('setup_region');
+    const provinceSelect = document.getElementById('setup_province');
+    const citySelect = document.getElementById('setup_city');
+    const barangaySelect = document.getElementById('setup_barangay');
+    
+    if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+    if (regionSelect.dataset.initialized === 'true') return;
+    regionSelect.dataset.initialized = 'true';
+
+    const selectedRegion = regionSelect.dataset.selected || '';
+    const selectedProvince = provinceSelect.dataset.selected || '';
+    const selectedCity = citySelect.dataset.selected || '';
+    const selectedBarangay = barangaySelect.dataset.selected || '';
+
+    const resetSelect = (selectElement, placeholder) => {
+        selectElement.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+    };
+
+    const addFallbackOption = (selectElement, value, label = value) => {
+        if (!value) return null;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        option.selected = true;
+        selectElement.appendChild(option);
+        return option;
+    };
+
+    function loadBarangays(cityCode, selectedBarangayValue = null) {
+        resetSelect(barangaySelect, 'Select Barangay');
+
+        if (!cityCode) {
+            if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            return;
+        }
+
+        fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
+            .then(response => response.json())
+            .then(data => {
+                data.sort((a, b) => a.name.localeCompare(b.name));
+                let matched = false;
+                data.forEach(barangay => {
+                    const option = document.createElement('option');
+                    option.value = barangay.name;
+                    option.textContent = barangay.name;
+                    if (selectedBarangayValue && selectedBarangayValue === barangay.name) {
+                        option.selected = true;
+                        matched = true;
+                    }
+                    barangaySelect.appendChild(option);
+                });
+
+                if (selectedBarangayValue && !matched) {
+                    addFallbackOption(barangaySelect, selectedBarangayValue);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching barangays:', error);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            });
+    }
+
+    function fetchCities(code, isRegion, selectedCityValue = null, selectedBarangayValue = null) {
+        const url = isRegion
+            ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
+            : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
+
+        resetSelect(citySelect, 'Select City/Municipality');
+        resetSelect(barangaySelect, 'Select Barangay');
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                data.sort((a, b) => a.name.localeCompare(b.name));
+                let selectedCityCode = '';
+                let matched = false;
+
+                data.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.name;
+                    option.dataset.code = city.code;
+                    option.textContent = city.name;
+                    if (selectedCityValue && selectedCityValue === city.name) {
+                        option.selected = true;
+                        selectedCityCode = city.code;
+                        matched = true;
+                    }
+                    citySelect.appendChild(option);
+                });
+
+                if (selectedCityValue && !matched) {
+                    addFallbackOption(citySelect, selectedCityValue);
+                }
+
+                if (selectedCityCode) {
+                    loadBarangays(selectedCityCode, selectedBarangayValue);
+                } else if (selectedBarangayValue) {
+                    addFallbackOption(barangaySelect, selectedBarangayValue);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cities:', error);
+                if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            });
+    }
+
+    function loadProvincesByRegion(regionCode, selectedProvinceValue = null, selectedCityValue = null, selectedBarangayValue = null) {
+        resetSelect(provinceSelect, 'Select Province');
+        resetSelect(citySelect, 'Select City/Municipality');
+        resetSelect(barangaySelect, 'Select Barangay');
+
+        if (!regionCode) {
+            if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+            if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+            if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            return;
+        }
+
+        fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
+            .then(response => response.json())
+            .then(data => {
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                if (data.length === 0 && regionCode === '130000000') {
+                    const option = addFallbackOption(provinceSelect, regionSelect.value, regionSelect.value);
+                    if (option) {
+                        option.dataset.code = regionCode;
+                        option.dataset.isRegion = 'true';
+                    }
+                    fetchCities(regionCode, true, selectedCityValue, selectedBarangayValue);
+                    return;
+                }
+
+                let selectedProvinceCode = '';
+                let matched = false;
+                data.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.name;
+                    option.dataset.code = province.code;
+                    option.textContent = province.name;
+                    if (selectedProvinceValue && selectedProvinceValue === province.name) {
+                        option.selected = true;
+                        selectedProvinceCode = province.code;
+                        matched = true;
+                    }
+                    provinceSelect.appendChild(option);
+                });
+
+                if (selectedProvinceValue && !matched) {
+                    addFallbackOption(provinceSelect, selectedProvinceValue);
+                }
+
+                if (selectedProvinceCode) {
+                    fetchCities(selectedProvinceCode, false, selectedCityValue, selectedBarangayValue);
+                } else if (selectedCityValue) {
+                    addFallbackOption(citySelect, selectedCityValue);
+                    if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching provinces:', error);
+                if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+                if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            });
+    }
+
+    regionSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const regionCode = selectedOption?.dataset?.code || '';
+        loadProvincesByRegion(regionCode);
+    });
+
+    provinceSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const provinceCode = selectedOption?.dataset?.code || '';
+        const isRegion = selectedOption?.dataset?.isRegion === 'true';
+        if (!provinceCode) {
+            resetSelect(citySelect, 'Select City/Municipality');
+            resetSelect(barangaySelect, 'Select Barangay');
+            return;
+        }
+        fetchCities(provinceCode, isRegion);
+    });
+
+    citySelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const cityCode = selectedOption?.dataset?.code || '';
+        loadBarangays(cityCode);
+    });
+
+    fetch('https://psgc.gitlab.io/api/regions/')
+        .then(response => response.json())
+        .then(data => {
+            resetSelect(regionSelect, 'Select Region');
+            data.sort((a, b) => a.name.localeCompare(b.name));
+
+            let selectedRegionCode = '';
+            let matched = false;
+            data.forEach(region => {
+                const option = document.createElement('option');
+                option.value = region.name;
+                option.dataset.code = region.code;
+                option.textContent = `${region.name} (${region.regionName})`;
+                if (selectedRegion && selectedRegion === region.name) {
+                    option.selected = true;
+                    selectedRegionCode = region.code;
+                    matched = true;
+                }
+                regionSelect.appendChild(option);
+            });
+
+            if (selectedRegion && !matched) {
+                addFallbackOption(regionSelect, selectedRegion);
+            }
+
+            if (selectedRegionCode) {
+                loadProvincesByRegion(selectedRegionCode, selectedProvince || null, selectedCity || null, selectedBarangay || null);
+            } else {
+                if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+                if (selectedCity) addFallbackOption(citySelect, selectedCity);
+                if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching regions:', error);
+            if (selectedRegion) addFallbackOption(regionSelect, selectedRegion);
+            if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+            if (selectedCity) addFallbackOption(citySelect, selectedCity);
+            if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+        });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initSetupLocationDropdowns();
+});
+</script>
 @endsection

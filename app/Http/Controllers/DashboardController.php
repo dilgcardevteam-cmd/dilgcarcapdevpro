@@ -267,7 +267,6 @@ class DashboardController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|string|in:admin,registrar,trainer,trainee',
             'status' => 'required|string|in:active,freeze,pending',
-            'job_title' => 'nullable|string|max:255',
             'region' => 'nullable|string|max:255',
             'province' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
@@ -348,7 +347,6 @@ class DashboardController extends Controller
             'province' => 'nullable|string',
             'city' => 'nullable|string',
             'barangay' => 'nullable|string',
-            'job_title' => 'nullable|string',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'password' => 'nullable|confirmed|min:8',
         ]);
@@ -420,7 +418,6 @@ class DashboardController extends Controller
             'province' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
         ]);
 
@@ -442,9 +439,6 @@ class DashboardController extends Controller
         unset($validated['first_name'], $validated['middle_name'], $validated['last_name']);
 
         $user->fill($validated);
-        if (empty($user->job_title)) {
-            $user->job_title = 'Trainer';
-        }
         if (!$user->profile_completed) {
             $user->profile_completed = true;
             $user->profile_completed_at = now();
