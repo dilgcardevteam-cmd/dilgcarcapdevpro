@@ -3011,7 +3011,28 @@
                              onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))'
                              onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
                              style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
-                            <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
+                            @php
+                                $img = null;
+                                if (!empty($course->image_path)) {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $img = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
+                                        }
+                                    }
+                                }
+                                if (!$img) {
+                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                }
+                                if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                    $img = $course->image_path;
+                                }
+                                $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                            @endphp
+                            <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
                             <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
@@ -3064,7 +3085,28 @@
                                 $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                             @endphp
                             <div class="course-card" role="button" tabindex="0" onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer;">
-                                <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x150?text=No+Image' }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover;">
+                                @php
+                                    $img = null;
+                                    if (!empty($course->image_path)) {
+                                        $path = public_path('storage/' . $course->image_path);
+                                        if (file_exists($path)) {
+                                            $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
+                                        } else {
+                                            $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                            if (file_exists($path2)) {
+                                                $img = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
+                                            }
+                                        }
+                                    }
+                                    if (!$img) {
+                                        $img = 'https://via.placeholder.com/300x150?text=' . urlencode($course->name);
+                                    }
+                                    if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                        $img = $course->image_path;
+                                    }
+                                    $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                                @endphp
+                                <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
                                 <div style="padding: 14px;">
                                     <h3 style="margin: 0 0 6px; color: #002C76; font-size: 1.05rem;">{{ $course->name }}</h3>
                                     <p style="color: #6b7280; font-size: .9rem; margin: 0 0 10px;">{{ Str::limit($course->description, 100) }}</p>
@@ -3196,7 +3238,23 @@
                     <div class="course-card" data-course-id="{{ $course->id }}" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow:hidden;cursor:pointer">
                         @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
                         <div style="height:120px;overflow:hidden">
-                            <img src="{{ $course->image_path ? asset('storage/'.$course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover">
+                            @php
+                                $img = null;
+                                if (!empty($course->image_path)) {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
+                                    }
+                                }
+                                if (!$img) {
+                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                }
+                                if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                    $img = $course->image_path;
+                                }
+                                $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                            @endphp
+                            <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
                         </div>
                         <div style="padding:12px">
                             <div style="font-weight:700;color:var(--primary-blue);line-height:1.2">{{ $course->name }}</div>

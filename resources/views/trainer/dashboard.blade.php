@@ -1232,8 +1232,17 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $courseImage = asset('storage/' . $course->image_path);
-                                } else {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $courseImage = asset('storage/' . $course->image_path);
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
+                                        }
+                                    }
+                                }
+                                if (!$courseImage) {
                                     // Fallback to local images based on course name
                                     $courseNameLower = strtolower($course->name);
                                     if (str_contains($courseNameLower, 'research')) {
@@ -1284,8 +1293,17 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $courseImage = asset('storage/' . $course->image_path);
-                                } else {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $courseImage = asset('storage/' . $course->image_path);
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
+                                        }
+                                    }
+                                }
+                                if (!$courseImage) {
                                     // Fallback to local images based on course name
                                     $courseNameLower = strtolower($course->name);
                                     if (str_contains($courseNameLower, 'research')) {

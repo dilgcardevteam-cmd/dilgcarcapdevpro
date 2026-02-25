@@ -1173,7 +1173,24 @@
                             $st = $courseStatuses[$course->id] ?? 'active';
                         @endphp
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            @php
+                                $img = null;
+                                if (!empty($course->image_path)) {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $img = asset('storage/' . $course->image_path);
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $img = asset('images/' . ltrim($course->image_path, '/'));
+                                        }
+                                    }
+                                }
+                                if (!$img) {
+                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $img }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>

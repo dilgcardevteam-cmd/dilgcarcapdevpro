@@ -769,9 +769,23 @@
             @endif
             <div class="hero">
                 <div class="hero-top">
-                    @if ($course->image_path)
-                        @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                        <img src="{{ asset('storage/'.$course->image_path).'?v='.$ver }}" alt="Course banner">
+                    @php
+                        $hero = null;
+                        if (!empty($course->image_path)) {
+                            $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
+                            $p1 = public_path('storage/' . $course->image_path);
+                            if (file_exists($p1)) {
+                                $hero = asset('storage/' . $course->image_path) . '?v=' . $ver;
+                            } else {
+                                $p2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                if (file_exists($p2)) {
+                                    $hero = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if ($hero)
+                        <img src="{{ $hero }}" alt="Course banner">
                     @endif
                 </div>
                 <div class="hero-body">
