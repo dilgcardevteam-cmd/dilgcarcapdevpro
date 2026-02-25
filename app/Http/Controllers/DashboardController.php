@@ -225,6 +225,8 @@ class DashboardController extends Controller
                 $completedCoursesCount = 0; // Placeholder logic
                 $activeCoursesCount = $myCourses->count();
                 
+                $earnedCertificates = $user->certifications()->with('users')->get();
+                
                 // Fetch Announcements (global or course specific - for now fetching all global)
                 $announcements = Announcement::with('user')->orderBy('created_at', 'desc')->take(5)->get();
 
@@ -242,7 +244,7 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainee.dashboard', compact('myCourses', 'classroomCourses', 'pendingCourses', 'availableCourses', 'completedCoursesCount', 'activeCoursesCount', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'totalAvailableCourses', 'totalCoursesJoined', 'courseStatuses', 'forceProfile', 'pendingCoursesCount'));
+                return view('trainee.dashboard', compact('myCourses', 'classroomCourses', 'pendingCourses', 'availableCourses', 'completedCoursesCount', 'activeCoursesCount', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'totalAvailableCourses', 'totalCoursesJoined', 'courseStatuses', 'forceProfile', 'pendingCoursesCount', 'earnedCertificates'));
             default:
                 // Fallback for users without a role or unknown role
                 return view('trainee.dashboard', compact('forceProfile')); 
