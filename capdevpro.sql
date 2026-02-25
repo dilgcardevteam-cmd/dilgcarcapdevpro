@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 25, 2026 at 08:30 AM
+-- Generation Time: Feb 25, 2026 at 05:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `capsdevproo`
+-- Database: `capdevpro`
 --
 
 -- --------------------------------------------------------
@@ -275,14 +275,12 @@ CREATE TABLE `courses` (
 --
 
 INSERT INTO `courses` (`id`, `name`, `description`, `subject_area`, `video_url`, `image_path`, `modules`, `video_path`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Operation Listo LGU Disaster Preparedness Manual for Landslide V1', 'test', 'Core Governance & Administration', 'https://www.youtube.com', 'course_images/9WXPdcuBtbXN4FoAX2BMXRhQ7UPQhWqet1wFg7s1.jpg', NULL, NULL, '2026-02-12 19:04:31', '2026-02-15 21:13:09', NULL),
-(2, 'Basic Research', 'try', 'Core Governance & Administration', 'https://www.youtube.com/watch?v=CC3IrUVRZpM&list=RDCC3IrUVRZpM&start_radio=1&pp=oAcB0gcJCZEKAYcqIYzv', 'course_images/j4ZHqxBreMwny3HDu2dBJOu52alFx6H0FdssIPqr.png', NULL, NULL, '2026-02-15 17:44:06', '2026-02-15 21:13:15', NULL),
+(2, 'Basic Research', 'try', 'Core Governance & Administration', 'https://www.youtube.com/watch?v=CC3IrUVRZpM&list=RDCC3IrUVRZpM&start_radio=1&pp=oAcB0gcJCZEKAYcqIYzv', 'course_images/XTqpIw3p1ZsCH9j3KpwrE9b8z45Wa7xKwWk6ZuUh.jpg', '[{\"title\":\"test\",\"topics\":[{\"title\":\"test\",\"fields\":[{\"type\":\"text\",\"html\":\"zxczxcxz\"},{\"type\":\"text\",\"html\":\"wdawdawdawzzzzz\"}]}]}]', NULL, '2026-02-15 17:44:06', '2026-02-25 16:15:21', NULL),
 (6, 'dilgcar', 'dilgcar', 'Digital Transformation', 'https://www.youtube.com/watch?v=CC3IrUVRZpM&list=RDCC3IrUVRZpM&start_radio=1&pp=oAcB0gcJCZEKAYcqIYzv', 'course_images/MBMeDeTFk60bqYAZWEh4YzqScaRzVFe8VtMs1ARg.png', NULL, NULL, '2026-02-15 22:37:24', '2026-02-15 22:37:24', NULL),
 (11, 'Basic Research', 'researchh', 'Core Governance & Administration', '', 'course_images/6yYf9JaMY83ijZ5f2GPnsZ49pWmsAhGU437m9hls.jpg', '[{\"title\":\"mod1\",\"topics\":[{\"title\":\"intro\",\"subtopics\":[{\"title\":\"first time\",\"fields\":[{\"type\":\"text\",\"html\":\"hi\"}]},{\"title\":\"why is hould take it\",\"fields\":[{\"type\":\"text\",\"html\":\"hello\"}]},{\"title\":\"video\",\"fields\":[{\"type\":\"text\",\"html\":\"<p>[video removed]<\\/p>\"}]},{\"title\":\"pic\",\"fields\":[{\"type\":\"text\",\"html\":\"<p>[image removed]<\\/p><br>\"}]},{\"title\":\"multiple choice\",\"fields\":[{\"type\":\"question\",\"question\":{\"type\":\"multiple_choice\",\"title\":\"pogi ako\",\"required\":false,\"options\":[\"oo\",\"hindi\"],\"answer_index\":0}}]},{\"title\":\"\",\"fields\":null},{\"title\":\"\",\"fields\":null}]}]},{\"title\":\"try\",\"topics\":[{\"title\":\"try\",\"subtopics\":[{\"title\":\"try\",\"fields\":[{\"type\":\"text\",\"html\":\"\"}]}]},{\"title\":\"try\",\"fields\":null},{\"title\":\"try\",\"fields\":null},{\"title\":\"try\",\"subtopics\":[{\"title\":\"try\",\"fields\":null},{\"title\":\"try\",\"fields\":null}]}]},{\"title\":\"try again\",\"topics\":[{\"title\":\"yey\",\"subtopics\":[{\"title\":\"yey\",\"fields\":[{\"type\":\"text\",\"html\":\"\"}]},{\"title\":\"yey\",\"fields\":null}]}]}]', NULL, '2026-02-18 07:01:03', '2026-02-18 07:01:03', NULL),
 (12, 'NATURE AND TYPES OF LOCAL GOVERNMENTS', 'Local governments are administrative units established to manage specific areas within a country. They are responsible for delivering public services, enforcing laws, promoting development, and addressing community needs. They operate with a degree of autonomy granted by national law.', 'Core Governance & Administration', '', 'course_images/WtIZ3NheIfsS9nVdQrKV54rH4bVCTTa4DlkJ5VxM.jpg', '[{\"title\":\"Everything is Nature\",\"topics\":[{\"title\":\"Introduction\",\"subtopics\":[{\"title\":\"First Time in the Course\",\"fields\":[{\"type\":\"text\",\"html\":\"<p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\"><span style=\\\"font-weight: 600;\\\">First Time in this Course<\\/span><\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">Did you know that farmers can put sensors on their crops that tell them when to water, how much water is needed, and when to harvest? With this information, farmers can get the best quality and quantity from their crops. Coal miners can place sensors in a mine that detect tiny amounts of dangerous gases. This information saves lives. Automobile insurance companies can offer drivers lower rates in exchange for access to their driving data. This allows for fairer and more accurate pricing and increases profits while lowering costs.<\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">The IoT is about data. The IoT is about digitizing aspects of our lives, our businesses, and our governments to provide actionable insights into how lives can be saved, efficiencies can be created, and communities can be improved. Maybe you would like a career in the IoT.<\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">The Introduction to the Internet of Things course (I2IoT) explains what the IoT is, what it does, how it is part of digital transformation, and how you can become part of this. You will learn about the exponential increase of intelligent devices connected to the internet and you will learn to program one of these intelligent devices. The course explains artificial intelligence and the impact of automation to our future. Lastly you will understand the increased importance of privacy and security.<\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">The goal of this course is to explain the Internet of Things and digital technology and to highlight how these two factors are now part of a broader category called digital transformation.<\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">After completing this course, you will be able to do the following:<\\/p><ul style=\\\"color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\"><li>Explain the meaning and impact of digital transformation.<\\/li><li>Apply basic programming to support IoT devices.<\\/li><li>Explain how data provides value to digital business and society.<\\/li><li>Explain the benefits of automation in the digitized world.<\\/li><li>Explain the need for enhanced security in the digitized world.<\\/li><li>Discover opportunities provided by digital transformation.<\\/li><\\/ul>\"}]},{\"title\":\"Why Should I Take this Course?\",\"fields\":[{\"type\":\"text\",\"html\":\"<span style=\\\"color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px;\\\">Hello! Welcome to the Internet of Things! I\\u2019m Iota, and I\\u2019ll be your Tour Guide. What did you think of that video? Do you have any of that technology in your home or car? Is that a smartphone in your hand? Then I\\u2019ll bet that much of the Internet of Things, or as we like to call it, the IoT, is already familiar to you. Do you use your smartphone to stay connected to family and friends? If so, your smartphone is the center of your own network, and your network is part of the IoT. But the IoT is so much more! Are you ready? Let\\u2019s go!<\\/span>\"}]}]}]},{\"title\":\"Everthing is human\",\"topics\":[{\"title\":\"Basic Human Data\",\"subtopics\":[{\"title\":\"Importance of Data\",\"fields\":[{\"type\":\"text\",\"html\":\"<p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">Data comes from a variety of sources, such as people, pictures, text, sensors, and web sites. Data also comes from devices like cell phones, computers, kiosks, tablets, and cash registers. Most recently, there has been a spike in the volume of data generated by sensors. Sensors are now installed in an ever-growing number of locations and objects. These include security cameras, traffic lights, intelligent cars, thermometers, and even grape vines!<\\/p><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">Big Data is a lot of data, but what is a lot? No one has an exact number that says when data from an organization is considered \\u201cBig Data.\\u201d Here are three characteristics that indicate an organization may be dealing with Big Data:<\\/p><ul style=\\\"color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\"><li>They have a large amount of data that increasingly requires more storage space (volume).<\\/li><li>They have an amount of data that is growing at ever-increasing speed (velocity).<\\/li><li>They have data that is generated in different formats (variety).<\\/li><\\/ul><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">How much data do sensors collect? Here are some estimated examples. For comparison, assume that the average MP3 song is about 3 megabytes.<\\/p><ul style=\\\"color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\"><li>Sensors in one smart connected home can produce as much as 1 gigabyte (GB) of information a week, or the equivalent of 333 MP3 songs.<\\/li><li>Sensors in one autonomous car can generate 4,000 gigabits (Gb) of data per day. That\\u2019s 500 gigabytes (GB) of data, which is the equivalent of about 167,000 MP3 songs.<\\/li><li>Safety sensors in mining operations can generate up to 2.4 terabits (TB) of data every minute. That is 300 GB or about 100,000 MP3 songs.<\\/li><li>An Airbus A380 Engine generates 1 petabyte (PB) of data on a flight from London to Singapore. That is one million GB, or about 334 million MP3 songs.<\\/li><\\/ul><p style=\\\"overflow-wrap: break-word; color: rgb(0, 0, 0); font-family: CiscoSansTT, Arial, sans-serif; font-size: 16px; background-color: rgb(240, 240, 240);\\\">While Big Data does create challenges for organizations in terms of storage and analytics, it can also provide invaluable information to fine-tune operations and improve customer satisfaction.<\\/p>\"},{\"type\":\"question\",\"question\":{\"type\":\"multiple_choice\",\"title\":\"An orange grove company has sensors in the trees and on the machines that harvest the oranges. A camera mounted on the harvester takes a close-up picture of the orange every 5 minutes. Live data is sent to the distributor who gets this data from 100 companies. Does the distributor have big data?\",\"required\":false,\"options\":[\"Yes\",\"No\"],\"answer_index\":0,\"feedback_correct\":\"Yes, the vendor is getting lots of data (volume) and getting it live (velocity). The distributor is also getting different kinds of data.\",\"feedback_incorrect\":\"because the amount of data may still be small enough for regular systems.\"}},{\"type\":\"question\",\"question\":{\"type\":\"multiple_choice\",\"title\":\"An independent t-shirt vendor advertises through Facebook and other social media sites. The vendor receives statistics on the customer demographics. Does the vendor have big data?\",\"required\":false,\"options\":[\"Yes\",\"No\"],\"answer_index\":1,\"feedback_incorrect\":\"Not really\\u2026the vendor\\u2019s customers are generating big data on the social media sites and the vendor is getting results of that big data, but the vendor does not have to deal with the volume, storage, and variety of the data as is required in big data.\"}}]}]}]}]', NULL, '2026-02-18 17:15:25', '2026-02-18 17:15:25', NULL),
 (17, 'aaaa', 'aaaaaaaaaaaaaaaa', 'Finance & Compliance', '', 'course_images/S7NVTmSvM4JGj142vw0OWF6OuaQj9rtOtVU70WMu.jpg', '[{\"title\":\"a\",\"topics\":[{\"title\":\"aaaaaaaaaaaaaaa\",\"subtopics\":[{\"title\":\"aaaaaaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"text\",\"html\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"},{\"type\":\"question\",\"question\":{\"type\":\"multiple_choice\",\"title\":\"aaaaaaaaa\",\"required\":false,\"options\":[\"aaaaaaaaaaaaaaaa\",\"aaaaaaaaaaaaaaaaaaaaaaaaa\"]}},{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]}]},{\"title\":\"aaaaaaaaaaaaaaaaaa\",\"subtopics\":[{\"title\":\"aaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]},{\"title\":\"aaaaaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]}]},{\"title\":\"aaaaaaaaaaaaaaaa\",\"subtopics\":[{\"title\":\"aaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]},{\"title\":\"aaaaaaaaaaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"question\",\"question\":{\"type\":\"multiple_choice\",\"title\":\"aaaaaaaaaaa\",\"required\":false,\"options\":[\"aaa\",\"aa\"]}},{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]}]}]}]', NULL, '2026-02-22 06:29:07', '2026-02-22 06:29:07', NULL),
-(18, 'aa', 'aaaaaaaaaaaaaaaaaaaaaa', 'Finance & Compliance', '', 'course_images/UZ28mDDHB0pjeaq6Z3OLLYKxEOZG2m9n0McXBW5v.jpg', '[{\"title\":\"aaaaaaaa\",\"topics\":[{\"title\":\"aaaaaaaaaaaaa\",\"subtopics\":[{\"title\":\"aaaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"text\",\"html\":\"aaaaaaaaaaaaa\"},{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]}]}]}]', NULL, '2026-02-23 00:58:40', '2026-02-23 00:58:40', NULL),
-(21, 'te', 'te', 'Core Governance & Administration', '', 'course_images/emazbVCD0OETFicRmwplwpIjgr6JmQKiJJyG1ho7.png', NULL, NULL, '2026-02-25 07:05:21', '2026-02-25 07:05:55', '2026-02-25 07:05:55');
+(18, 'aa', 'aaaaaaaaaaaaaaaaaaaaaa', 'Finance & Compliance', '', 'course_images/UZ28mDDHB0pjeaq6Z3OLLYKxEOZG2m9n0McXBW5v.jpg', '[{\"title\":\"aaaaaaaa\",\"topics\":[{\"title\":\"aaaaaaaaaaaaa\",\"subtopics\":[{\"title\":\"aaaaaaaaaaaaaaaaa\",\"fields\":[{\"type\":\"text\",\"html\":\"aaaaaaaaaaaaa\"},{\"type\":\"reflection\",\"prompts\":[\"What did you learn?\"]}]}]}]}]', NULL, '2026-02-23 00:58:40', '2026-02-23 00:58:40', NULL);
 
 -- --------------------------------------------------------
 
@@ -304,9 +302,6 @@ CREATE TABLE `course_user` (
 --
 
 INSERT INTO `course_user` (`id`, `course_id`, `status`, `user_id`, `created_at`, `updated_at`) VALUES
-(6, 1, 'active', 2, '2026-02-17 23:19:05', '2026-02-17 23:19:05'),
-(7, 1, 'active', 3, '2026-02-17 23:55:54', '2026-02-17 23:55:54'),
-(8, 1, 'active', 4, '2026-02-17 23:55:54', '2026-02-17 23:55:54'),
 (13, 11, 'active', 1, '2026-02-18 07:01:03', '2026-02-18 07:01:03'),
 (14, 11, 'active', 4, '2026-02-18 07:02:07', '2026-02-18 07:02:39'),
 (15, 12, 'active', 12, '2026-02-18 17:15:25', '2026-02-18 17:15:25'),
@@ -321,7 +316,8 @@ INSERT INTO `course_user` (`id`, `course_id`, `status`, `user_id`, `created_at`,
 (37, 18, 'active', 12, '2026-02-23 00:58:40', '2026-02-23 00:58:40'),
 (38, 18, 'active', 4, '2026-02-23 00:59:10', '2026-02-23 00:59:47'),
 (39, 18, 'active', 3, '2026-02-23 00:59:47', '2026-02-23 00:59:47'),
-(42, 21, 'active', 12, '2026-02-25 07:05:21', '2026-02-25 07:05:21');
+(43, 2, 'active', 17, '2026-02-25 13:48:17', '2026-02-25 13:53:24'),
+(44, 2, 'active', 3, '2026-02-25 13:53:35', '2026-02-25 13:53:35');
 
 -- --------------------------------------------------------
 
@@ -364,12 +360,12 @@ CREATE TABLE `discussions` (
 --
 
 INSERT INTO `discussions` (`id`, `course_id`, `user_id`, `title`, `body`, `image_path`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(2, 1, 3, 'How is this', 'I tried to used this system and it work, any comments?', NULL, '2026-02-20 20:57:45', '2026-02-20 20:57:45', NULL),
 (6, 12, 3, 'ssssssssssssssss', 'sssssssssss', NULL, '2026-02-21 03:44:09', '2026-02-21 03:44:21', '2026-02-21 03:44:21'),
 (7, 12, 4, 'asssssssssssssss', 'assssssssssss', NULL, '2026-02-22 06:41:22', '2026-02-22 06:42:11', '2026-02-22 06:42:11'),
 (8, 12, 4, 'asssssssssss', 'sassssssssss', NULL, '2026-02-22 06:43:06', '2026-02-22 06:43:06', NULL),
 (9, 12, 4, 'qqqqqqqqqqqqqqqqq', 'qqqqqqqqqqqqqqq', 'discussion_images/q4y1NNl7SyTGiqLbJEQObB3XSIpKmpvmTGffHx3b.png', '2026-02-22 07:51:07', '2026-02-22 07:51:19', '2026-02-22 07:51:19'),
-(10, 17, 4, 'ddddddddd', 'dddddddddddddddddd', NULL, '2026-02-22 10:26:45', '2026-02-22 10:26:45', NULL);
+(10, 17, 4, 'ddddddddd', 'dddddddddddddddddd', NULL, '2026-02-22 10:26:45', '2026-02-22 10:26:45', NULL),
+(11, 2, 17, 'testt', 'testtwdadawdawddawdwa', NULL, '2026-02-25 14:16:46', '2026-02-25 14:16:46', NULL);
 
 -- --------------------------------------------------------
 
@@ -706,7 +702,10 @@ INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `is_read`, `ty
 (46, 2, 'Course Enrollment Request', 'User Trainee User requested to join course aa.', 0, 'enrollment', NULL, '2026-02-23 00:59:10', '2026-02-23 00:59:10', 'http://127.0.0.1:8000/dashboard?tab=trainer-trainee-management', 4),
 (47, 3, 'Course Assignment', 'You have been assigned as a trainer for the course: aa.', 0, 'course_assignment', NULL, '2026-02-23 00:59:47', '2026-02-23 00:59:47', 'http://127.0.0.1:8000/dashboard', 18),
 (48, 4, 'Course Enrollment Approved', 'Your request to join the course aa has been approved.', 0, 'enrollment_approved', NULL, '2026-02-23 00:59:47', '2026-02-23 00:59:47', 'http://127.0.0.1:8000/dashboard', 18),
-(49, 2, 'New User Registration', 'New user Billy John Ferreol has registered and is awaiting approval.', 0, 'registration', NULL, '2026-02-24 01:04:07', '2026-02-24 01:04:07', 'http://127.0.0.1:8000/dashboard?tab=user-management&search=Billy%20John%20Ferreol', 17);
+(49, 2, 'New User Registration', 'New user Billy John Ferreol has registered and is awaiting approval.', 0, 'registration', NULL, '2026-02-24 01:04:07', '2026-02-24 01:04:07', 'http://127.0.0.1:8000/dashboard?tab=user-management&search=Billy%20John%20Ferreol', 17),
+(50, 2, 'Course Enrollment Request', 'User Billy John Ferreol requested to join course Basic Research.', 0, 'enrollment', NULL, '2026-02-25 13:48:17', '2026-02-25 13:48:17', 'http://127.0.0.1:8000/dashboard?tab=trainer-trainee-management', 17),
+(51, 17, 'Course Enrollment Approved', 'Your request to join the course Basic Research has been approved.', 1, 'enrollment_approved', NULL, '2026-02-25 13:53:24', '2026-02-25 14:46:28', 'http://127.0.0.1:8000/dashboard', 2),
+(52, 3, 'Course Assignment', 'You have been assigned as a trainer for the course: Basic Research.', 0, 'course_assignment', NULL, '2026-02-25 13:53:35', '2026-02-25 13:53:35', 'http://127.0.0.1:8000/dashboard', 2);
 
 -- --------------------------------------------------------
 
@@ -2579,7 +2578,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('pfZ5QQz58N7SZnqZM7J8VPedVZenSmWCmriP0RDs', 12, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiYnZ5bjhOSUUxTGhNMzUyaFhZNmQ2czZjUUZsRFpvaXZTblFmYnBpQSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hZG1pbi9jb3Vyc2VzLzEvZWRpdCI7czo1OiJyb3V0ZSI7czoxODoiYWRtaW4uY291cnNlcy5lZGl0Ijt9czozOiJ1cmwiO2E6MDp7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjEyO30=', 1772004420);
+('0NmVM6cpFKeHD6hjX62nblLpUFZQOtt3N5xBcXyL', 12, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiTHVCWUdPUmlwUjdmdmYyejBqZWNXdGNvNkVkenRpRlc3b21ZUnNOYiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDg6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hZG1pbi9jb3Vyc2VzLzI/ZW1iZWRkZWQ9MSI7czo1OiJyb3V0ZSI7czoxODoiYWRtaW4uY291cnNlcy5zaG93Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTI7fQ==', 1772036131);
 
 -- --------------------------------------------------------
 
@@ -2651,10 +2650,10 @@ INSERT INTO `users` (`id`, `account_id`, `name`, `job_title`, `email`, `mobile_n
 (2, '26-0000-002', 'Registrar User', 'Regional DIrector', 'registrar@gmail.com', '0000000000', NULL, NULL, NULL, '$2y$12$/JDOv2vopwVaYrf0Sv.OVOouWFF3txSiX.Egm/iOlYKOc3AOePUxK', NULL, '2026-02-06 00:12:46', '2026-02-18 13:54:22', 'CAR (Cordillera Administrative Region)', 'Benguet', 'City of Baguio', 'Balsigan', NULL, 'registrar', 'active', 'C:\\xampp\\tmp\\php6A6F.tmp', NULL, NULL, NULL, 'rrrrr', 1, '2026-02-18 13:54:22', 0),
 (3, '26-0000-003', 'Trainer User', 'Trainer', 'trainer@gmail.com', '0000000000', NULL, NULL, NULL, '$2y$12$/Tb6ckKWlAuBGgg9W7o56OwH6nOuQXNQEstK95nL1asH/r0EF9iTq', NULL, '2026-02-06 00:12:47', '2026-02-18 16:47:20', 'CAR (Cordillera Administrative Region)', 'Benguet', 'City of Baguio', 'Balsigan', NULL, 'trainer', 'active', NULL, NULL, NULL, NULL, NULL, 1, '2026-02-18 16:47:20', 0),
 (4, '26-0000-004', 'Trainee User', 'Trainee', 'trainee@gmail.com', '0000000000', NULL, NULL, NULL, '$2y$12$bevvGVgY7z5bBpW6hvhp2.RiebeqxyorOahL5vO3ixa9l0u.O.WZO', NULL, '2026-02-06 00:12:47', '2026-02-18 16:51:21', 'CAR (Cordillera Administrative Region)', 'Benguet', 'City of Baguio', 'Balsigan', NULL, 'trainee', 'active', 'profile_pictures/Aa7KFsPRREEMRoFvKkGx0vdO352ue2NdYbQGjWt1.png', 'CARaise the BAR', 'past_trainees', NULL, 'The Course is Great and help me a lot', 1, '2026-02-18 16:51:21', 0),
-(12, '26-0000-005', 'Admin Admin Admin', 'Trainer', 'admin1@gmail.com', 'Admin', 'Male', NULL, NULL, '$2y$12$sXlyDt3qaqUhKq/PZGeQD.t0iYET/4nDvZzGgczjR/uwcitM8jT66', NULL, '2026-02-18 16:38:33', '2026-02-25 03:56:09', 'CAR', 'Benguet', 'La Trinidad', 'Alapang', NULL, 'admin', 'active', 'profile_pictures/VngNOeDwHyG6Mimp06AUkjLsql3Hi9w7SlnEaDSG.png', NULL, NULL, NULL, NULL, 1, '2026-02-18 16:45:15', 0),
+(12, '26-0000-005', 'Admin Admin Admin', 'Trainer', 'admin1@gmail.com', 'Admin', 'Male', NULL, NULL, '$2y$12$sXlyDt3qaqUhKq/PZGeQD.t0iYET/4nDvZzGgczjR/uwcitM8jT66', NULL, '2026-02-18 16:38:33', '2026-02-25 11:45:07', 'CAR', 'Benguet', 'La Trinidad', 'Alapang', NULL, 'admin', 'active', 'profile_pictures/7OKimlaP4UUDCGmGxRaDZbKwowowASGT0Yd7bxAM.jpg', NULL, NULL, NULL, NULL, 1, '2026-02-18 16:45:15', 0),
 (15, '26-0000-006', 'try try', 'Trainer', 'zarenomark8@gmail.com', '0000000000', 'Male', NULL, NULL, '$2y$12$x.zCk2YIDbJIyGCSm9REt.xFd0djAp7K4rG4bk/cTkK2uUMtdT9tO', NULL, '2026-02-19 17:55:21', '2026-02-20 02:35:54', 'CAR', 'Benguet', 'City of Baguio', 'Aurora Hill, North Central', NULL, 'trainee', 'active', NULL, NULL, NULL, NULL, NULL, 1, '2026-02-20 02:35:54', 0),
 (16, '26-0000-007', 'Law Malanum', 'Trainer', 'laurencemalanum56@gmail.com', '09511287670', 'Prefer not to say', NULL, NULL, '$2y$12$GluBUDvdTsnml.bbn8Xejud.EVkbWNqrT2crehp6JdFV.nbyQDp0W', NULL, '2026-02-21 00:58:20', '2026-02-21 01:00:29', 'CAR', 'Benguet', 'City of Baguio', 'Camp 8', NULL, 'trainee', 'active', NULL, NULL, NULL, NULL, NULL, 1, '2026-02-21 00:58:19', 0),
-(17, '26-0000-008', 'Billy John Ferreol', 'Trainer', 'bdferreol@dilg.gov.ph', NULL, NULL, '103749359924696556969', '2026-02-24 01:04:07', '$2y$12$MTgK46Co0JsgzCg0ps85ZuxfjU4hQ6fgeVgc8V0agQ4YteSr/5RaK', 'dG2XXfN4Zb2oFAUCUwopYKQwOjzyxAugBWEZAdOb9bw9ewY8lMvOH9nJfbUO', '2026-02-24 01:04:07', '2026-02-24 01:05:11', NULL, NULL, NULL, NULL, NULL, 'trainee', 'active', NULL, NULL, NULL, NULL, NULL, 0, NULL, 0);
+(17, '26-0000-008', 'Billy John Ferreol', 'Trainer', 'bdferreol@dilg.gov.ph', '09212119301', NULL, '103749359924696556969', '2026-02-24 01:04:07', '$2y$12$MTgK46Co0JsgzCg0ps85ZuxfjU4hQ6fgeVgc8V0agQ4YteSr/5RaK', 'CjqUblLPk0cwTbHVCBxQFBjrEIfERBWhQD5HKN008izQZzQDPvL7tkjqB1J0', '2026-02-24 01:04:07', '2026-02-25 12:42:06', 'CAR', 'Abra', 'Bangued', 'Agtangao', NULL, 'trainee', 'active', 'profile_pictures/KMEY7BfYRsWhtNPsjhspxNRRg7WUtuAKxd6DYVGm.jpg', NULL, NULL, NULL, NULL, 1, '2026-02-25 12:40:26', 0);
 
 --
 -- Indexes for dumped tables
@@ -3007,7 +3006,7 @@ ALTER TABLE `courses`
 -- AUTO_INCREMENT for table `course_user`
 --
 ALTER TABLE `course_user`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `deletion_audits`
@@ -3019,7 +3018,7 @@ ALTER TABLE `deletion_audits`
 -- AUTO_INCREMENT for table `discussions`
 --
 ALTER TABLE `discussions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `discussion_reactions`
@@ -3091,7 +3090,7 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `provinces`
