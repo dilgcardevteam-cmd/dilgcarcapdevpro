@@ -493,12 +493,7 @@ class CourseController extends Controller
     }
     public function pending()
     {
-        $pendingCourses = Course::onlyTrashed()
-            ->whereHas('users', function($q){
-                $q->where('role', 'trainer');
-            })
-            ->get();
-        return view('admin.courses-pending', compact('pendingCourses'));
+        return redirect()->route('dashboard', ['tab' => 'pending-courses']);
     }
 
     public function participants(Course $course)
