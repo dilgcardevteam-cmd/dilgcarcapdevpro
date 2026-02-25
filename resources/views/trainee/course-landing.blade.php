@@ -613,7 +613,6 @@
                 </div>
             @endif
             <div class="hero">
-                <span>atest</span>
                 <div class="hero-top">
                     @if ($course->image_path)
                         @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp

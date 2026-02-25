@@ -255,6 +255,20 @@
         .bg-orange { background-color: #fff3e0; color: #f57c00; }
         .bg-purple { background-color: #f3e5f5; color: #7b1fa2; }
 
+        /* Control Hero */
+        .control-hero{background:linear-gradient(135deg,#002C76 0%, #0b57d0 55%, #1e88e5 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+        .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
+        .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
+        .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
+        .hero-btn:hover{background:rgba(255,255,255,.12)}
+        .hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+        .hero-metric{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px}
+        .hero-metric h4{margin:0 0 6px;font-size:.95rem;color:#fff}
+        .hero-meter{height:8px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
+        .hero-meter > span{display:block;height:100%;background:#7fb73d;width:0}
+
         /* Content Sections */
         .content-section {
             display: none;
@@ -973,6 +987,40 @@
             
             <!-- Dashboard Home Section -->
             <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
+                <div class="control-hero">
+                    <div class="control-hero-top">
+                        <div>
+                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            <div class="control-hero-sub">Monitor your learning progress and quickly access your classes.</div>
+                        </div>
+                        <div class="hero-actions">
+                            @if(isset($myCourses) && $myCourses->isNotEmpty())
+                            <a class="hero-btn" href="{{ route('trainee.courses.show', $myCourses->first()) }}"><i class="fas fa-door-open"></i> Enter Class</a>
+                            @else
+                            <a class="hero-btn" href="#" style="pointer-events:none;opacity:.6"><i class="fas fa-door-open"></i> Enter Class</a>
+                            @endif
+                            <a class="hero-btn" href="#" onclick="showContent('dashboard-home', document.querySelector('a[onclick*=\'dashboard-home\']'))"><i class="fas fa-search"></i> Browse Courses</a>
+                            <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
+                        </div>
+                    </div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric">
+                            <h4>Available Courses</h4>
+                            <div style="font-size:1.4rem;font-weight:800">{{ $totalAvailableCourses }}</div>
+                            <div class="hero-meter"><span style="width: {{ min(100, ($totalAvailableCourses ?? 0)*10) }}%"></span></div>
+                        </div>
+                        <div class="hero-metric">
+                            <h4>Courses Joined</h4>
+                            <div style="font-size:1.4rem;font-weight:800">{{ $totalCoursesJoined }}</div>
+                            <div class="hero-meter"><span style="width: {{ min(100, ($totalCoursesJoined ?? 0)*20) }}%"></span></div>
+                        </div>
+                        <div class="hero-metric">
+                            <h4>Pending Enrollments</h4>
+                            <div style="font-size:1.4rem;font-weight:800">{{ $pendingCoursesCount ?? 0 }}</div>
+                            <div class="hero-meter"><span style="background:#f57c00;width: {{ min(100, ($pendingCoursesCount ?? 0)*20) }}%"></span></div>
+                        </div>
+                    </div>
+                </div>
                 @if(session('success_join'))
                 <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     <i class="fas fa-check-circle"></i> {{ session('success_join') }}
