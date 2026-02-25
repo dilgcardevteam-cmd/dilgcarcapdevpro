@@ -1099,9 +1099,6 @@
 
             <!-- Classroom Section -->
             <div id="classroom" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">My Classroom</h2>
-                </div>
                 
                 <div class="stats-grid" style="margin-top:-6px;margin-bottom:20px">
                     <div class="stat-card">
@@ -1160,9 +1157,6 @@
 
             <!-- Calendar Section -->
             <div id="calendar" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">Calendar</h2>
-                </div>
                 
                 <!-- Visual Calendar -->
                 <div class="calendar-container">
@@ -1223,9 +1217,6 @@
 
             <!-- Announcements Section -->
             <div id="announcements" class="content-section">
-                <div class="section-header">
-                    <h2 class="section-title">Announcements</h2>
-                </div>
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
                     @if($announcements->isEmpty())
                         <div class="empty-state">

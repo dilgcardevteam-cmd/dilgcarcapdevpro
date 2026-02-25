@@ -45,6 +45,10 @@
             height: var(--header-height);
             box-sizing: border-box;
             z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
         }
 
         .header-left {
@@ -52,10 +56,8 @@
             align-items: center;
         }
 
-        .header-logo {
-            height: 50px;
-            margin-right: 20px;
-        }
+        .header-toggle{background:none;border:none;color:var(--primary-blue);font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+        .header-toggle:hover{background:#f0f2f7}
 
         .header-title img {
             height: 50px;
@@ -115,11 +117,36 @@
         .btn-view:hover{background-color:#06235d;transform:translateY(-1px);box-shadow:0 10px 20px rgba(6,35,93,.2)}
         .count-label{color:#6b7280;font-size:.8rem;margin-left:4px}
 
+        /* Hero control (match trainer style) */
+        .control-hero{background:linear-gradient(135deg,#0B2C74 0%,#1f4aa5 60%,#4e79e8 100%);color:#fff;border-radius:14px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 10px 24px rgba(11,44,116,.18);margin-bottom:20px}
+        .control-hero-left{display:flex;align-items:center;gap:14px}
+        .control-hero-title{font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+        .control-hero-sub{font-size:.95rem;opacity:.9}
+        .hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+        .hero-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0B2C74;border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:10px 14px;font-weight:800;text-decoration:none;box-shadow:0 6px 16px rgba(11,44,116,.18)}
+        .hero-btn:hover{transform:translateY(-1px)}
+
+        /* Distribution card */
+        .dist-card{background:#fff;border:1px solid #eef2f7;border-radius:16px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+        .dist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .dist-title{margin:0;color:#0B2C74;font-weight:800}
+        .dist-total{color:#6b7280;font-size:.9rem}
+        .dist-row{margin:10px 0}
+        .dist-label{color:#0B2C74;font-weight:700;margin-bottom:6px}
+        .dist-bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+        .dist-bar > div{height:100%;border-radius:999px;transition:width .3s ease}
+        .dist-blue{background:#4e79e8}
+        .dist-green{background:#10b981}
+        .dist-orange{background:#f59e0b}
+
         /* Dashboard Container */
         .dashboard-container {
             display: flex;
             flex: 1;
             overflow: hidden;
+            margin-top: var(--header-height);
+            margin-left: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
         }
 
         /* Sidebar Styles */
@@ -130,8 +157,16 @@
             transition: width 0.3s ease;
             display: flex;
             flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
             overflow-y: auto;
         }
+        .sidebar-brand{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
+        .sidebar-logo{height:70px}
+        .sidebar.collapsed .sidebar-brand{justify-content:center;padding:8px 0}
+        .sidebar.collapsed .sidebar-logo{height:44px;width:44px;margin:0 auto;display:block;object-fit:contain}
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
@@ -1015,10 +1050,7 @@
     <!-- Navbar -->
     <header class="header">
         <div class="header-left">
-            
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
+            <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         </div>
         <div class="header-right">
             <!-- Notification Bell -->
@@ -1086,8 +1118,8 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
+            <div class="sidebar-brand">
+                <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 <li class="menu-item {{ !request()->hasAny(['search', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
@@ -1109,7 +1141,19 @@
         <main class="main-content">
             <!-- Dashboard Home Section -->
             <section id="dashboard-home" class="content-section {{ !request()->hasAny(['search', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}">
-                <h1 class="welcome-title">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
+                <div class="control-hero">
+                    <div class="control-hero-left">
+                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center"><i class="fas fa-gauge-high"></i></div>
+                        <div>
+                            <div class="control-hero-title">Welcome, {{ Auth::user()->name }}</div>
+                            <div class="control-hero-sub">Monitor learner activation, course readiness, and certification output.</div>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <a class="hero-btn" href="{{ route('dashboard', ['tab' => 'user-management']) }}"><i class="fas fa-users"></i> Review Users</a>
+                        <a class="hero-btn" href="{{ route('dashboard', ['tab' => 'trainer-trainee-management']) }}"><i class="fas fa-chalkboard-teacher"></i> Manage Courses</a>
+                    </div>
+                </div>
                 
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1150,6 +1194,36 @@
                             <p>Total Courses</p>
                         </div>
                     </div>
+                </div>
+
+                @php
+                    $totalUsers = \App\Models\User::count();
+                    $distTrainers = \App\Models\User::where('role','trainer')->count();
+                    $distTrainees = \App\Models\User::where('role','trainee')->count();
+                    $distAdminRegistrar = \App\Models\User::whereIn('role',['admin','registrar'])->count();
+                    $pct = function($n,$t){ return $t>0 ? round(($n/$t)*100) : 0; };
+                @endphp
+                <div class="dist-card" style="margin-top:14px">
+                    <div class="dist-head">
+                        <h3 class="dist-title">User Distribution</h3>
+                        <div class="dist-total">{{ $totalUsers }} total users</div>
+                    </div>
+                    <div class="dist-row">
+                        <div class="dist-label">Trainers</div>
+                        <div class="dist-bar"><div class="dist-blue" style="width: {{ $pct($distTrainers,$totalUsers) }}%"></div></div>
+                        <div class="dist-total" style="margin-top:4px">{{ $distTrainers }} ({{ $pct($distTrainers,$totalUsers) }}%)</div>
+                    </div>
+                    <div class="dist-row">
+                        <div class="dist-label">Trainees</div>
+                        <div class="dist-bar"><div class="dist-green" style="width: {{ $pct($distTrainees,$totalUsers) }}%"></div></div>
+                        <div class="dist-total" style="margin-top:4px">{{ $distTrainees }} ({{ $pct($distTrainees,$totalUsers) }}%)</div>
+                    </div>
+                    <div class="dist-row">
+                        <div class="dist-label">Admin + Registrar</div>
+                        <div class="dist-bar"><div class="dist-orange" style="width: {{ $pct($distAdminRegistrar,$totalUsers) }}%"></div></div>
+                        <div class="dist-total" style="margin-top:4px">{{ $distAdminRegistrar }} ({{ $pct($distAdminRegistrar,$totalUsers) }}%)</div>
+                    </div>
+                    <div class="dist-total" style="margin-top:8px">Use role mix to balance instructional capacity against learner demand.</div>
                 </div>
             </section>
 
@@ -1490,6 +1564,38 @@
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('collapsed');
+        const collapsed = sidebar.classList.contains('collapsed');
+        const header = document.querySelector('.header');
+        const container = document.querySelector('.dashboard-container');
+        const logo = document.querySelector('.sidebar-logo');
+        const brand = document.querySelector('.sidebar-brand');
+        if (collapsed) {
+            sidebar.style.width = '70px';
+            if (header) header.style.left = '70px';
+            if (container) container.style.marginLeft = '70px';
+            if (logo) {
+                logo.style.height = '44px';
+                logo.style.width = '44px';
+                logo.style.display = 'block';
+                logo.style.margin = '0 auto';
+                const small = logo.getAttribute('data-collapsed-src');
+                if (small) logo.src = small;
+            }
+            if (brand) brand.style.justifyContent = 'center';
+        } else {
+            sidebar.style.width = '250px';
+            if (header) header.style.left = '250px';
+            if (container) container.style.marginLeft = '250px';
+            if (logo) {
+                logo.style.height = '70px';
+                logo.style.width = 'auto';
+                logo.style.display = '';
+                logo.style.margin = '';
+                const full = logo.getAttribute('data-full-src');
+                if (full) logo.src = full;
+            }
+            if (brand) brand.style.justifyContent = 'space-between';
+        }
     }
 
     function showContent(sectionId, menuItem) {
@@ -1758,4 +1864,3 @@
 </script>
 </body>
 </html>
-
