@@ -285,6 +285,8 @@
         #profile-section .profile-page-actions {
             display: flex;
             align-items: center;
+            justify-content: flex-end;
+            grid-column: 1 / -1;
             gap: 10px;
             flex-wrap: wrap;
         }
@@ -301,6 +303,10 @@
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
             box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        #profile-section .profile-page-btn.is-revealed {
+            animation: profileBtnReveal 0.26s cubic-bezier(0.2, 0.7, 0.3, 1) both;
         }
 
         #profile-section .profile-page-btn:active {
@@ -327,6 +333,24 @@
 
         #profile-section .profile-page-btn.save:hover {
             background: #6aa832;
+        }
+
+        @keyframes profileBtnReveal {
+            from {
+                opacity: 0;
+                transform: translateY(-6px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #profile-section .profile-page-btn {
+                animation: none !important;
+                transition: none;
+            }
         }
 
         #profile-section .profile-page-alert {
@@ -2102,20 +2126,6 @@
                                 <h1 class="profile-page-title">My Profile</h1>
                                 <p class="profile-page-subtitle">Keep your account information current and review your access details in one place.</p>
                             </div>
-                            <div class="profile-page-actions">
-                                <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
-                                    <i class="fas fa-pen"></i>
-                                    Edit Profile
-                                </button>
-                                <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display: none;">
-                                    <i class="fas fa-xmark"></i>
-                                    Cancel
-                                </button>
-                                <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display: none;">
-                                    <i class="fas fa-save"></i>
-                                    Save Changes
-                                </button>
-                            </div>
                         </div>
 
                         @if(session('success_profile'))
@@ -2267,6 +2277,21 @@
                                     </div>
                                 </div>
                                 <div class="profile-page-help">Leave blank to keep your current password.</div>
+                            </div>
+
+                            <div class="profile-page-actions">
+                                <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
+                                    <i class="fas fa-pen"></i>
+                                    Edit Profile
+                                </button>
+                                <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display: none;">
+                                    <i class="fas fa-xmark"></i>
+                                    Cancel
+                                </button>
+                                <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display: none;">
+                                    <i class="fas fa-save"></i>
+                                    Save Changes
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2766,12 +2791,30 @@
             document.getElementById('btnSaveProfile').style.display = 'inline-flex';
             document.getElementById('profile_upload_container').style.display = 'flex';
             document.getElementById('password_change_section').style.display = 'block';
+            animateProfileActionButtons();
             
             const inputs = document.querySelectorAll('.profile-input');
             inputs.forEach(input => {
                 input.readOnly = false;
                 input.style.backgroundColor = 'white';
                 input.style.cursor = 'text';
+            });
+        }
+
+        function animateProfileActionButtons() {
+            const buttons = [
+                document.getElementById('btnCancelProfile'),
+                document.getElementById('btnSaveProfile'),
+            ];
+
+            buttons.forEach((button, index) => {
+                if (!button) return;
+                button.classList.remove('is-revealed');
+                button.style.animationDelay = '0ms';
+                requestAnimationFrame(() => {
+                    button.style.animationDelay = `${index * 70}ms`;
+                    button.classList.add('is-revealed');
+                });
             });
         }
 
