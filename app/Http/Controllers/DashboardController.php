@@ -30,13 +30,11 @@ class DashboardController extends Controller
                 $archivedCourses = Course::onlyTrashed()->get();
                 $certifications = Certification::all();
                 $recentCourses = Course::latest()->take(5)->get();
-                $pendingCourses = \App\Models\Course::onlyTrashed()
-                    ->with('users')
+                $pendingCoursesCount = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q){
                         $q->where('role', 'trainer');
                     })
-                    ->get();
-                $pendingCoursesCount = $pendingCourses->count();
+                    ->count();
                 $activeUsersCount = User::where('status', 'active')->count();
                 $pendingUsersTotal = User::where('status', 'pending')->count();
                 $frozenUsersCount = User::where('status', 'freeze')->count();
@@ -86,7 +84,6 @@ class DashboardController extends Controller
                     'archivedCourses',
                     'certifications',
                     'forceProfile',
-                    'pendingCourses',
                     'pendingCoursesCount',
                     'activeUsersCount',
                     'pendingUsersTotal',
