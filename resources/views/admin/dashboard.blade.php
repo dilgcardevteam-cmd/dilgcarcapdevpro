@@ -366,6 +366,18 @@
             font-size: 0.92rem;
         }
 
+        #profile-section .profile-page-alert.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+            align-items: flex-start;
+        }
+
+        #profile-section .profile-page-alert.error ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
         #profile-section .profile-page-banner {
             display: flex;
             align-items: center;
@@ -384,7 +396,7 @@
             height: 92px;
             border-radius: 22px;
             overflow: hidden;
-            background: #e2e8f0;
+            background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1785,7 +1797,7 @@
         <div class="header-right">
             <div class="profile-menu">
                 <div class="user-profile-header" onclick="toggleProfileMenu(event)" style="cursor: pointer; display: flex; align-items: center; gap: 10px; margin-right: 10px;">
-                    <div style="width: 40px; height: 40px; background-color: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; overflow: hidden;">
+                    <div style="width: 40px; height: 40px; background-color: #ffffff; color: #9ca3af; border: 1px solid #9ca3af; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; overflow: hidden;">
                         @if(Auth::user()->profile_picture)
                             <img id="header_profile_image" src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
                             <span id="header_profile_initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
@@ -1794,7 +1806,7 @@
                             <span id="header_profile_initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                         @endif
                     </div>
-                    <div style="text-align: right;">
+                    <div id="headerProfileMeta" style="text-align: right; display: none;">
                         <div style="font-weight: bold; color: var(--dark-text); font-size: 0.9rem;">{{ Auth::user()->name }}</div>
                         <div style="font-size: 0.8rem; color: var(--light-text);">{{ ucfirst(Auth::user()->role) }}</div>
                     </div>
@@ -2142,6 +2154,17 @@
                             </div>
                         @endif
 
+                        @if ($errors->any())
+                            <div class="profile-page-alert error">
+                                <i class="fas fa-circle-exclamation"></i>
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="profile-page-banner">
                             <div class="profile-page-avatar">
                                 @php
@@ -2161,7 +2184,7 @@
 
                                 <div id="profile_upload_container" class="profile-page-upload" style="display: none;">
                                     <input type="file" name="profile_picture" id="profile_picture_input" accept="image/png,image/jpeg,.png,.jpg,.jpeg" onchange="previewProfileImage(this)">
-                                    <span class="profile-page-help">PNG or JPEG only, square crop works best.</span>
+                                    <span class="profile-page-help">PNG or JPEG only, up to 5 MB. Square crop works best.</span>
                                 </div>
                             </div>
                         </div>
@@ -3156,9 +3179,16 @@
             const allowedMimeTypes = ['image/png', 'image/jpeg'];
             const allowedByMime = allowedMimeTypes.includes(file.type);
             const allowedByExtension = /\.(png|jpe?g)$/i.test(lowerName);
+            const maxBytes = 5 * 1024 * 1024;
 
             if (!allowedByMime && !allowedByExtension) {
                 alert('Only PNG and JPEG images are allowed.');
+                input.value = '';
+                return;
+            }
+
+            if (file.size > maxBytes) {
+                alert('Image is too large. Maximum allowed size is 5 MB.');
                 input.value = '';
                 return;
             }
@@ -3167,19 +3197,12 @@
             reader.onload = function(e) {
                 const preview = document.getElementById('profile_preview');
                 const initials = document.getElementById('profile_initials');
-                const headerImage = document.getElementById('header_profile_image');
-                const headerInitial = document.getElementById('header_profile_initial');
                 
                 if (preview) {
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                 }
                 if (initials) initials.style.display = 'none';
-                if (headerImage) {
-                    headerImage.src = e.target.result;
-                    headerImage.style.display = 'block';
-                }
-                if (headerInitial) headerInitial.style.display = 'none';
             }
             reader.readAsDataURL(file);
         }
@@ -3759,20 +3782,31 @@
         }
     </script>
     <script>
+        function setProfileMetaVisibility(isVisible){
+            var meta=document.getElementById('headerProfileMeta');
+            if(!meta) return;
+            meta.style.display=isVisible?'block':'none';
+        }
         function toggleProfileMenu(e){
             e.stopPropagation();
             var d=document.getElementById('profileDropdown');
             if(!d) return;
-            d.style.display=(d.style.display==='block')?'none':'block';
+            var willOpen=d.style.display!=='block';
+            d.style.display=willOpen?'block':'none';
+            setProfileMetaVisibility(willOpen);
         }
         function hideProfileMenu(){
             var d=document.getElementById('profileDropdown');
             if(d) d.style.display='none';
+            setProfileMetaVisibility(false);
         }
         document.addEventListener('click',function(ev){
             var menu=document.querySelector('.profile-menu');
             var d=document.getElementById('profileDropdown');
-            if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
+            if(menu&&d&&!menu.contains(ev.target)){
+                d.style.display='none';
+                setProfileMetaVisibility(false);
+            }
         });
     </script>
 </body>

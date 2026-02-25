@@ -275,7 +275,7 @@ class DashboardController extends Controller
         $request->validate([
             'job_title' => 'nullable|string|max:255',
             'additional_details' => 'nullable|string',
-            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'display_type' => 'nullable|in:our_team,past_trainees',
         ]);
 
@@ -316,7 +316,7 @@ class DashboardController extends Controller
             'city' => 'nullable|string',
             'barangay' => 'nullable|string',
             'job_title' => 'nullable|string',
-            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'password' => 'nullable|confirmed|min:8',
         ]);
 
@@ -388,7 +388,7 @@ class DashboardController extends Controller
             'city' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
         ]);
 
         if ($request->hasFile('profile_picture')) {
