@@ -792,7 +792,13 @@
         "Sign Up Container" (Right Side when Active) 
         CONTAINS: LOGIN FORM
     -->
-    <div class="form-container sign-up-container">
+    <div class="form-container sign-up-container" style="position: relative;">
+        <a href="{{ url('/') }}" style="position: absolute; top: 12px; right: 12px; text-decoration: none; color: #1a1a1aff; font-weight: 500; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.3s ease; z-index: 10;" title="Back to Home">
+            <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
         <form method="POST" action="{{ route('login') }}" class="login-form">
             @csrf
             <div class="form-inner">
@@ -947,20 +953,6 @@
                                 </svg>
                             </span>
                             <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" placeholder="Last Name" required />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="field-with-icon">
-                            <span class="field-icon">
-                                <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                                </svg>
-                            </span>
-                            <select id="agency" name="agency">
-                                <option value="" disabled {{ old('agency') ? '' : 'selected' }}>Select Agency/LGU</option>
-                                <option value="DILG" {{ old('agency') === 'DILG' ? 'selected' : '' }}>DILG</option>
-                                <option value="LGU" {{ old('agency') === 'LGU' ? 'selected' : '' }}>LGU</option>
-                            </select>
                         </div>
                     </div>
                 </div>

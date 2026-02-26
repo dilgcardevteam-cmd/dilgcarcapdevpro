@@ -151,16 +151,9 @@
         <div class="header-left">
             
             <div class="nav-menu">
-                <a href="{{ url('/') }}" style="text-decoration: none;">
-                    <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height: 56px;">
-                </a>
+                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height: 70px;">
             </div>
         </div>
-        <div class="header-right">
-        <a href="{{ url('/') }}" style="text-decoration: none; color: #1a1a1aff; font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 5px;">
-            <i class="fas fa-arrow-left"></i> Back to Home
-        </a>
-    </div>
     </header>
 
     <div class="main-content">
@@ -168,4 +161,5 @@
     </div>
 </body>
 </html>
+
 
