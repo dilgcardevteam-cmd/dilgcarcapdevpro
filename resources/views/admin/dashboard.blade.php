@@ -21,6 +21,9 @@
             --sidebar-collapsed-width: 70px;
             --header-height: 80px;
         }
+        @media (max-width: 1000px){
+            .insight-grid,.insight-grid.insight-grid-alt{grid-template-columns:1fr}
+        }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -426,6 +429,7 @@
             font-weight: 700;
             line-height: 1.04;
         }
+        .donut-seg{transition:stroke-dasharray .9s cubic-bezier(.22,1,.36,1)}
 
         .stat-info p {
             margin: 3px 0 0;
@@ -442,40 +446,43 @@
 
         .insight-grid {
             display: grid;
-            grid-template-columns: 1.55fr 1fr;
-            gap: 14px;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
         }
 
         .insight-grid.insight-grid-alt {
             grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
         }
 
         .insight-panel {
             background: #ffffff;
-            border: 1px solid #dbe4f0;
-            border-radius: 14px;
-            padding: 16px;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e5eef7;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
         .insight-panel-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 14px;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .insight-panel-header h2 {
             margin: 0;
-            color: #0f172a;
-            font-size: 1.05rem;
+            color: #0B2C74;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -.01em;
         }
 
         .insight-panel-header span {
             color: #64748b;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.85rem;
+            font-weight: 700;
         }
 
         .role-bar-list {
@@ -2695,50 +2702,7 @@
                     </div>
 
                     <div class="insight-grid">
-                        <div class="insight-panel">
-                            <div class="insight-panel-header">
-                                <h2>User Distribution</h2>
-                                <span>{{ $userCount }} total users</span>
-                            </div>
-
-                            <div class="role-bar-list">
-                                <div class="role-bar-item">
-                                    <div class="role-bar-top">
-                                        <label>Coaches</label>
-                                        <strong>{{ $trainersSafe }} ({{ $trainerShare }}%)</strong>
-                                    </div>
-                                    <div class="role-bar-track">
-                                        <div class="role-bar-fill" style="width: {{ $trainerShare }}%;"></div>
-                                    </div>
-                                </div>
-
-                                <div class="role-bar-item">
-                                    <div class="role-bar-top">
-                                        <label>Trainees</label>
-                                        <strong>{{ $traineesSafe }} ({{ $traineeShare }}%)</strong>
-                                    </div>
-                                    <div class="role-bar-track">
-                                        <div class="role-bar-fill green" style="width: {{ $traineeShare }}%;"></div>
-                                    </div>
-                                </div>
-
-                                <div class="role-bar-item">
-                                    <div class="role-bar-top">
-                                        <label>Admin + Registrar</label>
-                                        <strong>{{ $opsSafe }} ({{ $opsShare }}%)</strong>
-                                    </div>
-                                    <div class="role-bar-track">
-                                        <div class="role-bar-fill orange" style="width: {{ $opsShare }}%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="insight-footnote">
-                                Use role mix to balance instructional capacity against learner demand.
-                            </div>
-                        </div>
-
-                        <div class="insight-panel">
+                        <div class="insight-panel" style="grid-column:1/-1">
                             <div class="insight-panel-header">
                                 <h2>Course Pipeline</h2>
                                 <span>Publishing health</span>
@@ -2782,6 +2746,217 @@
                             <div class="insight-footnote">
                                 Keep pending reviews low to improve course launch velocity.
                             </div>
+                        </div>
+
+                        @php
+                            $provinceCounts = \App\Models\User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, COUNT(*) as c')->groupBy('province')->pluck('c','province');
+                            $pcMax = $provinceCounts->max() ?? 0;
+                        @endphp
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Users by Province</h2>
+                                <span>Choropleth</span>
+                            </div>
+                            <div id="ph-map-wrap" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+                                <div id="ph-map" style="width:420px;height:320px;border:1px solid #e5eef7;border-radius:12px;overflow:hidden;background:#f8fbff;position:relative"></div>
+                                <div id="ph-map-legend" style="display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center;min-width:220px">
+                                    <div style="width:12px;height:12px;border-radius:2px;background:#dbeafe"></div><div style="color:#002C76;font-weight:800">Low</div>
+                                    <div style="width:12px;height:12px;border-radius:2px;background:#60a5fa"></div><div style="color:#002C76;font-weight:800">Medium</div>
+                                    <div style="width:12px;height:12px;border-radius:2px;background:#1d4ed8"></div><div style="color:#002C76;font-weight:800">High</div>
+                                </div>
+                            </div>
+                            <div id="ph-map-tooltip" style="position:absolute;display:none;background:#ffffff;border:1px solid #e5eef7;border-radius:8px;padding:8px 10px;box-shadow:0 8px 18px rgba(15,23,42,.08);pointer-events:none;color:#0B2C74;font-weight:700;font-size:.9rem"></div>
+                            <div style="margin-top:10px;color:#64748b;font-size:.8rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#0B2C74;text-decoration:none">Philippines GeoJSON</a></div>
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+                            <script>
+                            (function(){
+                              var counts = @json($provinceCounts);
+                              var max = @json($pcMax);
+                              var container = document.getElementById('ph-map');
+                              if(!container){ return; }
+                              var width = container.clientWidth || 420, height = container.clientHeight || 320;
+                              var svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+                              var g = svg.append('g');
+                              var tooltip = document.getElementById('ph-map-tooltip');
+                              var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
+                              var urlRemote = 'https://cdn.jsdelivr.net/gh/justinegealogo/philippines-region-province-citymuni-barangay/geojson/philippines-province.geojson';
+                              var urlRemote2 = 'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson';
+                              function render(geo){
+                                if(!geo || !geo.features){ return; }
+                                var projection = d3.geoMercator();
+                                var path = d3.geoPath(projection);
+                                projection.fitExtent([[10,10],[width-10,height-10]], geo);
+                                var color = d3.scaleSequential(d3.interpolateBlues).domain([0, max || 1]);
+                                g.selectAll('path')
+                                  .data(geo.features)
+                                  .enter()
+                                  .append('path')
+                                  .attr('d', path)
+                                  .attr('fill', function(d){
+                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').toLowerCase().trim();
+                                    var v = counts[n] || 0;
+                                    return color(v);
+                                  })
+                                  .attr('stroke', '#cfe0ff')
+                                  .attr('stroke-width', 1.2)
+                                  .on('mousemove', function(event, d){
+                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
+                                    var v = counts[(n||'').toLowerCase()] || 0;
+                                    if(tooltip){
+                                      tooltip.style.display='block';
+                                      tooltip.innerHTML = n + ' · ' + v + ' users';
+                                      var rect = container.getBoundingClientRect();
+                                      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+                                      tooltip.style.top = (event.clientY - rect.top + 12) + 'px';
+                                    }
+                                  })
+                                  .on('click', function(event, d){
+                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
+                                    var v = counts[(n||'').toLowerCase()] || 0;
+                                    alert(n + ': ' + v + ' user(s)');
+                                  })
+                                  .on('mouseleave', function(){
+                                    if(tooltip){ tooltip.style.display='none'; }
+                                  });
+                              }
+                              function load(url){
+                                d3.json(url).then(function(geo){ render(geo); }).catch(function(){
+                                  container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Attempting remote source…</div>';
+                                  d3.json(urlRemote).then(function(geo){ 
+                                    container.innerHTML=''; 
+                                    svg.remove(); svg = d3.select(container).append('svg').attr('width', width).attr('height', height); g = svg.append('g'); 
+                                    render(geo); 
+                                  }).catch(function(){
+                                    d3.json(urlRemote2).then(function(geo){ 
+                                      container.innerHTML='';
+                                      svg.remove(); svg = d3.select(container).append('svg').attr('width', width).attr('height', height); g = svg.append('g');
+                                      render(geo);
+                                    }).catch(function(){
+                                      container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Add file to '+urlLocal+'.</div>';
+                                    });
+                                  });
+                                });
+                              }
+                              load(urlLocal);
+                              window.addEventListener('resize', function(){
+                                var w = container.clientWidth || 420, h = container.clientHeight || 320;
+                                svg.attr('width', w).attr('height', h);
+                              });
+                            })();
+                            </script>
+                        </div>
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Accounts Overview</h2>
+                                <span>Totals</span>
+                            </div>
+                            @php
+                                $total = $userCount;
+                                $active = $activeUsersCount;
+                                $pending = $pendingUsersTotal;
+                                $blocked = $frozenUsersCount;
+                                $r = 60;
+                                $circ = 2 * pi() * $r;
+                                $lenActive = $total ? $circ * ($active / $total) : 0;
+                                $lenPending = $total ? $circ * ($pending / $total) : 0;
+                                $lenBlocked = $total ? $circ * ($blocked / $total) : 0;
+                                $offActive = 0;
+                                $offPending = -($lenActive);
+                                $offBlocked = -($lenActive + $lenPending);
+                            @endphp
+                            <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap">
+                                <div class="donut-wrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+                                    <div class="donut-chart" style="width:220px;height:220px;position:relative">
+                                        <svg viewBox="0 0 160 160" width="180" height="180" style="display:block">
+                                        <g transform="rotate(-90 80 80)">
+                                            <circle cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#eef2f7" stroke-width="20"></circle>
+                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#002C76" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offActive,2,'.','') }}" data-length="{{ number_format($lenActive,2,'.','') }}" data-offset="{{ number_format($offActive,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
+                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#FFD700" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offPending,2,'.','') }}" data-length="{{ number_format($lenPending,2,'.','') }}" data-offset="{{ number_format($offPending,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
+                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#B10606" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offBlocked,2,'.','') }}" data-length="{{ number_format($lenBlocked,2,'.','') }}" data-offset="{{ number_format($offBlocked,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
+                                        </g>
+                                        </svg>
+                                    </div>
+                                    <div style="margin-top:10px;text-align:center">
+                                        <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Accounts</div>
+                                        <div style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">{{ $total }}</div>
+                                    </div>
+                                </div>
+                                @php
+                                    $pA = $total ? round(($active/$total)*100) : 0;
+                                    $pP = $total ? round(($pending/$total)*100) : 0;
+                                    $pB = $total ? round(($blocked/$total)*100) : 0;
+                                @endphp
+                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;min-width:240px">
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span style="color:#6b7280;margin-left:6px">{{ $active }} · {{ $pA }}%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span style="color:#6b7280;margin-left:6px">{{ $pending }} · {{ $pP }}%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Blocked <span style="color:#6b7280;margin-left:6px">{{ $blocked }} · {{ $pB }}%</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="insight-panel">
+                            <div class="insight-panel-header">
+                                <h2>Courses Overview</h2>
+                                <span>Totals</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap">
+                                <div class="donut-wrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+                                    <div id="courses-donut" class="donut-chart" style="width:220px;height:220px;position:relative">
+                                        <svg viewBox="0 0 160 160" width="180" height="180" style="display:block">
+                                            <g transform="rotate(-90 80 80)">
+                                                <circle cx="80" cy="80" r="60" fill="none" stroke="#eef2f7" stroke-width="20"></circle>
+                                                <circle class="donut-seg course-active" cx="80" cy="80" r="60" fill="none" stroke="#002C76" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                                <circle class="donut-seg course-pending" cx="80" cy="80" r="60" fill="none" stroke="#FFD700" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                                <circle class="donut-seg course-draft" cx="80" cy="80" r="60" fill="none" stroke="#7c3aed" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                                <circle class="donut-seg course-arch" cx="80" cy="80" r="60" fill="none" stroke="#64748b" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                    <div style="margin-top:10px;text-align:center">
+                                        <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
+                                        <div id="courses-total" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">0</div>
+                                    </div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;min-width:280px">
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="legend-course-active" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="legend-course-pending" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#7c3aed"></div><div style="color:#002C76;font-weight:800">Draft <span id="legend-course-draft" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#64748b"></div><div style="color:#002C76;font-weight:800">Archived <span id="legend-course-arch" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                </div>
+                            </div>
+                            <script>
+                                (function(){
+                                    var active={{ $activeCoursesSafe ?? 0 }};
+                                    var pending={{ $pendingCoursesSafe ?? 0 }};
+                                    var archived={{ $archivedCoursesSafe ?? 0 }};
+                                    var draft=(function(){try{ return Object.keys(localStorage).filter(function(k){return k&&k.indexOf('draft_course_')===0;}).length;}catch(e){return 0;}})();
+                                    var total = active+pending+archived+draft;
+                                    document.getElementById('courses-total').innerText = total;
+                                    function pct(n,t){ return t>0 ? Math.round((n/t)*100) : 0; }
+                                    document.getElementById('legend-course-active').innerText = active+' · '+pct(active,total)+'%';
+                                    document.getElementById('legend-course-pending').innerText = pending+' · '+pct(pending,total)+'%';
+                                    document.getElementById('legend-course-draft').innerText = draft+' · '+pct(draft,total)+'%';
+                                    document.getElementById('legend-course-arch').innerText = archived+' · '+pct(archived,total)+'%';
+                                    var r=60, circ=2*Math.PI*r;
+                                    var lenA = total? circ*(active/total):0;
+                                    var lenP = total? circ*(pending/total):0;
+                                    var lenD = total? circ*(draft/total):0;
+                                    var lenR = total? circ*(archived/total):0;
+                                    var offA=0, offP=-(lenA), offD=-(lenA+lenP), offR=-(lenA+lenP+lenD);
+                                    function setSeg(cls,len,off){
+                                        var seg=document.querySelector('#courses-donut .'+cls);
+                                        if(!seg) return;
+                                        seg.setAttribute('data-length', len.toFixed(2));
+                                        seg.setAttribute('data-circ', circ.toFixed(2));
+                                        seg.setAttribute('stroke-dashoffset', off.toFixed(2));
+                                        seg.setAttribute('stroke-dasharray', '0 '+circ.toFixed(2));
+                                        setTimeout(function(){ seg.setAttribute('stroke-dasharray', len.toFixed(2)+' '+circ.toFixed(2)); }, 100);
+                                    }
+                                    setSeg('course-active',lenA,offA);
+                                    setSeg('course-pending',lenP,offP);
+                                    setSeg('course-draft',lenD,offD);
+                                    setSeg('course-arch',lenR,offR);
+                                })();
+                            </script>
                         </div>
                     </div>
 
@@ -5456,7 +5631,18 @@
             var d=document.getElementById('profileDropdown');
             if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
         });
+        document.querySelectorAll('.donut-chart').forEach(function(chart){
+          var segs = chart.querySelectorAll('.donut-seg');
+          segs.forEach(function(seg, i){
+            var len = parseFloat(seg.getAttribute('data-length')) || 0;
+            var circ = parseFloat(seg.getAttribute('data-circ')) || 0;
+            if(len<=0){ return; }
+            seg.setAttribute('stroke-dasharray', '0 ' + circ);
+            setTimeout(function(){
+              seg.setAttribute('stroke-dasharray', len + ' ' + circ);
+            }, 60 + (i*80));
+          });
+        });
     </script>
 </body>
 </html>
-
