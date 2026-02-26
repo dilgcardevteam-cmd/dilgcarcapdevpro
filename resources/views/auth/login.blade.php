@@ -801,8 +801,13 @@
 
 
             @if($errors->any() && !old('first_name') && !old('last_name'))
+                @php $lock = session('lockout_seconds'); @endphp
                 <div class="register-alert">
-                    {{ $errors->first() }}
+                    @if($lock)
+                        Too many login attempts. Please try again for <span id="lockMsgCountdown"></span>.
+                    @else
+                        {{ $errors->first() }}
+                    @endif
                 </div>
             @endif
 
@@ -1203,6 +1208,32 @@
         });
     });
 
+    const lockSeconds = {{ session('lockout_seconds', 'null') }};
+    (function(){
+        if(!lockSeconds) return;
+        var pwd = document.getElementById('password');
+        var submit = document.querySelector('.login-submit-compact');
+        var toggle = document.querySelector('.password-toggle');
+        var counterEl = document.getElementById('lockMsgCountdown');
+        if(pwd){ pwd.disabled = true; }
+        if(submit){ submit.disabled = true; submit.style.opacity = '0.6'; submit.style.cursor = 'not-allowed'; }
+        if(toggle){ toggle.disabled = true; toggle.style.opacity = '0.6'; toggle.style.cursor = 'not-allowed'; }
+        var remain = Number(lockSeconds);
+        function fmt(s){ var m=Math.floor(s/60), r=s%60; return (m<10?'0':'')+m+':'+(r<10?'0':'')+r; }
+        function tick(){
+            if(!counterEl) return;
+            counterEl.textContent = fmt(remain);
+            if(remain<=0){ clearInterval(iv); counterEl.textContent='00:00'; }
+            remain--;
+        }
+        if(counterEl){ tick(); var iv=setInterval(tick,1000); }
+        setTimeout(function(){
+            if(pwd){ pwd.disabled = false; }
+            if(submit){ submit.disabled = false; submit.style.opacity = ''; submit.style.cursor = ''; }
+            if(toggle){ toggle.disabled = false; toggle.style.opacity = ''; toggle.style.cursor = ''; }
+        }, Number(lockSeconds) * 1000);
+    })();
+
     // Address Cascading Logic
     document.addEventListener('DOMContentLoaded', function() {
         const registerForm = document.getElementById('registerForm');
@@ -1428,4 +1459,3 @@
     });
 </script>
 @endsection
-

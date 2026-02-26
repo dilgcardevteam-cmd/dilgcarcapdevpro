@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Password;
 use App\Mail\NewUserRegistered;
 
 class AuthController extends Controller
@@ -261,6 +263,19 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $maxAttempts = 5;
+        $decaySeconds = 120; // 2 minutes
+        $email = strtolower((string) $request->input('email'));
+        $key = 'login:'.($email ?: 'guest').':'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            $mins = ceil($seconds / 60);
+            return back()->withErrors([
+                'email' => "Too many login attempts. Please try again for {$mins} minute(s).",
+            ])->with('lockout_seconds', $seconds)->onlyInput('email');
+        }
+
         // Validate the request
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -269,6 +284,7 @@ class AuthController extends Controller
 
         // Attempt to log the user in
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::clear($key);
             $request->session()->regenerate();
 
             if (Auth::user()->status !== 'active') {
@@ -298,10 +314,42 @@ class AuthController extends Controller
             return redirect()->intended('dashboard');
         }
 
-        // If authentication fails, redirect back with errors
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        // If authentication fails, hit the rate limiter and show remaining attempts or lockout
+        RateLimiter::hit($key, $decaySeconds);
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            $mins = ceil($seconds / 60);
+            return back()->withErrors([
+                'email' => "Too many login attempts. Please try again for {$mins} minute(s).",
+            ])->with('lockout_seconds', $seconds)->onlyInput('email');
+        } else {
+            $remaining = RateLimiter::remaining($key, $maxAttempts);
+            return back()->withErrors([
+                'email' => "Invalid credentials. Attempts remaining: {$remaining}.",
+            ])->onlyInput('email');
+        }
+    }
+
+    public function showForgotPasswordForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function handleForgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('status', __($status));
+        }
+
+        return back()->withErrors(['email' => __($status)])->withInput();
     }
 
     /**
