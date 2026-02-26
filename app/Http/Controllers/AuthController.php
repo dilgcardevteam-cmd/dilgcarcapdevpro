@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Cache;
 use App\Mail\NewUserRegistered;
 
 class AuthController extends Controller
@@ -341,15 +342,94 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $email = strtolower($request->input('email'));
+        $otp = str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $expirySeconds = 120;
+        $expiresAt = now()->addSeconds($expirySeconds);
+        Cache::put("otp:{$email}", ['code' => $otp], $expiresAt);
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+        try {
+            Mail::raw("Your CAPDEV PRO OTP code is {$otp}. It expires in 2 minutes.", function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('CAPDEV PRO Password Reset OTP');
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors(['email' => 'Failed to send OTP email. Please try again later.'])->withInput();
         }
 
-        return back()->withErrors(['email' => __($status)])->withInput();
+        return back()
+            ->with('status', 'We have sent an OTP code to your email.')
+            ->with('otp_email', $email)
+            ->with('otp_expires_at', $expiresAt->timestamp);
+    }
+
+    public function verifyForgotOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'string', 'size:8'],
+        ]);
+        $email = strtolower($request->input('email'));
+        $otp = $request->input('otp');
+        $entry = Cache::get("otp:{$email}");
+        if (!$entry) {
+            return back()->withErrors(['otp' => 'OTP expired. Please request a new code.'])->with('otp_email', $email);
+        }
+        if (($entry['code'] ?? '') !== $otp) {
+            return back()->withErrors(['otp' => 'Invalid OTP code.'])->with('otp_email', $email)->withInput();
+        }
+
+        Cache::forget("otp:{$email}");
+
+        $request->session()->put('otp_verified_email', $email);
+        return back()->with('status', 'OTP verified. Please update your password below.');
+    }
+
+    public function resendForgotOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+        $email = strtolower($request->input('email'));
+        $otp = str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        $expirySeconds = 120;
+        $expiresAt = now()->addSeconds($expirySeconds);
+        Cache::put("otp:{$email}", ['code' => $otp], $expiresAt);
+        try {
+            Mail::raw("Your CAPDEV PRO OTP code is {$otp}. It expires in 2 minutes.", function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('CAPDEV PRO Password Reset OTP');
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors(['email' => 'Failed to send OTP email. Please try again later.'])->with('otp_email', $email);
+        }
+        return back()
+            ->with('status', 'We have sent a new OTP code to your email.')
+            ->with('otp_email', $email)
+            ->with('otp_expires_at', $expiresAt->timestamp);
+    }
+    public function updatePasswordAfterOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+        $email = strtolower($request->input('email'));
+        $verifiedEmail = (string) $request->session()->get('otp_verified_email', '');
+        if ($verifiedEmail === '' || !hash_equals($verifiedEmail, $email)) {
+            return back()->withErrors(['email' => 'OTP not verified for this session. Please restart the process.'])
+                         ->with('otp_email', $email);
+        }
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return back()->withErrors(['email' => 'Account not found for the provided email.'])
+                         ->with('otp_verified_email', $email);
+        }
+        $user->password = Hash::make($request->input('password'));
+        $user->save();
+        $request->session()->forget('otp_verified_email');
+        $request->session()->forget('otp_email');
+        return redirect()->route('login')->with('success', 'Password updated successfully. Please log in with your new password.');
     }
 
     /**
