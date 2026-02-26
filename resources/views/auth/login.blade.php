@@ -792,7 +792,13 @@
         "Sign Up Container" (Right Side when Active) 
         CONTAINS: LOGIN FORM
     -->
-    <div class="form-container sign-up-container">
+    <div class="form-container sign-up-container" style="position: relative;">
+        <a href="{{ url('/') }}" style="position: absolute; top: 12px; right: 12px; text-decoration: none; color: #1a1a1aff; font-weight: 500; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.3s ease; z-index: 10; margin-right: 15px;" title="Back to Home">
+            <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
         <form method="POST" action="{{ route('login') }}" class="login-form">
             @csrf
             <div class="form-inner">

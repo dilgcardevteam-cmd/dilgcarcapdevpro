@@ -151,14 +151,11 @@
         <div class="header-left">
             
             <div class="nav-menu">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height: 70px;">
+                <a href="{{ url('/') }}" style="text-decoration: none;">
+                    <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height: 70px;">
+                </a>
             </div>
         </div>
-        <div class="header-right">
-        <a href="{{ route('login') }}" style="text-decoration: none; color: #1a1a1aff; font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 5px;">
-            <i class="fas fa-arrow-left"></i> Back to Login
-        </a>
-    </div>
     </header>
 
     <div class="main-content">
