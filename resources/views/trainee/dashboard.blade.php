@@ -1361,7 +1361,7 @@
                                         <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
                                     </div>
                                     <div style="padding:12px 16px;text-align:center">
-                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.jpg') }}','{{ Auth::user()->name }}','{{ $cert->name }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_no ?? 'Cert 0001' }}')">View Certificate</button>
+                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.jpg') }}','{{ Auth::user()->name }}','{{ $cert->name }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_number ?? 'Cert 0001' }}','{{ route('admin.certifications.course.download.single', ['course' => optional($cert->pivot)->course_id, 'certification' => $cert->id, 'user' => Auth::id()]) }}')">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -1555,17 +1555,18 @@
         </div>
     </div>
     <div id="certificateModal" class="modal-overlay">
-        <div class="modal-container" style="max-width:900px">
+        <div class="modal-container" style="max-width:900px; position:relative">
+            <button type="button" class="btn-cancel" onclick="closeCertificateModal()" style="position:absolute;top:12px;right:12px;padding:6px 12px;border-radius:6px">Close</button>
             <h2 class="modal-title">Certificate</h2>
             <div class="certificate-frame" style="position:relative">
-                <img id="certificateImage" src="" alt="Certificate" style="width:100%;height:auto;border-radius:8px;display:block">
+                <img id="certificateImage" src="" alt="Certificate" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block">
                 <div id="overlayName" style="position:absolute;left:50%;top:29.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:800;font-size:3rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
                 <div id="overlayCourse" style="position:absolute;left:50%;top:46.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:700;font-size:2.5rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
                 <div id="overlayCertNo" style="position:absolute;right:10%;bottom:14.4%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
                 <div id="overlayCompletion" style="position:absolute;right:7.5%;bottom:11.3%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
             </div>
-            <div class="modal-buttons">
-                <button type="button" class="btn-cancel" onclick="closeCertificateModal()">Close</button>
+            <div style="display:flex;justify-content:flex-end;margin-top:14px">
+                <a id="certificateDownloadBtn" href="#" onclick="downloadCertificateFramePDF(event)" style="display:inline-block;background-color:#002C76;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:700">Download PDF</a>
             </div>
         </div>
     </div>
@@ -1589,6 +1590,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const coursesData = {};
@@ -2074,7 +2077,7 @@
                 closeEnrollModal();
             }
         }
-        function openCertificateModal(url, traineeName, courseName, issuedOn, certNo){
+        function openCertificateModal(url, traineeName, courseName, issuedOn, certNo, downloadUrl){
             var m=document.getElementById('certificateModal');
             var img=document.getElementById('certificateImage');
             if(img){ img.src=url; }
@@ -2082,10 +2085,12 @@
             var c=document.getElementById('overlayCourse');
             var cn=document.getElementById('overlayCertNo');
             var d=document.getElementById('overlayCompletion');
+            var dl=document.getElementById('certificateDownloadBtn');
             if(n && traineeName){ n.textContent = traineeName; }
             if(c && courseName){ c.textContent = courseName; }
             if(cn){ cn.textContent = (certNo || '').toString(); }
             if(d){ d.textContent = issuedOn || '—'; }
+            if(dl && downloadUrl){ dl.href = downloadUrl; }
             if(m){ m.style.display='flex'; }
         }
         function closeCertificateModal(){
@@ -2099,6 +2104,36 @@
         document.addEventListener('keydown',function(e){
             if(e.key==='Escape'){ closeCertificateModal(); }
         });
+        async function waitForCertificateImage(){
+            var img=document.getElementById('certificateImage');
+            if(!img) return;
+            if(img.complete && img.naturalWidth>0) return;
+            await new Promise((resolve)=>{ 
+                img.onload = ()=>resolve(); 
+                img.onerror = ()=>resolve(); 
+            });
+        }
+        async function downloadCertificateFramePDF(e){
+            if(e && e.preventDefault) e.preventDefault();
+            var el=document.querySelector('.certificate-frame');
+            if(!el) return;
+            await waitForCertificateImage();
+            var scale=Math.max(2, window.devicePixelRatio || 2);
+            var canvas=await html2canvas(el,{scale:scale,useCORS:true,backgroundColor:null});
+            var img=canvas.toDataURL('image/png');
+            var pdf=new window.jspdf.jsPDF('l','mm','a4');
+            var pageW=pdf.internal.pageSize.getWidth();
+            var pageH=pdf.internal.pageSize.getHeight();
+            var imgW=canvas.width;
+            var imgH=canvas.height;
+            var ratio=Math.min(pageW/imgW,pageH/imgH);
+            var w=imgW*ratio;
+            var h=imgH*ratio;
+            var x=(pageW-w)/2;
+            var y=(pageH-h)/2;
+            pdf.addImage(img,'PNG',x,y,w,h);
+            pdf.save('certificate.pdf');
+        }
 
         // Calendar Logic
         let currentDate = new Date();

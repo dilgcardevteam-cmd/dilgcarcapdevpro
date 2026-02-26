@@ -14,6 +14,50 @@ use Dompdf\Options;
 
 class CertificationController extends Controller
 {
+    protected function certificateBgPath(): ?string
+    {
+        $candidates = [
+            public_path('images/capdevcert.png'),
+            public_path('images/capdevcert.jpg'),
+            public_path('images/capdev cert.png'),
+            public_path('images/capdev cert.jpg'),
+        ];
+        foreach ($candidates as $p) {
+            if (file_exists($p)) return $p;
+        }
+        return null;
+    }
+    protected function certificateBgUrl(): ?string
+    {
+        $pairs = [
+            'images/capdevcert.png',
+            'images/capdevcert.jpg',
+            'images/capdev cert.png',
+            'images/capdev cert.jpg',
+        ];
+        foreach ($pairs as $rel) {
+            $path = public_path($rel);
+            if (file_exists($path)) {
+                return asset($rel);
+            }
+        }
+        return null;
+    }
+    protected function certificateBgFileUri(): ?string
+    {
+        $pairs = [
+            public_path('images/capdevcert.png'),
+            public_path('images/capdevcert.jpg'),
+            public_path('images/capdev cert.png'),
+            public_path('images/capdev cert.jpg'),
+        ];
+        foreach ($pairs as $path) {
+            if (file_exists($path)) {
+                return 'file://' . str_replace('\\','/',$path);
+            }
+        }
+        return null;
+    }
     protected function certificateStoragePath(int $courseId, int $certId, string $certificateNumber): string
     {
         $safe = preg_replace('/[^A-Za-z0-9_\-]/', '_', $certificateNumber);
@@ -166,15 +210,15 @@ class CertificationController extends Controller
                         ->where('certification_id',$cert->id)
                         ->first();
                     if ($pivot) {
-                        $bgPath = public_path('images/capdevcert.png');
-                        if (file_exists($bgPath)) {
+                        $bgUri = $this->certificateBgFileUri();
+                        if ($bgUri) {
                             $items = [[
                                 'name' => $user->name,
                                 'course' => $course->name,
                                 'cert_number' => $pivot->certificate_number,
                                 'issued_at' => $pivot->issued_at ? \Carbon\Carbon::parse($pivot->issued_at)->toDateString() : null,
                             ]];
-                            $html = $this->buildCertificateHtml($items, $bgPath);
+                            $html = $this->buildCertificateHtml($items, $bgUri);
                             $pdf = $this->renderPdfFromHtml($html);
                             $path = $this->certificateStoragePath($course->id, $cert->id, $pivot->certificate_number);
                             Storage::disk('public')->put($path, $pdf);
@@ -324,13 +368,16 @@ class CertificationController extends Controller
         if (!$pivot) {
             abort(404);
         }
-        $bgUrl = asset('images/capdevcert.png');
+        $bgUri = $this->certificateBgFileUri();
+        if (!$bgUri) {
+            abort(404);
+        }
         return view('admin.certificates.preview', [
             'name' => $user->name,
             'course' => $course->name,
             'cert_number' => $pivot->certificate_number,
             'issued_at' => $pivot->issued_at ? \Carbon\Carbon::parse($pivot->issued_at)->toDateString() : null,
-            'bgUrl' => $bgUrl,
+            'bgUrl' => $bgUri,
         ]);
     }
 
@@ -353,8 +400,8 @@ class CertificationController extends Controller
                 'Content-Disposition' => 'attachment; filename="certificate_'.$user->id.'.pdf"',
             ]);
         }
-        $bgPath = public_path('images/capdevcert.png');
-        if (!file_exists($bgPath)) {
+        $bgUri = $this->certificateBgFileUri();
+        if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }
         $items = [[
@@ -363,7 +410,7 @@ class CertificationController extends Controller
             'cert_number' => $pivot->certificate_number,
             'issued_at' => $pivot->issued_at ? \Carbon\Carbon::parse($pivot->issued_at)->toDateString() : null,
         ]];
-        $html = $this->buildCertificateHtml($items, $bgPath);
+        $html = $this->buildCertificateHtml($items, $bgUri);
         $pdf = $this->renderPdfFromHtml($html);
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
@@ -378,8 +425,8 @@ class CertificationController extends Controller
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id',
         ]);
-        $bgPath = public_path('images/capdevcert.png');
-        if (!file_exists($bgPath)) {
+        $bgUri = $this->certificateBgFileUri();
+        if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }
         $q = DB::table('certification_user')
@@ -403,7 +450,7 @@ class CertificationController extends Controller
                 'issued_at' => $r->issued_at ? \Carbon\Carbon::parse($r->issued_at)->toDateString() : null,
             ];
         }
-        $html = view('admin.certificates.pdf', ['items'=>$items, 'bgPath'=>$bgPath])->render();
+        $html = view('admin.certificates.pdf', ['items'=>$items, 'bgPath'=>$bgUri])->render();
         $options = new Options();
         $options->set('isRemoteEnabled', true);
         $options->set('defaultFont', 'DejaVu Sans');
