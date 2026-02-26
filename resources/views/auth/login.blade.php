@@ -1279,6 +1279,10 @@
         const provinceSelect = document.getElementById('province');
         const citySelect = document.getElementById('city');
         const barangaySelect = document.getElementById('barangay');
+        const agencySelect = document.getElementById('agency');
+        const provinceContainer = provinceSelect ? provinceSelect.closest('.form-group') : null;
+        const cityContainer = citySelect ? citySelect.closest('.form-group') : null;
+        const barangayContainer = barangaySelect ? barangaySelect.closest('.form-group') : null;
         const oldRegion = @json(old('region'));
         const oldProvince = @json(old('province'));
         const oldCity = @json(old('city'));
@@ -1320,8 +1324,23 @@
             registerForm.addEventListener('submit', composeFullName);
         }
 
+        function applyAgencyMode() {
+            var mode = agencySelect ? agencySelect.value : 'LGU';
+            if (provinceSelect) {
+                provinceSelect.innerHTML = '<option value="" disabled selected>' + (mode === 'DILG' ? 'Select Office' : 'Select Province') + '</option>';
+                provinceSelect.disabled = true;
+            }
+            if (cityContainer) {
+                cityContainer.style.display = mode === 'DILG' ? 'none' : '';
+            }
+            if (barangayContainer) {
+                barangayContainer.style.display = mode === 'DILG' ? 'none' : '';
+            }
+        }
+
         function loadProvincesByRegion(regionCode, selectedProvince = null, selectedCity = null, selectedBarangay = null) {
-            provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+            var isDILGMode = agencySelect && agencySelect.value === 'DILG';
+            provinceSelect.innerHTML = '<option value="" disabled selected>' + (isDILGMode ? 'Select Office' : 'Select Province') + '</option>';
             provinceSelect.disabled = true;
             citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
             citySelect.disabled = true;
@@ -1335,37 +1354,41 @@
                 .then(data => {
                     data.sort((a, b) => a.name.localeCompare(b.name));
 
-                    // NCR has no provinces. Keep region value as province to satisfy required field.
+                    var isDILG = isDILGMode;
                     if (data.length === 0 && regionCode === '130000000') {
-                        const option = document.createElement('option');
-                        option.value = regionSelect.value;
-                        option.dataset.code = regionCode;
-                        option.dataset.isRegion = 'true';
-                        option.textContent = regionSelect.value;
-                        option.selected = true;
-                        provinceSelect.appendChild(option);
+                        const opt = document.createElement('option');
+                        opt.value = isDILG ? (regionSelect.value + ' Office') : regionSelect.value;
+                        opt.dataset.code = regionCode;
+                        opt.dataset.isRegion = 'true';
+                        opt.textContent = isDILG ? (regionSelect.value + ' Office') : regionSelect.value;
+                        opt.selected = true;
+                        provinceSelect.appendChild(opt);
                         provinceSelect.disabled = false;
-                        fetchCities(regionCode, true, selectedCity, selectedBarangay);
+                        if (!isDILG) {
+                            fetchCities(regionCode, true, selectedCity, selectedBarangay);
+                        }
                         return;
                     }
 
                     data.forEach(province => {
-                        const option = document.createElement('option');
-                        option.value = province.name;
-                        option.dataset.code = province.code;
-                        option.textContent = province.name;
-                        if (selectedProvince && selectedProvince === province.name) {
-                            option.selected = true;
+                        const opt = document.createElement('option');
+                        opt.value = isDILG ? (province.name + ' Office') : province.name;
+                        opt.dataset.code = province.code;
+                        opt.textContent = isDILG ? (province.name + ' Office') : province.name;
+                        if (selectedProvince && (selectedProvince === province.name || selectedProvince === (province.name + ' Office'))) {
+                            opt.selected = true;
                         }
-                        provinceSelect.appendChild(option);
+                        provinceSelect.appendChild(opt);
                     });
                     provinceSelect.disabled = false;
 
-                    if (selectedProvince && selectedCity) {
-                        const selectedProvinceOption = provinceSelect.options[provinceSelect.selectedIndex];
-                        const selectedProvinceCode = selectedProvinceOption?.dataset?.code || '';
-                        if (selectedProvinceCode) {
-                            fetchCities(selectedProvinceCode, false, selectedCity, selectedBarangay);
+                    if (!isDILG) {
+                        if (selectedProvince && selectedCity) {
+                            const selectedProvinceOption = provinceSelect.options[provinceSelect.selectedIndex];
+                            const selectedProvinceCode = selectedProvinceOption?.dataset?.code || '';
+                            if (selectedProvinceCode) {
+                                fetchCities(selectedProvinceCode, false, selectedCity, selectedBarangay);
+                            }
                         }
                     }
                 })
@@ -1396,10 +1419,22 @@
                 .catch(error => console.error('Error fetching barangays:', error));
         }
 
-        // Region Change
+        applyAgencyMode();
+        if (agencySelect) {
+            agencySelect.addEventListener('change', function(){
+                applyAgencyMode();
+                const selectedRegionOption = regionSelect.options[regionSelect.selectedIndex];
+                const selectedRegionCode = selectedRegionOption?.dataset?.code || '';
+                if (selectedRegionCode) {
+                    loadProvincesByRegion(selectedRegionCode);
+                }
+            });
+        }
+
         regionSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const regionCode = selectedOption?.dataset?.code || '';
+            applyAgencyMode();
             loadProvincesByRegion(regionCode);
         });
 
