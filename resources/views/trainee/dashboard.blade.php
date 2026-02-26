@@ -108,6 +108,9 @@
         }
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+        .profile-dropdown .dropdown-meta{padding:10px 14px;border-bottom:1px solid #e5e7eb}
+        .profile-dropdown .dropdown-meta-name{font-weight:700;color:#111827}
+        .profile-dropdown .dropdown-meta-role{font-size:.85rem;color:#6b7280}
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
@@ -950,6 +953,10 @@
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-meta">
+                        <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
+                        <div class="dropdown-meta-role">{{ ucfirst(Auth::user()->role) }}</div>
+                    </div>
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
@@ -1176,7 +1183,24 @@
                             $st = $courseStatuses[$course->id] ?? 'active';
                         @endphp
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            @php
+                                $img = null;
+                                if (!empty($course->image_path)) {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $img = asset('storage/' . $course->image_path);
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $img = asset('images/' . ltrim($course->image_path, '/'));
+                                        }
+                                    }
+                                }
+                                if (!$img) {
+                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                }
+                            @endphp
+                            <div class="course-image" style="background-image: url('{{ $img }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
@@ -1299,7 +1323,7 @@
             </div>
 
             <!-- Certificates Section -->
-            <div id="certificates" class="content-section">
+            <div id="certificates" class="content-section {{ request('tab') == 'certificates' ? 'active' : '' }}">
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
@@ -1335,6 +1359,9 @@
                                         <i class="fas fa-certificate" style="font-size:3rem;color:var(--primary-blue)"></i>
                                         <div style="letter-spacing:.15em;color:#6b7280;font-weight:700">COURSE</div>
                                         <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
+                                    </div>
+                                    <div style="padding:12px 16px;text-align:center">
+                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.png') }}')">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -1525,6 +1552,15 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+    <div id="certificateModal" class="modal-overlay">
+        <div class="modal-container" style="max-width:900px">
+            <h2 class="modal-title">Certificate</h2>
+            <img id="certificateImage" src="" alt="Certificate" style="width:100%;height:auto;border-radius:8px">
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeCertificateModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -2032,6 +2068,23 @@
                 closeEnrollModal();
             }
         }
+        function openCertificateModal(url){
+            var m=document.getElementById('certificateModal');
+            var img=document.getElementById('certificateImage');
+            if(img){ img.src=url; }
+            if(m){ m.style.display='flex'; }
+        }
+        function closeCertificateModal(){
+            var m=document.getElementById('certificateModal');
+            if(m){ m.style.display='none'; }
+        }
+        window.addEventListener('click',function(e){
+            var m=document.getElementById('certificateModal');
+            if(e.target===m){ closeCertificateModal(); }
+        });
+        document.addEventListener('keydown',function(e){
+            if(e.key==='Escape'){ closeCertificateModal(); }
+        });
 
         // Calendar Logic
         let currentDate = new Date();
