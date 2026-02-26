@@ -1327,7 +1327,7 @@
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
-                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            <h1 class="control-hero-title">Welcome , {{ Auth::user()->name }}</h1>
                             <div class="control-hero-sub">Review your learning achievements and earned certificates.</div>
                         </div>
                         <div class="hero-actions">
@@ -1361,7 +1361,7 @@
                                         <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
                                     </div>
                                     <div style="padding:12px 16px;text-align:center">
-                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.png') }}')">View Certificate</button>
+                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.jpg') }}','{{ Auth::user()->name }}','{{ $cert->name }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_no ?? 'Cert 0001' }}')">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -1557,7 +1557,13 @@
     <div id="certificateModal" class="modal-overlay">
         <div class="modal-container" style="max-width:900px">
             <h2 class="modal-title">Certificate</h2>
-            <img id="certificateImage" src="" alt="Certificate" style="width:100%;height:auto;border-radius:8px">
+            <div class="certificate-frame" style="position:relative">
+                <img id="certificateImage" src="" alt="Certificate" style="width:100%;height:auto;border-radius:8px;display:block">
+                <div id="overlayName" style="position:absolute;left:50%;top:29.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:800;font-size:3rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                <div id="overlayCourse" style="position:absolute;left:50%;top:46.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:700;font-size:2.5rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                <div id="overlayCertNo" style="position:absolute;right:10%;bottom:14.4%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
+                <div id="overlayCompletion" style="position:absolute;right:7.5%;bottom:11.3%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
+            </div>
             <div class="modal-buttons">
                 <button type="button" class="btn-cancel" onclick="closeCertificateModal()">Close</button>
             </div>
@@ -2068,10 +2074,18 @@
                 closeEnrollModal();
             }
         }
-        function openCertificateModal(url){
+        function openCertificateModal(url, traineeName, courseName, issuedOn, certNo){
             var m=document.getElementById('certificateModal');
             var img=document.getElementById('certificateImage');
             if(img){ img.src=url; }
+            var n=document.getElementById('overlayName');
+            var c=document.getElementById('overlayCourse');
+            var cn=document.getElementById('overlayCertNo');
+            var d=document.getElementById('overlayCompletion');
+            if(n && traineeName){ n.textContent = traineeName; }
+            if(c && courseName){ c.textContent = courseName; }
+            if(cn){ cn.textContent = (certNo || '').toString(); }
+            if(d){ d.textContent = issuedOn || '—'; }
             if(m){ m.style.display='flex'; }
         }
         function closeCertificateModal(){
