@@ -969,6 +969,20 @@
                             <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" placeholder="Last Name" required />
                         </div>
                     </div>
+                    <div class="form-group">
+                        <div class="field-with-icon">
+                            <span class="field-icon">
+                                <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                                </svg>
+                            </span>
+                            <select id="agency" name="agency">
+                                <option value="" disabled {{ old('agency') ? '' : 'selected' }}>Select Agency/LGU</option>
+                                <option value="DILG" {{ old('agency') === 'DILG' ? 'selected' : '' }}>DILG</option>
+                                <option value="LGU" {{ old('agency') === 'LGU' ? 'selected' : '' }}>LGU</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
