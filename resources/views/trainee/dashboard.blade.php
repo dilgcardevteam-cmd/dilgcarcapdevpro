@@ -108,6 +108,9 @@
         }
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+        .profile-dropdown .dropdown-meta{padding:10px 14px;border-bottom:1px solid #e5e7eb}
+        .profile-dropdown .dropdown-meta-name{font-weight:700;color:#111827}
+        .profile-dropdown .dropdown-meta-role{font-size:.85rem;color:#6b7280}
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
@@ -950,6 +953,10 @@
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-meta">
+                        <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
+                        <div class="dropdown-meta-role">{{ ucfirst(Auth::user()->role) }}</div>
+                    </div>
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
