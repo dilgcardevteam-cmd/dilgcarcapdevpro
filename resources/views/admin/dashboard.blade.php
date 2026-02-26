@@ -2702,51 +2702,6 @@
                     </div>
 
                     <div class="insight-grid">
-                        <div class="insight-panel" style="grid-column:1/-1">
-                            <div class="insight-panel-header">
-                                <h2>Course Pipeline</h2>
-                                <span>Publishing health</span>
-                            </div>
-
-                            <div class="pipeline-grid">
-                                <div class="pipeline-card clickable"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
-                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                                    <span>Active</span>
-                                    <strong>{{ $activeCoursesSafe }}</strong>
-                                </div>
-                                <div class="pipeline-card clickable"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'"
-                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                                    <span>Pending</span>
-                                    <strong>{{ $pendingCoursesSafe }}</strong>
-                                </div>
-                                <div class="pipeline-card clickable"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick="openArchivedCoursesModal()"
-                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                                    <span>Archived</span>
-                                    <strong>{{ $archivedCoursesSafe }}</strong>
-                                </div>
-                                <div class="pipeline-card clickable"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))"
-                                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                                    <span>Cert Templates</span>
-                                    <strong>{{ $certificationSafe }}</strong>
-                                </div>
-                            </div>
-
-                            <div class="insight-footnote">
-                                Keep pending reviews low to improve course launch velocity.
-                            </div>
-                        </div>
 
                         @php
                             $provinceCounts = \App\Models\User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, COUNT(*) as c')->groupBy('province')->pluck('c','province');
@@ -2767,80 +2722,80 @@
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;background:#ffffff;border:1px solid #e5eef7;border-radius:8px;padding:8px 10px;box-shadow:0 8px 18px rgba(15,23,42,.08);pointer-events:none;color:#0B2C74;font-weight:700;font-size:.9rem"></div>
                             <div style="margin-top:10px;color:#64748b;font-size:.8rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#0B2C74;text-decoration:none">Philippines GeoJSON</a></div>
-                            <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+                            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
                             <script>
                             (function(){
                               var counts = @json($provinceCounts);
-                              var max = @json($pcMax);
+                              var max = @json($pcMax) || 1;
                               var container = document.getElementById('ph-map');
                               if(!container){ return; }
-                              var width = container.clientWidth || 420, height = container.clientHeight || 320;
-                              var svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
-                              var g = svg.append('g');
-                              var tooltip = document.getElementById('ph-map-tooltip');
+                              var map = L.map('ph-map', {
+                                zoomControl: false,
+                                attributionControl: true,
+                                dragging: true
+                              });
+                              // Empty basemap (no tiles) – vector-only view
                               var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
-                              var urlRemote = 'https://cdn.jsdelivr.net/gh/justinegealogo/philippines-region-province-citymuni-barangay/geojson/philippines-province.geojson';
-                              var urlRemote2 = 'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson';
-                              function render(geo){
-                                if(!geo || !geo.features){ return; }
-                                var projection = d3.geoMercator();
-                                var path = d3.geoPath(projection);
-                                projection.fitExtent([[10,10],[width-10,height-10]], geo);
-                                var color = d3.scaleSequential(d3.interpolateBlues).domain([0, max || 1]);
-                                g.selectAll('path')
-                                  .data(geo.features)
-                                  .enter()
-                                  .append('path')
-                                  .attr('d', path)
-                                  .attr('fill', function(d){
-                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').toLowerCase().trim();
-                                    var v = counts[n] || 0;
-                                    return color(v);
-                                  })
-                                  .attr('stroke', '#cfe0ff')
-                                  .attr('stroke-width', 1.2)
-                                  .on('mousemove', function(event, d){
-                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
+                              function ramp(v){
+                                var t = v / max;
+                                // Light to dark blue
+                                return t <= 0 ? '#dbeafe' :
+                                       t < 0.33 ? '#bfdbfe' :
+                                       t < 0.66 ? '#60a5fa' :
+                                       '#1d4ed8';
+                              }
+                              var tooltip = document.getElementById('ph-map-tooltip');
+                              function styleFeature(f){
+                                var name = (f.properties.NAME_1 || f.properties.name || f.properties.PROVINCE || '').toLowerCase().trim();
+                                var val = counts[name] || 0;
+                                return {
+                                  color: '#cfe0ff',
+                                  weight: 1.2,
+                                  fillColor: ramp(val),
+                                  fillOpacity: 0.9
+                                };
+                              }
+                              function onEachFeature(feature, layer){
+                                layer.on({
+                                  mouseover: function(e){
+                                    var l = e.target;
+                                    l.setStyle({weight: 2, color:'#6283ff'});
+                                    var n = (feature.properties.NAME_1 || feature.properties.name || feature.properties.PROVINCE || '').trim();
                                     var v = counts[(n||'').toLowerCase()] || 0;
                                     if(tooltip){
+                                      var rect = container.getBoundingClientRect();
                                       tooltip.style.display='block';
                                       tooltip.innerHTML = n + ' · ' + v + ' users';
-                                      var rect = container.getBoundingClientRect();
-                                      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
-                                      tooltip.style.top = (event.clientY - rect.top + 12) + 'px';
+                                      tooltip.style.left = (e.originalEvent.clientX - rect.left + 12) + 'px';
+                                      tooltip.style.top = (e.originalEvent.clientY - rect.top + 12) + 'px';
                                     }
-                                  })
-                                  .on('click', function(event, d){
-                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
-                                    var v = counts[(n||'').toLowerCase()] || 0;
-                                    alert(n + ': ' + v + ' user(s)');
-                                  })
-                                  .on('mouseleave', function(){
+                                  },
+                                  mouseout: function(e){
+                                    var l = e.target;
+                                    l.setStyle({weight: 1.2, color:'#cfe0ff'});
                                     if(tooltip){ tooltip.style.display='none'; }
-                                  });
-                              }
-                              function load(url){
-                                d3.json(url).then(function(geo){ render(geo); }).catch(function(){
-                                  container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Attempting remote source…</div>';
-                                  d3.json(urlRemote).then(function(geo){ 
-                                    container.innerHTML=''; 
-                                    svg.remove(); svg = d3.select(container).append('svg').attr('width', width).attr('height', height); g = svg.append('g'); 
-                                    render(geo); 
-                                  }).catch(function(){
-                                    d3.json(urlRemote2).then(function(geo){ 
-                                      container.innerHTML='';
-                                      svg.remove(); svg = d3.select(container).append('svg').attr('width', width).attr('height', height); g = svg.append('g');
-                                      render(geo);
-                                    }).catch(function(){
-                                      container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Add file to '+urlLocal+'.</div>';
-                                    });
-                                  });
+                                  },
+                                  click: function(e){
+                                    var n = (feature.properties.NAME_1 || feature.properties.name || feature.properties.PROVINCE || '').trim();
+                                    var v = counts[(n||'').toLowerCase()] || 0;
+                                    L.popup()
+                                      .setLatLng(e.latlng)
+                                      .setContent('<strong>'+n+'</strong><br>'+v+' user(s)')
+                                      .openOn(map);
+                                  }
                                 });
                               }
-                              load(urlLocal);
-                              window.addEventListener('resize', function(){
-                                var w = container.clientWidth || 420, h = container.clientHeight || 320;
-                                svg.attr('width', w).attr('height', h);
+                              fetch(urlLocal).then(function(r){
+                                if(!r.ok){ throw new Error('Local not found'); }
+                                return r.json();
+                              }).then(function(geo){
+                                var layer = L.geoJSON(geo, {style: styleFeature, onEachFeature: onEachFeature}).addTo(map);
+                                map.fitBounds(layer.getBounds(), {padding:[10,10]});
+                                L.control.attribution({position:'bottomleft'}).addTo(map);
+                                map.attributionControl.addAttribution('Map data © Contributors · Philippines GeoJSON');
+                              }).catch(function(){
+                                container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Ensure local file exists or server fallback is enabled.</div>';
                               });
                             })();
                             </script>
@@ -2893,7 +2848,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="insight-panel">
+                        <div class="insight-panel" style="grid-column:2">
                             <div class="insight-panel-header">
                                 <h2>Courses Overview</h2>
                                 <span>Totals</span>
@@ -2906,8 +2861,8 @@
                                                 <circle cx="80" cy="80" r="60" fill="none" stroke="#eef2f7" stroke-width="20"></circle>
                                                 <circle class="donut-seg course-active" cx="80" cy="80" r="60" fill="none" stroke="#002C76" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
                                                 <circle class="donut-seg course-pending" cx="80" cy="80" r="60" fill="none" stroke="#FFD700" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                                <circle class="donut-seg course-draft" cx="80" cy="80" r="60" fill="none" stroke="#7c3aed" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                                <circle class="donut-seg course-arch" cx="80" cy="80" r="60" fill="none" stroke="#64748b" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                                <circle class="donut-seg course-draft" cx="80" cy="80" r="60" fill="none" stroke="#F97316" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
+                                                <circle class="donut-seg course-arch" cx="80" cy="80" r="60" fill="none" stroke="#B10606" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
                                             </g>
                                         </svg>
                                     </div>
@@ -2919,8 +2874,8 @@
                                 <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;min-width:280px">
                                     <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="legend-course-active" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
                                     <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="legend-course-pending" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#7c3aed"></div><div style="color:#002C76;font-weight:800">Draft <span id="legend-course-draft" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#64748b"></div><div style="color:#002C76;font-weight:800">Archived <span id="legend-course-arch" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#F97316;border:1px solid #ea580c"></div><div style="color:#002C76;font-weight:800">Draft <span id="legend-course-draft" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Archived <span id="legend-course-arch" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
                                 </div>
                             </div>
                             <script>
