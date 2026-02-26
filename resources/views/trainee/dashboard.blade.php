@@ -1323,7 +1323,7 @@
             </div>
 
             <!-- Certificates Section -->
-            <div id="certificates" class="content-section">
+            <div id="certificates" class="content-section {{ request('tab') == 'certificates' ? 'active' : '' }}">
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
@@ -1359,6 +1359,9 @@
                                         <i class="fas fa-certificate" style="font-size:3rem;color:var(--primary-blue)"></i>
                                         <div style="letter-spacing:.15em;color:#6b7280;font-weight:700">COURSE</div>
                                         <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
+                                    </div>
+                                    <div style="padding:12px 16px;text-align:center">
+                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.png') }}')">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -1549,6 +1552,15 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+    <div id="certificateModal" class="modal-overlay">
+        <div class="modal-container" style="max-width:900px">
+            <h2 class="modal-title">Certificate</h2>
+            <img id="certificateImage" src="" alt="Certificate" style="width:100%;height:auto;border-radius:8px">
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeCertificateModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -2056,6 +2068,23 @@
                 closeEnrollModal();
             }
         }
+        function openCertificateModal(url){
+            var m=document.getElementById('certificateModal');
+            var img=document.getElementById('certificateImage');
+            if(img){ img.src=url; }
+            if(m){ m.style.display='flex'; }
+        }
+        function closeCertificateModal(){
+            var m=document.getElementById('certificateModal');
+            if(m){ m.style.display='none'; }
+        }
+        window.addEventListener('click',function(e){
+            var m=document.getElementById('certificateModal');
+            if(e.target===m){ closeCertificateModal(); }
+        });
+        document.addEventListener('keydown',function(e){
+            if(e.key==='Escape'){ closeCertificateModal(); }
+        });
 
         // Calendar Logic
         let currentDate = new Date();
