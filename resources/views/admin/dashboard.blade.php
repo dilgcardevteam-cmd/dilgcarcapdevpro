@@ -2927,9 +2927,6 @@
                     <h1 class="welcome-title" style="margin: 0;">Course <strong>Management</strong></h1>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="courseSearchInput" placeholder="Search courses..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
-                        <button type="button" onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-hourglass-half"></i> Pending Courses
-                        </button>
                         <button onclick="openArchivedCoursesModal()" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
                             <i class="fas fa-box-archive"></i> Archived Courses
                         </button>
@@ -2968,7 +2965,7 @@
                     <div class="course-stat-card draft"
                          role="button"
                          tabindex="0"
-                         onclick="openAddCourseModal()"
+                         onclick="openDraftCoursesModal()"
                          onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                         <div>
                             <p class="course-stat-label">Draft Courses</p>
@@ -3049,7 +3046,7 @@
             <section id="course-create" class="content-section {{ request('tab') == 'course-create' ? 'active' : '' }}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
-                    <button type="button" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-arrow-left"></i> Back to Course Management
                     </button>
                 </div>
@@ -3062,7 +3059,7 @@
             <section id="pending-courses" class="content-section {{ request('tab') == 'pending-courses' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
-                    <button type="button" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-arrow-left"></i> Back to Course Management
                     </button>
                 </div>
@@ -3137,6 +3134,15 @@
             </section>
 
     <!-- Archived Courses Modal -->
+    <div id="draftCoursesModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close" onclick="closeDraftCoursesModal()">&times;</span>
+            <h2 style="margin-top: 0;">Draft Courses</h2>
+            <div id="draftCoursesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+                <!-- Draft courses will be rendered here -->
+            </div>
+        </div>
+    </div>
     <div id="archivedCoursesModal" class="modal">
         <div class="modal-content" style="max-width: 900px;">
             <span class="close" onclick="closeArchivedCoursesModal()">&times;</span>
@@ -4884,6 +4890,14 @@
             window.history.pushState({}, '', url.toString());
         }
 
+        // Helper function to navigate to a section by ID
+        function navigateToSection(sectionId) {
+            const menuItem = Array.from(document.querySelectorAll('.menu-item')).find(item => 
+                item.getAttribute('onclick') && item.getAttribute('onclick').includes(sectionId)
+            );
+            showContent(sectionId, menuItem);
+        }
+
         // Modal Functions
         function openDisplaySection(user) {
             // Hide all sections and show display section
@@ -5110,7 +5124,27 @@
 
         // Add Course in Dashboard Main Content
         function openAddCourseModal() {
+            // Clear the form for a new course
+            sessionStorage.removeItem('draft_course_key');
             ensureCourseCreateFrameLoaded();
+            // Clear form fields after iframe loads
+            setTimeout(() => {
+                const iframe = document.getElementById('courseCreateFrame');
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        const form = iframe.contentWindow.document.getElementById('courseForm');
+                        if (form) form.reset();
+                        // Explicitly clear main fields
+                        const nameField = iframe.contentWindow.document.getElementById('name');
+                        const descField = iframe.contentWindow.document.getElementById('description');
+                        if (nameField) nameField.value = '';
+                        if (descField) descField.value = '';
+                        // Clear localStorage draft
+                        iframe.contentWindow.localStorage.removeItem('draft_course_create');
+                        iframe.contentWindow.localStorage.removeItem('draft_course_edit_');
+                    } catch(e) {}
+                }
+            }, 500);
             showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }
         function closeAddCourseModal() {
@@ -5186,6 +5220,13 @@
         }
 
         // Archived Courses Modal
+        function openDraftCoursesModal() {
+            renderDraftCoursesInModal();
+            document.getElementById('draftCoursesModal').style.display = "block";
+        }
+        function closeDraftCoursesModal() {
+            document.getElementById('draftCoursesModal').style.display = "none";
+        }
         function openArchivedCoursesModal() {
             document.getElementById('archivedCoursesModal').style.display = "block";
         }
@@ -5193,6 +5234,55 @@
             document.getElementById('archivedCoursesModal').style.display = "none";
         }
 
+        function getDraftCoursesFromLocalStorage() {
+            let drafts = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key === 'draft_course_create' || key.startsWith('draft_course_edit_')) {
+                    const raw = localStorage.getItem(key);
+                    if (raw && raw !== '{}' && raw !== 'null') {
+                        try {
+                            const data = JSON.parse(raw);
+                            drafts.push({ key: key, data: data });
+                        } catch(e) {}
+                    }
+                }
+            }
+            return drafts;
+        }
+        function renderDraftCoursesInModal() {
+            const container = document.getElementById('draftCoursesContainer');
+            const drafts = getDraftCoursesFromLocalStorage();
+            
+            if (drafts.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; font-style: italic; grid-column: 1 / -1;">You have no draft courses yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            drafts.forEach((draft, index) => {
+                const courseName = draft.data.name || 'Untitled Course';
+                const courseDesc = draft.data.description || 'No description';
+                const card = document.createElement('div');
+                card.className = 'course-card';
+                card.style.cssText = 'background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer;';
+                card.innerHTML = `
+                    <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                        <i class="fas fa-file-pen"></i>
+                    </div>
+                    <div style="padding: 15px;">
+                        <h3 style="margin: 0 0 8px; color: #333; font-size: 1rem;">${courseName}</h3>
+                        <p style="color: #6c757d; margin-bottom: 12px; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseDesc}</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}'); closeDraftCoursesModal();" style="flex: 1; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center;">Edit</button>
+                            <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="flex: 1; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
         function getDraftCoursesDashboardCount() {
             try {
                 let count = 0;
@@ -5312,10 +5402,14 @@
         window.onclick = function(event) {
             const editUserModal = document.getElementById('editUserModal');
             const viewCourseModal = document.getElementById('viewCourseModal');
+            const draftCoursesModal = document.getElementById('draftCoursesModal');
             const archivedCoursesModal = document.getElementById('archivedCoursesModal');
 
             if (event.target == editUserModal) {
                 editUserModal.style.display = "none";
+            }
+            if (event.target == draftCoursesModal) {
+                closeDraftCoursesModal();
             }
             if (event.target == archivedCoursesModal) {
                 closeArchivedCoursesModal();
@@ -5339,6 +5433,24 @@
             var d=document.getElementById('profileDropdown');
             if(d) d.style.display='none';
         }
+        function editDraftCourse(storageKey){
+            const raw = localStorage.getItem(storageKey);
+            if(!raw){ alert('Draft not found'); return; }
+            try {
+                const data = JSON.parse(raw);
+                // Store the storage key in session storage so course-create can load it
+                sessionStorage.setItem('draft_course_key', storageKey);
+                window.location.href = '/dashboard?tab=course-create';
+            } catch(e) {
+                alert('Error loading draft');
+            }
+        }
+        function deleteDraftCourse(storageKey){
+            if(!confirm('Delete this draft?')) return;
+            localStorage.removeItem(storageKey);
+            renderDraftCoursesInModal();
+            refreshDraftCoursesDashboardCount();
+        }
         document.addEventListener('click',function(ev){
             var menu=document.querySelector('.profile-menu');
             var d=document.getElementById('profileDropdown');
@@ -5347,3 +5459,4 @@
     </script>
 </body>
 </html>
+

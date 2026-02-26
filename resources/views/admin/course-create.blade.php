@@ -102,6 +102,8 @@
         .fields-panel { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-top:10px; position:relative; }
         .panel-add-btn { margin-top:8px; margin-left:auto; width:34px; height:34px; border-radius:999px; border:1px solid #d1d5db; background:#ffffff; color:#0038A7; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; }
         .panel-add-btn:hover { background:#f1f5ff; border-color:#b9c6ff; }
+        .delete-btn { background:none; border:1px solid #dc3545; color:#dc3545; padding:8px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:1rem; transition:all 0.2s ease; }
+        .delete-btn:hover { background:#dc3545; color:white; box-shadow:0 2px 6px rgba(220, 53, 69, 0.2); }
         .field-block { border:1px dashed #cbd5e1; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
         .field-block.selected-field { outline:2px solid #6366f1; }
         .q-block { border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
@@ -135,6 +137,7 @@
         #dynamicMenu .dm-sep { height:1px; background:#e5e7eb; margin:6px 8px; }
         #dynamicMenu.visible { opacity: 1; pointer-events: auto; }
         #dynamicMenu[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+        #dynamicMenu[data-context="module-header"] .rail-btn[data-type="field"] { display: none; }
         #dynamicMenu.is-editing .dm-rail { display:none; }
         .active-section { outline:2px solid #6366f1; border-radius:10px; }
         .toggle { display:inline-flex; align-items:center; gap:6px; }
@@ -249,6 +252,9 @@
                             <label style="margin:0;">Modules & Topics</label>
                         </div>
                         <div id="modulesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="button" class="btn btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(13,110,253,0.3);" title="Add Module" onclick="dmAddModule()"><i class="fas fa-plus"></i></button>
+                        </div>
                         <div id="modulesError" class="error-text" style="display:none;"></div>
                     </div>
                     <div class="actions" style="justify-content: space-between;">
@@ -265,12 +271,12 @@
     <div id="dynamicMenu" aria-hidden="true">
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
-                <button type="button" class="rail-btn" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Text</span></button>
-                <button type="button" class="rail-btn" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
-                <button type="button" class="rail-btn" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
-                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Multiple Choice</span></button>
-                <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
-                <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Text</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Multiple Choice</span></button>
+                <button type="button" class="rail-btn" data-type="structure" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
+                <button type="button" class="rail-btn" data-type="structure" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
             </div>
         </div>
@@ -290,7 +296,8 @@
                         <input class="module-title-input" type="text" name="modules[${index}][title]" placeholder="Module title" required>
                     </div>
                     <div class="module-actions">
-                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="removeModule(this, event)">Remove</button>
+                        <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
+                        <button type="button" class="delete-btn" title="Delete module" onclick="removeModule(this, event)"><i class="fas fa-trash-alt"></i></button>
                         <button type="button" class="chevron-btn" onclick="toggleChevron(this)"><i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
@@ -328,7 +335,7 @@
                     </div>
                     <div style="display:flex;gap:8px;">
                         <button type="button" class="btn btn-small" style="background:#0038A7;" onclick="addSubtopicRow(this)">Add Subtopic</button>
-                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="removeTopicRow(this)">Remove</button>
+                        <button type="button" class="delete-btn" title="Delete topic" onclick="removeTopicRow(this)"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
                 <div class="subtopics" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -354,7 +361,7 @@
                         <span style="color:#6b7280;width:60px;">${moduleIndex+1}.${topicIndex}.${sIdx+1}</span>
                         <input type="text" name="modules[${moduleIndex}][topics][${topicIndex}][subtopics][${sIdx}][title]" placeholder="Subtopic title" required maxlength="80" style="flex:1;">
                     </div>
-                    <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="this.closest('.subtopic-row').remove(); reindexSubtopics(${moduleIndex}, ${topicIndex}, this);">Remove</button>
+                    <button type="button" class="delete-btn" title="Delete subtopic" onclick="this.closest('.subtopic-row').remove(); reindexSubtopics(${moduleIndex}, ${topicIndex}, this);"><i class="fas fa-trash-alt"></i></button>
                 </div>
                 <div class="fields-panel" style="margin-top:8px;">
                     <div class="field-list"></div>
@@ -363,10 +370,6 @@
                 <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
             `;
             subs.appendChild(sub);
-            const panel = sub.querySelector('.fields-panel');
-            if(panel && typeof addReflectionField === 'function'){
-                addReflectionField(panel);
-            }
             updateProgress();
         }
         function addTopicFromHeader(btn){
@@ -1107,6 +1110,7 @@
             el: null,
             currentAnchor: null,
             menuTrigger: null,
+            context: null,
             hovering: false,
             hoverTimer: null,
             raf: null,
@@ -1261,6 +1265,9 @@
             if(Object.prototype.hasOwnProperty.call(options, 'menuTrigger')){
                 DM_STATE.menuTrigger = options.menuTrigger || null;
             }
+            if(Object.prototype.hasOwnProperty.call(options, 'context')){
+                DM_STATE.context = options.context || null;
+            }
             DM_STATE.lastPos = {x:-1, y:-1};
             positionDM();
             if(options.showMenu !== true){
@@ -1274,6 +1281,7 @@
             document.querySelectorAll('.active-section').forEach(el=> el.classList.remove('active-section'));
             DM_STATE.currentAnchor = null;
             DM_STATE.menuTrigger = null;
+            DM_STATE.context = null;
             hideDM();
         }
         function isVisible(el){
@@ -1339,10 +1347,12 @@
                 return;
             }
             const anchor = btn.closest('.subtopic-row') || btn.closest('.topic-row') || btn.closest('.module-header');
+            const context = anchor ? anchor.className.split(' ')[0] : 'default';
             if(anchor){
-                setActiveAnchor(anchor, { showMenu: true, menuTrigger: btn });
+                setActiveAnchor(anchor, { showMenu: true, menuTrigger: btn, context: context });
             }else{
                 DM_STATE.menuTrigger = btn;
+                DM_STATE.context = context;
                 showDM(document.querySelector('.topic-row') || document.querySelector('.module-header') || document.body);
             }
             if(DM_STATE.el){
@@ -1371,6 +1381,11 @@
             dm.style.zIndex = '2000';
             dm.classList.add('visible');
             dm.setAttribute('aria-hidden','false');
+            if(DM_STATE.context){
+                dm.setAttribute('data-context', DM_STATE.context);
+            }else{
+                dm.removeAttribute('data-context');
+            }
             updateDMEditingMode(document.activeElement);
             requestDMReposition();
         }
@@ -1379,6 +1394,7 @@
             dm.classList.remove('visible');
             dm.classList.remove('is-editing');
             dm.setAttribute('aria-hidden','true');
+            dm.removeAttribute('data-context');
         }
         function deriveFieldLabel(anchor){
             if(anchor.matches('.field-block')){
@@ -1390,6 +1406,59 @@
             if(anchor.matches('.topic-row')) return anchor.querySelector('input[type="text"]')?.value || 'Topic';
             if(anchor.matches('.module-header')) return anchor.querySelector('.module-title-input')?.value || 'Module';
             return 'field';
+        }
+        // Helper function to expand the module accordion
+        function expandModuleAccordion(element){
+            if(!element) return;
+            const moduleWrapper = element.closest('.module-wrapper');
+            if(!moduleWrapper) return;
+            const body = moduleWrapper.querySelector('.module-body');
+            const chevronBtn = moduleWrapper.querySelector('.chevron-btn');
+            if(body && body.style.display !== 'block'){
+                body.style.display = 'block';
+                if(chevronBtn){
+                    const icon = chevronBtn.querySelector('i');
+                    if(icon) icon.style.transform = 'rotate(180deg)';
+                }
+            }
+        }
+        // Helper function to ensure a fields panel exists
+        function ensureFieldsPanel(){
+            let panel = document.querySelector('.fields-panel');
+            if(panel) return panel;
+            
+            // Create module if doesn't exist
+            const container = document.getElementById('modulesContainer');
+            if(!container || container.children.length === 0){
+                createModule();
+            }
+            
+            // Create topic if doesn't exist
+            const moduleWrapper = document.querySelector('.module-wrapper:last-of-type');
+            if(!moduleWrapper) return null;
+            
+            const moduleBody = moduleWrapper.querySelector('.module-body');
+            if(moduleBody.style.display !== 'block'){
+                moduleBody.style.display = 'block';
+                const chevron = moduleWrapper.querySelector('.chevron-btn i');
+                if(chevron) chevron.style.transform = 'rotate(180deg)';
+            }
+            
+            let topicRow = moduleBody.querySelector('.topic-row');
+            if(!topicRow){
+                addTopicInput(moduleBody);
+                topicRow = moduleBody.querySelector('.topic-row:last-of-type');
+            }
+            
+            // Create subtopic if doesn't exist
+            let subtopicRow = topicRow?.querySelector('.subtopic-row');
+            if(!subtopicRow){
+                addSubtopicRow(topicRow);
+                subtopicRow = topicRow?.querySelector('.subtopic-row:last-of-type');
+            }
+            
+            panel = subtopicRow?.querySelector('.fields-panel');
+            return panel;
         }
         // Dynamic menu action hooks
         function dmAddTextInput(){ 
@@ -1403,15 +1472,23 @@
                     || anchor?.querySelector?.('.fields-panel')
                     || anchor?.closest('.topic-row')?.querySelector('.subtopic-row:last-of-type .fields-panel')
                     || document.querySelector('.fields-panel');
+            
             if(!panel && anchor?.closest('.topic-row')){
                 addSubtopicRow(anchor.closest('.topic-row'));
                 panel = anchor.closest('.topic-row').querySelector('.subtopic-row:last-of-type .fields-panel');
             }
+            
+            // If still no panel, ensure structure exists
+            if(!panel){
+                panel = ensureFieldsPanel();
+            }
+            
             if(panel){
                 addTextField(panel);
                 const last = panel.querySelector('.field-block:last-of-type');
                 setSelectedField(last);
                 if(last) setActiveAnchor(last);
+                expandModuleAccordion(panel);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
@@ -1426,12 +1503,19 @@
                 addSubtopicRow(anchor.closest('.topic-row'));
                 panel = anchor.closest('.topic-row').querySelector('.subtopic-row:last-of-type .fields-panel');
             }
+            
+            // If still no panel, ensure structure exists
+            if(!panel){
+                panel = ensureFieldsPanel();
+            }
+            
             if(panel){
                 addTextField(panel);
                 const last = panel.querySelector('.field-block:last-of-type');
                 const input = last.querySelector('input[type=file]:not([data-video])');
                 if(input) input.click();
                 setSelectedField(last);
+                expandModuleAccordion(panel);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
@@ -1446,12 +1530,19 @@
                 addSubtopicRow(anchor.closest('.topic-row'));
                 panel = anchor.closest('.topic-row').querySelector('.subtopic-row:last-of-type .fields-panel');
             }
+            
+            // If still no panel, ensure structure exists
+            if(!panel){
+                panel = ensureFieldsPanel();
+            }
+            
             if(panel){
                 addTextField(panel);
                 const last = panel.querySelector('.field-block:last-of-type');
                 const input = last.querySelector('input[type=file][data-video]');
                 if(input) input.click();
                 setSelectedField(last);
+                expandModuleAccordion(panel);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
@@ -1471,11 +1562,18 @@
                 addSubtopicRow(anchor.closest('.topic-row'));
                 panel = anchor.closest('.topic-row').querySelector('.subtopic-row:last-of-type .fields-panel');
             }
+            
+            // If still no panel, ensure structure exists
+            if(!panel){
+                panel = ensureFieldsPanel();
+            }
+            
             if(panel){
                 addQuestionField(panel);
                 const last = panel.querySelector('.field-block:last-of-type');
                 setSelectedField(last);
                 if(last) setActiveAnchor(last);
+                expandModuleAccordion(panel);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
@@ -1523,6 +1621,7 @@
             const anchor = DM_STATE.currentAnchor;
             const moduleBody = anchor?.closest('.module-body') || document.querySelector('.module-body');
             if(moduleBody){
+                expandModuleAccordion(moduleBody);
                 addTopicInput(moduleBody);
                 const lastTopic = moduleBody.querySelector('.topic-row:last-of-type');
                 if(lastTopic) setActiveAnchor(lastTopic);
@@ -1534,6 +1633,15 @@
             createModule(); 
             const lastHeader = document.querySelector('.module-wrapper:last-of-type .module-header');
             if(lastHeader) setActiveAnchor(lastHeader);
+            const lastBody = document.querySelector('.module-wrapper:last-of-type .module-body');
+            if(lastBody){
+                lastBody.style.display = 'block';
+                const lastChevron = document.querySelector('.module-wrapper:last-of-type .chevron-btn');
+                if(lastChevron){
+                    const icon = lastChevron.querySelector('i');
+                    if(icon) icon.style.transform = 'rotate(180deg)';
+                }
+            }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open'); 
             clearActiveAnchor();
         }
