@@ -2713,7 +2713,7 @@
                                 <span>Choropleth</span>
                             </div>
                             <div id="ph-map-wrap" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-                                <div id="ph-map" style="width:420px;height:320px;border:1px solid #e5eef7;border-radius:12px;overflow:hidden;background:#f8fbff;position:relative"></div>
+                                <div id="ph-map" style="width:100%;max-width:520px;height:360px;border:1px solid #e5eef7;border-radius:12px;overflow:hidden;background:#f8fbff;position:relative"></div>
                                 <div id="ph-map-legend" style="display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center;min-width:220px">
                                     <div style="width:12px;height:12px;border-radius:2px;background:#dbeafe"></div><div style="color:#002C76;font-weight:800">Low</div>
                                     <div style="width:12px;height:12px;border-radius:2px;background:#60a5fa"></div><div style="color:#002C76;font-weight:800">Medium</div>
@@ -2722,194 +2722,170 @@
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;background:#ffffff;border:1px solid #e5eef7;border-radius:8px;padding:8px 10px;box-shadow:0 8px 18px rgba(15,23,42,.08);pointer-events:none;color:#0B2C74;font-weight:700;font-size:.9rem"></div>
                             <div style="margin-top:10px;color:#64748b;font-size:.8rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#0B2C74;text-decoration:none">Philippines GeoJSON</a></div>
-                            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-                            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                             <script>
                             (function(){
-                              var counts = @json($provinceCounts);
-                              var max = @json($pcMax) || 1;
+                              var countsInline = @json($provinceCounts);
+                              var maxInline = @json($pcMax);
                               var container = document.getElementById('ph-map');
                               if(!container){ return; }
-                              var map = L.map('ph-map', {
-                                zoomControl: false,
-                                attributionControl: true,
-                                dragging: true
-                              });
-                              // Empty basemap (no tiles) – vector-only view
-                              var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
-                              function ramp(v){
-                                var t = v / max;
-                                // Light to dark blue
-                                return t <= 0 ? '#dbeafe' :
-                                       t < 0.33 ? '#bfdbfe' :
-                                       t < 0.66 ? '#60a5fa' :
-                                       '#1d4ed8';
-                              }
+                              var width = container.clientWidth || 520, height = container.clientHeight || 360;
+                              var svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+                              var g = svg.append('g');
                               var tooltip = document.getElementById('ph-map-tooltip');
-                              function styleFeature(f){
-                                var name = (f.properties.NAME_1 || f.properties.name || f.properties.PROVINCE || '').toLowerCase().trim();
-                                var val = counts[name] || 0;
-                                return {
-                                  color: '#cfe0ff',
-                                  weight: 1.2,
-                                  fillColor: ramp(val),
-                                  fillOpacity: 0.9
-                                };
+                              var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
+                              var urlRemote = 'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson';
+                              var urlRemote2 = 'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/ph_provdists.lowres.geojson';
+                              var countsUrl = '{{ route('stats.users.by-province') }}';
+                              
+                              function normalizeName(s){
+                                return (s || '').toLowerCase().trim();
                               }
-                              function onEachFeature(feature, layer){
-                                layer.on({
-                                  mouseover: function(e){
-                                    var l = e.target;
-                                    l.setStyle({weight: 2, color:'#6283ff'});
-                                    var n = (feature.properties.NAME_1 || feature.properties.name || feature.properties.PROVINCE || '').trim();
-                                    var v = counts[(n||'').toLowerCase()] || 0;
+                              function render(geo){
+                                if(!geo || !geo.features){ return; }
+                                var projection = d3.geoMercator();
+                                var path = d3.geoPath(projection);
+                                projection.fitExtent([[10,10],[width-10,height-10]], geo);
+                                var max = d3.max(Object.values(window.__provinceCounts || {})) || maxInline || 1;
+                                var color = d3.scaleSequential(d3.interpolateBlues).domain([0, max]);
+                                g.selectAll('path')
+                                  .data(geo.features)
+                                  .enter()
+                                  .append('path')
+                                  .attr('d', path)
+                                  .attr('fill', function(d){
+                                    var n = normalizeName(d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE);
+                                    var v = (window.__provinceCounts || {})[n] || 0;
+                                    return color(v);
+                                  })
+                                  .attr('stroke', '#cfe0ff')
+                                  .attr('stroke-width', 1.2)
+                                  .on('mousemove', function(event, d){
+                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
+                                    var v = (window.__provinceCounts || {})[normalizeName(n)] || 0;
                                     if(tooltip){
-                                      var rect = container.getBoundingClientRect();
                                       tooltip.style.display='block';
                                       tooltip.innerHTML = n + ' · ' + v + ' users';
-                                      tooltip.style.left = (e.originalEvent.clientX - rect.left + 12) + 'px';
-                                      tooltip.style.top = (e.originalEvent.clientY - rect.top + 12) + 'px';
+                                      var rect = container.getBoundingClientRect();
+                                      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+                                      tooltip.style.top = (event.clientY - rect.top + 12) + 'px';
                                     }
-                                  },
-                                  mouseout: function(e){
-                                    var l = e.target;
-                                    l.setStyle({weight: 1.2, color:'#cfe0ff'});
+                                  })
+                                  .on('click', function(event, d){
+                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
+                                    var v = (window.__provinceCounts || {})[normalizeName(n)] || 0;
+                                    alert(n + ': ' + v + ' user(s)');
+                                  })
+                                  .on('mouseleave', function(){
                                     if(tooltip){ tooltip.style.display='none'; }
-                                  },
-                                  click: function(e){
-                                    var n = (feature.properties.NAME_1 || feature.properties.name || feature.properties.PROVINCE || '').trim();
-                                    var v = counts[(n||'').toLowerCase()] || 0;
-                                    L.popup()
-                                      .setLatLng(e.latlng)
-                                      .setContent('<strong>'+n+'</strong><br>'+v+' user(s)')
-                                      .openOn(map);
-                                  }
+                                  });
+                              }
+                              function load(url){
+                                d3.json(urlRemote).then(function(geo){ render(geo); }).catch(function(){
+                                  d3.json(urlRemote2).then(function(geo){ render(geo); }).catch(function(){
+                                    d3.json(urlLocal).then(function(geo){ render(geo); }).catch(function(){
+                                      container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Add file to '+urlLocal+'.</div>';
+                                    });
+                                  });
                                 });
                               }
-                              fetch(urlLocal).then(function(r){
-                                if(!r.ok){ throw new Error('Local not found'); }
-                                return r.json();
-                              }).then(function(geo){
-                                var layer = L.geoJSON(geo, {style: styleFeature, onEachFeature: onEachFeature}).addTo(map);
-                                map.fitBounds(layer.getBounds(), {padding:[10,10]});
-                                L.control.attribution({position:'bottomleft'}).addTo(map);
-                                map.attributionControl.addAttribution('Map data © Contributors · Philippines GeoJSON');
-                              }).catch(function(){
-                                container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Ensure local file exists or server fallback is enabled.</div>';
+                              function loadCountsAndMap(){
+                                window.__provinceCounts = countsInline || {};
+                                fetch(countsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                  .then(function(res){ return res.ok ? res.json() : null; })
+                                  .then(function(data){ 
+                                    if(data && data.counts){ window.__provinceCounts = data.counts; } 
+                                    load(urlLocal);
+                                  })
+                                  .catch(function(){ load(urlLocal); });
+                              }
+                              loadCountsAndMap();
+                              window.addEventListener('resize', function(){
+                                var w = container.clientWidth || 420, h = container.clientHeight || 320;
+                                svg.attr('width', w).attr('height', h);
                               });
                             })();
                             </script>
                         </div>
                         <div class="insight-panel">
                             <div class="insight-panel-header">
-                                <h2>Accounts Overview</h2>
+                                <h2>Accounts & Courses Overview</h2>
                                 <span>Totals</span>
                             </div>
-                            @php
-                                $total = $userCount;
-                                $active = $activeUsersCount;
-                                $pending = $pendingUsersTotal;
-                                $blocked = $frozenUsersCount;
-                                $r = 60;
-                                $circ = 2 * pi() * $r;
-                                $lenActive = $total ? $circ * ($active / $total) : 0;
-                                $lenPending = $total ? $circ * ($pending / $total) : 0;
-                                $lenBlocked = $total ? $circ * ($blocked / $total) : 0;
-                                $offActive = 0;
-                                $offPending = -($lenActive);
-                                $offBlocked = -($lenActive + $lenPending);
-                            @endphp
-                            <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap">
-                                <div class="donut-wrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-                                    <div class="donut-chart" style="width:220px;height:220px;position:relative">
-                                        <svg viewBox="0 0 160 160" width="180" height="180" style="display:block">
-                                        <g transform="rotate(-90 80 80)">
-                                            <circle cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#eef2f7" stroke-width="20"></circle>
-                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#002C76" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offActive,2,'.','') }}" data-length="{{ number_format($lenActive,2,'.','') }}" data-offset="{{ number_format($offActive,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
-                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#FFD700" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offPending,2,'.','') }}" data-length="{{ number_format($lenPending,2,'.','') }}" data-offset="{{ number_format($offPending,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
-                                            <circle class="donut-seg" cx="80" cy="80" r="{{ $r }}" fill="none" stroke="#B10606" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 {{ number_format($circ,2,'.','') }}" stroke-dashoffset="{{ number_format($offBlocked,2,'.','') }}" data-length="{{ number_format($lenBlocked,2,'.','') }}" data-offset="{{ number_format($offBlocked,2,'.','') }}" data-circ="{{ number_format($circ,2,'.','') }}"></circle>
-                                        </g>
-                                        </svg>
-                                    </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+                                <div>
+                                    <div id="donut-accounts" style="width:220px;height:220px;margin:0 auto"></div>
                                     <div style="margin-top:10px;text-align:center">
                                         <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Accounts</div>
-                                        <div style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">{{ $total }}</div>
+                                        <div id="total-accounts" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">{{ $userCount }}</div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="acc-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="acc-legend-pending" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Blocked <span id="acc-legend-blocked" style="color:#6b7280;margin-left:6px"></span></div>
                                     </div>
                                 </div>
-                                @php
-                                    $pA = $total ? round(($active/$total)*100) : 0;
-                                    $pP = $total ? round(($pending/$total)*100) : 0;
-                                    $pB = $total ? round(($blocked/$total)*100) : 0;
-                                @endphp
-                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;min-width:240px">
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span style="color:#6b7280;margin-left:6px">{{ $active }} · {{ $pA }}%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span style="color:#6b7280;margin-left:6px">{{ $pending }} · {{ $pP }}%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Blocked <span style="color:#6b7280;margin-left:6px">{{ $blocked }} · {{ $pB }}%</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="insight-panel" style="grid-column:2">
-                            <div class="insight-panel-header">
-                                <h2>Courses Overview</h2>
-                                <span>Totals</span>
-                            </div>
-                            <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap">
-                                <div class="donut-wrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-                                    <div id="courses-donut" class="donut-chart" style="width:220px;height:220px;position:relative">
-                                        <svg viewBox="0 0 160 160" width="180" height="180" style="display:block">
-                                            <g transform="rotate(-90 80 80)">
-                                                <circle cx="80" cy="80" r="60" fill="none" stroke="#eef2f7" stroke-width="20"></circle>
-                                                <circle class="donut-seg course-active" cx="80" cy="80" r="60" fill="none" stroke="#002C76" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                                <circle class="donut-seg course-pending" cx="80" cy="80" r="60" fill="none" stroke="#FFD700" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                                <circle class="donut-seg course-draft" cx="80" cy="80" r="60" fill="none" stroke="#F97316" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                                <circle class="donut-seg course-arch" cx="80" cy="80" r="60" fill="none" stroke="#B10606" stroke-width="20" stroke-linecap="round" stroke-dasharray="0 376.99" stroke-dashoffset="0"></circle>
-                                            </g>
-                                        </svg>
-                                    </div>
+                                <div>
+                                    <div id="donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
                                     <div style="margin-top:10px;text-align:center">
                                         <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
-                                        <div id="courses-total" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">0</div>
+                                        <div id="total-courses" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">0</div>
                                     </div>
-                                </div>
-                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;min-width:280px">
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="legend-course-active" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="legend-course-pending" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#F97316;border:1px solid #ea580c"></div><div style="color:#002C76;font-weight:800">Draft <span id="legend-course-draft" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
-                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Archived <span id="legend-course-arch" style="color:#6b7280;margin-left:6px">0 · 0%</span></div>
+                                    <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="course-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="course-legend-pending" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Archived <span id="course-legend-arch" style="color:#6b7280;margin-left:6px"></span></div>
+                                    </div>
                                 </div>
                             </div>
                             <script>
                                 (function(){
-                                    var active={{ $activeCoursesSafe ?? 0 }};
-                                    var pending={{ $pendingCoursesSafe ?? 0 }};
-                                    var archived={{ $archivedCoursesSafe ?? 0 }};
-                                    var draft=(function(){try{ return Object.keys(localStorage).filter(function(k){return k&&k.indexOf('draft_course_')===0;}).length;}catch(e){return 0;}})();
-                                    var total = active+pending+archived+draft;
-                                    document.getElementById('courses-total').innerText = total;
-                                    function pct(n,t){ return t>0 ? Math.round((n/t)*100) : 0; }
-                                    document.getElementById('legend-course-active').innerText = active+' · '+pct(active,total)+'%';
-                                    document.getElementById('legend-course-pending').innerText = pending+' · '+pct(pending,total)+'%';
-                                    document.getElementById('legend-course-draft').innerText = draft+' · '+pct(draft,total)+'%';
-                                    document.getElementById('legend-course-arch').innerText = archived+' · '+pct(archived,total)+'%';
-                                    var r=60, circ=2*Math.PI*r;
-                                    var lenA = total? circ*(active/total):0;
-                                    var lenP = total? circ*(pending/total):0;
-                                    var lenD = total? circ*(draft/total):0;
-                                    var lenR = total? circ*(archived/total):0;
-                                    var offA=0, offP=-(lenA), offD=-(lenA+lenP), offR=-(lenA+lenP+lenD);
-                                    function setSeg(cls,len,off){
-                                        var seg=document.querySelector('#courses-donut .'+cls);
-                                        if(!seg) return;
-                                        seg.setAttribute('data-length', len.toFixed(2));
-                                        seg.setAttribute('data-circ', circ.toFixed(2));
-                                        seg.setAttribute('stroke-dashoffset', off.toFixed(2));
-                                        seg.setAttribute('stroke-dasharray', '0 '+circ.toFixed(2));
-                                        setTimeout(function(){ seg.setAttribute('stroke-dasharray', len.toFixed(2)+' '+circ.toFixed(2)); }, 100);
-                                    }
-                                    setSeg('course-active',lenA,offA);
-                                    setSeg('course-pending',lenP,offP);
-                                    setSeg('course-draft',lenD,offD);
-                                    setSeg('course-arch',lenR,offR);
+                                  function renderArcDonut(elId, parts, colors){
+                                    var el=document.getElementById(elId);
+                                    if(!el){return;}
+                                    var width=220, height=220, r=80, ir=48;
+                                    var svg=d3.select('#'+elId).append('svg').attr('width',width).attr('height',height);
+                                    var g=svg.append('g').attr('transform','translate('+width/2+','+height/2+')');
+                                    var total=parts.reduce(function(a,b){return a+b;},0);
+                                    var pie=d3.pie().sort(null);
+                                    var arc=d3.arc().innerRadius(ir).outerRadius(r).padAngle(0.03).cornerRadius(6);
+                                    var data=pie(parts);
+                                    g.selectAll('path').data(data).enter().append('path')
+                                      .attr('d',arc)
+                                      .attr('fill',function(d,i){return colors[i];})
+                                      .attr('stroke','#ffffff')
+                                      .attr('stroke-width','1.2')
+                                      .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
+                                      .on('mouseout', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1)'); });
+                                    // percentage labels on arcs
+                                    g.selectAll('text').data(data).enter().append('text')
+                                      .attr('transform', function(d){ return 'translate('+arc.centroid(d)+')'; })
+                                      .attr('dy','.35em')
+                                      .attr('text-anchor','middle')
+                                      .attr('font-size','12px')
+                                      .attr('fill','#0f172a')
+                                      .text(function(d){ var p=total? Math.round((d.value/total)*100):0; return p>0? (p+'%'):''; });
+                                  }
+                                  // Accounts
+                                  var aActive={{ $activeUsersCount }};
+                                  var aPending={{ $pendingUsersTotal }};
+                                  var aBlocked={{ $frozenUsersCount }};
+                                  var aTotal={{ $userCount }};
+                                  renderArcDonut('donut-accounts', [aActive,aPending,aBlocked], ['#002C76','#FFD700','#B10606']);
+                                  function pct(n,t){ return t>0? Math.round((n/t)*100):0; }
+                                  document.getElementById('acc-legend-active').innerText = aActive+' · '+pct(aActive,aTotal)+'%';
+                                  document.getElementById('acc-legend-pending').innerText = aPending+' · '+pct(aPending,aTotal)+'%';
+                                  document.getElementById('acc-legend-blocked').innerText = aBlocked+' · '+pct(aBlocked,aTotal)+'%';
+                                  // Courses (no drafts)
+                                  var cActive={{ $activeCoursesSafe ?? 0 }};
+                                  var cPending={{ $pendingCoursesSafe ?? 0 }};
+                                  var cArchived={{ $archivedCoursesSafe ?? 0 }};
+                                  var cTotal=cActive+cPending+cArchived;
+                                  document.getElementById('total-courses').innerText = cTotal;
+                                  renderArcDonut('donut-courses', [cActive,cPending,cArchived], ['#002C76','#FFD700','#B10606']);
+                                  document.getElementById('course-legend-active').innerText = cActive+' · '+pct(cActive,cTotal)+'%';
+                                  document.getElementById('course-legend-pending').innerText = cPending+' · '+pct(cPending,cTotal)+'%';
+                                  document.getElementById('course-legend-arch').innerText = cArchived+' · '+pct(cArchived,cTotal)+'%';
                                 })();
                             </script>
                         </div>

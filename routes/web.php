@@ -21,56 +21,6 @@ Route::get('/', function () {
     return view('landing', compact('displayUsers', 'certifications', 'pastTrainees'));
 });
 
-// Serve Philippines provinces GeoJSON at a stable local path with fallback and caching
-Route::get('/images/maps/ph-provinces.geojson', function () {
-    $localPath = public_path('images/maps/ph-provinces.geojson');
-    $dir = dirname($localPath);
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0775, true);
-    }
-    if (is_file($localPath) && filesize($localPath) > 0) {
-        return response()->file($localPath, ['Content-Type' => 'application/geo+json; charset=UTF-8']);
-    }
-    $urls = [
-        'https://cdn.jsdelivr.net/gh/justinegealogo/philippines-region-province-citymuni-barangay/geojson/philippines-province.geojson',
-        'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson',
-    ];
-    $content = null;
-    $fetch = function($url){
-        // Prefer cURL for environments where allow_url_fopen is disabled
-        if (function_exists('curl_init')) {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_CONNECTTIMEOUT => 10,
-                CURLOPT_TIMEOUT => 20,
-                CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_SSL_VERIFYHOST => 2,
-                CURLOPT_USERAGENT => 'CapDevPro-GeoJSON-Fetch/1.0',
-            ]);
-            $data = curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            if ($code >= 200 && $code < 300 && $data) return $data;
-        }
-        // Fallback to file_get_contents if cURL not available
-        try { return @file_get_contents($url); } catch (\Throwable $e) { return null; }
-    };
-    foreach ($urls as $u) {
-        $content = $fetch($u);
-        if ($content && strlen($content) > 1000) { break; }
-    }
-    if ($content && strlen($content) > 1000) {
-        @file_put_contents($localPath, $content);
-        return response($content, 200, ['Content-Type' => 'application/geo+json; charset=UTF-8']);
-    }
-    return response()->json([
-        'error' => 'Map data not found',
-        'hint' => 'Place GeoJSON at public/images/maps/ph-provinces.geojson or ensure remote source is reachable.',
-    ], 404);
-});
-
 Route::get('/subject/{slug}', [SubjectController::class, 'show'])->name('subject.show');
 
 // Authentication Routes
@@ -101,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])
     ->name('dashboard');
+Route::get('/stats/users-by-province', [DashboardController::class, 'userCountsByProvince'])->middleware(['auth'])->name('stats.users.by-province');
 Route::get('/admin/courses/create', [CourseController::class, 'create'])->middleware(['auth'])->name('admin.courses.create');
 Route::get('/admin/courses/{course}/edit', [CourseController::class, 'edit'])->middleware(['auth'])->name('admin.courses.edit');
 // Place pending BEFORE the dynamic {course} route to avoid shadowing

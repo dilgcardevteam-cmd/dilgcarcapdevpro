@@ -476,4 +476,12 @@ class DashboardController extends Controller
             ->get();
         return response()->json(['trainees' => $trainees]);
     }
+    
+    public function userCountsByProvince()
+    {
+        $counts = User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, COUNT(*) as c')
+            ->groupBy('province')
+            ->pluck('c', 'province');
+        return response()->json(['counts' => $counts]);
+    }
 }
