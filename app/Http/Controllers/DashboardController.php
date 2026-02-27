@@ -174,6 +174,18 @@ class DashboardController extends Controller
                     return $course->users->where('role', 'trainee');
                 })->unique('id')->count();
 
+                // Determine course statuses for current user
+                $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
+                // Available courses (exclude already joined or pending)
+                $excludedIds = array_map('intval', array_keys($courseStatuses));
+                $availableCoursesQuery = Course::with(['users' => function($q) {
+                    $q->where('role', 'trainer');
+                }]);
+                if (!empty($excludedIds)) {
+                    $availableCoursesQuery = $availableCoursesQuery->whereNotIn('id', $excludedIds);
+                }
+                $availableCourses = $availableCoursesQuery->get();
+
                 $announcements = Announcement::with('user')->latest()->get();
                 $calendarEvents = CalendarEvent::where('user_id', $user->id)->orderBy('start_time')->get();
 
@@ -186,7 +198,7 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainer.dashboard', compact('myCourses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
+                return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
             case 'trainee':
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display

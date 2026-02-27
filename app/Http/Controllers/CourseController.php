@@ -914,7 +914,7 @@ class CourseController extends Controller
 
         // Check if already enrolled or pending
         if ($course->users()->where('user_id', $user->id)->exists()) {
-            return redirect()->back()->with('error', 'You have already requested to join or are enrolled in this course.');
+            return redirect()->route('dashboard', ['tab' => 'my-courses'])->with('error', 'You have already requested to join or are enrolled in this course.');
         }
 
         // Attach with pending status
@@ -933,6 +933,6 @@ class CourseController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success_join', 'Enrollment request submitted successfully. Please wait for approval.');
+        return redirect()->route('dashboard', ['tab' => 'my-courses'])->with('success_join', 'Enrollment request submitted successfully. Please wait for approval.');
     }
 }

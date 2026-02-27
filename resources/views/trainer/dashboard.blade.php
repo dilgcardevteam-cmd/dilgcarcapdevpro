@@ -1180,11 +1180,6 @@
                             <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
                             <div class="control-hero-sub">Monitor learning outcomes and efficiently manage classes.</div>
                         </div>
-                        <div class="hero-actions">
-                            <a class="hero-btn" href="#" onclick="showContent('my-courses', document.querySelector('a[onclick*=\'my-courses\']'))"><i class="fas fa-chalkboard-teacher"></i> Manage Courses</a>
-                            <a class="hero-btn" href="#" onclick="showContent('calendar', document.querySelector('a[onclick*=\'calendar\']'))"><i class="fas fa-calendar-alt"></i> Calendar</a>
-                            <a class="hero-btn" href="#" onclick="showContent('announcements', document.querySelector('a[onclick*=\'announcements\']'))"><i class="fas fa-bullhorn"></i> Announcements</a>
-                        </div>
                     </div>
                 </div>
 
@@ -1233,8 +1228,83 @@
                     <h2 class="section-title">Dashboard</h2>
                 </div>
 
-                <div class="course-grid">
-                    @forelse($myCourses as $course)
+                <!-- Available Courses to Enroll -->
+                <div style="background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Available Courses</h3>
+                        <div style="color:#64748b;font-weight:700">{{ isset($availableCourses) ? $availableCourses->count() : 0 }} available</div>
+                    </div>
+                    <div class="course-grid" style="margin-top:12px">
+                        @forelse($availableCourses ?? collect() as $course)
+                            @php
+                                $courseImage = null;
+                                if ($course->image_path) {
+                                    $path = public_path('storage/' . $course->image_path);
+                                    if (file_exists($path)) {
+                                        $courseImage = asset('storage/' . $course->image_path);
+                                    } else {
+                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                        if (file_exists($path2)) {
+                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
+                                        }
+                                    }
+                                }
+                                if (!$courseImage) {
+                                    $courseNameLower = strtolower($course->name);
+                                    if (str_contains($courseNameLower, 'research')) {
+                                        $courseImage = asset('images/Basic Research.png');
+                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                        $courseImage = asset('images/Basic Services.png');
+                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                        $courseImage = asset('images/Nature and Types.png');
+                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                        $courseImage = asset('images/Creation.png');
+                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                        $courseImage = asset('images/Local Autonomy.png');
+                                    } else {
+                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                }
+                            @endphp
+                            <div class="course-card">
+                                <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
+                                <div class="course-content">
+                                    <div class="course-title">{{ $course->name }}</div>
+                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                    <div class="course-footer">
+                                        <span><i class="fas fa-user-tie"></i> {{ $course->users->where('role','trainer')->count() }} Trainers</span>
+                                        <button class="btn-view" type="button" onclick="openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Enroll Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div style="grid-column: 1/-1; text-align: center; padding: 24px; color: #6c757d;">
+                                <i class="fas fa-book-open" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                                <div>No available courses at the moment.</div>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Enrolled Courses -->
+                <div style="background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Enrolled Courses</h3>
+                        @php
+                            // Filter active enrolled courses only
+                            $activeEnrolled = $myCourses->filter(function($c) {
+                                $u = $c->users->firstWhere('id', Auth::id());
+                                return $u && ($u->pivot->status ?? 'active') === 'active';
+                            });
+                        @endphp
+                        <div style="color:#64748b;font-weight:700">{{ $activeEnrolled->count() }} enrolled</div>
+                    </div>
+                    <div class="course-grid" style="margin-top:12px">
+                    @forelse($activeEnrolled as $course)
+                        @php
+                            // Status is definitely active here due to filter
+                            $myStatus = 'active';
+                        @endphp
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
@@ -1275,7 +1345,11 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                    @if($myStatus==='pending')
+                                        <span style="background:#fff3cd;color:#856404;border:1px solid #ffeeba; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; display: inline-block;">Pending Approval</span>
+                                    @else
+                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1285,6 +1359,7 @@
                             <p>You have not been assigned to any courses yet.</p>
                         </div>
                     @endforelse
+                </div>
                 </div>
             </div>
 
@@ -1296,7 +1371,11 @@
                 
                 <div class="course-grid">
                     @forelse($myCourses as $course)
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
+                        @php
+                            $mePivotUser = $course->users->firstWhere('id', Auth::id());
+                            $myStatus = $mePivotUser ? ($mePivotUser->pivot->status ?? 'active') : 'active';
+                        @endphp
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" @if($myStatus==='active') onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}" @endif>
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1336,7 +1415,11 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                    @if($myStatus==='pending')
+                                        <span style="background:#fff3cd;color:#856404;border:1px solid #ffeeba; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; display: inline-block;">Pending Approval</span>
+                                    @else
+                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1774,6 +1857,24 @@
         </div>
     </div>
 
+    <!-- Enroll Confirmation Modal -->
+    <div id="enrollModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Enrollment</h3>
+                <button class="close-modal" onclick="closeEnrollModal()">&times;</button>
+            </div>
+            <div style="margin-bottom: 10px; color:#555" id="enrollModalMsg">Are you sure you want to enroll in this course?</div>
+            <div class="form-footer">
+                <button type="button" class="logout-btn" style="background-color:#d9534f" onclick="closeEnrollModal()">Cancel</button>
+                <form id="enrollForm" method="POST" style="display:inline">
+                    @csrf
+                    <button type="submit" class="btn-action" style="margin-bottom:0;background-color:#0b57d0"><i class="fas fa-check"></i> Yes, Enroll</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const myCourses = @json($myCourses);
@@ -2088,6 +2189,22 @@
             if (event.target.classList.contains('modal-overlay')) {
                 event.target.style.display = 'none';
             }
+        }
+        // Enroll Modal Logic
+        let enrollCourseId = null;
+        function openEnrollModal(id, name){
+            enrollCourseId = id;
+            var m = document.getElementById('enrollModal');
+            var msg = document.getElementById('enrollModalMsg');
+            if(msg){ msg.textContent = 'Are you sure you want to enroll in "' + name + '"?'; }
+            // set form action
+            var f = document.getElementById('enrollForm');
+            if(f){ f.setAttribute('action', '{{ url('/courses') }}/' + id + '/join'); }
+            m.style.display = 'flex';
+        }
+        function closeEnrollModal(){
+            var m = document.getElementById('enrollModal');
+            m.style.display = 'none';
         }
 
         // Calendar Logic
