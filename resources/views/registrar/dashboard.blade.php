@@ -263,7 +263,7 @@
             margin-bottom: 40px;
         }
         @media (min-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1200px){ .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1200px){ .stats-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .stat-card {
             background-color: white;
@@ -1054,6 +1054,7 @@
     <header class="header">
         <div class="header-left">
             <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h2 id="page-title" style="margin: 0 0 0 15px; font-size: 1.25rem; color: var(--primary-blue); font-weight: 700;">Dashboard</h2>
         </div>
         <div class="header-right">
             <!-- Notification Bell -->
@@ -1177,17 +1178,6 @@
                             <p>Total Approved Users</p>
                         </div>
                     </div>
-                    <!-- Pending Trainees beside Approved Users -->
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background-color: rgba(255,193,7,0.12); color: #fd7e14;">
-                            <i class="fas fa-user-hourglass"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ $pendingTraineesCount }}</h3>
-                            <p>Pending Trainees</p>
-                        </div>
-                    </div>
-                    <!-- Total Courses below Approved Users (positioned 5th in flow for 3-per-row) -->
                     <div class="stat-card">
                         <div class="stat-icon" style="background-color: rgba(99,102,241,0.12); color: #6366f1;">
                             <i class="fas fa-book"></i>
@@ -1195,6 +1185,15 @@
                         <div class="stat-info">
                             <h3>{{ $totalCourses }}</h3>
                             <p>Total Courses</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: rgba(255,193,7,0.12); color: #fd7e14;">
+                            <i class="fas fa-user-hourglass"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $pendingTraineesCount }}</h3>
+                            <p>Pending Trainees</p>
                         </div>
                     </div>
                 </div>
@@ -1650,6 +1649,17 @@
             menuItem.classList.add('active');
         }
 
+        // Update page title
+        const titles = {
+            'dashboard-home': 'Dashboard',
+            'user-management': 'User Management',
+            'trainer-trainee-management': 'Training Management'
+        };
+        const titleElement = document.getElementById('page-title');
+        if (titleElement) {
+            titleElement.textContent = titles[sectionId] || 'Dashboard';
+        }
+
         // Keep address bar in sync with selected sidebar section.
         const url = new URL(window.location.href);
         if (sectionId === 'dashboard-home') {
@@ -1871,6 +1881,19 @@
     
     document.addEventListener('DOMContentLoaded', function () {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
+        
+        // Set initial page title
+        const titles = {
+            'dashboard-home': 'Dashboard',
+            'user-management': 'User Management',
+            'trainer-trainee-management': 'Training Management'
+        };
+        const titleElement = document.getElementById('page-title');
+        if (titleElement) {
+            const tabKey = requestedTab || 'dashboard-home';
+            titleElement.textContent = titles[tabKey] || 'Dashboard';
+        }
+
         if (requestedTab === 'profile-section') {
             showProfile();
         }

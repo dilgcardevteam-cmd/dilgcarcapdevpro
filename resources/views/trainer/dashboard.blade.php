@@ -518,33 +518,40 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 8px;
+            padding-top: 12px;
         }
         .course-footer span{
             display:inline-flex;
             align-items:center;
-            gap:8px;
-            background:#e8f0ff;
-            color:#0f3b8f;
-            border:1px solid #cfe0ff;
-            border-radius:999px;
-            padding:6px 10px;
-            font-weight:700;
-            font-size:.85rem;
+            gap:6px;
+            background:#f0f4ff;
+            color:#1e40af;
+            border:1px solid #dbeafe;
+            border-radius:20px;
+            padding:5px 12px;
+            font-weight:600;
+            font-size:.75rem;
+            letter-spacing: 0.02em;
         }
 
         .btn-view {
-            padding: 10px 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 20px;
             background-color: var(--primary-blue);
             color: white;
             text-decoration: none;
             border-radius: 999px;
-            font-size: 0.95rem;
-            transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+            font-size: 0.85rem;
+            transition: all .2s ease;
             border: none;
             cursor: pointer;
-            box-shadow: 0 6px 14px rgba(0,44,118,.18);
-            font-weight: 700;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 100px;
+            text-align: center;
         }
 
         .btn-view:hover {
@@ -1342,7 +1349,7 @@
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 <div class="course-footer">
-                                    <span style="font-size: 0.8rem; color: #777;">
+                                    <span>
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
                                     @if($myStatus==='pending')
