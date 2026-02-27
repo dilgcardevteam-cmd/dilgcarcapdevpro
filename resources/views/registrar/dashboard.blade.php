@@ -1232,12 +1232,6 @@
             <!-- User Management Section -->
             <section id="user-management" class="content-section {{ request()->hasAny(['search', 'statuses', 'roles', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
-                    <div class="user-management-header">
-                        <div>
-                            <h1 class="welcome-title" style="margin-bottom: 0; font-weight: 700;">User Management</h1>
-                            <p class="user-management-subtitle">Review user records and quickly update role or account status.</p>
-                        </div>
-                    </div>
                     
                     @if(session('success_user'))
                         <div class="user-management-alert">
@@ -1314,7 +1308,6 @@
 
             <!-- Training Management Section -->
             <section id="trainer-trainee-management" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
-                <h1 class="welcome-title">Training <strong>Management</strong></h1>
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
