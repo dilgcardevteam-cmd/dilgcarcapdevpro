@@ -1619,7 +1619,8 @@
         // Removed dmAddImage/dmAddVideo (toolbar restricted to four buttons)
         function dmAddTopic(){
             const anchor = DM_STATE.currentAnchor;
-            const moduleBody = anchor?.closest('.module-body') || document.querySelector('.module-body');
+            const wrapper = anchor?.closest('.module-wrapper');
+            const moduleBody = wrapper ? wrapper.querySelector('.module-body') : document.querySelector('.module-wrapper .module-body');
             if(moduleBody){
                 expandModuleAccordion(moduleBody);
                 addTopicInput(moduleBody);
@@ -1648,6 +1649,20 @@
 
         // Simple test harness (invoke in console: DynamicMenuTests.runAll())
         window.DynamicMenuTests = {
+            testAddTopicToModule2(){
+                // Setup two modules
+                const container = document.getElementById('modulesContainer');
+                container.innerHTML = '';
+                createModule(); createModule();
+                const secondHeader = document.querySelectorAll('.module-header')[1];
+                setActiveAnchor(secondHeader);
+                dmAddTopic();
+                const secondBody = document.querySelectorAll('.module-body')[1];
+                const t = secondBody.querySelector('.topic-row:last-of-type input[type="text"]');
+                const ok = !!t && /\bmodules\[1\]\[topics\]\[\d+\]\[title\]/.test(t.name);
+                console.log('TEST dmAddTopic -> Module 2 assignment:', ok ? 'PASS' : 'FAIL', t?.name);
+                return ok;
+            },
             testPositions(){
                 const dm = document.getElementById('dynamicMenu');
                 const fields = Array.from(document.querySelectorAll('.field-block, .topic-row, .module-header')).slice(0,6);
@@ -1698,4 +1713,3 @@
     </script>
 </body>
 </html>
-

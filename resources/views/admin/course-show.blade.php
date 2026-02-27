@@ -223,6 +223,7 @@
                 @else
                     Created by —
                 @endif
+                <div>Created: {{ optional($course->created_at)->format('M d, Y') }}</div>
             </div>
             <div class="badge" style="margin-top:8px;">
                 <i class="fas fa-layer-group"></i>
@@ -356,6 +357,7 @@
             </div>
 
             <div>
+                @if(!request()->boolean('readonly'))
                 <div class="image-actions">
                     <a href="{{ route('admin.courses.edit', $course) }}" class="btn btn-edit">
                         <i class="fas fa-pen"></i> Edit
@@ -371,6 +373,7 @@
                         </button>
                     </form>
                 </div>
+                @endif
                 <div class="image-wrapper">
                     <div class="image-inner">
                         @php
@@ -410,4 +413,3 @@
     </script>
 </body>
 </html>
-

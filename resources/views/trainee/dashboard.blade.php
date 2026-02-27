@@ -1071,6 +1071,7 @@
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
                                 <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <span style="font-size: 0.8rem; color: #777;">
@@ -1126,6 +1127,7 @@
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
                                 <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">

@@ -351,6 +351,21 @@
             reindexModules();
             updateProgress();
         }
+        window.OutlineEditTests = {
+            testAddTopicToModule2(){
+                const container = document.getElementById('modulesContainer');
+                container.innerHTML = '';
+                createModule(); createModule();
+                const secondHeader = document.querySelectorAll('.module-header')[1];
+                setActiveAnchor(secondHeader);
+                dmAddTopic();
+                const secondBody = document.querySelectorAll('.module-body')[1];
+                const t = secondBody.querySelector('.topic-row:last-of-type input[type="text"]');
+                const ok = !!t && /\bmodules\[1\]\[topics\]\[\d+\]\[title\]/.test(t.name);
+                console.log('EDIT TEST dmAddTopic -> Module 2 assignment:', ok ? 'PASS' : 'FAIL', t?.name);
+                return ok;
+            }
+        };
         function reindexModules(){
             const container = document.getElementById('modulesContainer');
             const modules = Array.from(container.children);
@@ -1154,7 +1169,8 @@
         }
         function dmAddTopic(){
             const anchor = DM_STATE.currentAnchor;
-            const moduleBody = anchor?.closest('.module-body') || document.querySelector('.module-body');
+            const wrapper = anchor?.closest('.module-wrapper');
+            const moduleBody = wrapper ? wrapper.querySelector('.module-body') : document.querySelector('.module-wrapper .module-body');
             if(moduleBody){
                 addTopicInput(moduleBody);
                 const lastTopic = moduleBody.querySelector('.topic-row:last-of-type');
@@ -1272,4 +1288,3 @@
     </script>
 </body>
 </html>
-

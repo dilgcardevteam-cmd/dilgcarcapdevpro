@@ -3033,7 +3033,7 @@
                     <h1 class="welcome-title" style="margin: 0;">Course <strong>Management</strong></h1>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="courseSearchInput" placeholder="Search courses..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
-                        <button onclick="openArchivedCoursesModal()" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                        <button onclick="navigateToSection('archived-courses')" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
                             <i class="fas fa-box-archive"></i> Archived Courses
                         </button>
                     </div>
@@ -3071,7 +3071,7 @@
                     <div class="course-stat-card draft"
                          role="button"
                          tabindex="0"
-                         onclick="openDraftCoursesModal()"
+                         onclick="navigateToSection('draft-courses')"
                          onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                         <div>
                             <p class="course-stat-label">Draft Courses</p>
@@ -3082,7 +3082,7 @@
                     <div class="course-stat-card archived"
                          role="button"
                          tabindex="0"
-                         onclick="openArchivedCoursesModal()"
+                         onclick="navigateToSection('archived-courses')"
                          onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
                         <div>
                             <p class="course-stat-label">Archived Courses</p>
@@ -3108,10 +3108,10 @@
                             $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
                             $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                         @endphp
-                        <div class="course-card"
+                            <div class="course-card"
                              role="button"
                              tabindex="0"
-                             onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))'
+                             onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})"
                              onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
                              style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
                             @php
@@ -3140,6 +3140,7 @@
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
                             </div>
                         </div>
                     @endforeach
@@ -3239,53 +3240,54 @@
                 @endif
             </section>
 
-    <!-- Archived Courses Modal -->
-    <div id="draftCoursesModal" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="closeDraftCoursesModal()">&times;</span>
-            <h2 style="margin-top: 0;">Draft Courses</h2>
-            <div id="draftCoursesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
-                <!-- Draft courses will be rendered here -->
-            </div>
-        </div>
-    </div>
-    <div id="archivedCoursesModal" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="closeArchivedCoursesModal()">&times;</span>
-            <h2 style="margin-top: 0;">Archived Courses</h2>
-            @if($archivedCourses->isEmpty())
-                <p style="color: #6c757d; font-style: italic; margin: 0;">There are no archived courses yet.</p>
-            @else
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
-                    @foreach($archivedCourses as $course)
-                        @php
-                            $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
-                            $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                        @endphp
-                        <div class="course-card" role="button" tabindex="0" onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }" style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer;">
-                            <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover; filter: grayscale(100%);">
-                            <div style="padding: 15px;">
-                                <h3 style="margin: 0 0 8px; color: #6c757d; font-size: 1rem;">{{ $course->name }}</h3>
-                                <p style="color: #6c757d; margin-bottom: 12px; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <div style="display: flex; gap: 8px;">
-                                    <button type="button" onclick='event.stopPropagation(); openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' style="flex: 1; padding: 8px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center;">View</button>
-                                    <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Unarchive this course?')" style="flex: 1;">
-                                        @csrf
-                                        <button type="submit" style="width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Unarchive</button>
-                                    </form>
-                                    <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Permanently delete this course? This cannot be undone.')" style="flex: 1;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" style="width: 100%; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
-                                    </form>
+            <section id="draft-courses" class="content-section {{ request('tab') == 'draft-courses' ? 'active' : '' }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin:0;">Draft <strong>Courses</strong></h1>
+                    <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+                        <i class="fas fa-arrow-left"></i> Back to Course Management
+                    </button>
+                </div>
+                <div id="draftCoursesMainContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
+            </section>
+            <section id="archived-courses" class="content-section {{ request('tab') == 'archived-courses' ? 'active' : '' }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin:0;">Archived <strong>Courses</strong></h1>
+                    <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+                        <i class="fas fa-arrow-left"></i> Back to Course Management
+                    </button>
+                </div>
+                @if($archivedCourses->isEmpty())
+                    <p style="color:#6c757d;font-style:italic;margin:0">There are no archived courses yet.</p>
+                @else
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+                        @foreach($archivedCourses as $course)
+                            @php
+                                $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
+                                $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                            @endphp
+                            <div class="course-card" role="button" tabindex="0" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#fff;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:hidden;cursor:pointer">
+                                <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width:100%;height:150px;object-fit:cover;filter:grayscale(100%)">
+                                <div style="padding:15px">
+                                    <h3 style="margin:0 0 8px;color:#6c757d;font-size:1rem">{{ $course->name }}</h3>
+                                    <p style="color:#6c757d;margin-bottom:12px;font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ $course->description }}</p>
+                                    <div style="display:flex;gap:8px">
+                                        <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" style="flex:1;padding:8px;background:#17a2b8;color:#fff;border:none;border-radius:4px;cursor:pointer;text-align:center">View</button>
+                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Unarchive this course?')" style="flex:1">
+                                            @csrf
+                                            <button type="submit" style="width:100%;padding:8px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer">Unarchive</button>
+                                        </form>
+                                        <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Permanently delete this course? This cannot be undone.')" style="flex:1">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="width:100%;padding:8px;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer">Delete</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
 
             <!-- Certification Management Section -->
             <section id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
@@ -3989,6 +3991,7 @@
                 <div class="course-view-modal-title-wrap">
                     <h2 id="view_course_name" class="course-view-modal-title">Course Details</h2>
                     <p id="view_course_creator" style="margin: 4px 0 0; color: #64748b; font-size: 0.85rem;">Created by: N/A</p>
+                    <p id="view_course_created" style="margin: 0; color: #64748b; font-size: 0.85rem;">Created: N/A</p>
                 </div>
                 <button type="button" class="course-view-close" onclick="closeViewCourseModal()" aria-label="Close">
                     &times;
@@ -5327,17 +5330,11 @@
 
         // Archived Courses Modal
         function openDraftCoursesModal() {
-            renderDraftCoursesInModal();
-            document.getElementById('draftCoursesModal').style.display = "block";
-        }
-        function closeDraftCoursesModal() {
-            document.getElementById('draftCoursesModal').style.display = "none";
+            navigateToSection('draft-courses');
+            renderDraftCoursesInMain();
         }
         function openArchivedCoursesModal() {
-            document.getElementById('archivedCoursesModal').style.display = "block";
-        }
-        function closeArchivedCoursesModal() {
-            document.getElementById('archivedCoursesModal').style.display = "none";
+            navigateToSection('archived-courses');
         }
 
         function getDraftCoursesFromLocalStorage() {
@@ -5357,8 +5354,8 @@
             }
             return drafts;
         }
-        function renderDraftCoursesInModal() {
-            const container = document.getElementById('draftCoursesContainer');
+        function renderDraftCoursesInMain() {
+            const container = document.getElementById('draftCoursesMainContainer');
             const drafts = getDraftCoursesFromLocalStorage();
             
             if (drafts.length === 0) {
@@ -5381,7 +5378,7 @@
                         <h3 style="margin: 0 0 8px; color: #333; font-size: 1rem;">${courseName}</h3>
                         <p style="color: #6c757d; margin-bottom: 12px; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseDesc}</p>
                         <div style="display: flex; gap: 8px;">
-                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}'); closeDraftCoursesModal();" style="flex: 1; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center;">Edit</button>
+                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}');" style="flex: 1; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center;">Edit</button>
                             <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="flex: 1; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                         </div>
                     </div>
@@ -5424,7 +5421,7 @@
 
         @if(session('open_archived_modal'))
         document.addEventListener('DOMContentLoaded', function() {
-            openArchivedCoursesModal();
+            navigateToSection('archived-courses');
         });
         @endif
 
@@ -5455,16 +5452,22 @@
             const modal = document.getElementById('viewCourseModal');
             const title = document.getElementById('view_course_name');
             const creator = document.getElementById('view_course_creator');
+            const created = document.getElementById('view_course_created');
             const loader = document.getElementById('viewCourseLoading');
             const iframe = document.getElementById('view_course_iframe');
             const courseUrlBase = courseShowUrlTemplate.replace('__COURSE_ID__', encodeURIComponent(course.id));
-            const courseUrl = `${courseUrlBase}?embedded=1`;
+            const activeSection = document.querySelector('.content-section.active');
+            const isReadonlyContext = !!(activeSection && (activeSection.id === 'archived-courses' || activeSection.id === 'draft-courses'));
+            const courseUrl = `${courseUrlBase}?embedded=1${isReadonlyContext ? '&readonly=1' : ''}`;
 
             if (title) {
                 title.innerText = course.name ? course.name : 'Course Details';
             }
             if (creator) {
                 creator.innerText = `Created by: ${course.creator_name ? course.creator_name : 'N/A'}`;
+            }
+            if (created) {
+                created.innerText = `Created: ${course.created_at ? course.created_at : 'N/A'}`;
             }
             if (loader) {
                 loader.style.display = 'flex';

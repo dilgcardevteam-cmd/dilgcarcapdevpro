@@ -26,7 +26,7 @@ class DashboardController extends Controller
             case 'admin':
                 $userCount = User::count();
                 $courseCount = Course::count(); // Counts only active
-                $courses = Course::all();
+                $courses = Course::orderBy('created_at', 'desc')->get();
                 $archivedCourses = Course::onlyTrashed()->get();
                 $certifications = Certification::all();
                 $recentCourses = Course::latest()->take(5)->get();
@@ -165,7 +165,10 @@ class DashboardController extends Controller
             case 'trainer':
                 // Get courses where the trainer is assigned (assuming pivot table handles this)
                 // Also eager load materials and assessments
-                $myCourses = $user->courses()->with(['users', 'materials', 'assessments.grades'])->get();
+                $myCourses = $user->courses()
+                    ->orderBy('courses.created_at', 'desc')
+                    ->with(['users', 'materials', 'assessments.grades'])
+                    ->get();
                 
                 $totalCoursesTeaching = $myCourses->count();
                 
@@ -184,7 +187,7 @@ class DashboardController extends Controller
                 if (!empty($excludedIds)) {
                     $availableCoursesQuery = $availableCoursesQuery->whereNotIn('id', $excludedIds);
                 }
-                $availableCourses = $availableCoursesQuery->get();
+                $availableCourses = $availableCoursesQuery->orderBy('created_at', 'desc')->get();
 
                 $announcements = Announcement::with('user')->latest()->get();
                 $calendarEvents = CalendarEvent::where('user_id', $user->id)->orderBy('start_time')->get();
@@ -204,6 +207,7 @@ class DashboardController extends Controller
                 // Eager load relationships for dashboard display
                 $myCourses = $user->courses()
                     ->wherePivot('status', 'active')
+                    ->orderBy('courses.created_at', 'desc')
                     ->with(['users' => function($q) {
                         $q->where('role', 'trainer');
                     }, 'materials', 'assessments.grades' => function($q) use ($user) {
@@ -214,9 +218,10 @@ class DashboardController extends Controller
                 // Get pending courses for display if needed
                 $pendingCourses = $user->courses()
                     ->wherePivot('status', 'pending')
+                    ->orderBy('courses.created_at', 'desc')
                     ->get();
                 $pendingCoursesCount = $pendingCourses->count();
-                $classroomCourses = $myCourses->concat($pendingCourses);
+                $classroomCourses = $myCourses->concat($pendingCourses)->sortByDesc('created_at')->values();
                 
                 // Determine course statuses for current user
                 $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
@@ -229,7 +234,7 @@ class DashboardController extends Controller
                 if (!empty($excludedIds)) {
                     $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
                 }
-                $availableCourses = $availableCourses->get();
+                $availableCourses = $availableCourses->orderBy('created_at', 'desc')->get();
                 
                 $totalAvailableCourses = $availableCourses->count();
                 $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
