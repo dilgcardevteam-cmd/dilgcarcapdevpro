@@ -17,8 +17,8 @@
                 @forelse($users as $user)
                     @php
                         $location = trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
-                        $roleClass = in_array($user->role, ['admin', 'registrar', 'trainer', 'trainee']) ? $user->role : 'trainee';
-                        $roleLabel = $user->role === 'trainer' ? 'coach' : $user->role;
+                        $roleClass = in_array($user->role, ['admin', 'registrar', 'training_manager', 'coach', 'trainer', 'trainee', 'participant']) ? $user->role : 'trainee';
+                        $roleLabel = $user->role === 'trainer' ? 'coach' : ($user->role === 'coach' ? 'coach' : ($user->role === 'training_manager' ? 'training manager' : $user->role));
                         $statusValue = $user->status ?? 'active';
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
                         $statusLabel = $statusValue === 'freeze' ? 'Blocked' : $statusValue;

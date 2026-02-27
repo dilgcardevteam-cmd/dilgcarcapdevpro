@@ -2149,7 +2149,9 @@
 
         .badge-role-admin { background: #1d4ed8; color: #ffffff; }
         .badge-role-registrar { background: #0284c7; color: #ffffff; }
+        .badge-role-training_manager { background: #0284c7; color: #ffffff; }
         .badge-role-trainer { background: #16a34a; color: #ffffff; }
+        .badge-role-coach { background: #16a34a; color: #ffffff; }
         .badge-role-trainee { background: #d97706; color: #ffffff; }
 
         .badge-status-active { background: #16a34a; color: #ffffff; }
@@ -3215,7 +3217,7 @@
                                     <h3 style="margin: 0 0 6px; color: #002C76; font-size: 1.05rem;">{{ $course->name }}</h3>
                                     <p style="color: #6b7280; font-size: .9rem; margin: 0 0 10px;">{{ Str::limit($course->description, 100) }}</p>
                                     @php
-                                        $submitter = $course->users->firstWhere('role', 'trainer');
+                                        $submitter = $course->users->first(function($u){ return in_array($u->role, ['coach','trainer']); });
                                     @endphp
                                     @if($submitter)
                                         <p style="color: #6b7280; font-size: .9rem; margin: 0 0 10px;">
@@ -5084,6 +5086,7 @@
                 if (!raw) return '-';
                 if (raw.toLowerCase() === 'freeze') return 'Blocked';
                 if (raw.toLowerCase() === 'trainer') return 'Coach';
+                if (raw.toLowerCase() === 'training_manager') return 'Training Manager';
                 return raw.charAt(0).toUpperCase() + raw.slice(1);
             };
              

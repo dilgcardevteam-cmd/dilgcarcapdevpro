@@ -81,6 +81,9 @@ Route::get('/trainer/test-banks', [TrainerController::class, 'listTestBanks'])->
 Route::post('/trainer/test-banks', [TrainerController::class, 'storeTestBank'])->middleware(['auth'])->name('trainer.test-banks.store');
 Route::delete('/trainer/test-banks/{template}', [TrainerController::class, 'destroyTestBank'])->middleware(['auth'])->name('trainer.test-banks.destroy');
 
+// Role conversion: Registrar -> Training Manager
+Route::post('/admin/users/{user}/convert-registrar-to-training-manager', [DashboardController::class, 'convertRegistrarToTrainingManager'])->middleware(['auth'])->name('admin.users.convert_to_training_manager');
+Route::post('/admin/users/{user}/rollback-training-manager', [DashboardController::class, 'rollbackTrainingManager'])->middleware(['auth'])->name('admin.users.rollback_training_manager');
 // Trainee assessment answering
 Route::middleware('auth')->group(function(){
     Route::get('/trainee/assessments/{assessment}/take', [AssessmentAnswerController::class, 'take'])->name('trainee.assessments.take');

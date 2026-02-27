@@ -1806,7 +1806,7 @@
 
                     if (user.role === 'trainer') {
                         teachersList.innerHTML += item;
-                    } else if (user.role === 'trainee') {
+                    } else if (user.role === 'participant' || user.role === 'trainee') {
                         studentsList.innerHTML += item;
                         studentCount++;
                     }

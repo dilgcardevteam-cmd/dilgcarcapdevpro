@@ -32,19 +32,19 @@ class DashboardController extends Controller
                 $recentCourses = Course::latest()->take(5)->get();
                 $pendingCourses = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q){
-                        $q->where('role', 'trainer');
+                        $q->whereIn('role', ['coach','trainer']);
                     })
                     ->get();
                 $pendingCoursesCount = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q){
-                        $q->where('role', 'trainer');
+                        $q->whereIn('role', ['coach','trainer']);
                     })
                     ->count();
                 $activeUsersCount = User::where('status', 'active')->count();
                 $pendingUsersTotal = User::where('status', 'pending')->count();
                 $frozenUsersCount = User::where('status', 'freeze')->count();
-                $trainersCount = User::where('role', 'trainer')->count();
-                $traineesCount = User::where('role', 'trainee')->count();
+                $trainersCount = User::whereIn('role', ['coach','trainer'])->count();
+                $traineesCount = User::whereIn('role', ['participant','trainee'])->count();
                 $adminsCount = User::where('role', 'admin')->count();
                 $registrarsCount = User::where('role', 'registrar')->count();
                 $archivedCoursesCount = Course::onlyTrashed()->count();
@@ -105,10 +105,10 @@ class DashboardController extends Controller
             case 'registrar':
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();
-                $pendingTraineesCount = User::where('role', 'trainee')->where('status', 'pending')->count();
+                $pendingTraineesCount = User::whereIn('role', ['participant','trainee'])->where('status', 'pending')->count();
                 $totalCourses = Course::count();
                 $courses = Course::with('users')->get();
-                $potentialParticipants = User::whereIn('role', ['trainer', 'trainee'])->where('status', 'active')->get();
+                $potentialParticipants = User::whereIn('role', ['coach','trainer', 'participant','trainee'])->where('status', 'active')->get();
                 
                 // Fetch Notifications
                 $notifications = Notification::where('user_id', $user->id)
@@ -128,7 +128,11 @@ class DashboardController extends Controller
 
                 // Filter by Role
                 if ($request->has('roles')) {
-                    $query->whereIn('role', $request->roles);
+                    $roles = $request->roles;
+                    if (in_array('trainer', $roles, true) && !in_array('coach', $roles, true)) {
+                        $roles[] = 'coach';
+                    }
+                    $query->whereIn('role', $roles);
                 }
 
                 // Filter by Status (Registrar specific: pending/active)
@@ -162,6 +166,7 @@ class DashboardController extends Controller
                     'unreadNotificationsCount',
                     'forceProfile'
                 ));
+            case 'coach':
             case 'trainer':
                 // Get courses where the trainer is assigned (assuming pivot table handles this)
                 // Also eager load materials and assessments
@@ -202,6 +207,41 @@ class DashboardController extends Controller
                     ->count();
 
                 return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
+            case 'training_manager':
+                // Reuse registrar dashboard logic for training manager
+                $unapprovedCount = User::where('status', 'pending')->count();
+                $approvedCount = User::where('status', 'active')->count();
+                $pendingTraineesCount = User::whereIn('role', ['participant','trainee'])->where('status', 'pending')->count();
+                $totalCourses = Course::count();
+                $courses = Course::with('users')->get();
+                $potentialParticipants = User::whereIn('role', ['coach','trainer', 'participant','trainee'])->where('status', 'active')->get();
+                $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
+                $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
+                $query = User::query();
+                if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
+                if ($request->has('roles')) $query->whereIn('role', $request->roles);
+                if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
+                $sort = $request->get('sort', 'newest');
+                if ($sort === 'oldest') $query->orderBy('created_at', 'asc');
+                elseif ($sort === 'alpha') $query->orderBy('name', 'asc');
+                else $query->orderBy('created_at', 'desc');
+                $users = $query->paginate(8)->appends($request->query());
+                if ($request->ajax()) {
+                    return view('registrar.partials.users-table', compact('users'))->render();
+                }
+                return view('registrar.dashboard', compact(
+                    'unapprovedCount',
+                    'approvedCount',
+                    'pendingTraineesCount',
+                    'totalCourses',
+                    'users',
+                    'courses',
+                    'potentialParticipants',
+                    'notifications',
+                    'unreadNotificationsCount',
+                    'forceProfile'
+                ));
+            case 'participant':
             case 'trainee':
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
@@ -209,7 +249,7 @@ class DashboardController extends Controller
                     ->wherePivot('status', 'active')
                     ->orderBy('courses.created_at', 'desc')
                     ->with(['users' => function($q) {
-                        $q->where('role', 'trainer');
+                        $q->whereIn('role', ['coach','trainer']);
                     }, 'materials', 'assessments.grades' => function($q) use ($user) {
                         $q->where('user_id', $user->id);
                     }])
@@ -279,7 +319,7 @@ class DashboardController extends Controller
         if ($actor && $actor->role === 'registrar') {
             // Registrars may only change role and status
             $validated = $request->validate([
-                'role' => 'required|string|in:admin,registrar,trainer,trainee',
+                'role' => 'required|string|in:admin,registrar,training_manager,coach,trainer,participant,trainee',
                 'status' => 'required|string|in:active,freeze,pending',
             ]);
             $user->update($validated);
@@ -289,7 +329,7 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|string|in:admin,registrar,trainer,trainee',
+            'role' => 'required|string|in:admin,registrar,training_manager,coach,trainer,participant,trainee',
             'status' => 'required|string|in:active,freeze,pending',
             'region' => 'nullable|string|max:255',
             'province' => 'nullable|string|max:255',
@@ -320,6 +360,91 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'User updated successfully.');
+    }
+
+    public function convertRegistrarToTrainingManager(Request $request, User $user)
+    {
+        $actor = Auth::user();
+        if (!$actor || $actor->role !== 'admin') {
+            abort(403);
+        }
+        if ($user->role !== 'registrar') {
+            return redirect()->back()->with('error_user', 'Only registrar accounts can be converted.');
+        }
+        $request->validate([
+            'confirm' => 'required|in:yes',
+        ]);
+        if ($user->status !== 'active') {
+            return redirect()->back()->with('error_user', 'User must be active to convert.');
+        }
+        if (!$user->profile_completed) {
+            return redirect()->back()->with('error_user', 'User must complete their profile before conversion.');
+        }
+        \DB::beginTransaction();
+        try {
+            $from = $user->role;
+            $user->role = 'training_manager';
+            $user->save();
+            \App\Models\RoleChangeAudit::create([
+                'user_id' => $user->id,
+                'actor_id' => $actor->id,
+                'from_role' => $from,
+                'to_role' => 'training_manager',
+                'meta_json' => json_encode(['ip' => $request->ip()]),
+            ]);
+            foreach (\App\Models\User::where('role','admin')->get() as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => 'Role Change',
+                    'message' => "{$user->name} has been converted from Registrar to Training Manager.",
+                    'type' => 'role_change',
+                    'related_id' => $user->id,
+                    'link' => route('dashboard', ['tab' => 'user-management', 'search' => $user->name]),
+                ]);
+            }
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Role Updated',
+                'message' => "Your account has been converted to Training Manager.",
+                'type' => 'role_change',
+                'related_id' => $user->id,
+                'link' => route('dashboard', ['tab' => 'user-management']),
+            ]);
+            \DB::commit();
+            return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'Registrar converted to Training Manager.');
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->back()->with('error_user', 'Conversion failed: '.$e->getMessage());
+        }
+    }
+
+    public function rollbackTrainingManager(Request $request, User $user)
+    {
+        $actor = Auth::user();
+        if (!$actor || $actor->role !== 'admin') {
+            abort(403);
+        }
+        $last = \App\Models\RoleChangeAudit::where('user_id',$user->id)->orderBy('id','desc')->first();
+        if (!$last || $last->to_role !== 'training_manager' || $last->from_role !== 'registrar') {
+            return redirect()->back()->with('error_user', 'No registrar→training_manager change found to rollback.');
+        }
+        \DB::beginTransaction();
+        try {
+            $user->role = 'registrar';
+            $user->save();
+            \App\Models\RoleChangeAudit::create([
+                'user_id' => $user->id,
+                'actor_id' => $actor->id,
+                'from_role' => 'training_manager',
+                'to_role' => 'registrar',
+                'meta_json' => json_encode(['rollback_of' => $last->id, 'ip' => $request->ip()]),
+            ]);
+            \DB::commit();
+            return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'Role rollback to Registrar completed.');
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->back()->with('error_user', 'Rollback failed: '.$e->getMessage());
+        }
     }
 
     public function updateDisplayDetails(Request $request, User $user)

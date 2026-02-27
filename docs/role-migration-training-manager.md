@@ -1,0 +1,21 @@
+# Role Transformation: Registrar -> Training Manager
+
+- Workflow:
+  - Admin-only action converts a Registrar user to Training Manager
+  - Validates prerequisites: status=active, profile_completed=true
+  - Transactional update to user role with rollback endpoint
+  - Audit log entry created in role_change_audits
+  - Notifications sent to admins and the user
+- Database:
+  - Migration: database/migrations/2026_02_27_122000_create_role_change_audits_table.php
+  - Table: role_change_audits(user_id, actor_id, from_role, to_role, meta_json, timestamps)
+- Endpoints:
+  - POST /admin/users/{user}/convert-registrar-to-training-manager
+  - POST /admin/users/{user}/rollback-training-manager
+- Validation:
+  - Requires confirm=yes, user must be active and profile completed
+- Rollback:
+  - Uses last audit entry to revert training_manager -> registrar
+- Tests:
+  - Verify role updated, audit record created, notifications emitted
+  - Verify rollback restores role and logs reversal

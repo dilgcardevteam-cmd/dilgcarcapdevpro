@@ -198,7 +198,7 @@
             @method('PUT')
             <div class="tabs">
                 <button type="button" class="tab-btn active" data-tab="trainers"><i class="fas fa-user-tie"></i> Coaches</button>
-                <button type="button" class="tab-btn" data-tab="trainees"><i class="fas fa-user-graduate"></i> Trainees</button>
+                <button type="button" class="tab-btn" data-tab="trainees"><i class="fas fa-user-graduate"></i> Participants</button>
             </div>
             <div id="tab-trainers" class="tab-panel active">
             <div class="card">
@@ -320,11 +320,11 @@
             </div>
             <div id="tab-trainees" class="tab-panel">
             <div class="card">
-                <h3><i class="fas fa-list"></i> Trainees Summary</h3>
+                <h3><i class="fas fa-list"></i> Participants Summary</h3>
                 <div class="body">
                     @php 
                         $courseTrainees = $course->users
-                            ->where('role','trainee')
+                            ->whereIn('role',['participant','trainee'])
                             ->filter(fn($u)=> in_array(optional($u->pivot)->status, ['pending','active']));
                     @endphp
                     @if($courseTrainees->count())
@@ -361,8 +361,8 @@
                 <h3><i class="fas fa-user-graduate"></i> Trainees</h3>
                 <div class="body">
                     @php
-                        $currentActiveIds = $course->users->where('role','trainee')->filter(fn($u)=>$u->pivot && $u->pivot->status==='active')->pluck('id')->toArray();
-                        $allCourseTraineeIds = $course->users->where('role','trainee')->pluck('id')->toArray();
+                        $currentActiveIds = $course->users->whereIn('role',['participant','trainee'])->filter(fn($u)=>$u->pivot && $u->pivot->status==='active')->pluck('id')->toArray();
+                        $allCourseTraineeIds = $course->users->whereIn('role',['participant','trainee'])->pluck('id')->toArray();
                         $available = $potentialTrainees->filter(fn($u)=>!in_array($u->id, $currentActiveIds));
                     @endphp
                         <div class="dual">
@@ -373,7 +373,7 @@
                                 <div class="search"><i class="fas fa-search"></i><input id="filter_available" type="text" placeholder="Find by name"></div>
                             </div>
                             <div class="shell">
-                                <div id="available_trainees" class="list" aria-label="Available trainees">
+                                <div id="available_trainees" class="list" aria-label="Available participants">
                                     @foreach($available as $user)
                                         <label class="item" data-id="{{ $user->id }}" data-name="{{ strtolower($user->name) }}">
                                             <input type="checkbox">
@@ -607,5 +607,4 @@
 </script>
 </body>
 </html>
-
 

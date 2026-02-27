@@ -515,21 +515,21 @@ class CourseController extends Controller
     public function participants(Course $course)
     {
         $course->load('users');
-        $currentCourseTraineeIds = $course->users()->where('role', 'trainee')->pluck('users.id')->toArray();
-        $potentialTrainers = User::where('role', 'trainer')
+        $currentCourseTraineeIds = $course->users()->whereIn('role', ['participant','trainee'])->pluck('users.id')->toArray();
+        $potentialTrainers = User::whereIn('role', ['coach','trainer'])
             ->where('status', 'active')
             ->get();
         // Only trainees already enrolled (pivot exists) for this course
-        $potentialTrainees = User::where('role', 'trainee')
+        $potentialTrainees = User::whereIn('role', ['participant','trainee'])
             ->whereIn('id', $currentCourseTraineeIds)
             ->get();
         // For summary, show ALL active trainers with their courses (not only assigned)
-        $assignedTrainers = User::where('role', 'trainer')
+        $assignedTrainers = User::whereIn('role', ['coach','trainer'])
             ->where('status', 'active')
             ->with('courses')
             ->get();
         // Trainees summary mirroring trainers summary
-        $assignedTrainees = User::where('role', 'trainee')
+        $assignedTrainees = User::whereIn('role', ['participant','trainee'])
             ->whereIn('id', $currentCourseTraineeIds)
             ->with('courses')
             ->get();
@@ -762,7 +762,7 @@ class CourseController extends Controller
         // We filter by the User's role 'trainer' to ensure we are managing the right subset of users
         // assuming the relationship is just users() and we distinguish by User role.
         $currentTrainerIds = $course->users()->get()->filter(function($user) {
-            return $user->role === 'trainer';
+            return in_array($user->role, ['coach','trainer']);
         })->pluck('id')->toArray();
         
         $newTrainerIds = $request->trainer_ids ?? [];
@@ -773,12 +773,12 @@ class CourseController extends Controller
         if (!empty($trainersToAttach)) {
             $course->users()->attach($trainersToAttach);
             
-            // Notify new trainers
+            // Notify new coaches
             foreach ($trainersToAttach as $trainerId) {
                 Notification::create([
                     'user_id' => $trainerId,
                     'title' => 'Course Assignment',
-                    'message' => "You have been assigned as a trainer for the course: {$course->name}.",
+                    'message' => "You have been assigned as a coach for the course: {$course->name}.",
                     'type' => 'course_assignment',
                     'related_id' => $course->id,
                     'link' => route('dashboard'), // Trainers see their courses on dashboard
@@ -791,7 +791,7 @@ class CourseController extends Controller
 
         // 2. Sync Trainees
         $currentTraineeIds = $course->users()->get()->filter(function($user) {
-            return $user->role === 'trainee';
+            return in_array($user->role, ['participant','trainee']);
         })->pluck('id')->toArray();
         
         $newTraineeIds = $request->trainee_ids ?? [];
@@ -803,12 +803,12 @@ class CourseController extends Controller
             // Attach new ones as active
             $course->users()->attach($traineesToAttach, ['status' => 'active']);
             
-            // Notify new trainees
+            // Notify new participants
             foreach ($traineesToAttach as $traineeId) {
                 Notification::create([
                     'user_id' => $traineeId,
                     'title' => 'Course Enrollment',
-                    'message' => "You have been enrolled in the course: {$course->name}.",
+                    'message' => "You have been enrolled as a participant in the course: {$course->name}.",
                     'type' => 'enrollment_approved',
                     'related_id' => $course->id,
                     'link' => route('dashboard'), // Trainees see their courses on dashboard
@@ -824,7 +824,7 @@ class CourseController extends Controller
             if ($pivot->status !== 'active') {
                 $course->users()->updateExistingPivot($id, ['status' => 'active']);
                 
-                // Notify updated trainees
+                // Notify updated participants
                 Notification::create([
                     'user_id' => $id,
                     'title' => 'Course Enrollment Approved',
@@ -854,17 +854,17 @@ class CourseController extends Controller
 
         $count = 0;
 
-        // Handle Trainer
+        // Handle Coach
         if ($request->filled('trainer_id')) {
             if (!$course->users()->where('user_id', $request->trainer_id)->exists()) {
                 $course->users()->attach($request->trainer_id);
                 $count++;
 
-                // Notify Trainer
+                // Notify Coach
                 Notification::create([
                     'user_id' => $request->trainer_id,
                     'title' => 'Course Assignment',
-                    'message' => "You have been assigned as a trainer for the course: {$course->name}.",
+                    'message' => "You have been assigned as a coach for the course: {$course->name}.",
                     'type' => 'course_assignment',
                     'related_id' => $course->id,
                     'link' => route('dashboard'),

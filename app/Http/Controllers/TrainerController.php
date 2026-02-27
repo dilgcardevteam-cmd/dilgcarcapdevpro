@@ -16,7 +16,11 @@ class TrainerController extends Controller
 {
     protected function ensureTrainer()
     {
-        if (!auth()->check() || (auth()->user()->role ?? null) !== 'trainer') {
+        if (!auth()->check()) {
+            abort(403);
+        }
+        $role = auth()->user()->role ?? null;
+        if ($role !== 'trainer' && $role !== 'coach') {
             abort(403);
         }
     }

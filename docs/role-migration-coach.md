@@ -1,0 +1,23 @@
+# Role Migration: Trainer -> Coach
+
+- Scope: Convert all users with role "trainer" to "coach"
+- Database:
+  - Migration: database/migrations/2026_02_27_121000_rename_trainer_to_coach.php
+  - Up: updates users.role from 'trainer' to 'coach'
+  - Down: reverts users.role from 'coach' to 'trainer'
+- Application updates:
+  - Controllers accept 'coach' and legacy 'trainer' during transition
+  - DashboardController: case 'coach' added; counts and filters include coach
+  - CourseController: coach considered wherever trainer was used; notifications updated
+  - TrainerController: ensures role is trainer or coach
+  - Admin/Registrar UI: role labels display “Coach”
+- Run:
+  - php artisan migrate -n --path=database/migrations/2026_02_27_121000_rename_trainer_to_coach.php
+  - php artisan migrate:rollback -n --path=database/migrations/2026_02_27_121000_rename_trainer_to_coach.php
+- Verification:
+  - Coach users can access trainer features and pages
+  - Registrar participants page shows Coaches correctly
+  - Filtering by Coach includes both coach and legacy trainer entries
+- Notes:
+  - Legacy route names under "trainer" remain for stability
+  - Mixed data supported: both 'coach' and 'trainer' recognized

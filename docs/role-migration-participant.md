@@ -1,0 +1,23 @@
+# Role Migration: Trainee -> Participant
+
+- Scope: Convert all users with role "trainee" to "participant"
+- Database:
+  - Migration: database/migrations/2026_02_27_120000_rename_trainee_to_participant.php
+  - Up: updates users.role from 'trainee' to 'participant'
+  - Down: reverts users.role from 'participant' to 'trainee'
+- Application updates:
+  - Controllers accept both 'participant' and legacy 'trainee' during transition
+  - DashboardController: case 'participant' branch added; counts include participant
+  - CourseController: participant considered wherever trainee was used
+  - Registrar participants view labels changed to "Participants"
+  - Trainee dashboard JS supports participant role
+- Run:
+  - php artisan migrate
+  - php artisan migrate:rollback (to revert)
+- Verification:
+  - Participant users can access their dashboard and enrolled courses
+  - Registrar can manage participants under Course Participants
+  - Archived/pending enrollments remain intact via course_user.status
+- Notes:
+  - Legacy routes and view names remain under "trainee" for stability
+  - Mixed data is supported: both 'participant' and 'trainee' recognized

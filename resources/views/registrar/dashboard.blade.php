@@ -720,14 +720,17 @@
             letter-spacing: 0.01em;
         }
 
-        .badge-role-admin { background: #1d4ed8; color: #ffffff; }
-        .badge-role-registrar { background: #0284c7; color: #ffffff; }
-        .badge-role-trainer { background: #16a34a; color: #ffffff; }
-        .badge-role-trainee { background: #d97706; color: #ffffff; }
+        .badge-role-admin { background: #0B2C74; color: #ffffff; }
+        .badge-role-registrar { background: #0B2C74; color: #ffffff; }
+        .badge-role-training_manager { background: #facc15; color: #111827; }
+        .badge-role-coach { background: #b91c1c; color: #ffffff; }
+        .badge-role-trainer { background: #b91c1c; color: #ffffff; }
+        .badge-role-trainee { background: #f59e0b; color: #ffffff; }
+        .badge-role-participant { background: #f59e0b; color: #ffffff; }
 
         .badge-status-active { background: #16a34a; color: #ffffff; }
         .badge-status-freeze { background: #dc2626; color: #ffffff; }
-        .badge-status-pending { background: #d97706; color: #ffffff; }
+        .badge-status-pending { background: #facc15; color: #111827; }
 
         .actions-inline {
             display: flex;
