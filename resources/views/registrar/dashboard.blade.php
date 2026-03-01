@@ -739,6 +739,34 @@
             gap: 8px;
         }
 
+        /* Overview container */
+        .insight-panel {
+            background: #ffffff;
+            border: 1px solid #e5eef7;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+        .insight-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .insight-panel-header h2 {
+            margin: 0;
+            color: #0B2C74;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -.01em;
+        }
+        .insight-panel-header span {
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
         .btn-table-action {
             display: inline-flex;
             align-items: center;
@@ -757,6 +785,17 @@
         .btn-table-action:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.6fr;
+            gap: 20px;
+        }
+        .insight-col {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
 
         .btn-action-manage { background: #e8eefb; color: #1e40af; }
@@ -1196,39 +1235,300 @@
                         </div>
                         <div class="stat-info">
                             <h3>{{ $pendingTraineesCount }}</h3>
-                            <p>Pending Trainees</p>
+                            <p>Pending Participants</p>
                         </div>
                     </div>
                 </div>
 
+                <div class="insight-panel" style="margin-top:14px">
                 @php
-                    $totalUsers = \App\Models\User::count();
-                    $distTrainers = \App\Models\User::where('role','trainer')->count();
-                    $distTrainees = \App\Models\User::where('role','trainee')->count();
-                    $distAdminRegistrar = \App\Models\User::whereIn('role',['admin','registrar'])->count();
+                    $userCount = \App\Models\User::count();
+                    $aActive = \App\Models\User::where('status','active')->count();
+                    $aPending = \App\Models\User::where('status','pending')->count();
+                    $aBlocked = \App\Models\User::where('status','freeze')->count();
+                    $cActive = \App\Models\Course::count();
+                    $cNoCoachNoPart = \App\Models\Course::whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                        ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                        ->count();
+                    $cNoCoachOnly = \App\Models\Course::whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                        ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                        ->count();
+                    $cNoParticipantOnly = \App\Models\Course::whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                        ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                        ->count();
+                    $cActiveBoth = \App\Models\Course::whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                        ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                        ->count();
                     $pct = function($n,$t){ return $t>0 ? round(($n/$t)*100) : 0; };
                 @endphp
-                <div class="dist-card" style="margin-top:14px">
-                    <div class="dist-head">
-                        <h3 class="dist-title">User Distribution</h3>
-                        <div class="dist-total">{{ $totalUsers }} total users</div>
+                <div class="insight-grid" style="margin-top:14px">
+                    <div class="insight-col">
+                        <div class="insight-panel">
+                        <div class="insight-panel-header">
+                            <h2>Recent Requests</h2>
+                            <span>Last 5</span>
+                        </div>
+                        @php $recent = isset($notifications) ? $notifications->take(5) : collect(); @endphp
+                        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
+                            @forelse($recent as $n)
+                                <li style="border:1px solid #e5e7eb;border-radius:10px;padding:10px">
+                                    <div style="font-weight:800;color:#0B2C74">{{ $n->title }}</div>
+                                    <div style="color:#64748b;font-size:.85rem;margin-top:4px">{{ $n->message }}</div>
+                                    <div style="color:#94a3b8;font-size:.78rem;margin-top:6px">{{ $n->created_at->diffForHumans() }}</div>
+                                </li>
+                            @empty
+                                <li class="muted">No recent changes</li>
+                            @endforelse
+                        </ul>
+                        </div>
+                        <div class="insight-panel">
+                        <div class="insight-panel-header">
+                            <h2>Recent Changes</h2>
+                            <span>Last 5</span>
+                        </div>
+                        @php
+                            $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
+                            $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(10)->get();
+                            $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(10)->get();
+                            $coachAssignments = \DB::table('course_user')
+                                ->join('courses','course_user.course_id','=','courses.id')
+                                ->join('users','course_user.user_id','=','users.id')
+                                ->whereIn('users.role',['coach','trainer'])
+                                ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
+                                ->orderBy('course_user.created_at','desc')
+                                ->take(5)->get();
+                            $enrollments = \DB::table('course_user')
+                                ->join('courses','course_user.course_id','=','courses.id')
+                                ->join('users','course_user.user_id','=','users.id')
+                                ->whereIn('users.role',['participant','trainee'])
+                                ->where('course_user.status','active')
+                                ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
+                                ->orderBy('course_user.created_at','desc')
+                                ->take(5)->get();
+                            $feed = collect();
+                            foreach($approvedUsers as $u){ $feed->push(['title'=>'Approved User','desc'=>$actorName.' approved <strong>'.$u->name.'</strong>','time'=>$u->updated_at]); }
+                            foreach($updatedUsers as $u){
+                                $feed->push(['title'=>'Edited User Status','desc'=>$actorName.' edited user status to <strong>'.ucfirst($u->status).'</strong> for <strong>'.$u->name.'</strong>','time'=>$u->updated_at]);
+                                $feed->push(['title'=>'Edited User Role','desc'=>$actorName.' edited user role to <strong>'.str_replace('_',' ', $u->role).'</strong> for <strong>'.$u->name.'</strong>','time'=>$u->updated_at]);
+                            }
+                            foreach($coachAssignments as $r){ $feed->push(['title'=>'Selected Coach','desc'=>$actorName.' selected coach <strong>'.$r->user_name.'</strong> for course <strong>'.$r->course_name.'</strong>','time'=>$r->at]); }
+                            foreach($enrollments as $r){ $feed->push(['title'=>'Enrolled Participant','desc'=>$actorName.' enrolled participant <strong>'.$r->user_name.'</strong> for course <strong>'.$r->course_name.'</strong>','time'=>$r->at]); }
+                            $feed = $feed->sortByDesc('time')->take(5);
+                        @endphp
+                        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
+                            @forelse($feed as $f)
+                                <li style="border:1px solid #e5e7eb;border-radius:10px;padding:10px">
+                                    <div style="font-weight:800;color:#0B2C74">{{ $f['title'] }}</div>
+                                    <div style="color:#64748b;font-size:.85rem;margin-top:4px">{!! $f['desc'] !!}</div>
+                                    <div style="color:#94a3b8;font-size:.78rem;margin-top:6px">{{ \Carbon\Carbon::parse($f['time'])->diffForHumans() }}</div>
+                                </li>
+                            @empty
+                                <li class="muted">No recent changes</li>
+                            @endforelse
+                        </ul>
+                        </div>
                     </div>
-                    <div class="dist-row">
-                        <div class="dist-label">Coaches</div>
-                        <div class="dist-bar"><div class="dist-blue" style="width: {{ $pct($distTrainers,$totalUsers) }}%"></div></div>
-                        <div class="dist-total" style="margin-top:4px">{{ $distTrainers }} ({{ $pct($distTrainers,$totalUsers) }}%)</div>
+                    <div class="insight-col"><div class="insight-panel">
+                    <div class="insight-panel-header">
+                        <h2>Accounts & Courses Overview</h2>
+                        <span>Totals</span>
                     </div>
-                    <div class="dist-row">
-                        <div class="dist-label">Trainees</div>
-                        <div class="dist-bar"><div class="dist-green" style="width: {{ $pct($distTrainees,$totalUsers) }}%"></div></div>
-                        <div class="dist-total" style="margin-top:4px">{{ $distTrainees }} ({{ $pct($distTrainees,$totalUsers) }}%)</div>
+                    @php
+                        $rAdmins = \App\Models\User::where('role','admin')->count();
+                        $rTM = \App\Models\User::where('role','training_manager')->count();
+                        $rCoaches = \App\Models\User::whereIn('role',['coach','trainer'])->count();
+                        $rParticipants = \App\Models\User::whereIn('role',['participant','trainee'])->count();
+                    @endphp
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+                        <div>
+                            <div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px">
+                                <button id="tm-tab-role" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Roles</button>
+                                <button id="tm-tab-status" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Status</button>
+                            </div>
+                            <div id="tm-accounts-role" style="display:block">
+                                <div id="tm-donut-accounts-role" style="width:220px;height:220px;margin:0 auto"></div>
+                                <div style="margin-top:10px;text-align:center">
+                                    <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Accounts</div>
+                                    <div style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $userCount }}</div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px" id="tm-legend-role">
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Admin <span id="tm-role-admin" style="color:#6b7280;margin-left:6px"></span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#0B2C74;font-weight:800">Training Manager <span id="tm-role-tm" style="color:#6b7280;margin-left:6px"></span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Coaches <span id="tm-role-coach" style="color:#6b7280;margin-left:6px"></span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b"></div><div style="color:#0B2C74;font-weight:800">Participants <span id="tm-role-part" style="color:#6b7280;margin-left:6px"></span></div>
+                                </div>
+                            </div>
+                            <div id="tm-accounts-status" style="display:none">
+                                <div id="tm-donut-accounts-status" style="width:220px;height:220px;margin:0 auto"></div>
+                                <div style="margin-top:10px;text-align:center">
+                                    <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Accounts</div>
+                                    <div style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $userCount }}</div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px" id="tm-legend-status">
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Active <span id="tm-acc-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#0B2C74;font-weight:800">Pending <span id="tm-acc-legend-pending" style="color:#6b7280;margin-left:6px"></span></div>
+                                    <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Blocked <span id="tm-acc-legend-blocked" style="color:#6b7280;margin-left:6px"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div id="tm-donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
+                            <div style="margin-top:10px;text-align:center">
+                                <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Active Courses</div>
+                                <div style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $cActive }}</div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
+                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Active <span id="tm-course-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#0B2C74;font-weight:800">Without Coach & Participants <span id="tm-course-legend-noboth" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Without Coaches <span id="tm-course-legend-nocoach" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b"></div><div style="color:#0B2C74;font-weight:800">Without Participants <span id="tm-course-legend-nopart" style="color:#6b7280;margin-left:6px"></span></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="dist-row">
-                        <div class="dist-label">Admin + Registrar</div>
-                        <div class="dist-bar"><div class="dist-orange" style="width: {{ $pct($distAdminRegistrar,$totalUsers) }}%"></div></div>
-                        <div class="dist-total" style="margin-top:4px">{{ $distAdminRegistrar }} ({{ $pct($distAdminRegistrar,$totalUsers) }}%)</div>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+                    <script>
+                        (function(){
+                          function renderArcDonut(elId, parts, colors){
+                            var el=document.getElementById(elId);
+                            if(!el){return;}
+                            var width=220, height=220, r=80, ir=48;
+                            var svg=d3.select('#'+elId).append('svg').attr('width',width).attr('height',height);
+                            var g=svg.append('g').attr('transform','translate('+width/2+','+height/2+')');
+                            var total=parts.reduce(function(a,b){return a+b;},0);
+                            var pie=d3.pie().sort(null);
+                            var arc=d3.arc().innerRadius(ir).outerRadius(r).padAngle(0.03).cornerRadius(6);
+                            var data=pie(parts);
+                            var paths=g.selectAll('path').data(data).enter().append('path')
+                              .attr('d',arc)
+                              .attr('fill',function(d,i){return colors[i];})
+                              .attr('stroke','#ffffff')
+                              .attr('stroke-width','1.2')
+                              .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
+                              .on('mouseout', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1)'); });
+                            paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', function(d){
+                              var i=d3.interpolate({startAngle:d.startAngle, endAngle:d.startAngle}, d);
+                              return function(t){ return arc(i(t)); };
+                            });
+                            g.selectAll('text').data(data).enter().append('text')
+                              .attr('transform', function(d){ return 'translate('+arc.centroid(d)+')'; })
+                              .attr('dy','.35em')
+                              .attr('text-anchor','middle')
+                              .attr('font-size','12px')
+                              .attr('fill','#0f172a')
+                              .text(function(d){ var p=total? Math.round((d.value/total)*100):0; return p>0? (p+'%'):''; });
+                          }
+                          function pct(n,t){ return t>0? Math.round((n/t)*100):0; }
+                          var aActive={{ $aActive }};
+                          var aPending={{ $aPending }};
+                          var aBlocked={{ $aBlocked }};
+                          var aTotal={{ $userCount }};
+                          var rAdmin={{ $rAdmins }};
+                          var rTM={{ $rTM }};
+                          var rCoach={{ $rCoaches }};
+                          var rPart={{ $rParticipants }};
+                          function drawRole(){
+                            var c=document.getElementById('tm-donut-accounts-role');
+                            if(c){ c.innerHTML=''; }
+                            renderArcDonut('tm-donut-accounts-role', [rAdmin,rTM,rCoach,rPart], ['#0B2C74','#FFD700','#B10606','#f59e0b']);
+                            document.getElementById('tm-role-admin').innerText = rAdmin+' · '+pct(rAdmin,aTotal)+'%';
+                            document.getElementById('tm-role-tm').innerText = rTM+' · '+pct(rTM,aTotal)+'%';
+                            document.getElementById('tm-role-coach').innerText = rCoach+' · '+pct(rCoach,aTotal)+'%';
+                            document.getElementById('tm-role-part').innerText = rPart+' · '+pct(rPart,aTotal)+'%';
+                          }
+                          function drawStatus(){
+                            var c=document.getElementById('tm-donut-accounts-status');
+                            if(c){ c.innerHTML=''; }
+                            renderArcDonut('tm-donut-accounts-status', [aActive,aPending,aBlocked], ['#0B2C74','#FFD700','#B10606']);
+                            document.getElementById('tm-acc-legend-active').innerText = aActive+' · '+pct(aActive,aTotal)+'%';
+                            document.getElementById('tm-acc-legend-pending').innerText = aPending+' · '+pct(aPending,aTotal)+'%';
+                            document.getElementById('tm-acc-legend-blocked').innerText = aBlocked+' · '+pct(aBlocked,aTotal)+'%';
+                          }
+                          // initial render: roles
+                          drawRole();
+                          var tabRole=document.getElementById('tm-tab-role');
+                          var tabStatus=document.getElementById('tm-tab-status');
+                          var roleBox=document.getElementById('tm-accounts-role');
+                          var statusBox=document.getElementById('tm-accounts-status');
+                          tabRole.addEventListener('click', function(){
+                            roleBox.style.display='block';
+                            statusBox.style.display='none';
+                            tabRole.style.background='#0B2C74';
+                            tabRole.style.color='#fff';
+                            tabStatus.style.background='#fff';
+                            tabStatus.style.color='#0B2C74';
+                            drawRole();
+                          });
+                          tabStatus.addEventListener('click', function(){
+                            roleBox.style.display='none';
+                            statusBox.style.display='block';
+                            tabStatus.style.background='#0B2C74';
+                            tabStatus.style.color='#fff';
+                            tabRole.style.background='#fff';
+                            tabRole.style.color='#0B2C74';
+                            drawStatus();
+                          });
+                          var cActive={{ $cActive }};
+                          var cNoBoth={{ $cNoCoachNoPart }};
+                          var cNoCoachOnly={{ $cNoCoachOnly }};
+                          var cNoPartOnly={{ $cNoParticipantOnly }};
+                          var cTotal = cActive;
+                          var cActiveBoth={{ $cActiveBoth }};
+                          renderArcDonut('tm-donut-courses', [cActiveBoth,cNoBoth,cNoCoachOnly,cNoPartOnly], ['#0B2C74','#FFD700','#B10606','#f59e0b']);
+                          document.getElementById('tm-course-legend-active').innerText = cActiveBoth+' · '+pct(cActiveBoth,cTotal)+'%';
+                          document.getElementById('tm-course-legend-noboth').innerText = cNoBoth+' · '+pct(cNoBoth,cTotal)+'%';
+                          document.getElementById('tm-course-legend-nocoach').innerText = cNoCoachOnly+' · '+pct(cNoCoachOnly,cTotal)+'%';
+                          document.getElementById('tm-course-legend-nopart').innerText = cNoPartOnly+' · '+pct(cNoPartOnly,cTotal)+'%';
+                        })();
+                    </script>
                     </div>
-                    <div class="dist-total" style="margin-top:8px">Use role mix to balance instructional capacity against learner demand.</div>
+                    <div class="insight-panel">
+                        <div class="insight-panel-header">
+                            <h2>Users Trend</h2>
+                            <span>Last 12 Months</span>
+                        </div>
+                        @php
+                            $monthLabels = [];
+                            $monthCounts = [];
+                            for($i=11; $i>=0; $i--){
+                                $m = \Carbon\Carbon::now()->subMonths($i);
+                                $monthLabels[] = $m->format('M');
+                                $start = $m->copy()->startOfMonth();
+                                $end = $m->copy()->endOfMonth();
+                                $monthCounts[] = \App\Models\User::whereBetween('created_at', [$start, $end])->count();
+                            }
+                        @endphp
+                        <div id="tm-line-users" style="width:100%;height:280px"></div>
+                        <script>
+                            (function(){
+                                var labels = @json($monthLabels);
+                                var data = @json($monthCounts);
+                                var elId = 'tm-line-users';
+                                var el = document.getElementById(elId);
+                                if(!el){ return; }
+                                var width = 640, height = 280, margin = {top:16,right:20,bottom:32,left:40};
+                                var svg = d3.select('#'+elId).append('svg').attr('width', width).attr('height', height);
+                                var innerW = width - margin.left - margin.right;
+                                var innerH = height - margin.top - margin.bottom;
+                                var g = svg.append('g').attr('transform','translate('+margin.left+','+margin.top+')');
+                                var x = d3.scalePoint().domain(labels).range([0, innerW]).padding(0.5);
+                                var y = d3.scaleLinear().domain([0, d3.max(data)||0]).nice().range([innerH, 0]);
+                                g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0));
+                                g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
+                                var line = d3.line().x(function(d,i){ return x(labels[i]); }).y(function(d){ return y(d); }).curve(d3.curveMonotoneX);
+                                var path = g.append('path').datum(data).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',2).attr('d', line);
+                                var totalLen = path.node().getTotalLength();
+                                path.attr('stroke-dasharray', totalLen+' '+totalLen).attr('stroke-dashoffset', totalLen)
+                                    .transition().duration(900).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0);
+                                g.selectAll('circle').data(data).enter().append('circle')
+                                    .attr('cx', function(d,i){ return x(labels[i]); })
+                                    .attr('cy', function(d){ return y(d); })
+                                    .attr('r', 3.5)
+                                    .attr('fill', '#0B2C74')
+                                    .style('opacity', 0)
+                                    .transition().delay(900).duration(250).style('opacity', 1);
+                            })();
+                        </script>
+                    </div></div>
                 </div>
             </section>
 
@@ -1260,9 +1560,9 @@
                                     <option value="">+ Add Filter</option>
                                     <optgroup label="Roles">
                                         <option value="role:admin">Admin</option>
-                                        <option value="role:registrar">Registrar</option>
-                                        <option value="role:trainer">Coach</option>
-                                        <option value="role:trainee">Trainee</option>
+                                        <option value="role:training_manager">Training Manager</option>
+                                        <option value="role:coach">Coach</option>
+                                        <option value="role:participant">Participant</option>
                                     </optgroup>
                                     <optgroup label="Status">
                                         <option value="status:active">Active</option>
@@ -1355,7 +1655,7 @@
                                         <div class="course-footer">
                                         <div class="course-counts">
                                                 <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
-                                                <span title="Trainees"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Trainee' : 'Trainees' }}</span></span>
+                                                <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                         </div>
                                             <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
                                         </div>

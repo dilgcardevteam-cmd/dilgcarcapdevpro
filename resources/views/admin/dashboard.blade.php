@@ -2852,13 +2852,17 @@
                                     var pie=d3.pie().sort(null);
                                     var arc=d3.arc().innerRadius(ir).outerRadius(r).padAngle(0.03).cornerRadius(6);
                                     var data=pie(parts);
-                                    g.selectAll('path').data(data).enter().append('path')
+                                  var paths=g.selectAll('path').data(data).enter().append('path')
                                       .attr('d',arc)
                                       .attr('fill',function(d,i){return colors[i];})
                                       .attr('stroke','#ffffff')
                                       .attr('stroke-width','1.2')
                                       .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
                                       .on('mouseout', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1)'); });
+                                  paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', function(d){
+                                    var i=d3.interpolate({startAngle:d.startAngle, endAngle:d.startAngle}, d);
+                                    return function(t){ return arc(i(t)); };
+                                  });
                                     // percentage labels on arcs
                                     g.selectAll('text').data(data).enter().append('text')
                                       .attr('transform', function(d){ return 'translate('+arc.centroid(d)+')'; })
