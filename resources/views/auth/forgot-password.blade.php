@@ -4,39 +4,93 @@
 <style>
     .auth-center{
         min-height: calc(100vh - var(--auth-header-height));
-        display:flex;align-items:center;justify-content:center;padding:20px;background:#f6f5f7;
+        display:flex;align-items:center;justify-content:center;padding:32px;background:
+            radial-gradient(1200px 500px at 10% -20%, rgba(127,183,61,.12), transparent 60%),
+            radial-gradient(900px 400px at 90% -20%, rgba(0,44,118,.14), transparent 58%),
+            #f7f8fb;
     }
     .forgot-card{
-        width:min(520px,92vw);
-        border-radius:14px;
-        background:#fff;
-        box-shadow:0 12px 26px rgba(0,44,118,.14),0 4px 10px rgba(15,23,42,.08);
-        padding:24px 18px 18px;
+        width:min(560px,92vw);
+        border-radius:18px;
+        background:linear-gradient(180deg,#ffffff,#fbfcff);
+        border:1px solid rgba(0,44,118,.08);
+        box-shadow:0 28px 60px rgba(15,23,42,.14),0 12px 24px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.7);
+        padding:26px 22px 22px;
     }
-    .forgot-card h1{margin:0 0 6px 0;color:#333;font-weight:800;letter-spacing:-.02em;text-align:center}
-    .forgot-subtitle{margin:6px 0 18px;text-align:center;color:#000000ff;font-size:.95rem}
+    .forgot-card h1{
+        margin:10px 0 2px 0;
+        text-align:center;
+        font-weight:900;
+        letter-spacing:-.02em;
+        font-size:1.6rem;
+        background:linear-gradient(90deg,#0b57d0,#7fb73d);
+        -webkit-background-clip:text;
+        background-clip:text;
+        color:transparent
+    }
+    .forgot-subtitle{margin:6px 0 18px;text-align:center;color:#334155;font-size:.98rem}
     .section-title{font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.82rem;color:#1e3a8a;text-align:center;margin:10px auto 8px}
     .field-with-icon{position:relative;display:flex;align-items:center}
     .field-with-icon .field-icon{position:absolute;left:10px;color:#64748b}
-    .field-with-icon input{width:100%;padding:12px 12px 12px 42px;border:1px solid #d4deef;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 1px 2px rgba(15,23,42,.05)}
-    .field-with-icon input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.12),0 8px 14px rgba(15,23,42,.12);outline:none}
+    .field-with-icon input{
+        width:100%;
+        padding:12px 12px 12px 42px;
+        border:1px solid #d4deef;
+        border-radius:12px;
+        background:#ffffff;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 6px rgba(15,23,42,.06);
+        transition:border-color .2s, box-shadow .2s, transform .06s;
+    }
+    .field-with-icon input:hover{transform:translateY(-1px)}
+    .field-with-icon input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.12),0 10px 20px rgba(15,23,42,.12);outline:none}
     .register-alert{background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin:0 0 12px;font-size:14px;text-align:center}
-    .register-submit{display:block;width:230px;margin:12px auto 0;background:#001a47;color:#fff;border:none;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer}
-    .register-submit:hover{background:#06235b}
+    .register-submit{
+        display:block;width:240px;margin:12px auto 0;
+        color:#fff;border:none;border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer;
+        background:linear-gradient(90deg,#001a47,#0b57d0);
+        box-shadow:0 10px 18px rgba(11,87,208,.25);
+        transition:filter .2s, transform .06s;
+    }
+    .register-submit:hover{filter:brightness(1.05);transform:translateY(-1px)}
     .back-link{display:block;text-align:center;margin-top:12px}
     .forgot-icon{width:18px;height:18px}
     .otp-boxes{display:flex;gap:10px;justify-content:center;margin:8px 0}
-    .otp-boxes input{width:44px;height:48px;text-align:center;border:1px solid #d4deef;border-radius:10px;font-size:20px}
-    .otp-boxes input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.12),0 8px 14px rgba(15,23,42,.12);outline:none}
+    .otp-boxes input{
+        width:46px;height:52px;text-align:center;border:1px solid #d4deef;border-radius:12px;font-size:22px;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 6px rgba(15,23,42,.06);
+        transition:border-color .2s, box-shadow .2s, transform .06s;
+    }
+    .otp-boxes input.filled{border-color:#7fb73d}
+    .otp-boxes input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.12),0 10px 20px rgba(15,23,42,.12);outline:none}
     .otp-countdown{text-align:center;margin-top:8px;color:#1e3a8a;font-weight:700}
+    .forgot-logo{display:flex;justify-content:center;margin-bottom:6px}
+    .forgot-logo img{height:46px}
+    .back-btn{
+        display:block;width:240px;margin:10px auto 0;background:#f1f5f9;color:#0f172a;
+        border:1px solid #e2e8f0;border-radius:999px;padding:10px 16px;font-weight:700;text-align:center;text-decoration:none;
+        transition:background .2s, transform .06s
+    }
+    .back-btn:hover{background:#e2e8f0;transform:translateY(-1px)}
+    .steps{display:flex;justify-content:center;gap:8px;margin:6px 0 4px}
+    .step{padding:6px 10px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid #e2e8f0;color:#475569;background:#f8fafc}
+    .step.active{border-color:#0b57d0;color:#0b57d0;background:#e8effd}
 </style>
 <div class="auth-center">
     <div class="forgot-card">
-        <h1>Forgot Password</h1>
+        <div class="forgot-logo">
+            <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CAPDEV PRO">
+        </div>
         @php 
             $otpEmail = session('otp_email'); 
             $verifiedEmail = session('otp_verified_email'); 
+            $activeStep = $verifiedEmail ? 3 : ($otpEmail ? 2 : 1);
         @endphp
+        <div class="steps">
+            <span class="step {{ $activeStep===1 ? 'active' : '' }}">Email</span>
+            <span class="step {{ $activeStep===2 ? 'active' : '' }}">OTP</span>
+            <span class="step {{ $activeStep===3 ? 'active' : '' }}">Password</span>
+        </div>
+        <h1>Forgot Password</h1>
         @if($verifiedEmail)
             <p class="forgot-subtitle">OTP verified. Please update your password for {{ $verifiedEmail }}.</p>
         @elseif($otpEmail)
@@ -81,6 +135,7 @@
                     <input id="email" type="email" name="email" value="{{ old('email') }}" placeholder="Email Address" required autofocus />
                 </div>
                 <button type="submit" class="register-submit">Send OTP Code</button>
+                <a href="{{ route('login') }}" class="back-btn">Back</a>
             </form>
         @else
             <div class="section-title">OTP Code</div>
@@ -110,6 +165,7 @@
                 digits.forEach(function(inp, idx){
                     inp.addEventListener('input', function(e){
                         this.value = this.value.replace(/\D/g,'').slice(0,1);
+                        if (this.value) this.classList.add('filled'); else this.classList.remove('filled');
                         if (this.value && idx < digits.length-1) digits[idx+1].focus();
                         syncHidden();
                     });
@@ -121,7 +177,7 @@
                         text = text.replace(/\D/g,'').slice(0, digits.length);
                         if (!text) return;
                         e.preventDefault();
-                        for (var i=0;i<digits.length;i++){digits[i].value = text[i] || '';}
+                        for (var i=0;i<digits.length;i++){digits[i].value = text[i] || ''; digits[i].classList.toggle('filled', !!text[i]);}
                         syncHidden();
                         var next = text.length<digits.length ? digits[text.length] : digits[digits.length-1];
                         if (next) next.focus();

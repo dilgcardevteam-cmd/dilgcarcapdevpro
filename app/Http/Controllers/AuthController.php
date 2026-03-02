@@ -349,9 +349,8 @@ class AuthController extends Controller
         Cache::put("otp:{$email}", ['code' => $otp], $expiresAt);
 
         try {
-            Mail::raw("Your CAPDEV PRO OTP code is {$otp}. It expires in 2 minutes.", function ($message) use ($email) {
-                $message->to($email)
-                        ->subject('CAPDEV PRO Password Reset OTP');
+            Mail::send('emails.password_reset_otp', ['code' => $otp, 'minutes' => 2], function ($message) use ($email) {
+                $message->to($email)->subject('CAPDEV PRO Password Reset OTP');
             });
         } catch (\Exception $e) {
             return back()->withErrors(['email' => 'Failed to send OTP email. Please try again later.'])->withInput();
@@ -396,9 +395,8 @@ class AuthController extends Controller
         $expiresAt = now()->addSeconds($expirySeconds);
         Cache::put("otp:{$email}", ['code' => $otp], $expiresAt);
         try {
-            Mail::raw("Your CAPDEV PRO OTP code is {$otp}. It expires in 2 minutes.", function ($message) use ($email) {
-                $message->to($email)
-                        ->subject('CAPDEV PRO Password Reset OTP');
+            Mail::send('emails.password_reset_otp', ['code' => $otp, 'minutes' => 2], function ($message) use ($email) {
+                $message->to($email)->subject('CAPDEV PRO Password Reset OTP');
             });
         } catch (\Exception $e) {
             return back()->withErrors(['email' => 'Failed to send OTP email. Please try again later.'])->with('otp_email', $email);
