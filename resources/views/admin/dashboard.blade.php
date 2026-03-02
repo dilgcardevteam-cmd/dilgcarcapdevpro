@@ -48,6 +48,7 @@
             height: var(--header-height);
             box-sizing: border-box;
             z-index: 1000;
+            margin-left: var(--sidebar-width);
         }
 
         .header-left {
@@ -55,14 +56,9 @@
             align-items: center;
         }
 
-        .header-logo {
-            height: 50px;
-            margin-right: 20px;
-        }
-
-        .header-title img {
-            height: 50px;
-        }
+        .header-toggle{background:none;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--primary-blue);display:inline-flex;align-items:center;gap:8px}
+        .header-toggle:hover{background:#f8fafc}
+        .header-section-title{margin-left:12px;font-weight:700;color:var(--primary-blue);font-size:1.2rem;letter-spacing:-.01em}
 
         .header-right {
             display: flex;
@@ -122,6 +118,7 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            margin-left: var(--sidebar-width);
         }
 
         /* Sidebar Styles */
@@ -133,13 +130,25 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
             z-index: 40;
         }
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
         }
+
+        .header, .dashboard-container{transition:margin-left .3s ease}
+        body.sidebar-collapsed .header{margin-left:var(--sidebar-collapsed-width)}
+        body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed-width)}
+
+        .sidebar .header-title{display:flex;align-items:center;justify-content:center;padding:12px 0}
+        .sidebar .header-title img{display:block;height:60px}
+        .sidebar.collapsed .header-title{padding:12px 0}
+        .sidebar.collapsed .header-title img{height:40px;margin:0 auto}
 
         .sidebar-toggle {
             padding: 15px;
@@ -2535,10 +2544,8 @@
     <!-- Navbar -->
     <header class="header">
         <div class="header-left">
-            
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
+            <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div id="header-section-title" class="header-section-title">Dashboard</div>
         </div>
         <div class="header-right">
             <div class="profile-menu">
@@ -2579,8 +2586,8 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
+            <div class="header-title">
+                <img id="sidebarLogo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 <li class="menu-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
@@ -2956,10 +2963,6 @@
             <section id="user-management" class="content-section {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
                     <div class="user-management-header">
-                        <div>
-                            <h1 class="welcome-title" style="margin-bottom: 0; font-weight: 700;">User Management</h1>
-                            <p class="user-management-subtitle">Review accounts and manage user access.</p>
-                        </div>
                     </div>
                     
                     @if(session('success_user'))
@@ -3035,8 +3038,7 @@
 
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1 class="welcome-title" style="margin: 0;">Course <strong>Management</strong></h1>
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="courseSearchInput" placeholder="Search courses..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
                         <button onclick="navigateToSection('archived-courses')" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
@@ -3298,7 +3300,7 @@
             <!-- Certification Management Section -->
             <section id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1 class="welcome-title" style="margin: 0;">Certification <strong>Management</strong></h1>
+                    <h2 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px; margin:0;">Certificates</h2>
                     <button onclick="openAddCertificationModal()" style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
                         <i class="fas fa-plus"></i> Add Certification
                     </button>
@@ -3316,7 +3318,6 @@
                 @endif
 
                 <!-- Certifications List -->
-                <h2 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px;">Certificates</h2>
                 @if($certifications->isEmpty())
                     <div class="placeholder-content">
                         <p>No Certifications Added Yet</p>
@@ -4974,6 +4975,12 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapsed');
+            const LOGO_MAIN = "{{ asset('images/capdev_pro_w-removebg-preview.png') }}";
+            const LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+            const sidebarLogo = document.getElementById('sidebarLogo');
+            const collapsed = document.body.classList.contains('sidebar-collapsed');
+            if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
         }
 
         function showContent(sectionId, element) {
@@ -5003,7 +5010,35 @@
                 url.searchParams.set('tab', sectionId);
             }
             window.history.pushState({}, '', url.toString());
+
+            const titles = {
+                'dashboard-home': 'Dashboard',
+                'user-management': 'User Management',
+                'course-management': 'Course Management',
+                'certification-management': 'Certifications'
+            };
+            const sidebarTitleEl = document.getElementById('sidebar-section-title');
+            if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
+            const headerTitleEl = document.getElementById('header-section-title');
+            if(headerTitleEl){ headerTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
         }
+        
+        document.addEventListener('DOMContentLoaded', function(){
+            const active = document.querySelector('.content-section.active');
+            if(active){
+                const id = active.id;
+                const titles = {
+                    'dashboard-home': 'Dashboard',
+                    'user-management': 'User Management',
+                    'course-management': 'Course Management',
+                    'certification-management': 'Certifications'
+                };
+                const headerTitleEl = document.getElementById('header-section-title');
+                if(headerTitleEl){ headerTitleEl.textContent = titles[id] || 'Dashboard'; }
+                const sidebarTitleEl = document.getElementById('sidebar-section-title');
+                if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[id] || 'Dashboard'; }
+            }
+        });
 
         // Helper function to navigate to a section by ID
         function navigateToSection(sectionId) {
