@@ -1725,7 +1725,8 @@
                                     <label for="profile_picture_input" style="cursor: pointer; color: var(--primary-blue); font-size: 0.9rem; font-weight: 500;">
                                         <i class="fas fa-camera"></i> Change Photo
                                     </label>
-                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="previewProfileImage(this)" style="display: none;">
+                                    <input type="hidden" name="profile_picture_cropped" id="profile_picture_cropped">
+                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="openCropperFromInput(this)" style="display: none;">
                                 </div>
                             </div>
                             <div>
@@ -1922,22 +1923,48 @@
             window.location.reload();
         }
 
-        function previewProfileImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    var preview = document.getElementById('profile_preview');
-                    var initials = document.getElementById('profile_initials');
-                    
-                    if (initials) initials.style.display = 'none';
-                    
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
-                
-                reader.readAsDataURL(input.files[0]);
-            }
+        var cropState = { imgEl:null, scale:1, posX:0, posY:0, dragging:false, startX:0, startY:0 };
+        function openCropperFromInput(input){
+            if(!(input.files&&input.files[0])) return;
+            var reader=new FileReader();
+            reader.onload=function(e){
+                var modal=document.getElementById('cropModal');
+                var img=document.getElementById('cropImg');
+                img.src=e.target.result;
+                cropState.imgEl=img; cropState.scale=1; cropState.posX=0; cropState.posY=0; document.getElementById('cropZoom').value=1;
+                applyTransform();
+                modal.style.display='flex';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+        function applyTransform(){
+            var img=cropState.imgEl; if(!img) return;
+            img.style.transform='translate('+cropState.posX+'px,'+cropState.posY+'px) scale('+cropState.scale+')';
+        }
+        function cropStartDrag(ev){ cropState.dragging=true; cropState.startX=ev.clientX; cropState.startY=ev.clientY; ev.preventDefault(); }
+        function cropDrag(ev){ if(!cropState.dragging) return; cropState.posX+=ev.clientX-cropState.startX; cropState.posY+=ev.clientY-cropState.startY; cropState.startX=ev.clientX; cropState.startY=ev.clientY; applyTransform(); }
+        function cropEndDrag(){ cropState.dragging=false; }
+        function cropZoomChange(v){ cropState.scale=parseFloat(v); applyTransform(); }
+        function closeCropper(){ document.getElementById('cropModal').style.display='none'; }
+        function applyCrop(){
+            var img=cropState.imgEl; if(!img) return;
+            var rect=document.getElementById('cropViewport').getBoundingClientRect();
+            var c=document.createElement('canvas'); c.width=rect.width; c.height=rect.height; var ctx=c.getContext('2d');
+            var src=new Image();
+            src.onload=function(){
+                var scale=cropState.scale;
+                var dx=cropState.posX+(src.width*scale-rect.width)/2;
+                var dy=cropState.posY+(src.height*scale-rect.height)/2;
+                ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
+                ctx.drawImage(src,-dx,-dy,src.width*scale,src.height*scale);
+                var dataUrl=c.toDataURL('image/jpeg',0.92);
+                document.getElementById('profile_picture_cropped').value=dataUrl;
+                var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
+                pv.src=dataUrl; pv.style.display='block';
+                try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
+                closeCropper();
+            };
+            src.src=img.src;
         }
 
         function toggleSidebar() {
@@ -1967,6 +1994,23 @@
             }
             updateHeaderTitle(id);
         }
+
+        (function(){
+            var modal=document.createElement('div');
+            modal.id='cropModal';
+            modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:2000';
+            modal.innerHTML='<div style="background:#fff;border-radius:12px;width:420px;max-width:95vw;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.2)">\
+            <div style="font-weight:700;margin-bottom:8px">Crop Photo</div>\
+            <div id="cropViewport" onmousedown="cropStartDrag(event)" onmousemove="cropDrag(event)" onmouseup="cropEndDrag()" onmouseleave="cropEndDrag()" style="width:320px;height:320px;margin:0 auto;border-radius:8px;overflow:hidden;background:#f3f4f6;position:relative">\
+                <img id="cropImg" src="" style="position:absolute;top:50%;left:50%;transform:translate(0,0) scale(1);transform-origin:center center;user-select:none;pointer-events:none;">\
+            </div>\
+            <div style="display:flex;align-items:center;gap:12px;margin-top:10px">\
+                <input id="cropZoom" type="range" min="0.5" max="3" step="0.01" value="1" oninput="cropZoomChange(this.value)" style="flex:1">\
+                <button type="button" class="btn-view" onclick="closeCropper()">Cancel</button>\
+                <button type="button" class="btn-view" style="background:#16a34a;border-color:#16a34a" onclick="applyCrop()">Apply</button>\
+            </div></div>';
+            document.addEventListener('DOMContentLoaded',function(){ document.body.appendChild(modal); });
+        })();
 
         function openCourseDetails(courseId) {
             const course = myCourses.find(c => c.id === courseId);

@@ -1703,7 +1703,8 @@
                                 <span>{{ Auth::user()->email }}</span>
                             </div>
                             <div id="profile_upload_container" style="margin-top:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
-                                <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="previewProfileImage(this)">
+                                <input type="hidden" name="profile_picture_cropped" id="profile_picture_cropped">
+                                <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="openCropperFromInput(this)">
                                 <span style="color:#64748b;font-size:.8rem;display:block">PNG or JPG, square crop works best.</span>
                             </div>
                         </div>
@@ -2038,21 +2039,45 @@
         location.reload(); 
     }
 
-    function previewProfileImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const imgPreview = document.getElementById('profile_preview');
-                const initialDiv = document.getElementById('profile_initials');
-                
-                if (initialDiv) initialDiv.style.display = 'none';
-                imgPreview.style.display = 'block';
-                imgPreview.src = e.target.result;
-            }
-            
-            reader.readAsDataURL(input.files[0]);
-        }
+    var cropState = { imgEl:null, scale:1, posX:0, posY:0, dragging:false, startX:0, startY:0 };
+    function openCropperFromInput(input){
+        if(!(input.files&&input.files[0])) return;
+        var reader=new FileReader();
+        reader.onload=function(e){
+            var modal=document.getElementById('cropModal');
+            var img=document.getElementById('cropImg');
+            img.src=e.target.result;
+            cropState.imgEl=img; cropState.scale=1; cropState.posX=0; cropState.posY=0; document.getElementById('cropZoom').value=1;
+            applyTransform();
+            modal.style.display='flex';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+    function applyTransform(){ var img=cropState.imgEl; if(!img) return; img.style.transform='translate('+cropState.posX+'px,'+cropState.posY+'px) scale('+cropState.scale+')'; }
+    function cropStartDrag(ev){ cropState.dragging=true; cropState.startX=ev.clientX; cropState.startY=ev.clientY; ev.preventDefault(); }
+    function cropDrag(ev){ if(!cropState.dragging) return; cropState.posX+=ev.clientX-cropState.startX; cropState.posY+=ev.clientY-cropState.startY; cropState.startX=ev.clientX; cropState.startY=ev.clientY; applyTransform(); }
+    function cropEndDrag(){ cropState.dragging=false; }
+    function cropZoomChange(v){ cropState.scale=parseFloat(v); applyTransform(); }
+    function closeCropper(){ document.getElementById('cropModal').style.display='none'; }
+    function applyCrop(){
+        var img=cropState.imgEl; if(!img) return;
+        var rect=document.getElementById('cropViewport').getBoundingClientRect();
+        var c=document.createElement('canvas'); c.width=rect.width; c.height=rect.height; var ctx=c.getContext('2d');
+        var src=new Image();
+        src.onload=function(){
+            var scale=cropState.scale;
+            var dx=cropState.posX+(src.width*scale-rect.width)/2;
+            var dy=cropState.posY+(src.height*scale-rect.height)/2;
+            ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
+            ctx.drawImage(src,-dx,-dy,src.width*scale,src.height*scale);
+            var dataUrl=c.toDataURL('image/jpeg',0.92);
+            document.getElementById('profile_picture_cropped').value=dataUrl;
+            var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
+            pv.src=dataUrl; pv.style.display='block';
+            try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
+            closeCropper();
+        };
+        src.src=img.src;
     }
     
     // Admin-like filtering logic (AJAX)

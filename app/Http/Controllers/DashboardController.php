@@ -14,6 +14,7 @@ use App\Models\CalendarEvent;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -498,9 +499,23 @@ class DashboardController extends Controller
             'barangay' => 'nullable|string',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'password' => 'nullable|confirmed|min:8',
+            'profile_picture_cropped' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('profile_picture')) {
+        if ($request->filled('profile_picture_cropped')) {
+            $data = $request->input('profile_picture_cropped');
+            if (preg_match('/^data:image\\/(png|jpeg);base64,/', $data, $m)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $bin = base64_decode($data);
+                $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
+                if ($user->profile_picture) {
+                    Storage::disk('public')->delete($user->profile_picture);
+                }
+                $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
+                Storage::disk('public')->put($path, $bin);
+                $user->profile_picture = $path;
+            }
+        } elseif ($request->hasFile('profile_picture')) {
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
@@ -568,9 +583,23 @@ class DashboardController extends Controller
             'city' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
+            'profile_picture_cropped' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('profile_picture')) {
+        if ($request->filled('profile_picture_cropped')) {
+            $data = $request->input('profile_picture_cropped');
+            if ($user->profile_picture) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
+            }
+            if (preg_match('/^data:image\\/(png|jpeg);base64,/', $data, $m)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $bin = base64_decode($data);
+                $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
+                $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $bin);
+                $user->profile_picture = $path;
+            }
+        } elseif ($request->hasFile('profile_picture')) {
             if ($user->profile_picture) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
             }
