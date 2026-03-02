@@ -544,6 +544,11 @@ class DashboardController extends Controller
         return view('profile.setup', compact('notifications'));
     }
 
+    public function publicProfile(User $user)
+    {
+        return view('profile.public', compact('user'));
+    }
+
     public function storeProfileSetup(Request $request)
     {
         $user = Auth::user();

@@ -79,7 +79,7 @@
     @endphp
     <div class="app-side" aria-label="Sidebar">
         <div class="app-side-header">
-            <div class="app-initial">{{ mb_substr(auth()->user()->name ?? 'U',0,1) }}</div>
+            <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover">
             <div style="font-weight:700">{{ auth()->user()->name ?? 'User' }}</div>
         </div>
         <a href="{{ $baseUrl }}?tab=stream"><i class="fas fa-rss"></i> <span>Stream</span></a>
@@ -102,7 +102,10 @@
         </div>
         <div class="card" style="margin-bottom:12px;">
             <div class="topic-title">{{ $discussion->title }}</div>
-            <div class="topic-meta">{{ \Carbon\Carbon::parse($discussion->created_at)->format('M j, g:i A') }} by {{ $discussion->user->name ?? 'User' }}</div>
+            <div class="topic-meta">
+                {{ \Carbon\Carbon::parse($discussion->created_at)->format('M j, g:i A') }} by
+                <a href="{{ route('users.profile', $discussion->user) }}" style="color:#0f3b8f;text-decoration:none">{{ $discussion->user->name ?? 'User' }}</a>
+            </div>
             @php $isUrlBody = filter_var(($discussion->body ?? ''), FILTER_VALIDATE_URL); @endphp
             <div style="margin-top:8px;white-space:pre-wrap">
                 @if($isUrlBody)
@@ -129,14 +132,14 @@
                     foreach($items as $r){
                         if(method_exists($r,'trashed') && $r->trashed()){ continue; }
                         $n = $r->user->name ?? 'User';
-                        $init = strtoupper(mb_substr($n,0,1));
+                        $avatar = $r->user ? $r->user->avatar_url : asset('images/user.png');
                         $likes = ($r->reactions ?? collect())->where('type','like')->count();
                         $dislikes = ($r->reactions ?? collect())->where('type','dislike')->count();
                         $canDelete = auth()->check() && (auth()->id() === ($r->user_id ?? 0));
                         echo '<div class="cm">';
-                        echo '<div class="cm-avatar">'.$init.'</div>';
+                        echo '<img class="cm-avatar" src="'.e($avatar).'" alt="Avatar" onerror="this.onerror=null;this.src=\''.asset('images/user.png').'\'">';
                         echo '<div class="cm-body">';
-                        echo '<div class="cm-head"><div class="cm-name">'.e($n).'</div><div class="cm-time">'.e(\Carbon\Carbon::parse($r->created_at)->diffForHumans()).'</div></div>';
+                        echo '<div class="cm-head"><div class="cm-name"><a href="'.route('users.profile', $r->user).'">'.e($n).'</a></div><div class="cm-time">'.e(\Carbon\Carbon::parse($r->created_at)->diffForHumans()).'</div></div>';
                         echo '<div class="cm-text">'.e($r->body).'</div>';
                         echo '<div class="cm-actions">';
                         echo '<button type="button" class="chip-action" onclick="reactReply('.$r->id.',\'like\',\'lk'.$r->id.'\',\'dk'.$r->id.'\')"><i class="fas fa-thumbs-up"></i> <span id="lk'.$r->id.'">'.$likes.'</span></button>';

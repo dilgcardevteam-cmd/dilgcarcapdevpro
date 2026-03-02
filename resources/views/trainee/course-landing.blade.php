@@ -1203,12 +1203,13 @@
                         <div class="forum-card" id="disc-card-{{ $d->id }}" style="display:block; position:relative; cursor:pointer" data-disc-id="{{ $d->id }}" data-href="{{ route('discussions.show', ['discussion'=>$d]) }}">
                             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
                                 <div style="display:flex;align-items:flex-start;gap:12px">
-                                    @php $n = $d->user->name ?? 'User'; $init = strtoupper(mb_substr($n,0,1)); @endphp
-                                    <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;color:#0f3b8f;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 36px">{{ $init }}</div>
+                                    @php $poster = $d->user; $n = $poster->name ?? 'User'; @endphp
+                                    <img src="{{ $poster?->avatar_url }}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex:0 0 36px" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
                                     <div>
                                         <div class="forum-title" style="margin-bottom:4px">{{ $d->title }}</div>
                                         <div class="forum-meta">
-                                            {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }} by {{ $d->user->name ?? 'User' }}
+                                            {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }} by
+                                            <a href="{{ route('users.profile', $poster) }}" style="color:#0f3b8f;text-decoration:none">{{ $n }}</a>
                                             • {{ $d->replies_count ?? ($d->replies->count() ?? 0) }} comments
                                         </div>
                                     </div>
