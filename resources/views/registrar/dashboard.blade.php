@@ -1594,9 +1594,6 @@
                         <div id="hiddenFilterInputs">
                             <input type="checkbox" name="roles[]" value="admin" class="filter-checkbox" {{ in_array('admin', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="registrar" class="filter-checkbox" {{ in_array('registrar', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="training_manager" class="filter-checkbox" {{ in_array('training_manager', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="coach" class="filter-checkbox" {{ in_array('coach', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="participant" class="filter-checkbox" {{ in_array('participant', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="trainer" class="filter-checkbox" {{ in_array('trainer', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="trainee" class="filter-checkbox" {{ in_array('trainee', request('roles', [])) ? 'checked' : '' }} hidden>
 
@@ -1614,7 +1611,7 @@
 
             <!-- Training Management Section -->
             <section id="trainer-trainee-management" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
-                <div id="tmPanel" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <i class="fas fa-chalkboard-teacher" style="color:#002C76;"></i>
@@ -1622,14 +1619,13 @@
                         </div>
                         <span style="color:#6b7280;">Total: {{ isset($courses) ? $courses->count() : 0 }}</span>
                     </div>
-                    <div id="tmCoursesContainer">
-                        @if(!isset($courses) || $courses->isEmpty())
-                            <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;">
-                                There are no courses found.
-                            </div>
-                        @else
-                            <div class="course-grid">
-                                @foreach($courses as $course)
+                    @if(!isset($courses) || $courses->isEmpty())
+                        <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;">
+                            There are no courses found.
+                        </div>
+                    @else
+                        <div class="course-grid">
+                            @foreach($courses as $course)
                                 @php
                                     $trainerCount = $course->users ? $course->users->where('role','trainer')->count() : 0;
                                     $traineeCount = $course->users ? $course->users->where('role','trainee')->count() : 0;
@@ -1665,10 +1661,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -1681,7 +1676,6 @@
                             <p style="margin:6px 0 0;color:#6b7280;font-size:.95rem">Keep your account information current and review your access details in one place.</p>
                         </div>
                         <div>
-                            <a href="{{ url()->previous() }}" style="border:1px solid #e2e8f0;border-radius:999px;padding:10px 18px;font-weight:600;background:#fff;color:#111827;text-decoration:none;display:inline-flex;align-items:center;gap:8px" onclick="event.preventDefault(); window.history.back();"><i class="fas fa-arrow-left"></i> Back</a>
                             <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" style="border:1px solid #fed7aa;border-radius:999px;padding:10px 18px;font-weight:600;background:#fff7ed;color:#9a3412">Edit Profile</button>
                             <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" style="display:none;border:1px solid #e2e8f0;border-radius:999px;padding:10px 18px;font-weight:600;background:#f1f5f9;color:#475569">Cancel</button>
                             <button type="submit" form="profileForm" id="btnSaveProfile" style="display:none;border:1px solid transparent;border-radius:999px;padding:10px 18px;font-weight:600;background:var(--primary-green);color:#fff">Save Changes</button>
@@ -2201,17 +2195,11 @@
         checkboxes.forEach(cb => {
             const type = cb.name === 'roles[]' ? 'role' : 'status';
             const val = cb.value;
-            let label;
-            if (val === 'freeze') {
-                label = 'Blocked';
-            } else if (val === 'trainer' || val === 'coach') {
-                label = 'Coach';
-            } else if (val === 'training_manager') {
-                label = 'Training Manager';
-            } else {
-                // Capitalize first letter and replace underscores with spaces
-                label = val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            }
+            const label = val === 'freeze'
+                ? 'Blocked'
+                : val === 'trainer'
+                    ? 'Coach'
+                : val.charAt(0).toUpperCase() + val.slice(1);
             const chip = document.createElement('div');
             chip.className = 'active-filter-chip';
             chip.innerHTML = `
@@ -2320,57 +2308,6 @@
             alert('Please complete your profile to continue.');
         }
     });
-    // Inline navigation for Training Management "View Course"
-    (function(){
-        const tmSection = document.getElementById('trainer-trainee-management');
-        const container = document.getElementById('tmCoursesContainer');
-        let originalHTML = container ? container.innerHTML : '';
-        function attachTMHandlers(){
-            const back = container.querySelector('.tm-back');
-            if(back){
-                back.addEventListener('click', function(ev){
-                    ev.preventDefault();
-                    container.innerHTML = originalHTML;
-                    bindViewLinks();
-                });
-            }
-            initTMPartial();
-        }
-        function initTMPartial(){
-            const btns = container.querySelectorAll('.tab-btn');
-            const panels = container.querySelectorAll('.tab-panel');
-            if(!btns.length || !panels.length) return;
-            btns.forEach(btn=>{
-                btn.addEventListener('click', ()=>{
-                    btns.forEach(b=>b.classList.remove('active'));
-                    panels.forEach(p=>p.classList.remove('active'));
-                    btn.classList.add('active');
-                    const id = 'tab-' + btn.dataset.tab;
-                    const panel = container.querySelector('#'+id);
-                    if(panel) panel.classList.add('active');
-                });
-            });
-        }
-        function bindViewLinks(){
-            tmSection.querySelectorAll('a.btn-view').forEach(a=>{
-                a.addEventListener('click', function(ev){
-                    ev.preventDefault();
-                    const url = this.href;
-                    originalHTML = container.innerHTML;
-                    container.style.opacity = '0.5';
-                    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                        .then(r=>r.text())
-                        .then(html=>{
-                            container.innerHTML = html;
-                            container.style.opacity = '1';
-                            attachTMHandlers();
-                        })
-                        .catch(()=>{ container.style.opacity='1'; });
-                });
-            });
-        }
-        if(tmSection && container){ bindViewLinks(); }
-    })();
     function toggleProfileMenu(e){
         e.stopPropagation();
         var d=document.getElementById('profileDropdown');

@@ -1381,9 +1381,6 @@
                     @method('PUT')
                     <div class="profile-page">
                         <div class="profile-page-header">
-                            <a href="{{ url()->previous() }}" class="profile-page-btn" style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111827;text-decoration:none" onclick="event.preventDefault(); window.history.back();">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </a>
                             <div>
                                 <h1 class="profile-page-title">My Profile</h1>
                                 <p class="profile-page-subtitle">Keep your account information current and review your access details in one place.</p>

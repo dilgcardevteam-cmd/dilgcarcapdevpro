@@ -130,11 +130,9 @@ class DashboardController extends Controller
                 // Filter by Role
                 if ($request->has('roles')) {
                     $roles = $request->roles;
-                    // Ensure synonymous roles are included for comprehensive filtering
-                    if (in_array('trainer', $roles, true) && !in_array('coach', $roles, true)) $roles[] = 'coach';
-                    if (in_array('coach', $roles, true) && !in_array('trainer', $roles, true)) $roles[] = 'trainer';
-                    if (in_array('participant', $roles, true) && !in_array('trainee', $roles, true)) $roles[] = 'trainee';
-                    if (in_array('trainee', $roles, true) && !in_array('participant', $roles, true)) $roles[] = 'participant';
+                    if (in_array('trainer', $roles, true) && !in_array('coach', $roles, true)) {
+                        $roles[] = 'coach';
+                    }
                     $query->whereIn('role', $roles);
                 }
 
@@ -222,14 +220,7 @@ class DashboardController extends Controller
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
                 $query = User::query();
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
-                if ($request->has('roles')) {
-                    $roles = $request->roles;
-                    if (in_array('trainer', $roles, true) && !in_array('coach', $roles, true)) $roles[] = 'coach';
-                    if (in_array('coach', $roles, true) && !in_array('trainer', $roles, true)) $roles[] = 'trainer';
-                    if (in_array('participant', $roles, true) && !in_array('trainee', $roles, true)) $roles[] = 'trainee';
-                    if (in_array('trainee', $roles, true) && !in_array('participant', $roles, true)) $roles[] = 'participant';
-                    $query->whereIn('role', $roles);
-                }
+                if ($request->has('roles')) $query->whereIn('role', $request->roles);
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
                 if ($sort === 'oldest') $query->orderBy('created_at', 'asc');

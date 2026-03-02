@@ -3041,6 +3041,9 @@
                 <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="courseSearchInput" placeholder="Search courses..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+                        <button onclick="navigateToSection('archived-courses')" style="background-color: #000080; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                            <i class="fas fa-box-archive"></i> Archived Courses
+                        </button>
                     </div>
                 </div>
 

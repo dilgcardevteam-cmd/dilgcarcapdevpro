@@ -1704,9 +1704,6 @@
             <div id="profile-section" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">My Profile</h2>
-                    <a href="{{ url()->previous() }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111827;text-decoration:none" onclick="event.preventDefault(); window.history.back();">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </a>
                 </div>
                 <div style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;">
                     <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
