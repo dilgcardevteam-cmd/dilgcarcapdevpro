@@ -72,16 +72,21 @@
             <a href="{{ $backUrl }}" class="back-link">Back to Classroom <i class="fas fa-arrow-right"></i></a>
         </div>
     </div>
+    @php
+        $baseUrl = ($ctx === 'trainer' || $isTrainer)
+            ? route('trainer.courses.enter', $discussion->course)
+            : route('trainee.courses.show', $discussion->course);
+    @endphp
     <div class="app-side" aria-label="Sidebar">
         <div class="app-side-header">
             <div class="app-initial">{{ mb_substr(auth()->user()->name ?? 'U',0,1) }}</div>
             <div style="font-weight:700">{{ auth()->user()->name ?? 'User' }}</div>
         </div>
-        <a href="{{ route('trainee.courses.show', $discussion->course) }}?tab=stream"><i class="fas fa-rss"></i> <span>Stream</span></a>
-        <a href="{{ route('trainee.courses.show', $discussion->course) }}?tab=classwork"><i class="fas fa-tasks"></i> <span>Classwork</span></a>
-        <a href="{{ route('trainee.courses.show', $discussion->course) }}?tab=forum"><i class="fas fa-comments"></i> <span>Forum</span></a>
-        <a href="{{ route('trainee.courses.show', $discussion->course) }}?tab=people"><i class="fas fa-users"></i> <span>People</span></a>
-        <a href="{{ route('trainee.courses.show', $discussion->course) }}?tab=grades"><i class="fas fa-clipboard-check"></i> <span>Grades</span></a>
+        <a href="{{ $baseUrl }}?tab=stream"><i class="fas fa-rss"></i> <span>Stream</span></a>
+        <a href="{{ $baseUrl }}?tab=classwork"><i class="fas fa-tasks"></i> <span>Classwork</span></a>
+        <a href="{{ $baseUrl }}?tab=forum"><i class="fas fa-comments"></i> <span>Forum</span></a>
+        <a href="{{ $baseUrl }}?tab=people"><i class="fas fa-users"></i> <span>People</span></a>
+        <a href="{{ $baseUrl }}?tab=grades"><i class="fas fa-clipboard-check"></i> <span>Grades</span></a>
     </div>
     <div class="with-app-side">
     <div class="page">

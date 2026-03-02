@@ -104,7 +104,12 @@
             <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
-            <a href="{{ route('trainee.courses.show', $course) }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
+            @php
+                $role = auth()->user()->role ?? null;
+                $isCoach = in_array($role, ['trainer','coach'], true);
+                $backUrl = $isCoach ? route('trainer.courses.enter', $course) : route('trainee.courses.show', $course);
+            @endphp
+            <a href="{{ $backUrl }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
         </div>
     </header>
     

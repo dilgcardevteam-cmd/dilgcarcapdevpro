@@ -351,6 +351,9 @@ class CourseController extends Controller
 
     public function traineeShow(Course $course)
     {
+        if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
+            return redirect()->route('trainer.courses.enter', $course);
+        }
         $course->load(['users', 'materials', 'assessments']);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
@@ -485,6 +488,9 @@ class CourseController extends Controller
     }
     public function traineeOutline(Course $course)
     {
+        if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
+            return redirect()->route('trainer.courses.view', $course);
+        }
         $course->load(['users', 'materials', 'assessments']);
         $status = null;
         if (auth()->check()) {

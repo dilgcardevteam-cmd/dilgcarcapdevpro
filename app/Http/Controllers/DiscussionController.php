@@ -160,14 +160,16 @@ class DiscussionController extends Controller
             abort(403);
         }
         $reply->delete();
-        DeletionAudit::create([
-            'course_id' => optional($reply->discussion)->course_id,
-            'actor_id' => $user->id,
-            'entity_type' => 'reply',
-            'entity_id' => $reply->id,
-            'action' => 'soft_delete',
-            'meta_json' => null,
-        ]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('deletion_audits')) {
+            DeletionAudit::create([
+                'course_id' => optional($reply->discussion)->course_id,
+                'actor_id' => $user->id,
+                'entity_type' => 'reply',
+                'entity_id' => $reply->id,
+                'action' => 'soft_delete',
+                'meta_json' => null,
+            ]);
+        }
         if ($request->wantsJson()) {
             return response()->json(['ok'=>true]);
         }
@@ -185,14 +187,16 @@ class DiscussionController extends Controller
         }
         // Soft delete only; keep media so the entry can remain visible in forum
         $discussion->delete();
-        DeletionAudit::create([
-            'course_id' => $discussion->course_id,
-            'actor_id' => $user->id,
-            'entity_type' => 'discussion',
-            'entity_id' => $discussion->id,
-            'action' => 'soft_delete',
-            'meta_json' => null,
-        ]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('deletion_audits')) {
+            DeletionAudit::create([
+                'course_id' => $discussion->course_id,
+                'actor_id' => $user->id,
+                'entity_type' => 'discussion',
+                'entity_id' => $discussion->id,
+                'action' => 'soft_delete',
+                'meta_json' => null,
+            ]);
+        }
         if ($request->wantsJson()) {
             return response()->json(['ok'=>true]);
         }
@@ -217,31 +221,40 @@ class DiscussionController extends Controller
             Storage::disk('public')->delete($discussion->image_path);
         }
         $discussion->forceDelete();
-        DeletionAudit::create([
-            'course_id' => $discussion->course_id,
-            'actor_id' => $user->id,
-            'entity_type' => 'discussion',
-            'entity_id' => $discussion->id,
-            'action' => 'force_delete',
-            'meta_json' => null,
-        ]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('deletion_audits')) {
+            DeletionAudit::create([
+                'course_id' => $discussion->course_id,
+                'actor_id' => $user->id,
+                'entity_type' => 'discussion',
+                'entity_id' => $discussion->id,
+                'action' => 'force_delete',
+                'meta_json' => null,
+            ]);
+        }
         return $request->wantsJson() ? response()->json(['ok'=>true]) : back()->with('success','Discussion permanently deleted.');
     }
 
     public function updates(Request $request, \App\Models\Course $course)
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('deletion_audits')) {
+            return response()->json([
+                'discussions_soft_deleted' => [],
+                'discussions_force_deleted' => [],
+                'replies_soft_deleted' => [],
+                'since' => now()->toISOString(),
+            ]);
+        }
         $since = $request->query('since');
         $q = DeletionAudit::where('course_id', $course->id)->orderBy('id','asc');
         if ($since) {
             $q->where('created_at','>', $since);
         }
         $rows = $q->limit(100)->get(['id','entity_type','entity_id','action','created_at']);
-        $payload = [
+        return response()->json([
             'discussions_soft_deleted' => $rows->where('entity_type','discussion')->where('action','soft_delete')->pluck('entity_id')->unique()->values(),
             'discussions_force_deleted' => $rows->where('entity_type','discussion')->where('action','force_delete')->pluck('entity_id')->unique()->values(),
             'replies_soft_deleted' => $rows->where('entity_type','reply')->where('action','soft_delete')->pluck('entity_id')->unique()->values(),
-            'since' => optional($rows->last())->created_at?->toISOString(),
-        ];
-        return response()->json($payload);
+            'since' => optional($rows->last())->created_at?->toISOString() ?? now()->toISOString(),
+        ]);
     }
 }

@@ -1031,7 +1031,14 @@
                             <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-list-ul"></i></div>
                             <div>Course Outline</div>
                         </div>
-                        <a href="{{ route('trainee.courses.outline', $course) }}" class="btn btn-blue"><i class="fas fa-list"></i> Course Outline</a>
+                        @php
+                            $role = \Illuminate\Support\Facades\Auth::user()->role ?? null;
+                            $coachCtx = !empty($asTrainer) || in_array($role, ['trainer','coach'], true);
+                            $outlineUrl = $coachCtx
+                                ? route('trainer.courses.view', $course)
+                                : route('trainee.courses.outline', $course);
+                        @endphp
+                        <a href="{{ $outlineUrl }}" class="btn btn-blue"><i class="fas fa-list"></i> Course Outline</a>
                     </div>
                     <div class="muted">Browse modules, topics, and activities in the course outline view.</div>
                 </div>
@@ -1485,16 +1492,24 @@
                     body: form.toString()
                 }).then(function(r){
                     if(r.ok){
-                        showSuccessToast('Discussion deleted.');
-                        setTimeout(function(){ window.location.reload(); }, 600);
-                        return;
+                        return r.json().catch(function(){ return { ok:true }; });
                     }
                     if(r.status===403){
-                        r.json().then(function(j){ alert(j.message || 'You can only delete your own discussion.'); }).catch(function(){ alert('You can only delete your own discussion.'); });
-                    } else {
-                        alert('Failed to delete discussion');
+                        return r.json().then(function(j){ throw new Error(j.message || 'You can only delete your own discussion.'); });
                     }
-                }).catch(function(){ alert('Failed to delete discussion'); });
+                    // Handle redirect-as-success edge cases
+                    if(r.redirected){ return { ok:true }; }
+                    throw new Error('Failed to delete discussion');
+                }).then(function(j){
+                    if(j && j.ok){
+                        showSuccessToast('Discussion deleted.');
+                        setTimeout(function(){ window.location.reload(); }, 600);
+                    } else {
+                        throw new Error('Failed to delete discussion');
+                    }
+                }).catch(function(err){
+                    alert(err && err.message ? err.message : 'Failed to delete discussion');
+                });
             });
         }
         // Navigate to discussion when a card is clicked (except on controls/links/forms)
