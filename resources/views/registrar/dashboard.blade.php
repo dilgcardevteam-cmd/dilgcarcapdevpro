@@ -1676,6 +1676,7 @@
                             <p style="margin:6px 0 0;color:#6b7280;font-size:.95rem">Keep your account information current and review your access details in one place.</p>
                         </div>
                         <div>
+                            <a href="{{ url()->previous() }}" style="border:1px solid #e2e8f0;border-radius:999px;padding:10px 18px;font-weight:600;background:#fff;color:#111827;text-decoration:none;display:inline-flex;align-items:center;gap:8px" onclick="event.preventDefault(); window.history.back();"><i class="fas fa-arrow-left"></i> Back</a>
                             <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" style="border:1px solid #fed7aa;border-radius:999px;padding:10px 18px;font-weight:600;background:#fff7ed;color:#9a3412">Edit Profile</button>
                             <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" style="display:none;border:1px solid #e2e8f0;border-radius:999px;padding:10px 18px;font-weight:600;background:#f1f5f9;color:#475569">Cancel</button>
                             <button type="submit" form="profileForm" id="btnSaveProfile" style="display:none;border:1px solid transparent;border-radius:999px;padding:10px 18px;font-weight:600;background:var(--primary-green);color:#fff">Save Changes</button>
@@ -1687,14 +1688,15 @@
                             <span>{{ session('success_profile') }}</span>
                         </div>
                     @endif
+                    @if ($errors->any())
+                        <div style="display:flex;align-items:center;gap:10px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 14px;border-radius:12px;font-weight:600;font-size:.92rem">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <span>{{ $errors->first() }}</span>
+                        </div>
+                    @endif
                     <div class="profile-page-banner" style="display:flex;align-items:center;gap:20px;padding:20px;border-radius:16px;border:1px solid #e2e8f0;background:radial-gradient(circle at top left, rgba(127,183,61,.12), transparent 50%),radial-gradient(circle at top right, rgba(0,44,118,.12), transparent 48%),#fff;box-shadow:0 12px 24px rgba(15,23,42,.08)">
                         <div class="profile-page-avatar" style="width:92px;height:92px;border-radius:22px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:3px solid #fff;box-shadow:0 10px 18px rgba(15,23,42,.18)">
-                            @php
-                                $avatarSrc = Auth::user()->profile_picture
-                                    ? asset('storage/' . Auth::user()->profile_picture)
-                                    : asset('images/user.png');
-                            @endphp
-                            <img id="profile_preview" src="{{ $avatarSrc }}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover">
+                            <img id="profile_preview" src="{{ Auth::user()->avatar_url }}" alt="Profile picture" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
                         </div>
                         <div class="profile-page-identity" style="flex:1;min-width:0">
                             <div style="font-size:1.4rem;color:#002C76;font-weight:700;margin-bottom:6px">{{ Auth::user()->name }}</div>
@@ -2039,47 +2041,129 @@
         location.reload(); 
     }
 
-    var cropState = { imgEl:null, scale:1, posX:0, posY:0, dragging:false, startX:0, startY:0 };
-    function openCropperFromInput(input){
+    var cropState = {}; var avatarCropper=null;
+    function ensureCropperLoaded(){
+        return new Promise(function(resolve){
+            if(window.Cropper) return resolve();
+            if(!document.getElementById('cropperjs-css')){
+                var l=document.createElement('link'); l.id='cropperjs-css'; l.rel='stylesheet'; l.href='https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css'; document.head.appendChild(l);
+            }
+            var existing=document.getElementById('cropperjs-js');
+            if(existing){ existing.addEventListener('load', resolve); return; }
+            var s=document.createElement('script'); s.id='cropperjs-js'; s.src='https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js'; s.onload=resolve; document.body.appendChild(s);
+        });
+    }
+    async function openCropperFromInput(input){
         if(!(input.files&&input.files[0])) return;
-        var reader=new FileReader();
-        reader.onload=function(e){
-            var modal=document.getElementById('cropModal');
-            var img=document.getElementById('cropImg');
-            img.src=e.target.result;
-            cropState.imgEl=img; cropState.scale=1; cropState.posX=0; cropState.posY=0; document.getElementById('cropZoom').value=1;
-            applyTransform();
+        var file = input.files[0];
+        var dataUrl = await loadOrientedDataURL(file, 2048);
+        await ensureCropperLoaded();
+        var modal=document.getElementById('cropModal');
+        var img=document.getElementById('cropImg');
+        img.onload=function(){
+            if(avatarCropper){ try{ avatarCropper.destroy(); }catch(e){} }
+            avatarCropper = new window.Cropper(img, { aspectRatio:1, viewMode:2, dragMode:'move', background:false, guides:true, autoCropArea:1, responsive:true, movable:true, zoomable:true, zoomOnWheel:true });
+            var slider=document.getElementById('cropZoom'); if(slider){ slider.value=1; slider.oninput=function(){ if(avatarCropper){ avatarCropper.zoomTo(parseFloat(this.value)); } }; }
             modal.style.display='flex';
         };
-        reader.readAsDataURL(input.files[0]);
+        img.src=dataUrl;
     }
-    function applyTransform(){ var img=cropState.imgEl; if(!img) return; img.style.transform='translate('+cropState.posX+'px,'+cropState.posY+'px) scale('+cropState.scale+')'; }
+    async function loadOrientedDataURL(file, maxDim){
+        if('createImageBitmap' in window){
+            try{
+                const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+                const scale=Math.min(1, maxDim/Math.max(bmp.width,bmp.height));
+                const c=document.createElement('canvas'); c.width=Math.round(bmp.width*scale); c.height=Math.round(bmp.height*scale);
+                const ctx=c.getContext('2d'); ctx.imageSmoothingQuality='high'; ctx.drawImage(bmp,0,0,c.width,c.height);
+                return c.toDataURL('image/jpeg',0.92);
+            }catch(e){}
+        }
+        const orientation = await readExifOrientation(file).catch(()=>1);
+        const url=URL.createObjectURL(file);
+        const im = await new Promise(function(res){ const t=new Image(); t.onload=function(){ res(t); }; t.src=url; });
+        const iw=im.naturalWidth, ih=im.naturalHeight;
+        const ratio=Math.min(1, maxDim/Math.max(iw,ih));
+        let cw=Math.round(iw*ratio), ch=Math.round(ih*ratio);
+        let c=document.createElement('canvas'), ctx=c.getContext('2d');
+        if(orientation>=5&&orientation<=8){ c.width=ch; c.height=cw; } else { c.width=cw; c.height=ch; }
+        ctx.imageSmoothingQuality='high';
+        switch(orientation){
+            case 2: ctx.translate(c.width,0); ctx.scale(-1,1); break;
+            case 3: ctx.translate(c.width,c.height); ctx.rotate(Math.PI); break;
+            case 4: ctx.translate(0,c.height); ctx.scale(1,-1); break;
+            case 5: ctx.rotate(0.5*Math.PI); ctx.translate(0,-c.width); ctx.scale(1,-1); break;
+            case 6: ctx.rotate(0.5*Math.PI); ctx.translate(0,-c.width); break;
+            case 7: ctx.rotate(0.5*Math.PI); ctx.translate(c.height,-c.width); ctx.scale(-1,1); break;
+            case 8: ctx.rotate(-0.5*Math.PI); ctx.translate(-c.height,0); break;
+        }
+        ctx.drawImage(im,0,0,cw,ch);
+        URL.revokeObjectURL(url);
+        return c.toDataURL('image/jpeg',0.92);
+    }
+    function readExifOrientation(file){
+        return new Promise(function(resolve,reject){
+            const fr=new FileReader();
+            fr.onerror=reject;
+            fr.onload=function(){
+                const view=new DataView(fr.result);
+                if(view.getUint16(0,false)!=0xFFD8) return resolve(1);
+                let offset=2, length=view.byteLength;
+                while(offset<length){
+                    const marker=view.getUint16(offset,false); offset+=2;
+                    if(marker==0xFFE1){
+                        offset+=2;
+                        if(view.getUint32(offset,false)!=0x45786966) return resolve(1);
+                        offset+=6;
+                        const little=view.getUint16(offset,false)==0x4949; offset+=2;
+                        if(view.getUint16(offset,little)!=0x002A) return resolve(1); offset+=2;
+                        let ifdOffset=view.getUint32(offset,little); offset=offset-4+ifdOffset;
+                        const entries=view.getUint16(offset,little); offset+=2;
+                        for(let i=0;i<entries;i++){
+                            const tag=view.getUint16(offset,little);
+                            if(tag==0x0112){ const val=view.getUint16(offset+8,little); return resolve(val); }
+                            offset+=12;
+                        }
+                        break;
+                    } else if((marker&0xFF00)!=0xFF00){ break; } else { offset+=view.getUint16(offset,false); }
+                }
+                resolve(1);
+            };
+            fr.readAsArrayBuffer(file.slice(0,128*1024));
+        });
+    }
+    function applyTransform(){}
     function cropStartDrag(ev){ cropState.dragging=true; cropState.startX=ev.clientX; cropState.startY=ev.clientY; ev.preventDefault(); }
     function cropDrag(ev){ if(!cropState.dragging) return; cropState.posX+=ev.clientX-cropState.startX; cropState.posY+=ev.clientY-cropState.startY; cropState.startX=ev.clientX; cropState.startY=ev.clientY; applyTransform(); }
     function cropEndDrag(){ cropState.dragging=false; }
     function cropZoomChange(v){ cropState.scale=parseFloat(v); applyTransform(); }
-    function closeCropper(){ document.getElementById('cropModal').style.display='none'; }
+    function closeCropper(){ if(avatarCropper){ try{ avatarCropper.destroy(); }catch(e){} avatarCropper=null; } document.getElementById('cropModal').style.display='none'; }
     function applyCrop(){
-        var img=cropState.imgEl; if(!img) return;
-        var rect=document.getElementById('cropViewport').getBoundingClientRect();
-        var c=document.createElement('canvas'); c.width=rect.width; c.height=rect.height; var ctx=c.getContext('2d');
-        var src=new Image();
-        src.onload=function(){
-            var scale=cropState.scale;
-            var dx=cropState.posX+(src.width*scale-rect.width)/2;
-            var dy=cropState.posY+(src.height*scale-rect.height)/2;
-            ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-            ctx.drawImage(src,-dx,-dy,src.width*scale,src.height*scale);
-            var dataUrl=c.toDataURL('image/jpeg',0.92);
-            document.getElementById('profile_picture_cropped').value=dataUrl;
-            var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
-            pv.src=dataUrl; pv.style.display='block';
-            try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
-            closeCropper();
-        };
-        src.src=img.src;
+        if(!avatarCropper) return;
+        var c = avatarCropper.getCroppedCanvas({ width:512, height:512, imageSmoothingEnabled:true, imageSmoothingQuality:'high' });
+        var dataUrl=c.toDataURL('image/jpeg',0.92);
+        document.getElementById('profile_picture_cropped').value=dataUrl;
+        var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
+        pv.src=dataUrl; pv.style.display='block';
+        try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
+        closeCropper();
     }
     
+    (function(){
+        var modal=document.createElement('div');
+        modal.id='cropModal';
+        modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:2000';
+        modal.innerHTML='<div style="background:#fff;border-radius:12px;width:420px;max-width:95vw;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.2)">\
+        <div style="font-weight:700;margin-bottom:8px">Crop Photo</div>\
+        <div id="cropViewport" onmousedown="cropStartDrag(event)" onmousemove="cropDrag(event)" onmouseup="cropEndDrag()" onmouseleave="cropEndDrag()" style="width:320px;height:320px;margin:0 auto;border-radius:8px;overflow:hidden;background:#f3f4f6;position:relative">\
+            <img id="cropImg" src="" style="position:absolute;top:50%;left:50%;transform:translate(0,0) scale(1);transform-origin:center center;user-select:none;pointer-events:none;">\
+        </div>\
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">\
+            <input id="cropZoom" type="range" min="0.5" max="3" step="0.01" value="1" oninput="cropZoomChange(this.value)" style="flex:1">\
+            <button type="button" class="btn-view" onclick="closeCropper()">Cancel</button>\
+            <button type="button" class="btn-view" style="background:#16a34a;border-color:#16a34a" onclick="applyCrop()">Apply</button>\
+        </div></div>';
+        document.addEventListener('DOMContentLoaded',function(){ document.body.appendChild(modal); });
+    })();
     // Admin-like filtering logic (AJAX)
     function addFilter(value) {
         if (!value) return;

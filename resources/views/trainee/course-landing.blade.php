@@ -749,12 +749,7 @@
         <div class="header-right">
             <div class="profile-menu">
                 <div class="user-profile" onclick="toggleProfileMenu(event)" style="cursor: pointer;">
-                    @php
-                        $avatarSrc = Auth::user()->profile_picture
-                            ? asset('storage/' . Auth::user()->profile_picture)
-                            : asset('images/user.png');
-                    @endphp
-                    <img src="{{ $avatarSrc }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">

@@ -1098,7 +1098,7 @@
             <div class="profile-menu">
                 <div class="profile-trigger" onclick="toggleProfileMenu()">
                     @if(Auth::user()->profile_picture)
-                        <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover">
+                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
                     @else
                         <div class="user-avatar">
                             {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
@@ -1704,16 +1704,32 @@
             <div id="profile-section" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">My Profile</h2>
+                    <a href="{{ url()->previous() }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111827;text-decoration:none" onclick="event.preventDefault(); window.history.back();">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
                 </div>
                 <div style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;">
                     <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         
+                        @if(session('success_profile'))
+                            <div style="display:flex;align-items:center;gap:10px;background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:12px 14px;border-radius:12px;font-weight:600;font-size:.92rem;margin-bottom:14px">
+                                <i class="fas fa-circle-check"></i>
+                                <span>{{ session('success_profile') }}</span>
+                            </div>
+                        @endif
+                        @if ($errors->any())
+                            <div style="display:flex;align-items:center;gap:10px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 14px;border-radius:12px;font-weight:600;font-size:.92rem;margin-bottom:14px">
+                                <i class="fas fa-triangle-exclamation"></i>
+                                <span>{{ $errors->first() }}</span>
+                            </div>
+                        @endif
+
                         <div style="display: flex; align-items: center; margin-bottom: 30px;">
                             <div style="position: relative; margin-right: 20px;">
                                 @if(Auth::user()->profile_picture)
-                                    <img id="profile_preview" src="{{ asset('storage/' . Auth::user()->profile_picture) }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-blue);">
+                                    <img id="profile_preview" src="{{ Auth::user()->avatar_url }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-blue);" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
                                 @else
                                     <div id="profile_initials" style="width: 100px; height: 100px; background-color: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 3rem;">
                                         {{ substr(Auth::user()->name, 0, 1) }}
@@ -1923,48 +1939,111 @@
             window.location.reload();
         }
 
-        var cropState = { imgEl:null, scale:1, posX:0, posY:0, dragging:false, startX:0, startY:0 };
-        function openCropperFromInput(input){
+        var cropState = {}; var avatarCropper=null;
+        function ensureCropperLoaded(){
+            return new Promise(function(resolve){
+                if(window.Cropper) return resolve();
+                if(!document.getElementById('cropperjs-css')){
+                    var l=document.createElement('link'); l.id='cropperjs-css'; l.rel='stylesheet'; l.href='https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css'; document.head.appendChild(l);
+                }
+                var existing=document.getElementById('cropperjs-js');
+                if(existing){ existing.addEventListener('load', resolve); return; }
+                var s=document.createElement('script'); s.id='cropperjs-js'; s.src='https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js'; s.onload=resolve; document.body.appendChild(s);
+            });
+        }
+        async function openCropperFromInput(input){
             if(!(input.files&&input.files[0])) return;
-            var reader=new FileReader();
-            reader.onload=function(e){
-                var modal=document.getElementById('cropModal');
-                var img=document.getElementById('cropImg');
-                img.src=e.target.result;
-                cropState.imgEl=img; cropState.scale=1; cropState.posX=0; cropState.posY=0; document.getElementById('cropZoom').value=1;
-                applyTransform();
+            var file = input.files[0];
+            var dataUrl = await loadOrientedDataURL(file, 2048);
+            await ensureCropperLoaded();
+            var modal=document.getElementById('cropModal');
+            var img=document.getElementById('cropImg');
+            img.onload=function(){
+                if(avatarCropper){ try{ avatarCropper.destroy(); }catch(e){} }
+                avatarCropper = new window.Cropper(img, { aspectRatio:1, viewMode:2, dragMode:'move', background:false, guides:true, autoCropArea:1, responsive:true, movable:true, zoomable:true, zoomOnWheel:true });
+                var slider=document.getElementById('cropZoom'); if(slider){ slider.value=1; slider.oninput=function(){ if(avatarCropper){ avatarCropper.zoomTo(parseFloat(this.value)); } }; }
                 modal.style.display='flex';
             };
-            reader.readAsDataURL(input.files[0]);
+            img.src=dataUrl;
         }
-        function applyTransform(){
-            var img=cropState.imgEl; if(!img) return;
-            img.style.transform='translate('+cropState.posX+'px,'+cropState.posY+'px) scale('+cropState.scale+')';
+        async function loadOrientedDataURL(file, maxDim){
+            if('createImageBitmap' in window){
+                try{
+                    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+                    const scale = Math.min(1, maxDim/Math.max(bmp.width,bmp.height));
+                    const c=document.createElement('canvas'); c.width=Math.round(bmp.width*scale); c.height=Math.round(bmp.height*scale);
+                    const ctx = c.getContext('2d'); ctx.imageSmoothingQuality='high'; ctx.drawImage(bmp,0,0,c.width,c.height);
+                    return c.toDataURL('image/jpeg',0.92);
+                }catch(e){}
+            }
+            const orientation = await readExifOrientation(file).catch(()=>1);
+            const blobUrl = URL.createObjectURL(file);
+            const im = await new Promise(function(res){ const t=new Image(); t.onload=function(){ res(t); }; t.src=blobUrl; });
+            const iw=im.naturalWidth, ih=im.naturalHeight;
+            const ratio=Math.min(1, maxDim/Math.max(iw,ih));
+            let cw=Math.round(iw*ratio), ch=Math.round(ih*ratio);
+            let c=document.createElement('canvas'), ctx=c.getContext('2d');
+            if(orientation>=5 && orientation<=8){ c.width=ch; c.height=cw; } else { c.width=cw; c.height=ch; }
+            ctx.imageSmoothingQuality='high';
+            switch(orientation){
+                case 2: ctx.translate(c.width,0); ctx.scale(-1,1); break;
+                case 3: ctx.translate(c.width,c.height); ctx.rotate(Math.PI); break;
+                case 4: ctx.translate(0,c.height); ctx.scale(1,-1); break;
+                case 5: ctx.rotate(0.5*Math.PI); ctx.translate(0,-c.width); ctx.scale(1,-1); break;
+                case 6: ctx.rotate(0.5*Math.PI); ctx.translate(0,-c.width); break;
+                case 7: ctx.rotate(0.5*Math.PI); ctx.translate(c.height,-c.width); ctx.scale(-1,1); break;
+                case 8: ctx.rotate(-0.5*Math.PI); ctx.translate(-c.height,0); break;
+            }
+            ctx.drawImage(im,0,0,cw,ch);
+            URL.revokeObjectURL(blobUrl);
+            return c.toDataURL('image/jpeg',0.92);
         }
+        function readExifOrientation(file){
+            return new Promise(function(resolve,reject){
+                const fr=new FileReader();
+                fr.onerror=reject;
+                fr.onload=function(){
+                    const view=new DataView(fr.result);
+                    if(view.getUint16(0,false)!=0xFFD8) return resolve(1);
+                    let offset=2, length=view.byteLength;
+                    while(offset<length){
+                        const marker=view.getUint16(offset,false); offset+=2;
+                        if(marker==0xFFE1){
+                            offset+=2;
+                            if(view.getUint32(offset,false)!=0x45786966) return resolve(1);
+                            offset+=6;
+                            const little=view.getUint16(offset,false)==0x4949; offset+=2;
+                            if(view.getUint16(offset,little)!=0x002A) return resolve(1); offset+=2;
+                            let ifdOffset=view.getUint32(offset,little); offset=offset-4+ifdOffset;
+                            const entries=view.getUint16(offset,little); offset+=2;
+                            for(let i=0;i<entries;i++){
+                                const tag=view.getUint16(offset,little);
+                                if(tag==0x0112){ const val=view.getUint16(offset+8,little); return resolve(val); }
+                                offset+=12;
+                            }
+                            break;
+                        } else if((marker & 0xFF00)!=0xFF00){ break; } else { offset+=view.getUint16(offset,false); }
+                    }
+                    resolve(1);
+                };
+                fr.readAsArrayBuffer(file.slice(0,128*1024));
+            });
+        }
+        function applyTransform(){}
         function cropStartDrag(ev){ cropState.dragging=true; cropState.startX=ev.clientX; cropState.startY=ev.clientY; ev.preventDefault(); }
         function cropDrag(ev){ if(!cropState.dragging) return; cropState.posX+=ev.clientX-cropState.startX; cropState.posY+=ev.clientY-cropState.startY; cropState.startX=ev.clientX; cropState.startY=ev.clientY; applyTransform(); }
         function cropEndDrag(){ cropState.dragging=false; }
         function cropZoomChange(v){ cropState.scale=parseFloat(v); applyTransform(); }
-        function closeCropper(){ document.getElementById('cropModal').style.display='none'; }
+        function closeCropper(){ if(avatarCropper){ try{ avatarCropper.destroy(); }catch(e){} avatarCropper=null; } document.getElementById('cropModal').style.display='none'; }
         function applyCrop(){
-            var img=cropState.imgEl; if(!img) return;
-            var rect=document.getElementById('cropViewport').getBoundingClientRect();
-            var c=document.createElement('canvas'); c.width=rect.width; c.height=rect.height; var ctx=c.getContext('2d');
-            var src=new Image();
-            src.onload=function(){
-                var scale=cropState.scale;
-                var dx=cropState.posX+(src.width*scale-rect.width)/2;
-                var dy=cropState.posY+(src.height*scale-rect.height)/2;
-                ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-                ctx.drawImage(src,-dx,-dy,src.width*scale,src.height*scale);
-                var dataUrl=c.toDataURL('image/jpeg',0.92);
-                document.getElementById('profile_picture_cropped').value=dataUrl;
-                var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
-                pv.src=dataUrl; pv.style.display='block';
-                try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
-                closeCropper();
-            };
-            src.src=img.src;
+            if(!avatarCropper) return;
+            var c = avatarCropper.getCroppedCanvas({ width:512, height:512, imageSmoothingEnabled:true, imageSmoothingQuality:'high' });
+            var dataUrl=c.toDataURL('image/jpeg',0.92);
+            document.getElementById('profile_picture_cropped').value=dataUrl;
+            var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
+            pv.src=dataUrl; pv.style.display='block';
+            try{ document.getElementById('profile_picture_input').value=''; }catch(e){}
+            closeCropper();
         }
 
         function toggleSidebar() {

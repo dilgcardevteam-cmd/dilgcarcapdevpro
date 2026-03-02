@@ -791,7 +791,7 @@
             @if(Auth::check())
                 <a href="{{ route('dashboard') }}" class="btn-login" style="display: flex; align-items: center; gap: 10px; padding: 5px 15px;">
                     @if(Auth::user()->profile_picture)
-                        <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid white;">
+                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid white;">
                     @else
                         <div style="width: 30px; height: 30px; background-color: white; color: var(--primary-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">
                             {{ substr(Auth::user()->name, 0, 1) }}
@@ -1221,5 +1221,4 @@
     </script>
 </body>
 </html>
-
 

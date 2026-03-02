@@ -466,13 +466,11 @@ class DashboardController extends Controller
         $user->display_type = $request->display_type;
 
         if ($request->hasFile('profile_picture')) {
-            // Delete old picture if exists
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
+            try {
+                $user->setAvatarFromUpload($request->file('profile_picture'));
+            } catch (\Throwable $e) {
+                return redirect()->route('dashboard', ['tab' => 'user-management'])->with('error_user', 'Failed to save profile image.');
             }
-            
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $user->profile_picture = $path;
         }
 
         $user->save();
@@ -503,24 +501,17 @@ class DashboardController extends Controller
         ]);
 
         if ($request->filled('profile_picture_cropped')) {
-            $data = $request->input('profile_picture_cropped');
-            if (preg_match('/^data:image\\/(png|jpeg);base64,/', $data, $m)) {
-                $data = substr($data, strpos($data, ',') + 1);
-                $bin = base64_decode($data);
-                $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
-                if ($user->profile_picture) {
-                    Storage::disk('public')->delete($user->profile_picture);
-                }
-                $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
-                Storage::disk('public')->put($path, $bin);
-                $user->profile_picture = $path;
+            try {
+                $user->setAvatarFromDataUrl($request->input('profile_picture_cropped'));
+            } catch (\Throwable $e) {
+                return redirect()->back()->withErrors(['profile_picture' => 'Failed to save profile image. Please try again.']);
             }
         } elseif ($request->hasFile('profile_picture')) {
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
+            try {
+                $user->setAvatarFromUpload($request->file('profile_picture'));
+            } catch (\Throwable $e) {
+                return redirect()->back()->withErrors(['profile_picture' => 'Failed to save profile image. Please try again.']);
             }
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $user->profile_picture = $path;
             unset($validated['profile_picture']); // Don't try to update this via fill
         }
 
@@ -537,7 +528,7 @@ class DashboardController extends Controller
         }
         $user->save();
 
-        return redirect()->back()->with('success_profile', 'Profile updated successfully.');
+        return redirect()->route('dashboard', ['tab' => 'profile-section'])->with('success_profile', 'Profile updated successfully.');
     }
 
     public function setupProfile()

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -120,5 +122,45 @@ class User extends Authenticatable
         return $this->belongsToMany(Certification::class, 'certification_user')
             ->withPivot('certificate_number','course_id','issued_at')
             ->withTimestamps();
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        $pic = $this->profile_picture;
+        if (!$pic) {
+            return asset('images/user.png');
+        }
+        $v = optional($this->updated_at)->timestamp ?? time();
+        return asset('storage/' . $pic) . '?v=' . $v;
+    }
+
+    public function setAvatarFromUpload($file): void
+    {
+        if (!$file) return;
+        if ($this->profile_picture) {
+            Storage::disk('public')->delete($this->profile_picture);
+        }
+        $path = $file->store('profile_pictures', 'public');
+        if (!Storage::disk('public')->exists($path)) {
+            throw new \RuntimeException('Failed to save profile image.');
+        }
+        $this->profile_picture = $path;
+    }
+
+    public function setAvatarFromDataUrl(string $dataUrl): void
+    {
+        if (!preg_match('/^data:image\\/(png|jpeg);base64,/', $dataUrl, $m)) return;
+        $data = substr($dataUrl, strpos($dataUrl, ',') + 1);
+        $bin = base64_decode($data);
+        $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
+        if ($this->profile_picture) {
+            Storage::disk('public')->delete($this->profile_picture);
+        }
+        $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
+        Storage::disk('public')->put($path, $bin);
+        if (!Storage::disk('public')->exists($path)) {
+            throw new \RuntimeException('Failed to save profile image.');
+        }
+        $this->profile_picture = $path;
     }
 }

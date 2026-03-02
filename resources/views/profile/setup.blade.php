@@ -16,9 +16,7 @@
     $lastParsed = count($tokens) > 1 ? $tokens[count($tokens) - 1] : '';
     $middleParsed = count($tokens) > 2 ? implode(' ', array_slice($tokens, 1, -1)) : '';
 
-    $avatarSrc = $user->profile_picture
-        ? asset('storage/' . $user->profile_picture)
-        : asset('images/user.png');
+    $avatarSrc = $user->avatar_url;
 @endphp
 
 <style>

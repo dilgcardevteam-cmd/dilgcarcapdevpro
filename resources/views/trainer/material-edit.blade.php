@@ -51,7 +51,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
   </div>
   <div class="profile-menu">
     @if(Auth::user()->profile_picture)
-      <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onclick="toggleProfileMenu()">
+      <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onclick="toggleProfileMenu()">
     @else
       <div class="user-avatar" style="width:35px;height:35px;background-color:#002C76;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer" onclick="toggleProfileMenu()">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
     @endif
