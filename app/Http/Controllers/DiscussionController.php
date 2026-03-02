@@ -9,6 +9,7 @@ use App\Models\DiscussionReplyReaction;
 use App\Models\DeletionAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class DiscussionController extends Controller
 {
@@ -47,12 +48,25 @@ class DiscussionController extends Controller
 
     public function show(Discussion $discussion)
     {
-        $discussion->load(['user','course','replies.user','replies.reactions']);
-        $likes = \App\Models\DiscussionReaction::where('discussion_id',$discussion->id)->where('type','like')->count();
-        $dislikes = \App\Models\DiscussionReaction::where('discussion_id',$discussion->id)->where('type','dislike')->count();
-        $commentsCount = \App\Models\DiscussionReply::where('discussion_id', $discussion->id)->count();
+        $relations = ['user','course','replies.user','replies.children.user'];
+        if (Schema::hasTable('discussion_reply_reactions')) {
+            $relations[] = 'replies.reactions';
+            $relations[] = 'replies.children.reactions';
+        }
+        $discussion->load($relations);
+        $hasTable = Schema::hasTable('discussion_reactions');
+        $likes = 0;
+        $dislikes = 0;
+        if ($hasTable) {
+            $likes = \App\Models\DiscussionReaction::where('discussion_id',$discussion->id)->where('type','like')->count();
+            $dislikes = \App\Models\DiscussionReaction::where('discussion_id',$discussion->id)->where('type','dislike')->count();
+        }
+        $commentsCount = \App\Models\DiscussionReply::where('discussion_id', $discussion->id)
+            ->whereNull('parent_id')
+            ->whereNull('deleted_at')
+            ->count();
         $userReact = null;
-        if (auth()->check()) {
+        if ($hasTable && auth()->check()) {
             $userReact = \App\Models\DiscussionReaction::where('discussion_id',$discussion->id)
                 ->where('user_id', auth()->id())
                 ->value('type');
@@ -113,6 +127,9 @@ class DiscussionController extends Controller
         $data = $request->validate([
             'type' => 'required|in:like,dislike',
         ]);
+        if (!Schema::hasTable('discussion_reactions')) {
+            return response()->json(['ok'=>true,'likes'=>0,'dislikes'=>0,'message'=>'Reactions unavailable'], 200);
+        }
         $user = auth()->user();
         if (!$user) {
             return response()->json(['ok'=>false,'message'=>'Unauthorized'], 401);

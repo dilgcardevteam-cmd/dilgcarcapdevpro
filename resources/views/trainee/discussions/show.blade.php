@@ -27,8 +27,16 @@
         .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
         .btn-blue{background:var(--brand);color:#fff}
         .btn-disabled{background:#e5e7eb;color:#9aa4b2;cursor:not-allowed}
-        .reply{padding:12px 0;border-bottom:1px dashed var(--border);animation:fadeIn .25s ease both}
-        .reply:last-child{border-bottom:none}
+        .cm{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--border);animation:fadeIn .25s ease both}
+        .cm:last-child{border-bottom:none}
+        .cm-avatar{width:36px;height:36px;border-radius:50%;background:#eef2ff;color:#0f3b8f;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 36px}
+        .cm-body{flex:1}
+        .cm-head{display:flex;align-items:center;gap:8px}
+        .cm-name{font-weight:800}
+        .cm-time{color:var(--muted);font-size:.85rem}
+        .cm-text{margin:6px 0;white-space:pre-wrap}
+        .cm-actions{display:flex;gap:10px;align-items:center}
+        .cm-children{margin-left:22px;border-left:2px solid var(--border);padding-left:14px}
         textarea{width:100%;min-height:120px;border:1px solid var(--border);border-radius:12px;padding:12px;resize:vertical;background:#fff}
         textarea:focus{outline:2px solid rgba(13,110,253,.25);outline-offset:2px}
         .topic-title{font-size:1.9rem;font-weight:900;letter-spacing:-0.02em}
@@ -77,13 +85,30 @@
     </div>
     <div class="with-app-side">
     <div class="page">
+        @php
+            $ctx = request()->query('ctx');
+            $isTrainer = (auth()->user()->role ?? '') === 'trainer';
+            $forumUrl = ($ctx === 'trainer' || $isTrainer)
+                ? route('trainer.courses.enter', $discussion->course).'?tab=forum'
+                : route('trainee.courses.show', $discussion->course).'?tab=forum';
+        @endphp
+        <div style="margin-bottom:12px">
+            <a href="{{ $forumUrl }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
         <div class="card" style="margin-bottom:12px;">
             <div class="topic-title">{{ $discussion->title }}</div>
             <div class="topic-meta">{{ \Carbon\Carbon::parse($discussion->created_at)->format('M j, g:i A') }} by {{ $discussion->user->name ?? 'User' }}</div>
-            <div style="margin-top:8px;white-space:pre-wrap">{{ $discussion->body }}</div>
+            @php $isUrlBody = filter_var(($discussion->body ?? ''), FILTER_VALIDATE_URL); @endphp
+            <div style="margin-top:8px;white-space:pre-wrap">
+                @if($isUrlBody)
+                    <a href="{{ $discussion->body }}" target="_blank" rel="noopener" style="color:#0f3b8f;text-decoration:underline">{{ $discussion->body }}</a>
+                @else
+                    {{ $discussion->body }}
+                @endif
+            </div>
             @if(!empty($discussion->image_path))
             <div style="margin-top:12px">
-                <img src="{{ asset('storage/'.$discussion->image_path) }}" alt="Discussion image" style="max-width:100%;border-radius:12px;border:1px solid var(--border)">
+                <img src="{{ asset('storage/'.$discussion->image_path) }}" alt="Discussion image" style="max-width:100%;height:auto;max-height:520px;display:block;margin:0 auto;border-radius:12px;border:1px solid var(--border);object-fit:contain">
             </div>
             @endif
             <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
@@ -94,35 +119,50 @@
         </div>
         <div class="card" style="margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px">Comments</div>
-            @forelse($discussion->replies as $r)
-                <div class="reply">
-                    <div class="reply-author">{{ $r->user->name ?? 'User' }}</div>
-                    @php
+            @php
+                $render = function($items, $level = 0) use (&$render, $discussion){
+                    foreach($items as $r){
+                        if(method_exists($r,'trashed') && $r->trashed()){ continue; }
+                        $n = $r->user->name ?? 'User';
+                        $init = strtoupper(mb_substr($n,0,1));
                         $likes = ($r->reactions ?? collect())->where('type','like')->count();
                         $dislikes = ($r->reactions ?? collect())->where('type','dislike')->count();
                         $canDelete = auth()->check() && (auth()->id() === ($r->user_id ?? 0));
-                    @endphp
-                    <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-                        <button type="button" class="chip-action" onclick="reactReply({{ $r->id }}, 'like', 'lk{{ $r->id }}', 'dk{{ $r->id }}')"><i class="fas fa-thumbs-up"></i> <span id="lk{{ $r->id }}">{{ $likes }}</span></button>
-                        <button type="button" class="chip-action" onclick="reactReply({{ $r->id }}, 'dislike', 'lk{{ $r->id }}', 'dk{{ $r->id }}')"><i class="fas fa-thumbs-down"></i> <span id="dk{{ $r->id }}">{{ $dislikes }}</span></button>
-                        <a href="javascript:void(0)" class="link-action" onclick="toggleReplyForm('rf{{ $r->id }}')">Comment</a>
-                        @if($canDelete)
-                        <a href="javascript:void(0)" class="link-action" onclick="deleteReply({{ $r->id }})">Delete</a>
-                        @endif
-                    </div>
-                    <form id="rf{{ $r->id }}" action="{{ route('discussions.replies.store', $discussion) }}" method="POST" onsubmit="return postChildReply(event, {{ $discussion->id }}, {{ $r->id }}, 'ta{{ $r->id }}')" style="display:none;margin-top:8px">
-                        @csrf
-                        <textarea id="ta{{ $r->id }}" name="body" rows="2" placeholder="Write a comment..." style="width:100%;border:1px solid var(--border);border-radius:10px;padding:8px"></textarea>
-                        <input type="hidden" name="parent_id" value="{{ $r->id }}">
-                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
-                            <button type="button" class="btn" onclick="toggleReplyForm('rf{{ $r->id }}')">Cancel</button>
-                            <button type="submit" class="btn btn-blue">Comment</button>
-                        </div>
-                    </form>
-                </div>
-            @empty
+                        echo '<div class="cm">';
+                        echo '<div class="cm-avatar">'.$init.'</div>';
+                        echo '<div class="cm-body">';
+                        echo '<div class="cm-head"><div class="cm-name">'.e($n).'</div><div class="cm-time">'.e(\Carbon\Carbon::parse($r->created_at)->diffForHumans()).'</div></div>';
+                        echo '<div class="cm-text">'.e($r->body).'</div>';
+                        echo '<div class="cm-actions">';
+                        echo '<button type="button" class="chip-action" onclick="reactReply('.$r->id.',\'like\',\'lk'.$r->id.'\',\'dk'.$r->id.'\')"><i class="fas fa-thumbs-up"></i> <span id="lk'.$r->id.'">'.$likes.'</span></button>';
+                        echo '<button type="button" class="chip-action" onclick="reactReply('.$r->id.',\'dislike\',\'lk'.$r->id.'\',\'dk'.$r->id.'\')"><i class="fas fa-thumbs-down"></i> <span id="dk'.$r->id.'">'.$dislikes.'</span></button>';
+                        echo '<a href="javascript:void(0)" class="link-action" onclick="toggleReplyForm(\'rf'.$r->id.'\')">Reply</a>';
+                        if($canDelete){ echo '<a href=\"javascript:void(0)\" class=\"link-action\" onclick=\"deleteReply('.$r->id.')\">Delete</a>'; }
+                        echo '</div>';
+                        echo '<form id="rf'.$r->id.'" action="'.route('discussions.replies.store',$discussion).'" method="POST" onsubmit="return postChildReply(event, '.$discussion->id.', '.$r->id.', \'ta'.$r->id.'\')" style="display:none;margin-top:8px">';
+                        echo csrf_field();
+                        echo '<textarea id="ta'.$r->id.'" name="body" rows="2" placeholder="Write a reply..." style="width:100%;border:1px solid var(--border);border-radius:10px;padding:8px"></textarea>';
+                        echo '<input type="hidden" name="parent_id" value="'.$r->id.'">';
+                        echo '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px"><button type="button" class="btn" onclick="toggleReplyForm(\'rf'.$r->id.'\')">Cancel</button><button type="submit" class="btn btn-blue">Reply</button></div>';
+                        echo '</form>';
+                        if(($r->children ?? collect())->isNotEmpty()){
+                            echo '<div class="cm-children">';
+                            $render($r->children, $level+1);
+                            echo '</div>';
+                        }
+                        echo '</div></div>';
+                    }
+                };
+                $top = ($discussion->replies ?? collect())->where('parent_id', null);
+                $visibleTop = $top->filter(function($r){
+                    return !(method_exists($r,'trashed') && $r->trashed());
+                });
+            @endphp
+            @if(($visibleTop ?? collect())->isEmpty())
                 <div class="muted">No comments yet.</div>
-            @endforelse
+            @else
+                {!! $render($visibleTop, 0) !!}
+            @endif
             <form action="{{ route('discussions.replies.store', $discussion) }}" method="POST" style="margin-top:12px;">
                 @csrf
                 <label for="replyBody" class="muted" style="display:block;margin-bottom:4px;">Write a comment</label>
@@ -212,5 +252,3 @@
     </script>
 </body>
 </html>
-
-

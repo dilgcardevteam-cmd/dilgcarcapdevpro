@@ -150,6 +150,15 @@
         .forum-card.selected{outline:3px solid #0f3b8f;outline-offset:0;border-color:#bfd7ff}
         .asm-details{display:none;margin-top:10px;background:#f1f6ff;border:1px solid #d6e4ff;border-radius:10px;padding:12px;color:#0f172a}
         .forum-title{font-weight:700;color:#0f172a}
+        .disc-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:10px 0 12px}
+        .disc-tab{position:relative;padding:10px 14px;font-weight:700;color:#64748b;background:transparent;border:none;cursor:pointer;border-radius:8px 8px 0 0;display:inline-flex;align-items:center;gap:8px}
+        .disc-tab:hover{background:#f2f6ff;color:#0f3b8f}
+        .disc-tab.active{color:#0f3b8f;background:#eef4ff}
+        .disc-tab.active::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:3px;background:#0f3b8f;border-radius:2px}
+        .pro-input{width:100%;font-size:1.05rem;color:#0f172a;border:1px solid var(--border);border-radius:12px;padding:12px 14px;outline:none;background:#fff}
+        .pro-input:focus{border-color:#bcd2ff;box-shadow:0 0 0 4px rgba(37,99,235,0.12)}
+        .pro-textarea{width:100%;min-height:140px;font-size:1rem;color:#0f172a;resize:vertical;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff}
+        .pro-textarea:focus{border-color:#bcd2ff;box-shadow:0 0 0 4px rgba(37,99,235,0.12)}
         .forum-meta{color:var(--muted);font-size:.9rem;margin-top:4px}
         .modal-editor input[type="text"]{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px}
         .modal-editor textarea{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px}
@@ -268,19 +277,40 @@
             switchTo('Stream');
             var f=document.getElementById('flashSuccess'); if(f){ setTimeout(function(){ if(document.body.contains(f)){ f.remove(); } }, 2500); }
         });
+        function filterDiscussions(){
+            var q = (document.getElementById('discussionSearch')||{}).value || '';
+            q = q.trim().toLowerCase();
+            var list = document.getElementById('courseDiscussions');
+            if(!list) return;
+            var cards = list.querySelectorAll('.forum-card');
+            cards.forEach(function(card){
+                var title = (card.querySelector('.forum-title')||{}).textContent || '';
+                var body = '';
+                var bodyEl = card.querySelector('[data-disc-body]');
+                if(bodyEl) body = bodyEl.textContent || bodyEl.innerText || '';
+                var show = !q || title.toLowerCase().includes(q) || body.toLowerCase().includes(q);
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
         function openDiscussionModal(){
-            var m=document.getElementById('discussionModal');
+            var c=document.getElementById('discussionComposer');
+            var list=document.getElementById('courseDiscussions');
             var t=document.getElementById('discussionTitle');
             var b=document.getElementById('discussionBody');
-            if(m){m.style.display='flex';}
+            if(c){c.style.display='block';}
+            if(list){list.style.display='none';}
             if(t){t.value='';}
             if(b){b.value='';}
+            try{ setDiscussionMode('text'); }catch(e){}
             updateDiscussionCounts();
             var e=document.getElementById('discussionError'); if(e){e.textContent='';}
+            if(c){ c.scrollIntoView({behavior:'smooth', block:'start'}); }
         }
         function closeDiscussionModal(){
-            var m=document.getElementById('discussionModal');
-            if(m){m.style.display='none';}
+            var c=document.getElementById('discussionComposer');
+            var list=document.getElementById('courseDiscussions');
+            if(c){c.style.display='none';}
+            if(list){list.style.display='block';}
         }
         function openParticipantView(name, email, role){
             var m = document.getElementById('participantViewModal');
@@ -297,23 +327,56 @@
             if(m){ m.style.display = 'none'; }
         }
         function updateDiscussionCounts(){
+            var mode=(document.getElementById('discussionMode')||{}).value||'text';
             var t=document.getElementById('discussionTitle');
-            var b=document.getElementById('discussionBody');
             var tc=document.getElementById('titleCount');
-            var bc=document.getElementById('bodyCount');
             var submit=document.getElementById('discussionSubmit');
             var tlen = t ? t.value.length : 0;
-            var blen = b ? b.value.length : 0;
-            var titleFilled = t ? t.value.trim().length > 0 : false;
-            var bodyFilled = b ? b.value.trim().length > 0 : false;
             if(tc){ tc.textContent = tlen + '/200'; }
-            if(bc){ bc.textContent = blen + ' chars'; }
-            var valid = titleFilled && bodyFilled;
+            var titleFilled = t ? t.value.trim().length > 0 : false;
+            var valid=false;
+            if(mode==='text'){
+                var b=document.getElementById('discussionBody');
+                var bc=document.getElementById('bodyCount');
+                var blen = b ? b.value.length : 0;
+                if(bc){ bc.textContent = blen + ' chars'; }
+                var bodyFilled = b ? b.value.trim().length >= 10 : false;
+                valid = titleFilled && bodyFilled;
+            } else if(mode==='media'){
+                var file=document.getElementById('discussionImage');
+                var hasFile = file && file.files && file.files.length>0;
+                var nameEl=document.getElementById('discFileName');
+                if(nameEl){ nameEl.textContent = hasFile ? ('Selected: '+(file.files[0]?.name||'1 file')) : ''; }
+                valid = titleFilled && hasFile;
+            } else if(mode==='link'){
+                var link=document.getElementById('discussionLink');
+                var url = link ? link.value.trim() : '';
+                var isUrl = /^https?:\/\/[^\s]+$/i.test(url);
+                valid = titleFilled && isUrl;
+            }
             if(submit){
                 submit.disabled = !valid;
                 submit.classList.toggle('btn-blue', valid);
                 submit.classList.toggle('btn-disabled', !valid);
             }
+        }
+        function setDiscussionMode(mode){
+            var m=document.getElementById('discussionMode'); if(m){ m.value=mode; }
+            var t1=document.getElementById('discFieldsText');
+            var t2=document.getElementById('discFieldsMedia');
+            var t3=document.getElementById('discFieldsLink');
+            if(t1) t1.style.display = (mode==='text') ? 'block':'none';
+            if(t2) t2.style.display = (mode==='media') ? 'block':'none';
+            if(t3) t3.style.display = (mode==='link') ? 'block':'none';
+            var tabs=[['discTabText','text'],['discTabMedia','media'],['discTabLink','link']];
+            tabs.forEach(function(pair){
+                var el=document.getElementById(pair[0]);
+                if(!el) return;
+                var active = (pair[1]===mode);
+                el.classList.toggle('active', active);
+                el.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            updateDiscussionCounts();
         }
         async function submitDiscussion(ev){
             ev.preventDefault();
@@ -325,6 +388,14 @@
             btn.disabled=true; btn.textContent='Submitting…'; btn.classList.add('btn-disabled'); btn.classList.remove('btn-blue');
             try{
                 var fd = new FormData(form);
+                var mode=(document.getElementById('discussionMode')||{}).value||'text';
+                if(mode==='media'){
+                    var titleVal = (document.getElementById('discussionTitle')||{}).value||'Media post';
+                    fd.set('body', titleVal);
+                } else if(mode==='link'){
+                    var url = (document.getElementById('discussionLink')||{}).value||'';
+                    fd.set('body', url);
+                }
                 var token = form.querySelector('input[name=\"_token\"]').value;
                 var res = await fetch(form.action, {
                     method:'POST',
@@ -1070,8 +1141,56 @@
             </div>
             <div id="paneForum" class="card" role="tabpanel" aria-labelledby="tabBtnForum" style="display:none">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                    <div style="font-weight:700">Forum</div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div style="font-weight:800;color:#0f3b8f;display:flex;align-items:center;gap:8px"><i class="fas fa-comments"></i> Forum</div>
+                        <div class="pro-input" style="padding:6px 10px;border-radius:999px;display:flex;align-items:center;gap:8px">
+                            <i class="fas fa-search" style="color:#64748b"></i>
+                            <input id="discussionSearch" type="search" placeholder="Search discussions" style="border:none;outline:none;background:transparent;width:200px;font:inherit;color:inherit" oninput="filterDiscussions()">
+                        </div>
+                    </div>
                     <button class="btn btn-blue" type="button" onclick="openDiscussionModal()"><i class="fas fa-plus"></i> Create Discussion</button>
+                </div>
+                <!-- Inline discussion composer -->
+                <div id="discussionComposer" class="card" style="display:none;margin-bottom:12px;">
+                    <h3 style="font-weight:800;color:#0f3b8f;display:flex;align-items:center;gap:8px;margin:0 0 6px">
+                        <i class="fas fa-comments"></i> Create Discussion
+                    </h3>
+                    <div class="muted" style="margin-bottom:10px">Start a meaningful conversation with your class.</div>
+                    <form id="discussionForm" action="{{ route('courses.discussions.store',$course) }}" method="POST" enctype="multipart/form-data" onsubmit="submitDiscussion(event)">
+                        @csrf
+                        @if(!empty($asTrainer))
+                            <input type="hidden" name="as_trainer" value="1">
+                        @endif
+                        <input type="hidden" id="discussionMode" name="mode" value="text">
+                        <div class="disc-tabs" role="tablist" aria-label="Create discussion input type">
+                            <button type="button" id="discTabText" class="disc-tab active" role="tab" aria-selected="true" onclick="setDiscussionMode('text')"><i class="fas fa-font"></i> Text</button>
+                            <button type="button" id="discTabMedia" class="disc-tab" role="tab" aria-selected="false" onclick="setDiscussionMode('media')"><i class="fas fa-images"></i> Images & Video</button>
+                            <button type="button" id="discTabLink" class="disc-tab" role="tab" aria-selected="false" onclick="setDiscussionMode('link')"><i class="fas fa-link"></i> Link</button>
+                        </div>
+                        <label for="discussionTitle" class="discussion-label">Title</label>
+                        <input id="discussionTitle" name="title" type="text" maxlength="200" oninput="updateDiscussionCounts()" placeholder="Enter a clear, concise title" class="pro-input">
+                        <div class="counter" id="titleCount" aria-live="polite">0/200</div>
+                        <div id="discFieldsText">
+                            <label for="discussionBody" class="discussion-label">Body</label>
+                            <textarea id="discussionBody" name="body" oninput="updateDiscussionCounts()" placeholder="Write at least 10 characters..." class="pro-textarea"></textarea>
+                            <div class="counter" id="bodyCount" aria-live="polite">0 chars</div>
+                        </div>
+                        <div id="discFieldsMedia" style="display:none">
+                            <div class="discussion-label" style="margin-bottom:8px">Upload</div>
+                            <div id="discDrop" onclick="document.getElementById('discussionImage').click()" style="border:2px dashed #cbd5e1;border-radius:12px;padding:24px;text-align:center;color:#64748b;cursor:pointer">Drag and Drop or upload media</div>
+                            <input id="discussionImage" name="image" class="discussion-file" type="file" accept="image/*" style="display:block;margin-top:8px" onchange="updateDiscussionCounts()">
+                            <div class="muted" id="discFileName" style="margin-top:6px"></div>
+                        </div>
+                        <div id="discFieldsLink" style="display:none">
+                            <label for="discussionLink" class="discussion-label">Link URL</label>
+                            <input id="discussionLink" type="url" placeholder="https://example.com/article" oninput="updateDiscussionCounts()" class="pro-input">
+                        </div>
+                        <div id="discussionError" class="error-text" role="alert"></div>
+                        <div class="post-cta" style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+                            <a href="javascript:void(0)" onclick="closeDiscussionModal()" class="link-action">Cancel</a>
+                            <button id="discussionSubmit" class="btn btn-disabled" type="submit" disabled>Create Discussion</button>
+                        </div>
+                    </form>
                 </div>
                 <div id="courseDiscussions" class="forum-list">
                     @if(($discussions ?? collect())->isEmpty())
@@ -1081,11 +1200,15 @@
                         @if(!(method_exists($d,'trashed') && $d->trashed()))
                         <div class="forum-card" id="disc-card-{{ $d->id }}" style="display:block; position:relative; cursor:pointer" data-disc-id="{{ $d->id }}" data-href="{{ route('discussions.show', ['discussion'=>$d]) }}">
                             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-                                <div>
-                                    <div class="forum-title" style="margin-bottom:4px">{{ $d->title }}</div>
-                                    <div class="forum-meta">
-                                        {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }} by {{ $d->user->name ?? 'User' }}
-                                        • {{ $d->replies_count ?? ($d->replies->count() ?? 0) }} comments
+                                <div style="display:flex;align-items:flex-start;gap:12px">
+                                    @php $n = $d->user->name ?? 'User'; $init = strtoupper(mb_substr($n,0,1)); @endphp
+                                    <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;color:#0f3b8f;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 36px">{{ $init }}</div>
+                                    <div>
+                                        <div class="forum-title" style="margin-bottom:4px">{{ $d->title }}</div>
+                                        <div class="forum-meta">
+                                            {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }} by {{ $d->user->name ?? 'User' }}
+                                            • {{ $d->replies_count ?? ($d->replies->count() ?? 0) }} comments
+                                        </div>
                                     </div>
                                 </div>
                                 @php $canDeleteDiscussion = auth()->check() && (auth()->id() === ($d->user_id ?? 0)); @endphp
@@ -1095,11 +1218,25 @@
                             </div>
                             @if(!empty($d->image_path))
                                 <div style="margin-top:8px">
-                                    <img src="{{ asset('storage/'.$d->image_path) }}" alt="discussion image" style="max-width:100%;border-radius:10px;border:1px solid var(--border)">
+                                    <img src="{{ asset('storage/'.$d->image_path) }}" alt="discussion image" style="max-width:100%;height:auto;max-height:420px;display:block;margin:0 auto;border-radius:10px;border:1px solid var(--border);object-fit:contain">
                                 </div>
                             @endif
-                            <div style="margin-top:8px">{{ $d->body }}</div>
                             @php
+                                $isUrlBody = filter_var(($d->body ?? ''), FILTER_VALIDATE_URL);
+                            @endphp
+                            <div style="margin-top:8px" data-disc-body>
+                                @if($isUrlBody)
+                                    <a href="{{ $d->body }}" target="_blank" rel="noopener" style="color:#0f3b8f;text-decoration:underline">{{ $d->body }}</a>
+                                @else
+                                    {{ $d->body }}
+                                @endif
+                            </div>
+                            @php
+                                $discLikeCount = 0; $discDislikeCount = 0;
+                                if(\Illuminate\Support\Facades\Schema::hasTable('discussion_reactions')){
+                                    $discLikeCount = \App\Models\DiscussionReaction::where('discussion_id',$d->id)->where('type','like')->count();
+                                    $discDislikeCount = \App\Models\DiscussionReaction::where('discussion_id',$d->id)->where('type','dislike')->count();
+                                }
                                 $commentLikes = 0; $commentDislikes = 0;
                                 foreach(($d->replies ?? collect()) as $r){
                                     if(!(method_exists($r,'trashed') && $r->trashed())){
@@ -1116,9 +1253,17 @@
                                     }
                                 }
                             @endphp
-                            <div style="padding-top:10px;margin-top:10px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center">
-                                <span class="chip-stat"><i class="fas fa-thumbs-up"></i> {{ $commentLikes }}</span>
-                                <span class="chip-stat"><i class="fas fa-thumbs-down"></i> {{ $commentDislikes }}</span>
+                            <div style="padding-top:10px;margin-top:10px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                                <button type="button" class="chip-action" style="display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer"
+                                    onclick="reactDiscussion(event, {{ $d->id }}, 'like', 'disc-like-{{ $d->id }}', 'disc-dislike-{{ $d->id }}')">
+                                    <i class="fas fa-thumbs-up"></i> <span id="disc-like-{{ $d->id }}">{{ $discLikeCount }}</span>
+                                </button>
+                                <button type="button" class="chip-action" style="display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer"
+                                    onclick="reactDiscussion(event, {{ $d->id }}, 'dislike', 'disc-like-{{ $d->id }}', 'disc-dislike-{{ $d->id }}')">
+                                    <i class="fas fa-thumbs-down"></i> <span id="disc-dislike-{{ $d->id }}">{{ $discDislikeCount }}</span>
+                                </button>
+                                <span class="chip-stat" style="display:inline-flex;align-items:center;gap:6px"><i class="fas fa-comments"></i> {{ $d->replies_count ?? ($d->replies->count() ?? 0) }}</span>
+                                <a class="link-action" href="{{ route('discussions.show', ['discussion'=>$d]) }}" onclick="event.stopPropagation();" style="margin-left:auto"><i class="fas fa-eye"></i> View</a>
                             </div>
                         </div>
                         @endif
@@ -1217,38 +1362,7 @@
             </form>
         </div>
     </div>
-    <div id="discussionModal" class="modal-overlay">
-        <div class="modal discussion-modal">
-            <form id="discussionForm" action="{{ route('courses.discussions.store',$course) }}" method="POST" enctype="multipart/form-data" onsubmit="submitDiscussion(event)">
-                @csrf
-                @if(!empty($asTrainer))
-                    <input type="hidden" name="as_trainer" value="1">
-                @endif
-                <div class="discussion-modal-header" style="position:relative;">
-                    <button type="button" class="discussion-close" aria-label="Close" onclick="closeDiscussionModal()">&times;</button>
-                    <h3 class="discussion-modal-title"><i class="fas fa-comments"></i> Create Discussion</h3>
-                    <div class="discussion-modal-sub">Start a meaningful conversation with your class.</div>
-                </div>
-                <div class="modal-editor discussion-modal-body">
-                    <label for="discussionTitle" class="discussion-label">Title</label>
-                    <input id="discussionTitle" name="title" type="text" maxlength="200" oninput="updateDiscussionCounts()" placeholder="Enter a clear, concise title" style="width:100%;font-size:1.05rem;color:#0f172a;">
-                    <div class="counter" id="titleCount" aria-live="polite">0/200</div>
-                    <label for="discussionBody" class="discussion-label" style="margin-top:12px;">Content</label>
-                    <textarea id="discussionBody" name="body" oninput="updateDiscussionCounts()" placeholder="Write at least 10 characters..." style="width:100%;min-height:140px;font-size:1rem;color:#0f172a;resize:vertical"></textarea>
-                    <div class="counter" id="bodyCount" aria-live="polite">0 chars</div>
-                    <label for="discussionImage" class="discussion-label" style="margin-top:12px;">Image (optional)</label>
-                    <input id="discussionImage" name="image" class="discussion-file" type="file" accept="image/*" style="display:block;">
-                    <div id="discussionError" class="error-text" role="alert"></div>
-                </div>
-                <div class="modal-actions discussion-modal-actions">
-                    <div></div>
-                    <div class="post-cta">
-                        <button id="discussionSubmit" class="btn btn-disabled" type="submit" disabled>Create Discussion</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Removed modal; using inline composer above -->
     <script>
         (function startDiscussionUpdates(){
             var lastTs = null;
@@ -1321,6 +1435,22 @@
             fetch('{{ url('/replies') }}/'+replyId+'/react', {
                 method:'POST',
                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                body: JSON.stringify({type:type})
+            }).then(r=>r.json()).then(function(res){
+                if(res && res.ok){
+                    var lk=document.getElementById(likeId);
+                    var dk=document.getElementById(dislikeId);
+                    if(lk) lk.textContent = res.likes;
+                    if(dk) dk.textContent = res.dislikes;
+                }
+            }).catch(function(){});
+        }
+        function reactDiscussion(ev, id, type, likeId, dislikeId){
+            if(ev && ev.stopPropagation) ev.stopPropagation();
+            var token = (document.querySelector('#discussionForm input[name=\"_token\"]')||{}).value || '{{ csrf_token() }}';
+            fetch('{{ url('/discussions') }}/'+id+'/react', {
+                method:'POST',
+                headers:{'X-CSRF-TOKEN': token, 'Accept':'application/json','Content-Type':'application/json'},
                 body: JSON.stringify({type:type})
             }).then(r=>r.json()).then(function(res){
                 if(res && res.ok){

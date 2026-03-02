@@ -363,7 +363,9 @@ class CourseController extends Controller
                 'replies.reactions',
                 'replies.children.reactions'
             ])
-            ->withCount('replies')
+            ->withCount(['replies as replies_count' => function($q){
+                $q->whereNull('deleted_at');
+            }])
             ->where('course_id', $course->id)
             ->latest()
             ->get();
@@ -436,7 +438,9 @@ class CourseController extends Controller
                 'replies.reactions',
                 'replies.children.reactions'
             ])
-            ->withCount('replies')
+            ->withCount(['replies as replies_count' => function($q){
+                $q->whereNull('deleted_at');
+            }])
             ->where('course_id', $course->id)
             ->latest()
             ->get();
