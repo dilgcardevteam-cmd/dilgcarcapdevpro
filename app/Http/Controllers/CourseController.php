@@ -551,6 +551,15 @@ class CourseController extends Controller
         $unreadNotificationsCount = Notification::where('user_id', auth()->id())
             ->where('is_read', false)
             ->count();
+        if (request()->ajax()) {
+            return view('registrar.partials.course-participants', compact(
+                'course',
+                'potentialTrainers',
+                'potentialTrainees',
+                'assignedTrainers',
+                'assignedTrainees',
+            ))->render();
+        }
         return view('registrar.course-participants', compact(
             'course',
             'potentialTrainers',
