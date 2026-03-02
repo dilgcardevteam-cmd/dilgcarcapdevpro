@@ -315,10 +315,6 @@
             flex: 1;
         }
 
-        .nav-item {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
         .nav-link {
             display: flex;
             align-items: center;
@@ -331,8 +327,7 @@
 
         .nav-link:hover, .nav-link.active {
             background-color: rgba(255,255,255,0.1);
-            color: white;
-            border-left: 4px solid var(--primary-green);
+            color: white;0
         }
 
         .nav-icon {

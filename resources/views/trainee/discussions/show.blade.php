@@ -7,31 +7,32 @@
     <title>{{ $discussion->title }} · Discussion</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
-        :root{--primary-blue:#002C76;--muted:#64748b;--border:#e5e7eb;--bg:#f4f6f9;--sidebar-width:250px;--sidebar-collapsed-width:70px;--header-height:80px}
+        :root{--brand:#0d6efd;--muted:#64748b;--border:#e5e7eb;--bg:#f4f6f9}
         body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-serif}
-        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000;margin-left:var(--sidebar-width)}
-        .header-left{display:flex;align-items:center}
-        .sidebar-toggle{background:none;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--primary-blue);display:inline-flex;align-items:center;gap:8px}
-        .header-section-title{margin-left:12px;font-weight:700;color:var(--primary-blue);font-size:1.1rem;letter-spacing:-.01em}
-        .dashboard-container{display:flex;flex:1;overflow:hidden;position:relative;margin-left:var(--sidebar-width)}
-        .sidebar{width:var(--sidebar-width);background:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;overflow-y:auto;position:fixed;top:0;left:0;height:100vh;z-index:40}
-        .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
-        .header,.dashboard-container{transition:margin-left .3s ease}
-        body.sidebar-collapsed .header{margin-left:var(--sidebar-collapsed-width)}
-        body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed-width)}
-        .sidebar .header-title{display:flex;align-items:center;justify-content:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}
-        .sidebar .header-title img{display:block;height:60px}
-        .nav-menu{list-style:none;padding:0;margin:0}
-        .nav-item{padding:0}
-        .nav-link{color:rgba(255,255,255,.95);text-decoration:none;display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06)}
-        .nav-link:hover,.nav-link.active{background-color:rgba(255,255,255,0.1)}
-        .nav-icon{width:30px;text-align:center}
-        .main-content{flex:1;padding:24px 24px 30px;overflow-y:auto;background:var(--bg)}
-        .page{max-width:960px;margin:0 auto}
+        :root{--app-sidebar-w:250px;--app-header-h:80px;--app-sidebar-w-collapsed:70px}
+        .with-app-side{padding-left:var(--app-sidebar-w);transition:padding-left .3s ease}
+        .app-side{position:fixed;left:0;top:0;bottom:0;width:var(--app-sidebar-w);background:#002C76;color:#fff;z-index:25;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.12);transition:width .3s ease}
+        .app-side .app-side-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+        .app-side .app-initial{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.25);font-weight:800}
+        .app-side a{color:rgba(255,255,255,.9);text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+        .app-side a:hover{background:rgba(255,255,255,.08)}
+        .app-header{background:#fff;min-height:80px;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;transition:margin-left .3s ease; margin-left:var(--app-sidebar-w)}
+        .header-toggle{background:none;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer;color:#002C76;display:inline-flex;align-items:center;gap:8px}
+        .header-toggle:hover{background:#f8fafc}
+        body.sidebar-collapsed .with-app-side{padding-left:var(--app-sidebar-w-collapsed)}
+        body.sidebar-collapsed .app-side{width:var(--app-sidebar-w-collapsed)}
+        body.sidebar-collapsed .app-side a span{display:none}
+        body.sidebar-collapsed .app-side .app-side-header div{display:none}
+        body.sidebar-collapsed .app-header{margin-left:var(--app-sidebar-w-collapsed)}
+        @media (max-width: 900px){ .with-app-side{padding-left:0}.app-side{display:none} }
+        .app-header-left{display:flex;align-items:center;gap:12px}
+        .app-header-logo{height:48px}
+        .app-header-right a{color:#1a1a1a;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px}
+        .page{max-width:960px;margin:20px auto;padding:0 16px}
         .card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:0 10px 24px rgba(17,24,39,.06);animation:slideUp .35s ease both}
         .muted{color:var(--muted)}
         .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-        .btn-blue{background:#0d6efd;color:#fff}
+        .btn-blue{background:var(--brand);color:#fff}
         .btn-disabled{background:#e5e7eb;color:#9aa4b2;cursor:not-allowed}
         .cm{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--border);animation:fadeIn .25s ease both}
         .cm:last-child{border-bottom:none}
@@ -69,31 +70,31 @@
                 ? route('trainer.courses.enter', $discussion->course)
                 : route('trainee.courses.show', $discussion->course);
     @endphp
-    <header class="header">
-        <div class="header-left">
-            <button class="sidebar-toggle" onclick="document.body.classList.toggle('sidebar-collapsed')"><i class="fas fa-bars"></i></button>
-            <div id="headerSectionTitle" class="header-section-title">Classroom</div>
+    <div class="app-header">
+        <div class="app-header-left">
+            <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div style="font-weight:800;color:#0f172a">{{ $discussion->course->name }}</div>
         </div>
-    </header>
+        <div class="app-header-right">
+            <a href="{{ $backUrl }}" class="back-link">Back to Classroom <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
     @php
         $baseUrl = ($ctx === 'trainer' || $isTrainer)
             ? route('trainer.courses.enter', $discussion->course)
             : route('trainee.courses.show', $discussion->course);
     @endphp
-    <div class="dashboard-container">
-        <div class="sidebar" id="sidebar">
-            <div class="header-title">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro">
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="{{ route('dashboard') }}" class="nav-link"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-text">Dashboard</span></a></li>
-                <li class="nav-item"><a href="{{ route('dashboard', ['tab'=>'classroom']) }}" class="nav-link active"><i class="fas fa-chalkboard-teacher nav-icon"></i><span class="nav-text">Classroom</span></a></li>
-                <li class="nav-item"><a href="{{ route('dashboard', ['tab'=>'calendar']) }}" class="nav-link"><i class="fas fa-calendar-alt nav-icon"></i><span class="nav-text">Calendar</span></a></li>
-                <li class="nav-item"><a href="{{ route('dashboard', ['tab'=>'announcements']) }}" class="nav-link"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-text">Announcements</span></a></li>
-            </ul>
+    <div class="app-side" aria-label="Sidebar">
+        <div class="app-side-header">
+            <img id="sidebarLogo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro" style="height:48px">
         </div>
-        <div class="main-content">
-        <div class="page">
+        <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        <a href="{{ route('dashboard', ['tab' => 'classroom']) }}"><i class="fas fa-chalkboard-teacher"></i> <span>Classroom</span></a>
+        <a href="{{ route('dashboard', ['tab' => 'calendar']) }}"><i class="fas fa-calendar-alt"></i> <span>Calendar</span></a>
+        <a href="{{ route('dashboard', ['tab' => 'announcements']) }}"><i class="fas fa-bullhorn"></i> <span>Announcements</span></a>
+    </div>
+    <div class="with-app-side">
+    <div class="page">
         @php
             $ctx = request()->query('ctx');
             $isTrainer = (auth()->user()->role ?? '') === 'trainer';
@@ -101,9 +102,6 @@
                 ? route('trainer.courses.enter', $discussion->course).'?tab=forum'
                 : route('trainee.courses.show', $discussion->course).'?tab=forum';
         @endphp
-        <div style="margin-bottom:12px">
-            <a href="{{ $forumUrl }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
-        </div>
         <div class="card" style="margin-bottom:12px;">
             <div class="topic-title">{{ $discussion->title }}</div>
             <div class="topic-meta">
@@ -185,11 +183,33 @@
                 </div>
             </form>
         </div>
-        </div>
-        </div>
+    </div>
     </div>
     <script>
         const csrf = '{{ csrf_token() }}';
+        function toggleSidebar(){
+            var collapsed = document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('traineeSidebarCollapsed', collapsed ? '1' : '0');
+            var lg=document.getElementById('sidebarLogo');
+            if(lg){
+                var full=lg.getAttribute('data-full-src');
+                var small=lg.getAttribute('data-collapsed-src');
+                lg.src = collapsed ? small : full;
+                lg.style.height = collapsed ? '40px' : '48px';
+            }
+        }
+        (function(){
+            var s = localStorage.getItem('traineeSidebarCollapsed');
+            if(s === '1'){ 
+                document.body.classList.add('sidebar-collapsed'); 
+                var lg=document.getElementById('sidebarLogo');
+                if(lg){
+                    var small=lg.getAttribute('data-collapsed-src');
+                    lg.src = small;
+                    lg.style.height = '40px';
+                }
+            }
+        })();
         function toggleReplyForm(id){
             var f=document.getElementById(id);
             if(!f) return false;
