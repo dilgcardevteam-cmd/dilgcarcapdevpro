@@ -2250,6 +2250,22 @@
                     bindViewLinks();
                 });
             }
+            initTMPartial();
+        }
+        function initTMPartial(){
+            const btns = container.querySelectorAll('.tab-btn');
+            const panels = container.querySelectorAll('.tab-panel');
+            if(!btns.length || !panels.length) return;
+            btns.forEach(btn=>{
+                btn.addEventListener('click', ()=>{
+                    btns.forEach(b=>b.classList.remove('active'));
+                    panels.forEach(p=>p.classList.remove('active'));
+                    btn.classList.add('active');
+                    const id = 'tab-' + btn.dataset.tab;
+                    const panel = container.querySelector('#'+id);
+                    if(panel) panel.classList.add('active');
+                });
+            });
         }
         function bindViewLinks(){
             tmSection.querySelectorAll('a.btn-view').forEach(a=>{
