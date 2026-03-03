@@ -128,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/certifications/{certification}', [CertificationController::class, 'destroy'])->name('certifications.destroy');
     Route::post('/certifications/{certification}/toggle-display', [CertificationController::class, 'toggleDisplay'])->name('certifications.toggle-display');
     Route::post('/certifications/certify-user', [CertificationController::class, 'certifyUser'])->name('certifications.certify-user');
+    Route::post('/admin/certifications/preview/generate', [\App\Http\Controllers\CertificationController::class, 'generateFromTemplate'])->name('admin.certifications.preview.generate');
 Route::get('/admin/courses/{course}/trainees', [\App\Http\Controllers\DashboardController::class, 'courseTrainees'])->middleware(['auth'])->name('admin.courses.trainees');
 Route::get('/admin/certifications/courses/{course}', [\App\Http\Controllers\CertificationController::class, 'coursePage'])->middleware(['auth'])->name('admin.certifications.course');
 Route::post('/admin/certifications/courses/{course}/certify', [\App\Http\Controllers\CertificationController::class, 'bulkCertify'])->middleware(['auth'])->name('admin.certifications.course.certify');

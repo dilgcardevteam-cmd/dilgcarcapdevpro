@@ -25,6 +25,14 @@
             .insight-grid,.insight-grid.insight-grid-alt{grid-template-columns:1fr}
         }
 
+        .tab-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:var(--primary-blue);font-weight:700;cursor:pointer}
+        .tab-btn.active{background:#eef2ff;border-color:#c7d2fe}
+        .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;background:#fff;color:#111827;font-weight:700;cursor:pointer}
+        .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+        .btn-disabled{background:#e5e7eb;color:#6b7280;border-color:#e5e7eb;cursor:not-allowed}
+        .pro-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff}
+        .empty-state{background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center}
+
         body {
             font-family: 'DM Sans', sans-serif;
             margin: 0;
@@ -2539,6 +2547,11 @@
             }
         }
     </style>
+    <!-- PDF.js and docx-preview + html2canvas for client-side rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.7.107/pdf.min.js" defer></script>
+    <script>document.addEventListener('DOMContentLoaded',function(){ if(window['pdfjsLib']){ window['pdfjsLib'].GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.7.107/pdf.worker.min.js'; } });</script>
+    <script src="https://unpkg.com/docx-preview@0.3.4/dist/docx-preview.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -3299,93 +3312,169 @@
 
             <!-- Certification Management Section -->
             <section id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px; margin:0;">Certificates</h2>
-                    <button onclick="openAddCertificationModal()" style="background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                        <i class="fas fa-plus"></i> Add Certification
-                    </button>
-                </div>
-
-                @if(session('success_certification'))
-                    <div class="alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                        {{ session('success_certification') }}
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
+                    <div style="display:flex;gap:8px;padding:8px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                        <button id="certTabCreate" class="tab-btn active" onclick="switchCertTab('create')" aria-controls="certPaneCreate" aria-selected="true"><i class="fas fa-plus-circle"></i> Create Certificate</button>
+                        <button id="certTabView" class="tab-btn" onclick="switchCertTab('view')" aria-controls="certPaneView" aria-selected="false"><i class="fas fa-list"></i> View Certificates</button>
+                        <button id="certTabCertify" class="tab-btn" onclick="switchCertTab('certify')" aria-controls="certPaneCertify" aria-selected="false"><i class="fas fa-award"></i> Certify</button>
                     </div>
-                @endif
-                @if(session('error_certification'))
-                    <div class="alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                        {{ session('error_certification') }}
-                    </div>
-                @endif
-
-                <!-- Certifications List -->
-                @if($certifications->isEmpty())
-                    <div class="placeholder-content">
-                        <p>No Certifications Added Yet</p>
-                    </div>
-                @else
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px;">
-                        @foreach($certifications as $cert)
-                            <div class="card" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                                <h3 style="margin-top: 0; color: var(--primary-blue);">{{ $cert->name }}</h3>
-                                <p style="color: #666; font-size: 0.9rem;"><strong>Category:</strong> {{ $cert->category ?? 'N/A' }}</p>
-                                <div style="margin: 15px 0;">
-                                    <a href="{{ Storage::url($cert->file_path) }}" target="_blank" style="color: var(--primary-blue); text-decoration: none;">
-                                        <i class="fas fa-file-pdf"></i> View Certificate File
-                                    </a>
+                    @if(session('success_certification'))
+                        <div style="margin:12px;border:1px solid #bbf7d0;background:#ecfdf3;color:#166534;padding:12px;border-radius:10px;font-weight:700">{{ session('success_certification') }}</div>
+                    @endif
+                    @if(session('error_certification'))
+                        <div style="margin:12px;border:1px solid #f5c2c7;background:#fff5f5;color:#842029;padding:12px;border-radius:10px;font-weight:700">{{ session('error_certification') }}</div>
+                    @endif
+                    <div id="certPaneCreate" style="display:block;padding:16px">
+                        <form action="{{ route('certifications.store') }}" method="POST" enctype="multipart/form-data" id="certCreateForm">
+                            @csrf
+                            <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:16px">
+                                <div style="display:grid;gap:12px">
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Name</label>
+                                        <input type="text" name="name" placeholder="Certificate Name" class="pro-input">
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Type</label>
+                                        <select name="category" class="pro-input">
+                                            <option value="">Select type</option>
+                                            <option>Core Governance & Administration</option>
+                                            <option>Finance & Compliance</option>
+                                            <option>Digital Transformation</option>
+                                            <option>ICT & Technical Skills</option>
+                                            <option>Human Capital & Leadership</option>
+                                            <option>Community & Development Planning</option>
+                                            <option>Economic & Business Development</option>
+                                            <option>Social Governance</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Upload Certificate</label>
+                                        <div style="border:2px dashed #e5e7eb;border-radius:12px;background:#fafafa;padding:14px;text-align:center">
+                                            <div style="margin-bottom:8px;color:#6b7280">Drag & drop PDF/PNG/JPG/DOCX or click to browse</div>
+                                            <input id="certTemplateInput" type="file" name="file" accept=".pdf,.docx,image/png,image/jpeg,image/jpg" style="width:100%">
+                                            <div style="margin-top:8px;color:#6b7280;font-size:.85rem">Max 10MB</div>
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Recipient Name</label>
+                                            <input id="certName" type="text" class="pro-input" placeholder="e.g., Juan Dela Cruz" value="{{ Auth::user()->name }}">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Course / Training</label>
+                                            <input id="certCourse" type="text" class="pro-input" placeholder="e.g., Core Governance">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Completion Date</label>
+                                            <input id="certDate" type="date" class="pro-input" value="{{ now()->toDateString() }}">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Certificate Number</label>
+                                            <input id="certNumber" type="text" class="pro-input" placeholder="e.g., CAP-2026-0001">
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+                                        <div><label>Name X</label><input id="posNameX" class="pro-input" type="number" value="420"></div>
+                                        <div><label>Name Y</label><input id="posNameY" class="pro-input" type="number" value="230"></div>
+                                        <div><label>Name Size</label><input id="fontName" class="pro-input" type="number" value="38"></div>
+                                        <div style="display:flex;align-items:flex-end"><button id="btnRegenerate" type="button" class="btn btn-blue" style="width:100%">Regenerate Preview</button></div>
+                                        <div><label>Course X</label><input id="posCourseX" class="pro-input" type="number" value="420"></div>
+                                        <div><label>Course Y</label><input id="posCourseY" class="pro-input" type="number" value="290"></div>
+                                        <div><label>Course Size</label><input id="fontCourse" class="pro-input" type="number" value="28"></div>
+                                        <div></div>
+                                        <div><label>No. X</label><input id="posNumberX" class="pro-input" type="number" value="1100"></div>
+                                        <div><label>No. Y</label><input id="posNumberY" class="pro-input" type="number" value="520"></div>
+                                        <div><label>No. Size</label><input id="fontNumber" class="pro-input" type="number" value="16"></div>
+                                        <div></div>
+                                        <div><label>Date X</label><input id="posDateX" class="pro-input" type="number" value="1100"></div>
+                                        <div><label>Date Y</label><input id="posDateY" class="pro-input" type="number" value="560"></div>
+                                        <div><label>Date Size</label><input id="fontDate" class="pro-input" type="number" value="16"></div>
+                                        <div></div>
+                                    </div>
+                                    <div style="display:flex;justify-content:flex-end;gap:8px">
+                                        <button type="reset" class="btn btn-disabled">Cancel</button>
+                                        <button type="submit" class="btn btn-blue">Create Certificate</button>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <form action="{{ route('certifications.toggle-display', $cert->id) }}" method="POST" style="flex: 1;">
-                                        @csrf
-                                        <button type="submit" style="width: 100%; padding: 8px; background: {{ $cert->display_on_landing_page ? '#dc3545' : '#28a745' }}; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                            {{ $cert->display_on_landing_page ? 'Hide from Landing' : 'Display on Landing' }}
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" onsubmit="return confirm('Are you sure?')" style="flex: 1;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" style="width: 100%; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
-                                    </form>
+                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);padding:12px">
+                                    <div style="font-weight:800;color:#0f3b8f;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+                                        <span>Live Preview</span>
+                                        <a id="btnDownloadFinal" href="#" class="btn btn-blue">Download Final</a>
+                                    </div>
+                                    <div id="certPreviewBox" style="position:relative;width:100%;aspect-ratio:1400/990;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc">
+                                        <img id="certBg" alt="Template" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none">
+                                        <canvas id="certCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
+                                        <div id="ovName" style="position:absolute;left:30%;top:23%;transform:translateX(-0%);font-weight:800;font-size:2.2vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovCourse" style="position:absolute;left:30%;top:33%;transform:translateX(-0%);font-weight:700;font-size:1.8vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovNumber" style="position:absolute;left:79%;top:55%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                        <div id="ovDate" style="position:absolute;left:79%;top:59%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                    </div>
                                 </div>
                             </div>
-                        @endforeach
+                        </form>
                     </div>
-                @endif
-
-                <!-- Course-based Certification -->
-                <h2 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px;">Certify Enrolled Trainees</h2>
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:16px">
-                    @foreach($courses as $course)
-                    <a href="{{ route('admin.certifications.course', $course) }}" style="text-decoration:none;color:inherit">
-                    <div class="course-card" data-course-id="{{ $course->id }}" style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow:hidden;cursor:pointer">
-                        @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                        <div style="height:120px;overflow:hidden">
-                            @php
-                                $img = null;
-                                if (!empty($course->image_path)) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
-                                    }
-                                }
-                                if (!$img) {
-                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
-                                }
-                                if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
-                                    $img = $course->image_path;
-                                }
-                                $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
-                            @endphp
-                            <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
-                        </div>
-                        <div style="padding:12px">
-                            <div style="font-weight:700;color:var(--primary-blue);line-height:1.2">{{ $course->name }}</div>
-                            <div style="color:#6b7280;font-size:.85rem">{{ $course->subject_area ?? 'Uncategorized' }}</div>
+                    <div id="certPaneView" style="display:none;padding:16px">
+                        @if($certifications->isEmpty())
+                            <div class="empty-state">
+                                <i class="fas fa-certificate" style="font-size:3rem;color:#0f3b8f;margin-bottom:10px"></i>
+                                <h3>No Certifications Added Yet</h3>
+                            </div>
+                        @else
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+                                @foreach($certifications as $cert)
+                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,.05);overflow:hidden">
+                                    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:10px">
+                                        <div style="font-weight:800;color:#002C76">{{ $cert->name }}</div>
+                                        <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 10px;font-weight:700;font-size:.8rem">{{ $cert->category ?? '—' }}</span>
+                                    </div>
+                                    <div style="padding:16px;display:flex;align-items:center;justify-content:center">
+                                        <a href="{{ Storage::url($cert->file_path) }}" target="_blank" class="btn btn-blue"><i class="fas fa-file-pdf"></i> Open File</a>
+                                    </div>
+                                    <div style="padding:12px 16px;display:flex;gap:8px">
+                                        <form action="{{ route('certifications.toggle-display', $cert->id) }}" method="POST" style="flex:1">
+                                            @csrf
+                                            <button type="submit" class="btn" style="width:100%;background:{{ $cert->display_on_landing_page ? '#dc3545' : '#28a745' }};color:#fff">{{ $cert->display_on_landing_page ? 'Hide from Landing' : 'Display on Landing' }}</button>
+                                        </form>
+                                        <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" onsubmit="return confirm('Delete this certificate?')" style="flex:1">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn" style="width:100%;background:#dc3545;color:#fff">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                    <div id="certPaneCertify" style="display:none;padding:16px">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+                            @foreach($courses as $course)
+                            <a href="{{ route('admin.certifications.course', $course) }}" style="text-decoration:none;color:inherit">
+                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden">
+                                    @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
+                                    @php
+                                        $img = null;
+                                        if (!empty($course->image_path)) {
+                                            $path = public_path('storage/' . $course->image_path);
+                                            if (file_exists($path)) {
+                                                $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
+                                            }
+                                        }
+                                        if (!$img) { $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name); }
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
+                                        $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                                    @endphp
+                                    <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
+                                    <div style="padding:12px">
+                                        <div style="font-weight:800;color:#002C76">{{ $course->name }}</div>
+                                        <div style="color:#6b7280;font-size:.85rem">{{ $course->subject_area ?? 'Uncategorized' }}</div>
+                                    </div>
+                                </div>
+                            </a>
+                            @endforeach
                         </div>
                     </div>
-                    </a>
-                    @endforeach
                 </div>
-                <!-- Navigates to per-course certification page -->
             </section>
 
             <!-- Profile Section -->
@@ -4784,6 +4873,178 @@
         function closeCertifyUserModal() {
             document.getElementById('certifyUserModal').style.display = 'none';
         }
+
+        function switchCertTab(tab){
+            var tabs = ['create','view','certify'];
+            tabs.forEach(function(name){
+                var btn = document.getElementById('certTab'+name.charAt(0).toUpperCase()+name.slice(1));
+                var pane = document.getElementById('certPane'+name.charAt(0).toUpperCase()+name.slice(1));
+                if(btn){ btn.classList.toggle('active', name===tab); btn.setAttribute('aria-selected', String(name===tab)); }
+                if(pane){ pane.style.display = name===tab ? 'block' : 'none'; }
+            });
+        }
+
+        // Live template preview for Create Certificate
+        const templateInput = document.getElementById('certTemplateInput');
+        const bgImg = document.getElementById('certBg');
+        const canvas = document.getElementById('certCanvas');
+        const ov = {
+            name: document.getElementById('ovName'),
+            course: document.getElementById('ovCourse'),
+            number: document.getElementById('ovNumber'),
+            date: document.getElementById('ovDate'),
+        };
+        const f = {
+            name: document.getElementById('certName'),
+            course: document.getElementById('certCourse'),
+            date: document.getElementById('certDate'),
+            number: document.getElementById('certNumber'),
+        };
+        const pos = {
+            nameX: document.getElementById('posNameX'),
+            nameY: document.getElementById('posNameY'),
+            courseX: document.getElementById('posCourseX'),
+            courseY: document.getElementById('posCourseY'),
+            numberX: document.getElementById('posNumberX'),
+            numberY: document.getElementById('posNumberY'),
+            dateX: document.getElementById('posDateX'),
+            dateY: document.getElementById('posDateY'),
+            fontName: document.getElementById('fontName'),
+            fontCourse: document.getElementById('fontCourse'),
+            fontNumber: document.getElementById('fontNumber'),
+            fontDate: document.getElementById('fontDate'),
+        };
+        let currentBgDataUrl = null; // normalized 1400x990 png for server
+
+        function updateOverlay() {
+            ov.name.textContent = f.name.value || '';
+            ov.course.textContent = f.course.value || '';
+            ov.number.textContent = f.number.value || '';
+            ov.date.textContent = f.date.value || '';
+            const box = document.getElementById('certPreviewBox');
+            const w = 1400, h = 990;
+            const rect = box.getBoundingClientRect();
+            const rx = rect.width / w, ry = rect.height / h;
+            ov.name.style.left = (pos.nameX.value * rx) + 'px';
+            ov.name.style.top  = (pos.nameY.value * ry) + 'px';
+            ov.course.style.left = (pos.courseX.value * rx) + 'px';
+            ov.course.style.top  = (pos.courseY.value * ry) + 'px';
+            ov.number.style.left = (pos.numberX.value * rx) + 'px';
+            ov.number.style.top  = (pos.numberY.value * ry) + 'px';
+            ov.date.style.left = (pos.dateX.value * rx) + 'px';
+            ov.date.style.top  = (pos.dateY.value * ry) + 'px';
+            ov.name.style.fontSize = (pos.fontName.value * rx) + 'px';
+            ov.course.style.fontSize = (pos.fontCourse.value * rx) + 'px';
+            ov.number.style.fontSize = (pos.fontNumber.value * rx) + 'px';
+            ov.date.style.fontSize = (pos.fontDate.value * rx) + 'px';
+        }
+        ['input','change'].forEach(ev=>{
+            [f.name,f.course,f.date,f.number,pos.nameX,pos.nameY,pos.courseX,pos.courseY,pos.numberX,pos.numberY,pos.dateX,pos.dateY,pos.fontName,pos.fontCourse,pos.fontNumber,pos.fontDate].forEach(el=>{
+                if(el){ el.addEventListener(ev, updateOverlay); }
+            });
+        });
+        document.getElementById('btnRegenerate').addEventListener('click', updateOverlay);
+
+        async function renderPdfFirstPageToImg(file){
+            const url = URL.createObjectURL(file);
+            const pdf = await window.pdfjsLib.getDocument(url).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const cvs = document.createElement('canvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = viewport.width;
+            cvs.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            URL.revokeObjectURL(url);
+            return cvs.toDataURL('image/png');
+        }
+        async function renderDocxToImg(file){
+            const container = document.createElement('div');
+            container.style.position='absolute';
+            container.style.left='-99999px';
+            document.body.appendChild(container);
+            await window.docx.renderAsync(file, container, undefined, { inWrapper:false });
+            const dataUrl = await window.html2canvas(container, { scale:2 }).then(c=>c.toDataURL('image/png'));
+            container.remove();
+            return dataUrl;
+        }
+        async function setBackgroundFromFile(file){
+            if(!file) return;
+            if(file.size > 10*1024*1024){ alert('Max 10MB'); return; }
+            const name = (file.name||'').toLowerCase();
+            let dataUrl = null;
+            if(name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg')){
+                dataUrl = await new Promise((res)=>{
+                    const r = new FileReader(); r.onload = ()=>res(r.result); r.readAsDataURL(file);
+                });
+            } else if (name.endsWith('.pdf')){
+                dataUrl = await renderPdfFirstPageToImg(file);
+            } else if (name.endsWith('.docx')){
+                dataUrl = await renderDocxToImg(file);
+            } else {
+                alert('Unsupported format'); return;
+            }
+            bgImg.src = dataUrl;
+            bgImg.style.display='block';
+            canvas.style.display='none';
+            currentBgDataUrl = await normalizeBackground(dataUrl);
+            updateOverlay();
+        }
+        async function normalizeBackground(dataUrl){
+            // resize to 1400x990 for consistent PDF render
+            return new Promise((resolve)=>{
+                const img = new Image();
+                img.onload = ()=>{
+                    const w=1400,h=990; const c=document.createElement('canvas'); c.width=w; c.height=h;
+                    const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+                    const ratio = Math.min(w/img.width, h/img.height);
+                    const dw = img.width*ratio, dh = img.height*ratio;
+                    const dx = (w-dw)/2, dy = (h-dh)/2;
+                    ctx.drawImage(img, dx, dy, dw, dh);
+                    resolve(c.toDataURL('image/png'));
+                };
+                img.src = dataUrl;
+            });
+        }
+        if(templateInput){
+            templateInput.addEventListener('change', function(){
+                const f = this.files && this.files[0];
+                setBackgroundFromFile(f);
+            });
+        }
+        document.getElementById('btnDownloadFinal').addEventListener('click', async function(e){
+            e.preventDefault();
+            if(!currentBgDataUrl){ alert('Upload a template first.'); return; }
+            const payload = {
+                template_bg_data: currentBgDataUrl,
+                recipient_name: f.name.value || '',
+                course_name: f.course.value || '',
+                completion_date: f.date.value || '',
+                certificate_number: f.number.value || '',
+                pos: {
+                    name: { x: parseInt(pos.nameX.value||'0'), y: parseInt(pos.nameY.value||'0') },
+                    course:{ x: parseInt(pos.courseX.value||'0'), y: parseInt(pos.courseY.value||'0') },
+                    number:{ x: parseInt(pos.numberX.value||'0'), y: parseInt(pos.numberY.value||'0') },
+                    date:  { x: parseInt(pos.dateX.value||'0'), y: parseInt(pos.dateY.value||'0') },
+                },
+                font: {
+                    name: parseInt(pos.fontName.value||'38'),
+                    course: parseInt(pos.fontCourse.value||'28'),
+                    number: parseInt(pos.fontNumber.value||'16'),
+                    date: parseInt(pos.fontDate.value||'16'),
+                }
+            };
+            const res = await fetch('{{ route('admin.certifications.preview.generate') }}', {
+                method:'POST',
+                headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/pdf','Content-Type':'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if(!res.ok){ alert('Failed to generate certificate'); return; }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='certificate_preview.pdf'; a.click();
+            setTimeout(()=>URL.revokeObjectURL(url), 1000);
+        });
 
         // Filter Logic
         function addFilter(value) {

@@ -18,10 +18,10 @@
             width: 1400px;
             height: 990px;
         }
-        .name { position: absolute; left: 420px; top: 230px; font-size: 38px; font-weight: 700; color: #111; }
-        .course { position: absolute; left: 420px; top: 290px; font-size: 28px; font-weight: 400; color: #222; }
-        .number { position: absolute; left: 1100px; top: 520px; font-size: 16px; color: #111; }
-        .date { position: absolute; left: 1100px; top: 560px; font-size: 16px; color: #111; }
+        .name { position: absolute; left: {{ isset($posName['x']) ? $posName['x'] : 420 }}px; top: {{ isset($posName['y']) ? $posName['y'] : 230 }}px; font-size: {{ $fontName ?? 38 }}px; font-weight: 700; color: #111; }
+        .course { position: absolute; left: {{ isset($posCourse['x']) ? $posCourse['x'] : 420 }}px; top: {{ isset($posCourse['y']) ? $posCourse['y'] : 290 }}px; font-size: {{ $fontCourse ?? 28 }}px; font-weight: 400; color: #222; }
+        .number { position: absolute; left: {{ isset($posNumber['x']) ? $posNumber['x'] : 1100 }}px; top: {{ isset($posNumber['y']) ? $posNumber['y'] : 520 }}px; font-size: {{ $fontNumber ?? 16 }}px; color: #111; }
+        .date { position: absolute; left: {{ isset($posDate['x']) ? $posDate['x'] : 1100 }}px; top: {{ isset($posDate['y']) ? $posDate['y'] : 560 }}px; font-size: {{ $fontDate ?? 16 }}px; color: #111; }
     </style>
 </head>
 <body>

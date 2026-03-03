@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\ReflectionResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -86,7 +87,7 @@ class CertificationController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'nullable|string|in:Core Governance & Administration,Finance & Compliance,Digital Transformation,ICT & Technical Skills,Human Capital & Leadership,Community & Development Planning,Economic & Business Development,Social Governance',
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png,docx|max:10240',
         ]);
 
         $path = $request->file('file')->store('certifications', 'public');
@@ -99,6 +100,73 @@ class CertificationController extends Controller
         ]);
 
         return redirect()->back()->with('success_certification', 'Certification created successfully.');
+    }
+
+    public function generateFromTemplate(Request $request)
+    {
+        $data = $request->validate([
+            'template_bg_data' => ['required','string','regex:/^data:(image|application)\\/[A-Za-z0-9.+-]+;base64,.*$/'],
+            'recipient_name' => 'required|string|max:255',
+            'course_name' => 'required|string|max:255',
+            'completion_date' => 'nullable|date',
+            'certificate_number' => 'required|string|max:255',
+            'pos.name.x' => 'nullable|integer',
+            'pos.name.y' => 'nullable|integer',
+            'pos.course.x' => 'nullable|integer',
+            'pos.course.y' => 'nullable|integer',
+            'pos.number.x' => 'nullable|integer',
+            'pos.number.y' => 'nullable|integer',
+            'pos.date.x' => 'nullable|integer',
+            'pos.date.y' => 'nullable|integer',
+            'font.name' => 'nullable|integer',
+            'font.course' => 'nullable|integer',
+            'font.number' => 'nullable|integer',
+            'font.date' => 'nullable|integer',
+        ]);
+        $bgUri = $data['template_bg_data'];
+        $items = [[
+            'name' => $data['recipient_name'],
+            'course' => $data['course_name'],
+            'cert_number' => $data['certificate_number'],
+            'issued_at' => !empty($data['completion_date']) ? \Carbon\Carbon::parse($data['completion_date'])->toDateString() : null,
+        ]];
+        $html = view('admin.certificates.pdf', [
+            'items' => $items,
+            'bgPath' => $bgUri,
+            'posName' => ['x' => $data['pos']['name']['x'] ?? null, 'y' => $data['pos']['name']['y'] ?? null],
+            'posCourse' => ['x' => $data['pos']['course']['x'] ?? null, 'y' => $data['pos']['course']['y'] ?? null],
+            'posNumber' => ['x' => $data['pos']['number']['x'] ?? null, 'y' => $data['pos']['number']['y'] ?? null],
+            'posDate' => ['x' => $data['pos']['date']['x'] ?? null, 'y' => $data['pos']['date']['y'] ?? null],
+            'fontName' => $data['font']['name'] ?? null,
+            'fontCourse' => $data['font']['course'] ?? null,
+            'fontNumber' => $data['font']['number'] ?? null,
+            'fontDate' => $data['font']['date'] ?? null,
+        ])->render();
+        $pdf = $this->renderPdfFromHtml($html);
+        if (!Schema::hasTable('certificate_generation_audits')) {
+            Schema::create('certificate_generation_audits', function ($table) {
+                $table->id();
+                $table->string('template_source', 256)->nullable();
+                $table->string('recipient_name');
+                $table->string('course_name');
+                $table->string('certificate_number');
+                $table->date('issued_at')->nullable();
+                $table->unsignedBigInteger('generated_by')->nullable();
+                $table->timestamps();
+            });
+        }
+        \App\Models\CertificateGenerationAudit::create([
+            'template_source' => substr($bgUri, 0, 64).'…',
+            'recipient_name' => $data['recipient_name'],
+            'course_name' => $data['course_name'],
+            'certificate_number' => $data['certificate_number'],
+            'issued_at' => !empty($data['completion_date']) ? \Carbon\Carbon::parse($data['completion_date'])->toDateString() : null,
+            'generated_by' => auth()->id(),
+        ]);
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="certificate_preview.pdf"',
+        ]);
     }
 
     public function coursePage(Course $course)
