@@ -509,7 +509,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Mobile Number <span class="require">*</span></label>
-                                <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" required inputmode="numeric" pattern="[0-9]*" maxlength="11" placeholder="09XXXXXXXXX">
+                                <input type="text" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" required>
                             </div>
                             <div class="form-group">
                                 <label>Gender</label>
@@ -871,40 +871,6 @@ function initSetupLocationDropdowns() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initSetupLocationDropdowns();
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var mobile = document.querySelector('input[name="mobile_number"]');
-    if (!mobile) return;
-    function digitsOnly(v) { return v.replace(/\D/g, ''); }
-    function normalize(v) {
-        var d = digitsOnly(v);
-        if (d.startsWith('639')) d = '09' + d.slice(3);
-        else if (d.startsWith('63')) d = '09' + d.slice(2);
-        else if (!d.startsWith('09')) {
-            if (d.startsWith('9')) d = '0' + d;
-            else d = '09' + d.replace(/^0+/, '').replace(/^9?/, '');
-        }
-        return d.slice(0, 11);
-    }
-    mobile.addEventListener('focus', function () {
-        if (!mobile.value) mobile.value = '09';
-        setTimeout(function(){ try { mobile.setSelectionRange(mobile.value.length, mobile.value.length); } catch(e){} }, 0);
-    });
-    mobile.addEventListener('input', function () {
-        var nv = normalize(mobile.value);
-        if (mobile.value !== nv) mobile.value = nv;
-    });
-    mobile.addEventListener('keydown', function (e) {
-        var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Home','End','Tab'];
-        if (allowed.includes(e.key)) {
-            if ((e.key === 'Backspace' || e.key === 'Delete') && mobile.selectionStart <= 2 && mobile.selectionEnd <= 2) e.preventDefault();
-            return;
-        }
-        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
-        if (mobile.value.length >= 11 && mobile.selectionStart === mobile.selectionEnd && mobile.selectionStart >= 11) e.preventDefault();
-    });
 });
 </script>
 @endsection
