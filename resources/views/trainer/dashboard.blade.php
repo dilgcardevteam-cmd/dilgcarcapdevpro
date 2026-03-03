@@ -49,6 +49,7 @@
             top: 0;
             left: var(--sidebar-width);
             right: 0;
+            transition: left .3s ease;
         }
 
         .header-left {
@@ -243,6 +244,7 @@
             margin-top: var(--header-height);
             margin-left: var(--sidebar-width);
             height: calc(100vh - var(--header-height));
+            transition: margin-left .3s ease;
         }
 
         /* Hero */
