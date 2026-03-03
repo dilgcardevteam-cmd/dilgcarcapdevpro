@@ -924,7 +924,7 @@
                                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.8 12.8 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.8 12.8 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                                 </svg>
                             </span>
-                            <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" />
+                            <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" inputmode="numeric" pattern="[0-9]*" maxlength="11" />
                         </div>
                     </div>
                 </div>
@@ -1553,5 +1553,42 @@
                 .catch(error => console.error('Error fetching cities:', error));
         }
     });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var mobile = document.getElementById('mobile_number');
+    if (!mobile) return;
+    function digitsOnly(v) { return v.replace(/\D/g, ''); }
+    function normalize(v) {
+        var d = digitsOnly(v);
+        if (d.startsWith('639')) d = '09' + d.slice(3);
+        else if (d.startsWith('63')) d = '09' + d.slice(2);
+        else if (!d.startsWith('09')) {
+            if (d.startsWith('9')) d = '0' + d;
+            else d = '09' + d.replace(/^0+/, '').replace(/^9?/, '');
+        }
+        return d.slice(0, 11);
+    }
+    mobile.addEventListener('focus', function () {
+        if (!mobile.value) mobile.value = '09';
+        setTimeout(function(){ try { mobile.setSelectionRange(mobile.value.length, mobile.value.length); } catch(e){} }, 0);
+    });
+    mobile.addEventListener('blur', function () {
+        if (mobile.value === '09') mobile.value = '';
+    });
+    mobile.addEventListener('input', function () {
+        var nv = normalize(mobile.value);
+        if (mobile.value !== nv) mobile.value = nv;
+    });
+    mobile.addEventListener('keydown', function (e) {
+        var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Home','End','Tab'];
+        if (allowed.includes(e.key)) {
+            if ((e.key === 'Backspace' || e.key === 'Delete') && mobile.selectionStart <= 2 && mobile.selectionEnd <= 2) e.preventDefault();
+            return;
+        }
+        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+        if (mobile.value.length >= 11 && mobile.selectionStart === mobile.selectionEnd && mobile.selectionStart >= 11) e.preventDefault();
+    });
+});
 </script>
 @endsection
