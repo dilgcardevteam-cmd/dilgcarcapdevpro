@@ -72,6 +72,8 @@ Route::get('/trainee/courses/{course}/outline', [CourseController::class, 'train
 Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->middleware(['auth'])->name('trainer.courses.enter');
 // Trainer view-only course outline page
 Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth'])->name('trainer.courses.view');
+// Admin System Settings
+Route::post('/admin/system-settings/location/import', [DashboardController::class, 'importLocationMaster'])->middleware(['auth'])->name('admin.settings.location.import');
 // Trainer create classwork page
 Route::get('/trainer/courses/{course}/classwork/create', [CourseController::class, 'trainerClassworkCreate'])->middleware(['auth'])->name('trainer.courses.classwork.create');
 // Trainer create material/assessment dedicated pages

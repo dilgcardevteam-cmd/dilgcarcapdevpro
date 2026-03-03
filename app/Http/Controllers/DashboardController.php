@@ -659,4 +659,185 @@ class DashboardController extends Controller
             ->pluck('c', 'province');
         return response()->json(['counts' => $counts]);
     }
+
+    public function importLocationMaster(Request $request)
+    {
+        $request->validate([
+            'psgc_file' => 'required|file',
+        ]);
+        $file = $request->file('psgc_file');
+        $path = $file->getRealPath();
+        $ext = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+        $rows = [];
+        if (in_array($ext, ['csv', 'txt'])) {
+            $fh = fopen($path, 'r');
+            if (!$fh) {
+                return response()->json(['ok' => false, 'error' => 'Cannot open file'], 422);
+            }
+            $header = fgetcsv($fh);
+            if (!$header) {
+                return response()->json(['ok' => false, 'error' => 'Empty file'], 422);
+            }
+            $rows[] = $header;
+            while (($r = fgetcsv($fh)) !== false) {
+                $rows[] = $r;
+            }
+            fclose($fh);
+        } elseif (in_array($ext, ['xlsx'])) {
+            $rows = $this->parseXlsxToRows($path);
+            if (!$rows || !is_array($rows) || count($rows) < 2) {
+                return response()->json(['ok' => false, 'error' => 'Unable to read Excel file'], 422);
+            }
+        } else {
+            return response()->json(['ok' => false, 'error' => 'Unsupported file type'], 422);
+        }
+
+        $header = $rows[0];
+        $cols = array_map(function($c){ return strtolower(trim((string)$c)); }, $header);
+        $iRegionCode = array_search('region_code', $cols);
+        $iRegionName = array_search('region_name', $cols);
+        $iProvinceCode = array_search('province_code', $cols);
+        $iProvinceName = array_search('province_name', $cols);
+        if ($iRegionCode === false || $iRegionName === false) {
+            return response()->json(['ok' => false, 'error' => 'Missing region headers'], 422);
+        }
+        $regionsInserted = 0;
+        $provincesInserted = 0;
+        \DB::beginTransaction();
+        try {
+            $regionIdByCode = [];
+            for ($ri = 1; $ri < count($rows); $ri++) {
+                $row = $rows[$ri];
+                $regionCode = isset($row[$iRegionCode]) ? trim($row[$iRegionCode]) : '';
+                $regionName = isset($row[$iRegionName]) ? trim($row[$iRegionName]) : '';
+                if ($regionCode && $regionName) {
+                    $existing = \DB::table('regions')->where('region_code', $regionCode)->first();
+                    if ($existing) {
+                        \DB::table('regions')->where('id', $existing->id)->update(['region_name' => $regionName, 'updated_at' => now()]);
+                        $regionIdByCode[$regionCode] = $existing->id;
+                    } else {
+                        $id = \DB::table('regions')->insertGetId(['region_code' => $regionCode, 'region_name' => $regionName, 'created_at' => now(), 'updated_at' => now()]);
+                        $regionIdByCode[$regionCode] = $id;
+                        $regionsInserted++;
+                    }
+                }
+                if ($iProvinceCode !== false && $iProvinceName !== false) {
+                    $provCode = isset($row[$iProvinceCode]) ? trim($row[$iProvinceCode]) : '';
+                    $provName = isset($row[$iProvinceName]) ? trim($row[$iProvinceName]) : '';
+                    if ($provCode && $provName && $regionCode) {
+                        $regionId = $regionIdByCode[$regionCode] ?? (\DB::table('regions')->where('region_code', $regionCode)->value('id'));
+                        if ($regionId) {
+                            $existingP = \DB::table('provinces')->where('province_code', $provCode)->first();
+                            if ($existingP) {
+                                \DB::table('provinces')->where('id', $existingP->id)->update(['province_name' => $provName, 'region_id' => $regionId, 'updated_at' => now()]);
+                            } else {
+                                \DB::table('provinces')->insert(['region_id' => $regionId, 'province_code' => $provCode, 'province_name' => $provName, 'created_at' => now(), 'updated_at' => now()]);
+                                $provincesInserted++;
+                            }
+                        }
+                    }
+                }
+            }
+            \DB::commit();
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return response()->json(['ok' => false, 'error' => 'Import error'], 500);
+        }
+        return response()->json(['ok' => true, 'regions' => $regionsInserted, 'provinces' => $provincesInserted]);
+    }
+
+    private function parseXlsxToRows(string $filePath): array
+    {
+        $rows = [];
+        $zip = new \ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            return $rows;
+        }
+        $sheetXml = null;
+        // Prefer sheet1.xml; fallback to first worksheet
+        $sheetXmlIndex = $zip->locateName('xl/worksheets/sheet1.xml', \ZipArchive::FL_NODIR);
+        if ($sheetXmlIndex !== false) {
+            $sheetXml = $zip->getFromIndex($sheetXmlIndex);
+        } else {
+            // Find first worksheets/sheet*.xml
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (preg_match('#^xl/worksheets/sheet\d+\.xml$#', $name)) {
+                    $sheetXml = $zip->getFromIndex($i);
+                    break;
+                }
+            }
+        }
+        if (!$sheetXml) {
+            $zip->close();
+            return $rows;
+        }
+        $sharedStrings = [];
+        $sstIdx = $zip->locateName('xl/sharedStrings.xml', \ZipArchive::FL_NODIR);
+        if ($sstIdx !== false) {
+            $sstXml = $zip->getFromIndex($sstIdx);
+            $sst = new \SimpleXMLElement($sstXml);
+            foreach ($sst->si as $si) {
+                // concatenate t parts for rich text
+                $text = '';
+                if (isset($si->t)) {
+                    $text = (string) $si->t;
+                } elseif (isset($si->r)) {
+                    foreach ($si->r as $r) {
+                        $text .= (string) $r->t;
+                    }
+                }
+                $sharedStrings[] = $text;
+            }
+        }
+        $xml = new \SimpleXMLElement($sheetXml);
+        $sheetData = $xml->sheetData;
+        $rowMap = [];
+        foreach ($sheetData->row as $row) {
+            $rIndex = intval($row['r']);
+            $rowMap[$rIndex] = [];
+            foreach ($row->c as $c) {
+                $ref = (string) $c['r']; // e.g., A1
+                preg_match('/([A-Z]+)(\d+)/', $ref, $m);
+                $colLetters = $m[1] ?? 'A';
+                $colIndex = $this->xlsxColToIndex($colLetters);
+                $t = (string) $c['t'];
+                $v = (string) $c->v;
+                $val = '';
+                if ($t === 's') {
+                    $idx = intval($v);
+                    $val = $sharedStrings[$idx] ?? '';
+                } elseif ($t === 'inlineStr' && isset($c->is->t)) {
+                    $val = (string) $c->is->t;
+                } else {
+                    $val = $v;
+                }
+                $rowMap[$rIndex][$colIndex] = $val;
+            }
+        }
+        // Normalize to sequential arrays
+        ksort($rowMap);
+        foreach ($rowMap as $r) {
+            if (!empty($r)) {
+                $maxCol = max(array_keys($r));
+                $arr = [];
+                for ($i = 0; $i <= $maxCol; $i++) {
+                    $arr[] = isset($r[$i]) ? $r[$i] : '';
+                }
+                $rows[] = $arr;
+            }
+        }
+        $zip->close();
+        return $rows;
+    }
+
+    private function xlsxColToIndex(string $letters): int
+    {
+        $letters = strtoupper($letters);
+        $n = 0;
+        for ($i = 0; $i < strlen($letters); $i++) {
+            $n = $n * 26 + (ord($letters[$i]) - 64);
+        }
+        return max(0, $n - 1);
+    }
 }

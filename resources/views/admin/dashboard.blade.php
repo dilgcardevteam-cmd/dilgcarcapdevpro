@@ -2619,6 +2619,10 @@
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
                 </li>
+                <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
+                    <div class="menu-icon"><i class="fas fa-cogs"></i></div>
+                    <span class="menu-text">System Settings</span>
+                </li>
             </ul>
         </aside>
 
@@ -2972,6 +2976,179 @@
                 </div>
             </section>
 
+            <section id="system-settings" class="content-section {{ request('tab') == 'system-settings' ? 'active' : '' }}">
+                <style>
+                    .settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+                    .setting-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.08);padding:18px;cursor:pointer;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
+                    .setting-card:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(15,23,42,.12);border-color:#cfe0ff}
+                    .setting-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+                    .setting-icon{width:44px;height:44px;border-radius:12px;background:#eef2ff;color:#0b3b8f;display:flex;align-items:center;justify-content:center}
+                    .setting-title{font-weight:800;color:#0b3b8f}
+                    .setting-sub{color:#64748b;font-size:.9rem}
+                    .settings-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+                    .btn-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff;color:#111827;font-weight:700;cursor:pointer}
+                    .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+                </style>
+                <div id="settingsHome">
+                    <div class="settings-bar">
+                        <h2 style="margin:0;color:#002C76">System Settings</h2>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-card" onclick="openSetting('location')">
+                            <div class="setting-head">
+                                <div class="setting-icon"><i class="fas fa-map-marked-alt"></i></div>
+                                <div>
+                                    <div class="setting-title">Location Master Data</div>
+                                    <div class="setting-sub">PSGC 4Q 2025 Publication Datafile</div>
+                                </div>
+                            </div>
+                            <div class="setting-sub">Import regions and provinces to keep address data authoritative.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="settingsLocation" style="display:none">
+                    <style>
+                        .import-wrap{display:grid;grid-template-columns:1.6fr .9fr;gap:18px}
+                        .import-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 12px 28px rgba(2,6,23,.08);overflow:hidden}
+                        .import-hero{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:linear-gradient(135deg,#002C76 0%,#0b57d0 55%,#1e88e5 100%);color:#fff}
+                        .hero-left{display:flex;align-items:center;gap:12px}
+                        .hero-icon{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
+                        .hero-title{font-weight:800;letter-spacing:-.01em}
+                        .hero-sub{opacity:.9;font-size:.9rem}
+                        .import-body{padding:18px}
+                        .drop-zone{border:2px dashed #cfe0ff;border-radius:14px;background:#f8fbff;padding:18px;display:flex;align-items:center;justify-content:center;min-height:140px;cursor:pointer;transition:border-color .18s ease, background .18s ease}
+                        .drop-zone:hover{border-color:#90b4f8;background:#f0f6ff}
+                        .dz-meta{margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+                        .dz-file{color:#0b3b8f;font-weight:700}
+                        .progress{height:10px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:12px}
+                        .progress > div{height:100%;width:0;background:#0f3b8f;transition:width .3s ease}
+                        .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+                        .chip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#0f3b8f;border:1px solid #dbeafe;border-radius:999px;padding:6px 10px;font-weight:700}
+                        .import-side{background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 12px 28px rgba(2,6,23,.08);padding:16px}
+                        .side-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-weight:800;color:#0b3b8f}
+                        .side-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;color:#64748b}
+                        .cta-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+                        .btn-wide{min-width:160px}
+                    </style>
+                    <div class="import-wrap">
+                        <div class="import-card">
+                            <div class="import-hero">
+                                <div class="hero-left">
+                                    <div class="hero-icon"><i class="fas fa-map-marked-alt"></i></div>
+                                    <div>
+                                        <div class="hero-title">PSGC Location Master Data</div>
+                                        <div class="hero-sub">Import regions and provinces</div>
+                                    </div>
+                                </div>
+                                <button class="btn-pill" onclick="backSettingsHome()"><i class="fas fa-arrow-left"></i> Back</button>
+                            </div>
+                            <div class="import-body">
+                                <div id="psgcDrop" class="drop-zone">
+                                    <div style="text-align:center">
+                                        <div style="font-weight:800;color:#0b3b8f">Drop file here or click to select</div>
+                                        <div style="color:#64748b;margin-top:4px">Accepted: .csv, .xlsx</div>
+                                    </div>
+                                </div>
+                                <form id="psgcImportForm" method="POST" enctype="multipart/form-data" action="{{ route('admin.settings.location.import') }}" style="margin-top:12px">
+                                    @csrf
+                                    <input id="psgcFile" type="file" name="psgc_file" accept=".csv,.xlsx" style="display:none">
+                                    <div class="dz-meta">
+                                        <div id="psgcFileName" class="dz-file">No file selected</div>
+                                        <div class="cta-row">
+                                            <button id="psgcImportBtn" type="submit" class="btn btn-blue btn-wide" disabled>Import</button>
+                                            <span id="psgcStatus" style="color:#64748b"></span>
+                                        </div>
+                                    </div>
+                                    <div class="progress"><div id="psgcProg"></div></div>
+                                </form>
+                                <div class="chips" id="psgcResult" style="display:none"></div>
+                            </div>
+                        </div>
+                        <div class="import-side">
+                            <div class="side-head"><i class="fas fa-info-circle"></i> File Requirements</div>
+                            <ul class="side-list">
+                                <li>Headers: region_code, region_name, province_code, province_name</li>
+                                <li>UTF-8 CSV, comma-separated</li>
+                                <li>Large files may take time to process</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    function openSetting(key){
+                        if(key==='location'){
+                            document.getElementById('settingsHome').style.display='none';
+                            document.getElementById('settingsLocation').style.display='block';
+                        }
+                    }
+                    function backSettingsHome(){
+                        document.getElementById('settingsLocation').style.display='none';
+                        document.getElementById('settingsHome').style.display='block';
+                    }
+                    (function(){
+                        var form=document.getElementById('psgcImportForm');
+                        if(!form) return;
+                        var dz=document.getElementById('psgcDrop');
+                        var fi=document.getElementById('psgcFile');
+                        var fn=document.getElementById('psgcFileName');
+                        var btn=document.getElementById('psgcImportBtn');
+                        var prog=document.getElementById('psgcProg');
+                        function setFile(f){
+                            if(!f) return;
+                            var name=f.name||'file';
+                            var ext=(name.split('.').pop()||'').toLowerCase();
+                            var dt=new DataTransfer();
+                            dt.items.add(f);
+                            fi.files=dt.files;
+                            fn.textContent=name+' · '+Math.round(f.size/1024)+' KB';
+                            if(ext==='csv'){
+                                btn.disabled=false;
+                                document.getElementById('psgcStatus').textContent='Ready to import';
+                            }else{
+                                btn.disabled=true;
+                                document.getElementById('psgcStatus').textContent='Only CSV supported. Please convert the .xlsx file.';
+                            }
+                        }
+                        dz.addEventListener('click', function(){ fi.click(); });
+                        dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.style.borderColor='#90b4f8'; });
+                        dz.addEventListener('dragleave', function(){ dz.style.borderColor='#cfe0ff'; });
+                        dz.addEventListener('drop', function(e){ e.preventDefault(); dz.style.borderColor='#cfe0ff'; var f=e.dataTransfer.files[0]; setFile(f); });
+                        fi.addEventListener('change', function(){ var f=fi.files[0]; setFile(f); });
+                        form.addEventListener('submit', function(ev){
+                            ev.preventDefault();
+                            var st=document.getElementById('psgcStatus');
+                            var rs=document.getElementById('psgcResult');
+                            st.textContent='Uploading...';
+                            rs.style.display='none';
+                            rs.innerHTML='';
+                            prog.style.width='35%';
+                            var fd=new FormData(form);
+                            fetch(form.action, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                .then(function(r){ return r.json(); })
+                                .then(function(j){
+                                    if(j && j.ok){
+                                        st.textContent='Import completed';
+                                        prog.style.width='100%';
+                                        rs.style.display='flex';
+                                        var reg=j.regions||0, prov=j.provinces||0;
+                                        rs.innerHTML='<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span><span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>';
+                                    }else{
+                                        st.textContent='Import failed';
+                                        prog.style.width='0%';
+                                        rs.style.display='flex';
+                                        rs.innerHTML='<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606">'+((j && j.error)||'Error')+'</span>';
+                                    }
+                                })
+                                .catch(function(){
+                                    st.textContent='Import failed';
+                                    prog.style.width='0%';
+                                    rs.style.display='flex';
+                                    rs.innerHTML='<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606">Network or server error</span>';
+                                });
+                        });
+                    })();
+                </script>
+            </section>
             <!-- User Management Section -->
             <section id="user-management" class="content-section {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
@@ -5276,7 +5453,8 @@
                 'dashboard-home': 'Dashboard',
                 'user-management': 'User Management',
                 'course-management': 'Course Management',
-                'certification-management': 'Certifications'
+                'certification-management': 'Certifications',
+                'system-settings': 'System Settings'
             };
             const sidebarTitleEl = document.getElementById('sidebar-section-title');
             if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
