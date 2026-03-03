@@ -2738,16 +2738,32 @@
                                 <h2>Users by Province</h2>
                                 <span>Choropleth</span>
                             </div>
-                            <div id="ph-map-wrap" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-                                <div id="ph-map" style="width:100%;max-width:520px;height:360px;border:1px solid #e5eef7;border-radius:12px;overflow:hidden;background:#f8fbff;position:relative"></div>
-                                <div id="ph-map-legend" style="display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:center;min-width:220px">
-                                    <div style="width:12px;height:12px;border-radius:2px;background:#dbeafe"></div><div style="color:#002C76;font-weight:800">Low</div>
-                                    <div style="width:12px;height:12px;border-radius:2px;background:#60a5fa"></div><div style="color:#002C76;font-weight:800">Medium</div>
-                                    <div style="width:12px;height:12px;border-radius:2px;background:#1d4ed8"></div><div style="color:#002C76;font-weight:800">High</div>
+                            <div id="ph-map-wrap" style="position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05);">
+                                <div id="ph-map" style="width:100%;height:500px;overflow:hidden;background:#f8fafc;border-radius:12px;position:relative;"></div>
+                                
+                                <div id="map-controls" style="position:absolute;top:30px;right:30px;display:flex;flex-direction:column;gap:8px;z-index:10;">
+                                    <button type="button" id="btn-zoom-in" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-plus"></i></button>
+                                    <button type="button" id="btn-zoom-out" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-minus"></i></button>
+                                    <button type="button" id="btn-reset-zoom" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Reset View" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-expand"></i></button>
+                                </div>
+
+                                <div id="ph-map-legend" style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:16px;height:16px;border-radius:4px;background:#fef08a;border:1px solid #fde047;"></div>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Low</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:16px;height:16px;border-radius:4px;background:#f97316;border:1px solid #ea580c;"></div>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Medium</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:16px;height:16px;border-radius:4px;background:#ef4444;border:1px solid #dc2626;"></div>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">High</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div id="ph-map-tooltip" style="position:absolute;display:none;background:#ffffff;border:1px solid #e5eef7;border-radius:8px;padding:8px 10px;box-shadow:0 8px 18px rgba(15,23,42,.08);pointer-events:none;color:#0B2C74;font-weight:700;font-size:.9rem"></div>
-                            <div style="margin-top:10px;color:#64748b;font-size:.8rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#0B2C74;text-decoration:none">Philippines GeoJSON</a></div>
+                            <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;box-shadow:0 10px 25px rgba(0,0,0,0.15);pointer-events:none;color:#0f172a;min-width:150px;"></div>
+                            <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                             <script>
                             (function(){
@@ -2755,9 +2771,42 @@
                               var maxInline = @json($pcMax);
                               var container = document.getElementById('ph-map');
                               if(!container){ return; }
-                              var width = container.clientWidth || 520, height = container.clientHeight || 360;
-                              var svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+                              
+                              // Clear existing if any (for hot reload)
+                              container.innerHTML = '';
+
+                              var width = container.clientWidth || 800, height = container.clientHeight || 500;
+                              
+                              // Responsive SVG
+                              var svg = d3.select(container).append('svg')
+                                .attr('width', '100%')
+                                .attr('height', '100%')
+                                .attr('viewBox', `0 0 ${width} ${height}`)
+                                .attr('preserveAspectRatio', 'xMidYMid meet');
+                              
+                              // Group for map content to allow zooming
                               var g = svg.append('g');
+
+                              // Zoom behavior
+                              var zoom = d3.zoom()
+                                  .scaleExtent([1, 8])
+                                  .on('zoom', function(event) {
+                                      g.attr('transform', event.transform);
+                                  });
+
+                              svg.call(zoom);
+
+                              // Zoom Controls
+                              document.getElementById('btn-zoom-in').addEventListener('click', function() {
+                                  svg.transition().duration(500).call(zoom.scaleBy, 1.3);
+                              });
+                              document.getElementById('btn-zoom-out').addEventListener('click', function() {
+                                  svg.transition().duration(500).call(zoom.scaleBy, 1 / 1.3);
+                              });
+                              document.getElementById('btn-reset-zoom').addEventListener('click', function() {
+                                  svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+                              });
+
                               var tooltip = document.getElementById('ph-map-tooltip');
                               var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
                               var urlRemote = 'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson';
@@ -2765,15 +2814,39 @@
                               var countsUrl = '{{ route('stats.users.by-province') }}';
                               
                               function normalizeName(s){
-                                return (s || '').toLowerCase().trim();
+                                return (s || '').toLowerCase().trim()
+                                    .replace(/province of /g, '')
+                                    .replace(/city of /g, '')
+                                    .replace(/\./g, '')
+                                    .trim();
                               }
+
                               function render(geo){
                                 if(!geo || !geo.features){ return; }
                                 var projection = d3.geoMercator();
+                                var isProjected = false;
+                                try {
+                                    var c = geo.features[0].geometry.coordinates[0][0];
+                                    if(Array.isArray(c[0])) c = c[0]; 
+                                    if(Math.abs(c[0]) > 180 || Math.abs(c[1]) > 90) {
+                                        isProjected = true;
+                                    }
+                                } catch(e){}
+
+                                if(isProjected){
+                                    projection = d3.geoIdentity().reflectY(true);
+                                }
+
                                 var path = d3.geoPath(projection);
-                                projection.fitExtent([[10,10],[width-10,height-10]], geo);
-                                var max = d3.max(Object.values(window.__provinceCounts || {})) || maxInline || 1;
-                                var color = d3.scaleSequential(d3.interpolateBlues).domain([0, max]);
+                                projection.fitExtent([[20,20],[width-20,height-20]], geo);
+                                
+                                var max = d3.max(Object.values(window.__provinceCounts || {})) || maxInline || 10;
+                                
+                                // Enhanced Color Scale: Yellow -> Orange -> Red
+                                var colorScale = d3.scaleThreshold()
+                                    .domain([1, 5, 20, 50, 100])
+                                    .range(['#fef08a', '#facc15', '#fb923c', '#f97316', '#ef4444', '#b91c1c']);
+
                                 g.selectAll('path')
                                   .data(geo.features)
                                   .enter()
@@ -2782,35 +2855,85 @@
                                   .attr('fill', function(d){
                                     var n = normalizeName(d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE);
                                     var v = (window.__provinceCounts || {})[n] || 0;
-                                    return color(v);
+                                    return v === 0 ? '#f1f5f9' : colorScale(v); // Light gray for 0
                                   })
-                                  .attr('stroke', '#cfe0ff')
-                                  .attr('stroke-width', 1.2)
-                                  .on('mousemove', function(event, d){
+                                  .attr('stroke', '#cbd5e1')
+                                  .attr('stroke-width', 0.8)
+                                  .attr('vector-effect', 'non-scaling-stroke') // Keep stroke width constant on zoom
+                                  .style('cursor', 'pointer')
+                                  .style('transition', 'fill 0.2s ease, stroke 0.2s ease')
+                                  .on('mouseenter', function(event, d){
+                                    d3.select(this)
+                                        .attr('stroke', '#0f172a')
+                                        .attr('stroke-width', 1.5)
+                                        .style('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))')
+                                        .raise(); // Bring to front
+                                    
                                     var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
                                     var v = (window.__provinceCounts || {})[normalizeName(n)] || 0;
+                                    
                                     if(tooltip){
                                       tooltip.style.display='block';
-                                      tooltip.innerHTML = n + ' · ' + v + ' users';
-                                      var rect = container.getBoundingClientRect();
-                                      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
-                                      tooltip.style.top = (event.clientY - rect.top + 12) + 'px';
+                                      tooltip.innerHTML = `
+                                        <div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">${n}</div>
+                                        <div style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#64748b">
+                                            <div style="width:8px;height:8px;border-radius:50%;background:${v>0?'#22c55e':'#94a3b8'}"></div>
+                                            ${v} user${v!==1?'s':''}
+                                        </div>
+                                      `;
+                                      moveTooltip(event);
                                     }
                                   })
-                                  .on('click', function(event, d){
-                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
-                                    var v = (window.__provinceCounts || {})[normalizeName(n)] || 0;
-                                    alert(n + ': ' + v + ' user(s)');
+                                  .on('mousemove', function(event){
+                                    moveTooltip(event);
                                   })
                                   .on('mouseleave', function(){
+                                    d3.select(this)
+                                        .attr('stroke', '#cbd5e1')
+                                        .attr('stroke-width', 0.8)
+                                        .style('filter', 'none');
                                     if(tooltip){ tooltip.style.display='none'; }
+                                  })
+                                  .on('click', function(event, d){
+                                      // Optional: Zoom into province on click
+                                      var bounds = path.bounds(d);
+                                      var dx = bounds[1][0] - bounds[0][0],
+                                          dy = bounds[1][1] - bounds[0][1],
+                                          x = (bounds[0][0] + bounds[1][0]) / 2,
+                                          y = (bounds[0][1] + bounds[1][1]) / 2,
+                                          scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+                                          translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+                                      svg.transition().duration(750).call(
+                                          zoom.transform,
+                                          d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+                                      );
                                   });
                               }
+
+                              function moveTooltip(event) {
+                                  if(!tooltip) return;
+                                  // Use page coordinates for absolute positioning
+                                  var left = event.pageX + 15;
+                                  var top = event.pageY + 15;
+                                  
+                                  // Boundary checks
+                                  if (left + tooltip.offsetWidth > window.innerWidth) {
+                                      left = event.pageX - tooltip.offsetWidth - 10;
+                                  }
+                                  if (top + tooltip.offsetHeight > window.innerHeight) {
+                                      top = event.pageY - tooltip.offsetHeight - 10;
+                                  }
+
+                                  tooltip.style.left = left + 'px';
+                                  tooltip.style.top = top + 'px';
+                              }
+
                               function load(url){
-                                d3.json(urlRemote).then(function(geo){ render(geo); }).catch(function(){
-                                  d3.json(urlRemote2).then(function(geo){ render(geo); }).catch(function(){
-                                    d3.json(urlLocal).then(function(geo){ render(geo); }).catch(function(){
-                                      container.innerHTML = '<div style="padding:12px;color:#6b7280">Map data not found. Add file to '+urlLocal+'.</div>';
+                                d3.json(urlLocal).then(function(geo){ render(geo); }).catch(function(){
+                                  d3.json(urlRemote).then(function(geo){ render(geo); }).catch(function(){
+                                    d3.json(urlRemote2).then(function(geo){ render(geo); }).catch(function(){
+                                      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;background:#f8fafc;border-radius:12px;flex-direction:column;gap:10px;"><i class="fas fa-map-marked-alt" style="font-size:2rem;opacity:0.5"></i><span>Map data not available.</span></div>';
                                     });
                                   });
                                 });
@@ -2826,9 +2949,17 @@
                                   .catch(function(){ load(urlLocal); });
                               }
                               loadCountsAndMap();
+                              
+                              // Handle window resize
+                              var resizeTimer;
                               window.addEventListener('resize', function(){
-                                var w = container.clientWidth || 420, h = container.clientHeight || 320;
-                                svg.attr('width', w).attr('height', h);
+                                clearTimeout(resizeTimer);
+                                resizeTimer = setTimeout(function() {
+                                    width = container.clientWidth;
+                                    height = container.clientHeight;
+                                    svg.attr('viewBox', `0 0 ${width} ${height}`);
+                                    // Re-render or re-center logic if needed
+                                }, 250);
                               });
                             })();
                             </script>
