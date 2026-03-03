@@ -1594,8 +1594,11 @@
                         <div id="hiddenFilterInputs">
                             <input type="checkbox" name="roles[]" value="admin" class="filter-checkbox" {{ in_array('admin', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="registrar" class="filter-checkbox" {{ in_array('registrar', request('roles', [])) ? 'checked' : '' }} hidden>
+                            <input type="checkbox" name="roles[]" value="training_manager" class="filter-checkbox" {{ in_array('training_manager', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="trainer" class="filter-checkbox" {{ in_array('trainer', request('roles', [])) ? 'checked' : '' }} hidden>
+                            <input type="checkbox" name="roles[]" value="coach" class="filter-checkbox" {{ in_array('coach', request('roles', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="roles[]" value="trainee" class="filter-checkbox" {{ in_array('trainee', request('roles', [])) ? 'checked' : '' }} hidden>
+                            <input type="checkbox" name="roles[]" value="participant" class="filter-checkbox" {{ in_array('participant', request('roles', [])) ? 'checked' : '' }} hidden>
 
                             <input type="checkbox" name="statuses[]" value="active" class="filter-checkbox" {{ in_array('active', request('statuses', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="statuses[]" value="freeze" class="filter-checkbox" {{ in_array('freeze', request('statuses', [])) ? 'checked' : '' }} hidden>
@@ -2168,7 +2171,14 @@
         if (!value) return;
         const [type, val] = value.split(':');
         const inputName = type === 'role' ? 'roles[]' : 'statuses[]';
-        const checkbox = document.querySelector(`input[name="${inputName}"][value="${val}"]`);
+        // Map UI role aliases to underlying role values supported by backend
+        const roleMap = {
+            'coach': 'coach',
+            'participant': 'participant',
+            'training_manager': 'training_manager'
+        };
+        const mappedVal = type === 'role' ? (roleMap[val] || val) : val;
+        const checkbox = document.querySelector(`input[name="${inputName}"][value="${mappedVal}"]`);
         if (checkbox) {
             checkbox.checked = true;
             renderActiveFilters();
@@ -2195,11 +2205,17 @@
         checkboxes.forEach(cb => {
             const type = cb.name === 'roles[]' ? 'role' : 'status';
             const val = cb.value;
-            const label = val === 'freeze'
-                ? 'Blocked'
-                : val === 'trainer'
-                    ? 'Coach'
-                : val.charAt(0).toUpperCase() + val.slice(1);
+            let label;
+            if (val === 'freeze') {
+                label = 'Blocked';
+            } else if (val === 'training_manager') {
+                label = 'Training Manager';
+            } else if (val === 'participant') {
+                label = 'Participant';
+            } else {
+                label = val.replace(/_/g, ' ');
+                label = label.charAt(0).toUpperCase() + label.slice(1);
+            }
             const chip = document.createElement('div');
             chip.className = 'active-filter-chip';
             chip.innerHTML = `

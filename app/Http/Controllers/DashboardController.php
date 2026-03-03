@@ -129,11 +129,19 @@ class DashboardController extends Controller
 
                 // Filter by Role
                 if ($request->has('roles')) {
-                    $roles = $request->roles;
-                    if (in_array('trainer', $roles, true) && !in_array('coach', $roles, true)) {
-                        $roles[] = 'coach';
+                    $roles = (array) $request->roles;
+                    // Normalize synonyms so filtering works regardless of alias
+                    $expanded = [];
+                    foreach ($roles as $r) {
+                        $expanded[] = $r;
+                        if ($r === 'trainer' && !in_array('coach', $roles, true)) $expanded[] = 'coach';
+                        if ($r === 'coach' && !in_array('trainer', $roles, true)) $expanded[] = 'trainer';
+                        if ($r === 'trainee' && !in_array('participant', $roles, true)) $expanded[] = 'participant';
+                        if ($r === 'participant' && !in_array('trainee', $roles, true)) $expanded[] = 'trainee';
+                        if ($r === 'training_manager' && !in_array('registrar', $roles, true)) $expanded[] = 'registrar';
+                        if ($r === 'registrar' && !in_array('training_manager', $roles, true)) $expanded[] = 'training_manager';
                     }
-                    $query->whereIn('role', $roles);
+                    $query->whereIn('role', array_unique($expanded));
                 }
 
                 // Filter by Status (Registrar specific: pending/active)
