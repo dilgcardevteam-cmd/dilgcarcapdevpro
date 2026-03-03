@@ -1336,6 +1336,19 @@
             if (barangayContainer) {
                 barangayContainer.style.display = mode === 'DILG' ? 'none' : '';
             }
+            // Ensure hidden fields never block submission when DILG is selected
+            if (mode === 'DILG') {
+                if (citySelect) {
+                    citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
+                    citySelect.value = '';
+                    citySelect.disabled = true;
+                }
+                if (barangaySelect) {
+                    barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+                    barangaySelect.value = '';
+                    barangaySelect.disabled = true;
+                }
+            }
         }
 
         function loadProvincesByRegion(regionCode, selectedProvince = null, selectedCity = null, selectedBarangay = null) {
@@ -1466,6 +1479,20 @@
 
         // Province Change
         provinceSelect.addEventListener('change', function() {
+            // In DILG mode, city and barangay are not required and should stay disabled
+            if (agencySelect && agencySelect.value === 'DILG') {
+                if (citySelect) {
+                    citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
+                    citySelect.value = '';
+                    citySelect.disabled = true;
+                }
+                if (barangaySelect) {
+                    barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+                    barangaySelect.value = '';
+                    barangaySelect.disabled = true;
+                }
+                return;
+            }
             const selectedOption = this.options[this.selectedIndex];
             const provinceCode = selectedOption.dataset.code;
             const isRegion = selectedOption.dataset.isRegion === 'true';

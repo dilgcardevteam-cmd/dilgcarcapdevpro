@@ -218,13 +218,15 @@ class AuthController extends Controller
             'mobile_number' => ['nullable', 'string', 'max:20'],
             'gender' => ['nullable', 'string', 'in:Male,Female,Prefer not to say'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'agency' => ['required', 'in:DILG,LGU'],
             'region' => ['required', 'string', 'max:255'],
             'province' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'barangay' => ['required', 'string', 'max:255'],
+            'city' => ['required_unless:agency,DILG', 'nullable', 'string', 'max:255'],
+            'barangay' => ['required_unless:agency,DILG', 'nullable', 'string', 'max:255'],
         ], [
             'first_name.required' => 'Please enter your first name.',
             'last_name.required' => 'Please enter your last name.',
+            'agency.required' => 'Please select your agency.',
             'email.regex' => 'The email address must be a valid Gmail account (@gmail.com).',
             'email.unique' => 'This email address is already registered. Please use a different email or log in.',
         ]);
