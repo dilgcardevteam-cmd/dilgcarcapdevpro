@@ -51,7 +51,6 @@
         box-shadow:0 10px 18px rgba(11,87,208,.25);
         transition:filter .2s, transform .06s;
     }
-    .register-submit:hover{filter:brightness(1.05);transform:translateY(-1px)}
     .back-link{display:block;text-align:center;margin-top:12px}
     .forgot-icon{width:18px;height:18px}
     .otp-boxes{display:flex;gap:10px;justify-content:center;margin:8px 0}
@@ -66,11 +65,10 @@
     .forgot-logo{display:flex;justify-content:center;margin-bottom:6px}
     .forgot-logo img{height:46px}
     .back-btn{
-        display:block;width:240px;margin:10px auto 0;background:#f1f5f9;color:#0f172a;
+        display:block;width:120px;margin:10px auto 0;background:#f1f5f9;color:#0f172a;
         border:1px solid #e2e8f0;border-radius:999px;padding:10px 16px;font-weight:700;text-align:center;text-decoration:none;
         transition:background .2s, transform .06s
     }
-    .back-btn:hover{background:#e2e8f0;transform:translateY(-1px)}
     .steps{display:flex;justify-content:center;gap:8px;margin:6px 0 4px}
     .step{padding:6px 10px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid #e2e8f0;color:#475569;background:#f8fafc}
     .step.active{border-color:#0b57d0;color:#0b57d0;background:#e8effd}
