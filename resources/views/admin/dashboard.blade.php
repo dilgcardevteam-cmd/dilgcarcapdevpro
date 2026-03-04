@@ -3262,19 +3262,22 @@
                                         </thead>
                                         <tbody>
                                             @forelse(($roles ?? []) as $role)
+                                                @php $formId = 'roleForm-'.$role->id; @endphp
                                                 <tr>
                                                     <td>
-                                                        <form method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:flex;gap:8px;align-items:center">
+                                                        <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
+                                                    </td>
+                                                    <td>
+                                                        <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" disabled form="{{ $formId }}">
+                                                    </td>
+                                                    <td>
+                                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
                                                             @csrf
                                                             @method('PUT')
-                                                            <input class="input-pro" type="text" name="name" value="{{ $role->name }}" style="flex:1">
-                                                            <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" style="flex:1">
-                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                            <button type="button" class="btn btn-primary role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
+                                                            <button type="submit" class="btn btn-primary role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
                                                         </form>
-                                                    </td>
-                                                    <td style="display:none"></td>
-                                                    <td>
-                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline">
+                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex;margin-left:8px">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this role?')">Delete</button>
@@ -3294,6 +3297,22 @@
                     @endif
                 </div>
             </section>
+            <script>
+            (function(){
+                function getInputsByFormId(formId){
+                    return document.querySelectorAll('input[form="'+formId+'"][name="name"], input[form="'+formId+'"][name="display_name"]');
+                }
+                document.querySelectorAll('.role-edit-btn').forEach(function(btn){
+                    btn.addEventListener('click', function(){
+                        var formId = this.getAttribute('data-form');
+                        var saveBtn = this.parentElement.querySelector('.role-save-btn[data-form="'+formId+'"]');
+                        getInputsByFormId(formId).forEach(function(i){ i.disabled = false; });
+                        this.style.display = 'none';
+                        if(saveBtn){ saveBtn.style.display = ''; }
+                    });
+                });
+            })();
+            </script>
 
             <section id="system-settings" class="content-section {{ request('tab') == 'system-settings' ? 'active' : '' }}">
                 <style>
