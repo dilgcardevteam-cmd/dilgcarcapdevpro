@@ -1748,6 +1748,7 @@
                                     <span>{{ Auth::user()->email }}</span>
                                 </div>
                                 <div id="profile_upload_container" class="profile-page-upload" style="margin-top:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+                                    <input type="hidden" name="profile_picture_cropped" id="profile_picture_cropped">
                                     <input type="file" name="profile_picture" id="profile_picture_input" accept="image/png,image/jpeg,.png,.jpg,.jpeg" onchange="openCropperFromInput(this)">
                                     <span class="profile-page-help" style="color:#6b7280;font-size:.85rem">PNG or JPEG up to 5 MB</span>
                                 </div>

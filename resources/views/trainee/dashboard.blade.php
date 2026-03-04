@@ -1660,6 +1660,7 @@
 
         var cropState = { }; // retained for backward compatibility; unused with Cropper.js
         var avatarCropper = null;
+        var cropperReady = false;
 
         function ensureCropperLoaded(){
             return new Promise(function(resolve){
@@ -1688,6 +1689,10 @@
             await ensureCropperLoaded();
             var modal=document.getElementById('cropModal');
             var img=document.getElementById('cropImg');
+            var applyBtn = document.getElementById('cropApplyBtn');
+            if (applyBtn) { applyBtn.disabled = true; applyBtn.style.opacity = '.6'; }
+            if (modal) { modal.style.display='flex'; }
+            cropperReady = false;
             img.onload=function(){
                 if (avatarCropper) { try { avatarCropper.destroy(); } catch(e) {} }
                 avatarCropper = new window.Cropper(img, {
@@ -1703,13 +1708,16 @@
                     zoomOnWheel: true,
                     minContainerWidth: 340,
                     minContainerHeight: 340,
+                    ready: function(){
+                        cropperReady = true;
+                        if (applyBtn) { applyBtn.disabled = false; applyBtn.style.opacity = '1'; }
+                    }
                 });
                 var slider = document.getElementById('cropZoom');
                 if (slider) {
                     slider.value = 1;
                     slider.oninput = function(){ if(avatarCropper){ avatarCropper.zoomTo(parseFloat(this.value)); } };
                 }
-                modal.style.display='flex';
             };
             img.src=dataUrl;
         }
@@ -1798,11 +1806,13 @@
         function cropZoomChange(){} // handled by slider -> zoomTo
         function closeCropper(){
             if (avatarCropper) { try { avatarCropper.destroy(); } catch(e) {} avatarCropper=null; }
+            cropperReady = false;
             document.getElementById('cropModal').style.display='none';
         }
         function applyCrop(){
-            if(!avatarCropper) return;
+            if(!avatarCropper || !cropperReady) return;
             var canvas = avatarCropper.getCroppedCanvas({ width: 512, height: 512, imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
+            if (!canvas) return;
             var dataUrl = canvas.toDataURL('image/jpeg', 0.92);
             document.getElementById('profile_picture_cropped').value=dataUrl;
             var pv=document.getElementById('profile_preview'); var init=document.getElementById('profile_initials'); if(init) init.style.display='none';
@@ -1823,7 +1833,7 @@
             <div style="display:flex;align-items:center;gap:12px;margin-top:10px">\
                 <input id="cropZoom" type="range" min="0.5" max="3" step="0.01" value="1" style="flex:1">\
                 <button type="button" class="btn-view" onclick="closeCropper()">Cancel</button>\
-                <button type="button" class="btn-view" style="background:#16a34a;border-color:#16a34a" onclick="applyCrop()">Apply</button>\
+                <button type="button" id="cropApplyBtn" class="btn-view" style="background:#16a34a;border-color:#16a34a" onclick="applyCrop()">Apply</button>\
             </div></div>';
             document.addEventListener('DOMContentLoaded',function(){ document.body.appendChild(modal); });
         })();
