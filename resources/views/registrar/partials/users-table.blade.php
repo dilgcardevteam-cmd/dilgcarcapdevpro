@@ -17,8 +17,10 @@
                 @forelse($users as $user)
                     @php
                         $location = trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
-                        $roleClass = in_array($user->role, ['admin', 'registrar', 'training_manager', 'coach', 'trainer', 'trainee', 'participant']) ? $user->role : 'trainee';
-                        $roleLabel = $user->role === 'trainer' ? 'coach' : ($user->role === 'coach' ? 'coach' : ($user->role === 'training_manager' ? 'training manager' : $user->role));
+                        $roleMap = isset($roleDisplay) && is_array($roleDisplay) ? $roleDisplay : [];
+                        $rawRole = $user->role;
+                        $roleClass = in_array($rawRole, ['super_admin','admin','registrar','training_manager','coach','trainer','trainee','participant']) ? ($rawRole === 'trainer' ? 'coach' : $rawRole) : 'trainee';
+                        $roleLabel = $roleMap[$rawRole] ?? ($rawRole === 'trainer' ? 'Coach' : ($rawRole === 'training_manager' ? 'Training Manager' : ucfirst(str_replace('_',' ',$rawRole))));
                         $statusValue = $user->status ?? 'active';
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
                         $statusLabel = $statusValue === 'freeze' ? 'Blocked' : $statusValue;

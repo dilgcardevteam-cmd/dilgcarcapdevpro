@@ -16,6 +16,16 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
+                'name' => 'Super Admin User',
+                'email' => 'superadmin@gmail.com',
+                'password' => 'superadmin123',
+                'role' => 'super_admin',
+                'region' => 'CAR (Cordillera Administrative Region)',
+                'province' => 'Benguet',
+                'city' => 'City of Baguio',
+                'barangay' => 'Balsigan',
+            ],
+            [
                 'name' => 'Admin User',
                 'email' => 'admin@gmail.com',
                 'password' => 'admin123',
