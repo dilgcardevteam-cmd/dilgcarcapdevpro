@@ -37,7 +37,7 @@
         .pro-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff}
         .empty-state{background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center}
         .form-label{font-size:.85rem;color:#6b7280;margin-bottom:6px;font-weight:700}
-        .input-pro{width:100%;padding:10px 12px;border:1px solid #e5eef7;border-radius:10px;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
+        .input-pro{width:95%;padding:10px 12px;border:1px solid #e5eef7;border-radius:10px;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
         .input-pro:focus{outline:none;border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(199,210,254,.35)}
         .panel-actions{display:flex;align-items:center;gap:10px}
         .roles-shell{display:grid;grid-template-columns:1fr 2fr;gap:24px}
@@ -3224,8 +3224,32 @@
             <section id="roles-management" class="content-section {{ request('tab') == 'roles-management' ? 'active' : '' }}">
                 @php $canManageRoles = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
+                    <style>
+                        .roles-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+                        .roles-card,.roles-form-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 10px 24px rgba(15,23,42,.06)}
+                        .roles-card-title{font-weight:800;color:#0B2C74;margin:0 0 12px}
+                        .roles-table{width:100%;border-collapse:separate;border-spacing:0 6px}
+                        .roles-table thead th{font-size:.85rem;color:#1f2937;text-align:left;padding:8px 10px;background:#f8fafc;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7}
+                        .roles-table thead th:first-child{border-radius:8px 0 0 8px}
+                        .roles-table thead th:last-child{border-radius:0 8px 8px 0}
+                        .roles-table tbody tr{background:#fff }
+                        .roles-table tbody td{padding:10px 20px;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7}
+                        .roles-table tbody td:first-child{border-left:1px solid #eef2f7;border-radius:8px 0 0 8px}
+                        .roles-table tbody td:last-child{border-right:1px solid #eef2f7;border-radius:0 8px 8px 0}
+                        .roles-table .input-pro{height:14px;width:100%}
+                        .role-actions{display:flex;gap:12px;flex-wrap:nowrap}
+                        .btn-role{padding:6px 12px;font-size:.78rem;border-radius:8px}
+                        .btn-role.btn-primary{background:#0B2C74;border-color:#0B2C74}
+                        .btn-role.btn-danger{background:#e11d48;border-color:#e11d48}
+                        .roles-form-card .form-label{display:block;margin:0 0 6px;color:#334155;font-weight:700}
+                        .roles-form-card .input-pro{height:28px}
+                        .roles-form-card .panel-actions{display:flex;justify-content:flex-end}
+                        @media (max-width: 1100px){
+                            .roles-grid{grid-template-columns:1fr}
+                        }
+                    </style>
                     <div class="insight-panel-header">
-                        <h2 class="section-title">Roles Management</h2>
+                        <!-- <h2 class="section-title">Roles Management</h2> -->
                         <span class="muted">Create and edit roles stored in the database</span>
                     </div>
                     @if(session('success_roles'))
@@ -3241,12 +3265,55 @@
                     @if(!$canManageRoles)
                         <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">You are not authorized to manage roles.</div>
                     @else
-                        <div class="roles-shell">
-                            <div>
-                                <h3 class="section-title">Add Role</h3>
-                                <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:12px">
+                        <div class="roles-grid">
+                            <div class="roles-card">
+                                <!-- <h3 class="roles-card-title">Roles Management</h3> -->
+                                <table class="roles-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40%">Name</th>
+                                            <th style="width:35%">Display Name</th>
+                                            <th style="width:25%">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse(($roles ?? []) as $role)
+                                            @php $formId = 'roleForm-'.$role->id; @endphp
+                                            <tr>
+                                                <td>
+                                                    <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
+                                                </td>
+                                                <td>
+                                                    <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" disabled form="{{ $formId }}">
+                                                </td>
+                                                <td>
+                                                    <div class="role-actions">
+                                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <button type="button" class="btn btn-primary btn-role role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
+                                                            <button type="submit" class="btn btn-primary btn-role role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger btn-role" onclick="return confirm('Delete this role?')">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="roles-form-card">
+                                <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:14px">
                                     @csrf
-                                    <label class="form-label">Name</label>
+                                    <label class="form-label">Display Name</label>
                                     <input class="input-pro" type="text" name="name" placeholder="e.g. super_admin">
                                     <label class="form-label">Display Name</label>
                                     <input class="input-pro" type="text" name="display_name" placeholder="e.g. Super Admin">
@@ -3254,50 +3321,6 @@
                                         <button type="submit" class="btn btn-primary">Create Role</button>
                                     </div>
                                 </form>
-                            </div>
-                            <div>
-                                <h3 class="section-title">Existing Roles</h3>
-                                <div>
-                                    <table class="table-pro">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Display Name</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse(($roles ?? []) as $role)
-                                                @php $formId = 'roleForm-'.$role->id; @endphp
-                                                <tr>
-                                                    <td>
-                                                        <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
-                                                    </td>
-                                                    <td>
-                                                        <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" disabled form="{{ $formId }}">
-                                                    </td>
-                                                    <td>
-                                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="button" class="btn btn-primary role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
-                                                            <button type="submit" class="btn btn-primary role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
-                                                        </form>
-                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex;margin-left:8px">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this role?')">Delete</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
                         </div>
                     @endif
