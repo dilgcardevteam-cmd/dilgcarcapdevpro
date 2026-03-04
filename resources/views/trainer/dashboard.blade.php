@@ -524,6 +524,8 @@
             justify-content: space-between;
             align-items: center;
             padding-top: 12px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .course-footer span{
             display:inline-flex;
@@ -557,6 +559,7 @@
             white-space: nowrap;
             min-width: 100px;
             text-align: center;
+            margin-left: auto;
         }
 
         .btn-view:hover {
