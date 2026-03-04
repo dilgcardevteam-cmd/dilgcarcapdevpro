@@ -2632,10 +2632,12 @@
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
-                <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
-                    <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
-                    <span class="menu-text">Roles Management</span>
-                </li>
+                @if(Auth::check() && Auth::user()->role === 'super_admin')
+                    <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
+                        <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
+                        <span class="menu-text">Roles Management</span>
+                    </li>
+                @endif
                 <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
@@ -3216,7 +3218,7 @@
 
             <!-- Roles Management Section -->
             <section id="roles-management" class="content-section {{ request('tab') == 'roles-management' ? 'active' : '' }}">
-                @php $canManageRoles = auth()->check() && in_array(auth()->user()->role, ['admin','super_admin']); @endphp
+                @php $canManageRoles = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
                     <div class="insight-panel-header">
                         <h2 class="section-title">Roles Management</h2>
