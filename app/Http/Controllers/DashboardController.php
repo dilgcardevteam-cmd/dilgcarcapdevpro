@@ -86,6 +86,11 @@ class DashboardController extends Controller
                 }
 
                 $roles = Role::orderBy('name')->get();
+                $permissions = \App\Models\Permission::orderBy('name')->get();
+                $rolePermissions = [];
+                foreach ($roles as $r) {
+                    $rolePermissions[$r->id] = $r->permissions()->pluck('permission_id')->toArray();
+                }
                 return view('admin.dashboard', compact(
                     'userCount',
                     'users',
@@ -107,6 +112,8 @@ class DashboardController extends Controller
                     'certificationCount',
                     'recentCourses',
                     'roles',
+                    'permissions',
+                    'rolePermissions',
                     'roleDisplay'
                 ));
             case 'registrar':

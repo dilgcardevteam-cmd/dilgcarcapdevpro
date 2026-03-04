@@ -2637,6 +2637,10 @@
                         <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
                         <span class="menu-text">Roles Management</span>
                     </li>
+                    <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
+                        <div class="menu-icon"><i class="fas fa-key"></i></div>
+                        <span class="menu-text">Access Control</span>
+                    </li>
                 @endif
                 <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
@@ -3567,6 +3571,57 @@
                 </div>
             </section>
 
+            <!-- Access Management Section (Super Admin) -->
+            <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
+                @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
+                <div class="insight-panel">
+                    <div class="insight-panel-header">
+                        <h2 class="section-title">Access Control</h2>
+                        <span class="muted">Assign system feature access per role</span>
+                    </div>
+                    @if(session('success_access'))
+                        <div style="background:#e6fffa;color:#065f46;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('success_access') }}</div>
+                    @endif
+                    @if(session('error_access'))
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('error_access') }}</div>
+                    @endif
+                    @if(!$canAccess)
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">Only Super Admin can manage access.</div>
+                    @else
+                        <form method="POST" action="{{ route('admin.access.update') }}">
+                            @csrf
+                            <div style="overflow:auto;border:1px solid #e5eef7;border-radius:12px">
+                                <table class="table-pro" style="min-width:860px">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:280px">Feature</th>
+                                            @foreach(($roles ?? []) as $r)
+                                                <th style="text-align:center">{{ $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)) }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach(($permissions ?? []) as $p)
+                                            <tr>
+                                                <td>{{ $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)) }}</td>
+                                                @foreach(($roles ?? []) as $r)
+                                                    @php $has = in_array($p->id, ($rolePermissions[$r->id] ?? []), true); @endphp
+                                                    <td style="text-align:center">
+                                                        <input type="checkbox" name="matrix[{{ $r->id }}][{{ $p->id }}]" {{ $has ? 'checked' : '' }}>
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="panel-actions" style="margin-top:12px">
+                                <button type="submit" class="btn btn-primary">Save Access</button>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+            </section>
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">

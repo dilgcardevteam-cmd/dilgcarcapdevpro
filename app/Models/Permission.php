@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Role extends Model
+class Permission extends Model
 {
     use HasFactory;
 
@@ -13,9 +13,4 @@ class Role extends Model
         'name',
         'display_name',
     ];
-
-    public function permissions()
-    {
-        return $this->belongsToMany(\App\Models\Permission::class, 'role_permission', 'role_id', 'permission_id')->withTimestamps();
-    }
 }
