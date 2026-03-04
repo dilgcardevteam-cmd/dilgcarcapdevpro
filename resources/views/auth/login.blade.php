@@ -1287,6 +1287,21 @@
         const oldProvince = @json(old('province'));
         const oldCity = @json(old('city'));
         const oldBarangay = @json(old('barangay'));
+        const BUREAUS = [
+            'BUREAU OF LOCAL GOVERNMENT DEVELOPMENT (BLGD)',
+            'BUREAU OF LOCAL GOVERNMENT SUPERVISION (BLGS)',
+            'OFFICE OF PROJECT DEVELOPMENT SERVICES (OPDS)',
+            'NATIONAL BARANGAY OPERATIONS OFFICE (NBOO)',
+        ];
+        const SERVICES = [
+            'Administrative Service',
+            'Information Systems and Technology Management Service',
+            'Financial and Management Service',
+            'Internal Audit Service',
+            'Legal and Legislative Liaison Service',
+            'Planning Service',
+            'Public Affairs and Communication Service',
+        ];
 
         function composeFullName() {
             const parts = [
@@ -1326,31 +1341,153 @@
 
         function applyAgencyMode() {
             var mode = agencySelect ? agencySelect.value : 'LGU';
-            if (provinceSelect) {
-                provinceSelect.innerHTML = '<option value="" disabled selected>' + (mode === 'DILG' ? 'Select Office' : 'Select Province') + '</option>';
-                provinceSelect.disabled = true;
-            }
-            if (cityContainer) {
-                cityContainer.style.display = mode === 'DILG' ? 'none' : '';
-            }
-            if (barangayContainer) {
-                barangayContainer.style.display = mode === 'DILG' ? 'none' : '';
-            }
-            // Ensure hidden fields never block submission when DILG is selected
+            var levelLabel = (regionSelect && regionSelect.options[regionSelect.selectedIndex]) ? regionSelect.options[regionSelect.selectedIndex].value : '';
             if (mode === 'DILG') {
-                if (citySelect) {
-                    citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-                    citySelect.value = '';
-                    citySelect.disabled = true;
+                if (provinceContainer) {
+                    provinceContainer.style.display = levelLabel ? '' : 'none';
                 }
-                if (barangaySelect) {
-                    barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-                    barangaySelect.value = '';
-                    barangaySelect.disabled = true;
+                if (cityContainer) {
+                    cityContainer.style.display = (levelLabel === 'Central Office') ? '' : 'none';
                 }
+                if (barangayContainer) {
+                    barangayContainer.style.display = 'none';
+                }
+                // Do not force-disable selects here; population functions manage disabled states
+            } else {
+                if (provinceContainer) provinceContainer.style.display = '';
+                if (cityContainer) cityContainer.style.display = '';
+                if (barangayContainer) barangayContainer.style.display = '';
             }
         }
 
+        function populateRegionOrLevelOptions(preserveSelection = false) {
+            var mode = agencySelect ? agencySelect.value : 'LGU';
+            regionSelect.innerHTML = '';
+            if (mode === 'DILG') {
+                var ph = document.createElement('option');
+                ph.value = '';
+                ph.disabled = true;
+                ph.selected = true;
+                ph.textContent = 'Select Level';
+                regionSelect.appendChild(ph);
+                ['Central Office','DILG Regional Office','DILG Provincial Office'].forEach(function(label){
+                    var opt = document.createElement('option');
+                    opt.value = label;
+                    opt.textContent = label;
+                    if (preserveSelection && oldRegion && oldRegion === label) {
+                        opt.selected = true;
+                        ph.selected = false;
+                    }
+                    regionSelect.appendChild(opt);
+                });
+                if (provinceContainer) provinceContainer.style.display = 'none';
+                if (cityContainer) cityContainer.style.display = 'none';
+                if (barangayContainer) barangayContainer.style.display = 'none';
+                return;
+            }
+            var ph2 = document.createElement('option');
+            ph2.value = '';
+            ph2.disabled = true;
+            ph2.selected = true;
+            ph2.textContent = 'Select Region';
+            regionSelect.appendChild(ph2);
+            fetch('https://psgc.gitlab.io/api/regions/')
+                .then(function(response){ return response.json(); })
+                .then(function(data){
+                    data.sort(function(a,b){ return a.name.localeCompare(b.name); });
+                    data.forEach(function(region){
+                        var option = document.createElement('option');
+                        option.value = region.name;
+                        option.dataset.code = region.code;
+                        option.textContent = region.name + ' (' + region.regionName + ')';
+                        if (oldRegion && oldRegion === region.name) {
+                            option.selected = true;
+                            ph2.selected = false;
+                        }
+                        regionSelect.appendChild(option);
+                    });
+                    if (oldRegion) {
+                        var selectedRegionOption = regionSelect.options[regionSelect.selectedIndex];
+                        var selectedRegionCode = selectedRegionOption && selectedRegionOption.dataset ? selectedRegionOption.dataset.code : '';
+                        if (selectedRegionCode) {
+                            loadProvincesByRegion(selectedRegionCode, oldProvince || null, oldCity || null, oldBarangay || null);
+                        }
+                    }
+                })
+                .catch(function(error){ console.error('Error fetching regions:', error); });
+        }
+
+        function populateOfficeByLevel(levelLabel) {
+            provinceSelect.innerHTML = '<option value="" disabled selected>Select Office</option>';
+            provinceSelect.disabled = true;
+            // Default: hide extra selects
+            if (cityContainer) cityContainer.style.display = 'none';
+            if (barangayContainer) barangayContainer.style.display = 'none';
+            if (!levelLabel) { applyAgencyMode(); return; }
+            if (levelLabel === 'Central Office') {
+                // Step 1: Select Office -> Bureaus or Services
+                ['Bureaus','Services'].forEach(function(label){
+                    var opt = document.createElement('option');
+                    opt.value = label;
+                    opt.textContent = label;
+                    provinceSelect.appendChild(opt);
+                });
+                provinceSelect.disabled = false;
+                // Prepare secondary dropdown
+                if (citySelect) {
+                    citySelect.innerHTML = '<option value="" disabled selected>Select Bureaus/Services</option>';
+                    citySelect.disabled = true;
+                }
+                if (provinceContainer) provinceContainer.style.display = '';
+                if (cityContainer) cityContainer.style.display = '';
+                if (barangayContainer) barangayContainer.style.display = 'none';
+                return;
+            }
+            if (levelLabel === 'DILG Regional Office') {
+                // Show "Select Region" instead of office
+                provinceSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
+                fetch('https://psgc.gitlab.io/api/regions/')
+                    .then(function(response){ return response.json(); })
+                    .then(function(data){
+                        data.sort(function(a,b){ return a.name.localeCompare(b.name); });
+                        data.forEach(function(region){
+                            var opt = document.createElement('option');
+                            opt.value = region.name;
+                            opt.dataset.code = region.code;
+                            opt.textContent = region.name + ' (' + region.regionName + ')';
+                            provinceSelect.appendChild(opt);
+                        });
+                        provinceSelect.disabled = false;
+                        // Keep extra selects hidden
+                        if (provinceContainer) provinceContainer.style.display = '';
+                        if (cityContainer) cityContainer.style.display = 'none';
+                        if (barangayContainer) barangayContainer.style.display = 'none';
+                    })
+                    .catch(function(error){ console.error('Error fetching regions:', error); });
+                return;
+            }
+            if (levelLabel === 'DILG Provincial Office') {
+                // Only Select Office -> provincial offices
+                fetch('https://psgc.gitlab.io/api/provinces/')
+                    .then(function(response){ return response.json(); })
+                    .then(function(data){
+                        data.sort(function(a,b){ return a.name.localeCompare(b.name); });
+                        data.forEach(function(province){
+                            var opt = document.createElement('option');
+                            opt.value = province.name + ' Office';
+                            opt.dataset.code = province.code;
+                            opt.textContent = 'DILG ' + province.name + ' Office';
+                            provinceSelect.appendChild(opt);
+                        });
+                        provinceSelect.disabled = false;
+                        if (provinceContainer) provinceContainer.style.display = '';
+                        if (cityContainer) cityContainer.style.display = 'none';
+                        if (barangayContainer) barangayContainer.style.display = 'none';
+                    })
+                    .catch(function(error){ console.error('Error fetching provinces for offices:', error); });
+                return;
+            }
+        }
         function loadProvincesByRegion(regionCode, selectedProvince = null, selectedCity = null, selectedBarangay = null) {
             var isDILGMode = agencySelect && agencySelect.value === 'DILG';
             provinceSelect.innerHTML = '<option value="" disabled selected>' + (isDILGMode ? 'Select Office' : 'Select Province') + '</option>';
@@ -1433,64 +1570,56 @@
         }
 
         applyAgencyMode();
+        populateRegionOrLevelOptions(true);
         if (agencySelect) {
             agencySelect.addEventListener('change', function(){
                 applyAgencyMode();
-                const selectedRegionOption = regionSelect.options[regionSelect.selectedIndex];
-                const selectedRegionCode = selectedRegionOption?.dataset?.code || '';
-                if (selectedRegionCode) {
-                    loadProvincesByRegion(selectedRegionCode);
-                }
+                populateRegionOrLevelOptions(false);
             });
         }
 
         regionSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
+            const isDILGMode = agencySelect && agencySelect.value === 'DILG';
+            if (isDILGMode) {
+                const levelLabel = selectedOption ? selectedOption.value : '';
+                populateOfficeByLevel(levelLabel);
+                return;
+            }
             const regionCode = selectedOption?.dataset?.code || '';
             applyAgencyMode();
             loadProvincesByRegion(regionCode);
         });
 
-        // Fetch Regions
-        fetch('https://psgc.gitlab.io/api/regions/')
-            .then(response => response.json())
-            .then(data => {
-                data.sort((a, b) => a.name.localeCompare(b.name));
-                data.forEach(region => {
-                    const option = document.createElement('option');
-                    option.value = region.name;
-                    option.dataset.code = region.code;
-                    option.textContent = `${region.name} (${region.regionName})`;
-                    if (oldRegion && oldRegion === region.name) {
-                        option.selected = true;
-                    }
-                    regionSelect.appendChild(option);
-                });
-
-                if (oldRegion) {
-                    const selectedRegionOption = regionSelect.options[regionSelect.selectedIndex];
-                    const selectedRegionCode = selectedRegionOption?.dataset?.code || '';
-                    if (selectedRegionCode) {
-                        loadProvincesByRegion(selectedRegionCode, oldProvince || null, oldCity || null, oldBarangay || null);
-                    }
-                }
-            })
-            .catch(error => console.error('Error fetching regions:', error));
+        // LGU-only region population handled via populateRegionOrLevelOptions
 
         // Province Change
         provinceSelect.addEventListener('change', function() {
-            // In DILG mode, city and barangay are not required and should stay disabled
+            // DILG: custom behavior
             if (agencySelect && agencySelect.value === 'DILG') {
-                if (citySelect) {
-                    citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-                    citySelect.value = '';
-                    citySelect.disabled = true;
+                var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
+                if (levelLabel === 'Central Office') {
+                    var category = this.value; // Bureaus or Services
+                    if (citySelect) {
+                        citySelect.innerHTML = '<option value="" disabled selected>' + (category === 'Bureaus' ? 'Select Bureaus' : 'Select Services') + '</option>';
+                        var list = category === 'Bureaus' ? BUREAUS : SERVICES;
+                        list.forEach(function(item){
+                            var o = document.createElement('option');
+                            o.value = item;
+                            o.textContent = item;
+                            citySelect.appendChild(o);
+                        });
+                        citySelect.disabled = false;
+                        if (cityContainer) cityContainer.style.display = '';
+                    }
+                    if (barangayContainer) barangayContainer.style.display = 'none';
+                    return;
                 }
-                if (barangaySelect) {
-                    barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-                    barangaySelect.value = '';
-                    barangaySelect.disabled = true;
-                }
+                // For Regional Office and Provincial Office, keep city/barangay hidden
+                if (citySelect) { citySelect.disabled = true; citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>'; }
+                if (barangaySelect) { barangaySelect.disabled = true; barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>'; }
+                if (cityContainer) cityContainer.style.display = 'none';
+                if (barangayContainer) barangayContainer.style.display = 'none';
                 return;
             }
             const selectedOption = this.options[this.selectedIndex];
@@ -1510,9 +1639,21 @@
 
         // City Change
         citySelect.addEventListener('change', function() {
+            // DILG Central Office: treat citySelect as Bureaus/Services selector and set Office (provinceSelect) to final pick
+            if (agencySelect && agencySelect.value === 'DILG') {
+                var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
+                if (levelLabel === 'Central Office') {
+                    var finalOffice = this.value || '';
+                    if (finalOffice) {
+                        // Set provinceSelect to final selection for submission
+                        provinceSelect.value = finalOffice;
+                        provinceSelect.disabled = false;
+                    }
+                    return;
+                }
+            }
             const selectedOption = this.options[this.selectedIndex];
             const cityCode = selectedOption.dataset.code;
-
             if (cityCode) {
                 loadBarangays(cityCode);
             }
