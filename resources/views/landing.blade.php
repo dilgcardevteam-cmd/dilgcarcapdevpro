@@ -799,6 +799,10 @@
                     @endif
                     <span>Dashboard</span>
                 </a>
+                <form action="{{ route('logout') }}" method="POST" style="display:inline-block;margin-left:8px">
+                    @csrf
+                    <button type="submit" class="btn-login" style="background:#ef4444;color:#fff;border:none">Logout</button>
+                </form>
             @else
                 <a href="{{ route('register') }}" class="btn-signup">Sign Up</a>
                 <a href="{{ route('login') }}" class="btn-login">Login</a>
@@ -1221,4 +1225,3 @@
     </script>
 </body>
 </html>
-
