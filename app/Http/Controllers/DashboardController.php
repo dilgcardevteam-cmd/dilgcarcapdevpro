@@ -660,6 +660,14 @@ class DashboardController extends Controller
         return response()->json(['counts' => $counts]);
     }
 
+    public function userCountsByRegion()
+    {
+        $counts = User::selectRaw('LOWER(TRIM(COALESCE(region,""))) as region, COUNT(*) as c')
+            ->groupBy('region')
+            ->pluck('c', 'region');
+        return response()->json(['counts' => $counts]);
+    }
+
     public function importLocationMaster(Request $request)
     {
         $request->validate([

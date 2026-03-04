@@ -2730,13 +2730,21 @@
                     <div class="insight-grid">
 
                         @php
+                            $regionCounts = \App\Models\User::selectRaw('LOWER(TRIM(COALESCE(region,""))) as region, COUNT(*) as c')->groupBy('region')->pluck('c','region');
                             $provinceCounts = \App\Models\User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, COUNT(*) as c')->groupBy('province')->pluck('c','province');
+                            $rcMax = $regionCounts->max() ?? 0;
                             $pcMax = $provinceCounts->max() ?? 0;
                         @endphp
                         <div class="insight-panel">
                             <div class="insight-panel-header">
-                                <h2>Users by Province</h2>
-                                <span>Choropleth</span>
+                                <h2 id="ph-map-title">Users by Region</h2>
+                                <span style="display:flex;align-items:center;gap:8px">
+                                    <span>Choropleth</span>
+                                    <select id="ph-map-mode" style="border:1px solid #e2e8f0;border-radius:999px;padding:6px 10px;background:#fff;color:#0b3b8f;font-weight:800">
+                                        <option value="region" selected>By Region</option>
+                                        <option value="province">By Province</option>
+                                    </select>
+                                </span>
                             </div>
                             <div id="ph-map-wrap" style="position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05);">
                                 <div id="ph-map" style="width:100%;height:500px;overflow:hidden;background:#f8fafc;border-radius:12px;position:relative;"></div>
@@ -2750,25 +2758,26 @@
                                 <div id="ph-map-legend" style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:16px;height:16px;border-radius:4px;background:#fef08a;border:1px solid #fde047;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Low</span>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Low (0–10)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:16px;height:16px;border-radius:4px;background:#f97316;border:1px solid #ea580c;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Medium</span>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Medium (11–50)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:16px;height:16px;border-radius:4px;background:#ef4444;border:1px solid #dc2626;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">High</span>
+                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">High (51+)</span>
                                     </div>
                                 </div>
+                                <div id="ph-map-total" style="margin-top:8px;text-align:center;color:#64748b;font-size:.85rem;font-weight:700"></div>
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;box-shadow:0 10px 25px rgba(0,0,0,0.15);pointer-events:none;color:#0f172a;min-width:150px;"></div>
                             <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                             <script>
                             (function(){
-                              var countsInline = @json($provinceCounts);
-                              var maxInline = @json($pcMax);
+                              var countsInlineRegion = @json($regionCounts);
+                              var countsInlineProvince = @json($provinceCounts);
                               var container = document.getElementById('ph-map');
                               if(!container){ return; }
                               
@@ -2808,17 +2817,53 @@
                               });
 
                               var tooltip = document.getElementById('ph-map-tooltip');
-                              var urlLocal = '{{ asset('images/maps/ph-provinces.geojson') }}';
-                              var urlRemote = 'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson';
-                              var urlRemote2 = 'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/ph_provdists.lowres.geojson';
-                              var countsUrl = '{{ route('stats.users.by-province') }}';
+                              var urls = {
+                                region: {
+                                  // Use provinces geometry and color per region to avoid remote 404s
+                                  geo: [
+                                    '{{ asset('images/maps/ph-provinces.geojson') }}',
+                                    'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson',
+                                    'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/provdists.lowres.geojson'
+                                  ],
+                                  counts: '{{ route('stats.users.by-region') }}'
+                                },
+                                province: {
+                                  geo: [
+                                    '{{ asset('images/maps/ph-provinces.geojson') }}',
+                                    'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson',
+                                    'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/provdists.lowres.geojson'
+                                  ],
+                                  counts: '{{ route('stats.users.by-province') }}'
+                                }
+                              };
+                              var modeSel = document.getElementById('ph-map-mode');
+                              var mode = (modeSel && modeSel.value) || 'region';
                               
-                              function normalizeName(s){
+                              function normalizeRegion(s){
+                                var t = (s || '').toLowerCase();
+                                t = t.replace(/\(.*?\)/g, '');
+                                t = t.replace(/\bregion\b/gi, '');
+                                t = t.replace(/[^a-z\s-]/g, '');
+                                t = t.replace(/\s+/g, ' ').trim();
+                                if (t === 'ncr') t = 'national capital';
+                                if (t === 'car') t = 'cordillera administrative';
+                                return t;
+                              }
+                              function normalizeProvince(s){
                                 return (s || '').toLowerCase().trim()
                                     .replace(/province of /g, '')
                                     .replace(/city of /g, '')
                                     .replace(/\./g, '')
                                     .trim();
+                              }
+                              function normalizeCounts(src, type){
+                                var out = {};
+                                for (var k in src) {
+                                  if (!Object.prototype.hasOwnProperty.call(src, k)) continue;
+                                  var nk = type==='region' ? normalizeRegion(k) : normalizeProvince(k);
+                                  out[nk] = (out[nk] || 0) + (src[k] || 0);
+                                }
+                                return out;
                               }
 
                               function render(geo){
@@ -2840,12 +2885,13 @@
                                 var path = d3.geoPath(projection);
                                 projection.fitExtent([[20,20],[width-20,height-20]], geo);
                                 
-                                var max = d3.max(Object.values(window.__provinceCounts || {})) || maxInline || 10;
+                                var max = d3.max(Object.values(window.__counts || {})) || 10;
                                 
-                                // Enhanced Color Scale: Yellow -> Orange -> Red
+                                // Color Scale based on counts:
+                                // 0 handled separately as gray; 1-10 Low, 11-50 Medium, 51+ High
                                 var colorScale = d3.scaleThreshold()
-                                    .domain([1, 5, 20, 50, 100])
-                                    .range(['#fef08a', '#facc15', '#fb923c', '#f97316', '#ef4444', '#b91c1c']);
+                                    .domain([11, 51])
+                                    .range(['#fef08a', '#f97316', '#ef4444']);
 
                                 g.selectAll('path')
                                   .data(geo.features)
@@ -2853,29 +2899,44 @@
                                   .append('path')
                                   .attr('d', path)
                                   .attr('fill', function(d){
-                                    var n = normalizeName(d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE);
-                                    var v = (window.__provinceCounts || {})[n] || 0;
-                                    return v === 0 ? '#f1f5f9' : colorScale(v); // Light gray for 0
+                                    var raw, n, v;
+                                    if(mode==='region'){
+                                      raw = d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '';
+                                      n = normalizeRegion(raw);
+                                    }else{
+                                      raw = d.properties.PROVINCE || d.properties.NAME_1 || d.properties.name || '';
+                                      n = normalizeProvince(raw);
+                                    }
+                                    v = (window.__counts || {})[n] || 0;
+                                    return v === 0 ? '#f1f5f9' : colorScale(v);
                                   })
-                                  .attr('stroke', '#cbd5e1')
-                                  .attr('stroke-width', 0.8)
+                                  .attr('stroke', function(){ return mode==='region' ? 'none' : '#cbd5e1'; })
+                                  .attr('stroke-width', function(){ return mode==='region' ? 0 : 0.8; })
                                   .attr('vector-effect', 'non-scaling-stroke') // Keep stroke width constant on zoom
                                   .style('cursor', 'pointer')
                                   .style('transition', 'fill 0.2s ease, stroke 0.2s ease')
                                   .on('mouseenter', function(event, d){
-                                    d3.select(this)
-                                        .attr('stroke', '#0f172a')
-                                        .attr('stroke-width', 1.5)
-                                        .style('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))')
-                                        .raise(); // Bring to front
+                                    if(mode!=='region'){
+                                      d3.select(this)
+                                          .attr('stroke', '#0f172a')
+                                          .attr('stroke-width', 1.5)
+                                          .style('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))')
+                                          .raise();
+                                    }
                                     
-                                    var n = (d.properties.NAME_1 || d.properties.name || d.properties.PROVINCE || '').trim();
-                                    var v = (window.__provinceCounts || {})[normalizeName(n)] || 0;
+                                    var label, v;
+                                    if(mode==='region'){
+                                      label = (d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '').trim();
+                                      v = (window.__counts || {})[normalizeRegion(label)] || 0;
+                                    }else{
+                                      label = (d.properties.PROVINCE || d.properties.NAME_1 || d.properties.name || '').trim();
+                                      v = (window.__counts || {})[normalizeProvince(label)] || 0;
+                                    }
                                     
                                     if(tooltip){
                                       tooltip.style.display='block';
                                       tooltip.innerHTML = `
-                                        <div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">${n}</div>
+                                        <div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">${label}</div>
                                         <div style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#64748b">
                                             <div style="width:8px;height:8px;border-radius:50%;background:${v>0?'#22c55e':'#94a3b8'}"></div>
                                             ${v} user${v!==1?'s':''}
@@ -2888,10 +2949,14 @@
                                     moveTooltip(event);
                                   })
                                   .on('mouseleave', function(){
-                                    d3.select(this)
-                                        .attr('stroke', '#cbd5e1')
-                                        .attr('stroke-width', 0.8)
-                                        .style('filter', 'none');
+                                    if(mode!=='region'){
+                                      d3.select(this)
+                                          .attr('stroke', '#cbd5e1')
+                                          .attr('stroke-width', 0.8)
+                                          .style('filter', 'none');
+                                    }else{
+                                      d3.select(this).style('filter','none');
+                                    }
                                     if(tooltip){ tooltip.style.display='none'; }
                                   })
                                   .on('click', function(event, d){
@@ -2929,26 +2994,49 @@
                                   tooltip.style.top = top + 'px';
                               }
 
-                              function load(url){
-                                d3.json(urlLocal).then(function(geo){ render(geo); }).catch(function(){
-                                  d3.json(urlRemote).then(function(geo){ render(geo); }).catch(function(){
-                                    d3.json(urlRemote2).then(function(geo){ render(geo); }).catch(function(){
-                                      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;background:#f8fafc;border-radius:12px;flex-direction:column;gap:10px;"><i class="fas fa-map-marked-alt" style="font-size:2rem;opacity:0.5"></i><span>Map data not available.</span></div>';
-                                    });
-                                  });
-                                });
+                              function load(list){
+                                if(!list || !list.length){
+                                  container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;background:#f8fafc;border-radius:12px;flex-direction:column;gap:10px;"><i class="fas fa-map-marked-alt" style="font-size:2rem;opacity:0.5"></i><span>Map data not available.</span></div>';
+                                  return;
+                                }
+                                var u = list.shift();
+                                d3.json(u).then(function(geo){ render(geo); }).catch(function(){ load(list); });
                               }
                               function loadCountsAndMap(){
-                                window.__provinceCounts = countsInline || {};
-                                fetch(countsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
-                                  .then(function(res){ return res.ok ? res.json() : null; })
-                                  .then(function(data){ 
-                                    if(data && data.counts){ window.__provinceCounts = data.counts; } 
-                                    load(urlLocal);
-                                  })
-                                  .catch(function(){ load(urlLocal); });
+                                try{
+                                  var countsUrl = urls[mode].counts;
+                                  var inline = mode==='region' ? countsInlineRegion : countsInlineProvince;
+                                  window.__counts = normalizeCounts(inline || {}, mode);
+                                  fetch(countsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                    .then(function(res){ return res.ok ? res.json() : null; })
+                                    .then(function(data){ 
+                                      if(data && data.counts){ window.__counts = normalizeCounts(data.counts, mode); } 
+                                      var total = Object.values(window.__counts || {}).reduce(function(a,b){ return a+(b||0); }, 0);
+                                      var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
+                                      load(urls[mode].geo.slice());
+                                    })
+                                    .catch(function(){ 
+                                      var total = Object.values(window.__counts || {}).reduce(function(a,b){ return a+(b||0); }, 0);
+                                      var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
+                                      load(urls[mode].geo.slice());
+                                    });
+                                }catch(e){
+                                  window.__counts = {};
+                                  var total = 0; var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
+                                  load(urls[mode].geo.slice());
+                                }
                               }
                               loadCountsAndMap();
+                              if(modeSel){
+                                modeSel.addEventListener('change', function(){
+                                  mode = this.value || 'region';
+                                  var t = document.getElementById('ph-map-title');
+                                  if(t){ t.textContent = mode==='region' ? 'Users by Region' : 'Users by Province'; }
+                                  g.selectAll('*').remove();
+                                  svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+                                  loadCountsAndMap();
+                                });
+                              }
                               
                               // Handle window resize
                               var resizeTimer;
@@ -3085,23 +3173,21 @@
                             </div>
 
                             <ul class="focus-list">
-                                <li>
+                                <li role="button" tabindex="0" onclick="focusPendingUsers()" onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); focusPendingUsers(); }" style="cursor:pointer">
                                     <span>Pending user approvals</span>
                                     <strong>{{ $pendingUsersSafe }}</strong>
                                 </li>
-                                <li>
+                                <li role="button" tabindex="0" onclick="focusBlockedUsers()" onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); focusBlockedUsers(); }" style="cursor:pointer">
                                     <span>Blocked accounts</span>
                                     <strong>{{ $frozenUsersSafe }}</strong>
                                 </li>
-                                <li>
+                                <li role="button" tabindex="0" onclick="openPendingCourses()" onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); openPendingCourses(); }" style="cursor:pointer">
                                     <span>Course reviews waiting</span>
                                     <strong>{{ $pendingCoursesSafe }}</strong>
                                 </li>
                             </ul>
 
-                            <button type="button" class="focus-action" onclick="showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']))">
-                                <i class="fas fa-bolt"></i> Open User Queue
-                            </button>
+                            
                         </div>
                     </div>
                 </div>
@@ -3348,6 +3434,7 @@
                             
                             <input type="checkbox" name="statuses[]" value="active" class="filter-checkbox" {{ in_array('active', request('statuses', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="statuses[]" value="freeze" class="filter-checkbox" {{ in_array('freeze', request('statuses', [])) ? 'checked' : '' }} hidden>
+                            <input type="checkbox" name="statuses[]" value="pending" class="filter-checkbox" {{ in_array('pending', request('statuses', [])) ? 'checked' : '' }} hidden>
                         </div>
                     </form>
 
@@ -3620,8 +3707,39 @@
 
             <!-- Certification Management Section -->
             <section id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
-                    <div style="display:flex;gap:8px;padding:8px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                <style>
+                    .cert-shell{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,.06)}
+                    .cert-tabs{display:flex;gap:8px;padding:10px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+                    .cert-tabs .tab-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0b3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 12px;font-weight:800}
+                    .cert-tabs .tab-btn.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
+                    .cert-layout{display:grid;grid-template-columns:1.2fr .9fr;gap:18px}
+                    .cert-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:16px}
+                    #certification-management .pro-input{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;transition:border-color .18s ease, box-shadow .18s ease}
+                    #certification-management .pro-input:focus{outline:none;border-color:#90b4f8;box-shadow:0 0 0 3px rgba(144,180,248,.35)}
+                    #certification-management label{display:block;margin-bottom:6px;color:#0f3b8f;font-weight:800}
+                    .dz{border:2px dashed #cfe0ff;border-radius:14px;background:#f8fbff;padding:18px;text-align:center}
+                    .dz:hover{border-color:#90b4f8;background:#f0f6ff}
+                    .cert-preview-head{font-weight:800;color:#0f3b8f;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+                    .cert-preview-box{position:relative;width:100%;aspect-ratio:1400/990;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc}
+                    .btn-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff;color:#111827;font-weight:800}
+                    .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+                    .btn-green{background:#28a745;color:#fff;border-color:#28a745}
+                    .btn-red{background:#dc3545;color:#fff;border-color:#dc3545}
+                    .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+                    .cert-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden}
+                    .cert-card-head{padding:14px 16px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:10px}
+                    .cert-title{font-weight:800;color:#002C76}
+                    .cert-chip{display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 10px;font-weight:800;font-size:.8rem}
+                    .cert-actions{padding:12px 16px;display:flex;gap:8px}
+                    .cert-empty{display:flex;align-items:center;justify-content:center;min-height:160px;color:#64748b;gap:10px}
+                    .sticky-preview{position:sticky;top:80px}
+                    @media (max-width: 1024px){
+                        .cert-layout{grid-template-columns:1fr}
+                        .sticky-preview{position:static}
+                    }
+                </style>
+                <div class="cert-shell">
+                    <div class="cert-tabs">
                         <button id="certTabCreate" class="tab-btn active" onclick="switchCertTab('create')" aria-controls="certPaneCreate" aria-selected="true"><i class="fas fa-plus-circle"></i> Create Certificate</button>
                         <button id="certTabView" class="tab-btn" onclick="switchCertTab('view')" aria-controls="certPaneView" aria-selected="false"><i class="fas fa-list"></i> View Certificates</button>
                         <button id="certTabCertify" class="tab-btn" onclick="switchCertTab('certify')" aria-controls="certPaneCertify" aria-selected="false"><i class="fas fa-award"></i> Certify</button>
@@ -3635,8 +3753,8 @@
                     <div id="certPaneCreate" style="display:block;padding:16px">
                         <form action="{{ route('certifications.store') }}" method="POST" enctype="multipart/form-data" id="certCreateForm">
                             @csrf
-                            <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:16px">
-                                <div style="display:grid;gap:12px">
+                            <div class="cert-layout">
+                                <div class="cert-panel" style="padding:16px;display:grid;gap:12px">
                                     <div>
                                         <label style="font-weight:700;color:#0f3b8f">Certificate Name</label>
                                         <input type="text" name="name" placeholder="Certificate Name" class="pro-input">
@@ -3657,7 +3775,7 @@
                                     </div>
                                     <div>
                                         <label style="font-weight:700;color:#0f3b8f">Upload Certificate</label>
-                                        <div style="border:2px dashed #e5e7eb;border-radius:12px;background:#fafafa;padding:14px;text-align:center">
+                                        <div class="dz">
                                             <div style="margin-bottom:8px;color:#6b7280">Drag & drop PDF/PNG/JPG/DOCX or click to browse</div>
                                             <input id="certTemplateInput" type="file" name="file" accept=".pdf,.docx,image/png,image/jpeg,image/jpg" style="width:100%">
                                             <div style="margin-top:8px;color:#6b7280;font-size:.85rem">Max 10MB</div>
@@ -3685,7 +3803,7 @@
                                         <div><label>Name X</label><input id="posNameX" class="pro-input" type="number" value="420"></div>
                                         <div><label>Name Y</label><input id="posNameY" class="pro-input" type="number" value="230"></div>
                                         <div><label>Name Size</label><input id="fontName" class="pro-input" type="number" value="38"></div>
-                                        <div style="display:flex;align-items:flex-end"><button id="btnRegenerate" type="button" class="btn btn-blue" style="width:100%">Regenerate Preview</button></div>
+                                        <div style="display:flex;align-items:flex-end"><button id="btnRegenerate" type="button" class="btn-pill btn-blue" style="width:100%">Regenerate Preview</button></div>
                                         <div><label>Course X</label><input id="posCourseX" class="pro-input" type="number" value="420"></div>
                                         <div><label>Course Y</label><input id="posCourseY" class="pro-input" type="number" value="290"></div>
                                         <div><label>Course Size</label><input id="fontCourse" class="pro-input" type="number" value="28"></div>
@@ -3700,16 +3818,16 @@
                                         <div></div>
                                     </div>
                                     <div style="display:flex;justify-content:flex-end;gap:8px">
-                                        <button type="reset" class="btn btn-disabled">Cancel</button>
-                                        <button type="submit" class="btn btn-blue">Create Certificate</button>
+                                        <button type="reset" class="btn-pill">Cancel</button>
+                                        <button type="submit" class="btn-pill btn-blue">Create Certificate</button>
                                     </div>
                                 </div>
-                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);padding:12px">
-                                    <div style="font-weight:800;color:#0f3b8f;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+                                <div class="cert-panel sticky-preview">
+                                    <div class="cert-preview-head">
                                         <span>Live Preview</span>
-                                        <a id="btnDownloadFinal" href="#" class="btn btn-blue">Download Final</a>
+                                        <a id="btnDownloadFinal" href="#" class="btn-pill btn-blue">Download Final</a>
                                     </div>
-                                    <div id="certPreviewBox" style="position:relative;width:100%;aspect-ratio:1400/990;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc">
+                                    <div id="certPreviewBox" class="cert-preview-box">
                                         <img id="certBg" alt="Template" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none">
                                         <canvas id="certCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
                                         <div id="ovName" style="position:absolute;left:30%;top:23%;transform:translateX(-0%);font-weight:800;font-size:2.2vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
@@ -3723,30 +3841,27 @@
                     </div>
                     <div id="certPaneView" style="display:none;padding:16px">
                         @if($certifications->isEmpty())
-                            <div class="empty-state">
-                                <i class="fas fa-certificate" style="font-size:3rem;color:#0f3b8f;margin-bottom:10px"></i>
-                                <h3>No Certifications Added Yet</h3>
-                            </div>
+                            <div class="cert-empty"><i class="fas fa-certificate" style="font-size:2rem"></i><span>No Certifications Added Yet</span></div>
                         @else
-                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+                            <div class="cert-grid">
                                 @foreach($certifications as $cert)
-                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,.05);overflow:hidden">
-                                    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:10px">
-                                        <div style="font-weight:800;color:#002C76">{{ $cert->name }}</div>
-                                        <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 10px;font-weight:700;font-size:.8rem">{{ $cert->category ?? '—' }}</span>
+                                <div class="cert-card">
+                                    <div class="cert-card-head">
+                                        <div class="cert-title">{{ $cert->name }}</div>
+                                        <span class="cert-chip">{{ $cert->category ?? '—' }}</span>
                                     </div>
-                                    <div style="padding:16px;display:flex;align-items:center;justify-content:center">
-                                        <a href="{{ Storage::url($cert->file_path) }}" target="_blank" class="btn btn-blue"><i class="fas fa-file-pdf"></i> Open File</a>
+                                    <div class="cert-empty">
+                                        <a href="{{ Storage::url($cert->file_path) }}" target="_blank" class="btn-pill btn-blue"><i class="fas fa-file-pdf"></i> Open File</a>
                                     </div>
-                                    <div style="padding:12px 16px;display:flex;gap:8px">
+                                    <div class="cert-actions">
                                         <form action="{{ route('certifications.toggle-display', $cert->id) }}" method="POST" style="flex:1">
                                             @csrf
-                                            <button type="submit" class="btn" style="width:100%;background:{{ $cert->display_on_landing_page ? '#dc3545' : '#28a745' }};color:#fff">{{ $cert->display_on_landing_page ? 'Hide from Landing' : 'Display on Landing' }}</button>
+                                            <button type="submit" class="btn-pill" style="width:100%;{{ $cert->display_on_landing_page ? 'background:#dc3545;color:#fff;border-color:#dc3545' : 'background:#28a745;color:#fff;border-color:#28a745' }}">{{ $cert->display_on_landing_page ? 'Hide from Landing' : 'Display on Landing' }}</button>
                                         </form>
                                         <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" onsubmit="return confirm('Delete this certificate?')" style="flex:1">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn" style="width:100%;background:#dc3545;color:#fff">Delete</button>
+                                            <button type="submit" class="btn-pill btn-red" style="width:100%">Delete</button>
                                         </form>
                                     </div>
                                 </div>
@@ -3755,10 +3870,10 @@
                         @endif
                     </div>
                     <div id="certPaneCertify" style="display:none;padding:16px">
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+                        <div class="cert-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">
                             @foreach($courses as $course)
                             <a href="{{ route('admin.certifications.course', $course) }}" style="text-decoration:none;color:inherit">
-                                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden">
+                                <div class="cert-card">
                                     @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
                                     @php
                                         $img = null;
@@ -3773,9 +3888,9 @@
                                         $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
                                     @endphp
                                     <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
-                                    <div style="padding:12px">
-                                        <div style="font-weight:800;color:#002C76">{{ $course->name }}</div>
-                                        <div style="color:#6b7280;font-size:.85rem">{{ $course->subject_area ?? 'Uncategorized' }}</div>
+                                    <div class="cert-card-head" style="border:none">
+                                        <div class="cert-title">{{ $course->name }}</div>
+                                        <span class="cert-chip">{{ $course->subject_area ?? 'Uncategorized' }}</span>
                                     </div>
                                 </div>
                             </a>
@@ -5540,6 +5655,19 @@
                 });
             }
         });
+
+        // Operational Focus helpers
+        function focusPendingUsers(){
+            showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']'));
+            addFilter('status:pending');
+        }
+        function focusBlockedUsers(){
+            showContent('user-management', document.querySelector('.menu-item[onclick*=\'user-management\']'));
+            addFilter('status:freeze');
+        }
+        function openPendingCourses(){
+            window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}';
+        }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
