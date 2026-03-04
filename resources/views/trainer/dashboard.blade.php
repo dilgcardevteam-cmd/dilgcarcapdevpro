@@ -252,6 +252,11 @@
         .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
         .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
         .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
+        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:12px}
+        .hero-metric{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 6px 14px rgba(0,0,0,.06)}
+        .metric-left{display:flex;align-items:center;gap:12px}
+        .metric-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8effd;color:var(--primary-blue);font-size:1.1rem;flex-shrink:0}
+        .metric-value{font-size:1.4rem;font-weight:800;color:var(--primary-blue)}
         .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
         .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
         .hero-btn:hover{background:rgba(255,255,255,.12)}
@@ -433,6 +438,9 @@
             font-weight: 700;
             margin: 0;
         }
+        .status-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:.78rem;font-weight:700}
+        .status-enrolled{background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0}
+        .status-pending{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
 
         /* Course List */
         .course-grid {
@@ -812,71 +820,77 @@
 
         /* Calendar Styles */
         .calendar-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
             padding: 20px;
             margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
         }
         
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #eef2f7;
         }
         
         .calendar-month-year {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--dark-text);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            letter-spacing: -.02em;
         }
         
         .calendar-nav-btn {
-            background: none;
-            border: none;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
             cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--dark-text);
-            padding: 5px 15px;
-            border-radius: 5px;
+            font-size: 1rem;
+            color: #0f172a;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all .2s ease;
         }
         
         .calendar-nav-btn:hover {
-            background-color: #f0f0f0;
+            background-color: #e2e8f0;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            border-top: 1px solid #ddd;
-            border-left: 1px solid #ddd;
+            border-top: 1px solid #eef2f7;
+            border-left: 1px solid #eef2f7;
         }
 
         .calendar-day-header {
-            padding: 15px;
+            padding: 12px;
             text-align: center;
-            font-weight: 500;
-            background-color: white;
-            border-right: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
-            color: var(--dark-text);
+            font-weight: 700;
+            background-color: #fff;
+            border-right: 1px solid #eef2f7;
+            border-bottom: 1px solid #eef2f7;
+            color: #374151;
+            text-transform: uppercase;
+            font-size: .75rem;
         }
 
         .calendar-day {
             min-height: 120px;
-            padding: 8px;
-            border-right: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            border-right: 1px solid #eef2f7;
+            border-bottom: 1px solid #eef2f7;
             position: relative;
             background: white;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, box-shadow .2s ease;
         }
 
         .calendar-day:hover {
-            background-color: #f9f9f9;
+            background-color: #f8fafc;
+            box-shadow: inset 0 0 0 2px rgba(0,44,118,.08);
         }
 
         .calendar-day.empty {
@@ -884,29 +898,36 @@
         }
 
         .calendar-day.today {
-            background-color: #fffde7; /* Light yellow as in image */
+            background: linear-gradient(180deg,#fff9c4 0%, #fffde7 100%);
+            box-shadow: inset 0 0 0 2px #fde68a;
         }
 
         .day-number {
-            font-size: 0.95rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: var(--dark-text);
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #111827;
         }
 
         .event-badge {
             display: block;
             background-color: var(--primary-green);
             color: white;
-            font-size: 0.75rem;
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin-bottom: 2px;
+            font-size: 0.72rem;
+            padding: 6px 8px;
+            border-radius: 999px;
+            margin-bottom: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,.06);
+            border: 1px solid rgba(255,255,255,.6);
         }
+        .event-badge:hover{filter:brightness(.95)}
+        .calendar-legend{display:flex;gap:8px;align-items:center}
+        .legend-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#f8fafc;font-size:.78rem;font-weight:700;color:#374151}
+        .legend-dot{width:10px;height:10px;border-radius:50%}
 
         @media (max-width: 992px) {
             body {
@@ -1188,42 +1209,34 @@
                 </div>
 
                 <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon bg-blue">
-                            <i class="fas fa-book-open"></i>
+                <div class="hero-metrics">
+                    <div class="hero-metric">
+                        <div class="metric-left">
+                            <div class="metric-icon"><i class="fas fa-book-open"></i></div>
+                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Courses Teaching</h4>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ $totalCoursesTeaching }}</h3>
-                            <p>Courses Teaching</p>
-                        </div>
+                        <div class="metric-value">{{ $totalCoursesTeaching }}</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-green">
-                            <i class="fas fa-user-graduate"></i>
+                    <div class="hero-metric">
+                        <div class="metric-left">
+                            <div class="metric-icon" style="background:#ecfdf5;color:#0f766e"><i class="fas fa-user-graduate"></i></div>
+                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Total Students</h4>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ $totalStudents }}</h3>
-                            <p>Total Students</p>
-                        </div>
+                        <div class="metric-value">{{ $totalStudents }}</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-blue">
-                            <i class="fas fa-calendar-check"></i>
+                    <div class="hero-metric">
+                        <div class="metric-left">
+                            <div class="metric-icon" style="background:#e0f2fe;color:#1d4ed8"><i class="fas fa-calendar-check"></i></div>
+                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Upcoming Events</h4>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ isset($calendarEvents) ? $calendarEvents->count() : 0 }}</h3>
-                            <p>Upcoming Events</p>
-                        </div>
+                        <div class="metric-value">{{ isset($calendarEvents) ? $calendarEvents->count() : 0 }}</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon bg-green">
-                            <i class="fas fa-bell"></i>
+                    <div class="hero-metric">
+                        <div class="metric-left">
+                            <div class="metric-icon" style="background:#f1f5f9;color:#0f172a"><i class="fas fa-bell"></i></div>
+                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">New Notifications</h4>
                         </div>
-                        <div class="stat-info">
-                            <h3>{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }}</h3>
-                            <p>New Notifications</p>
-                        </div>
+                        <div class="metric-value">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }}</div>
                     </div>
                 </div>
 
@@ -1350,8 +1363,10 @@
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
                                     @if($myStatus==='pending')
-                                        <span style="background:#fff3cd;color:#856404;border:1px solid #ffeeba; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; display: inline-block;">Pending Approval</span>
+                                        <span class="status-chip status-pending"><i class="fas fa-clock"></i> Pending Approval</span>
+                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();" style="pointer-events:none;opacity:.6">Enter Class</a>
                                     @else
+                                        <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
                                         <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                     @endif
                                 </div>
@@ -1550,6 +1565,11 @@
                         <div class="calendar-month-year" id="calendar-month-year"></div>
                         <button class="calendar-nav-btn" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
                     </div>
+                    <div class="calendar-legend" style="margin-bottom:12px">
+                        <span class="legend-chip"><span class="legend-dot" style="background:#007bff"></span> Class</span>
+                        <span class="legend-chip"><span class="legend-dot" style="background:#dc3545"></span> Deadline</span>
+                        <span class="legend-chip"><span class="legend-dot" style="background:#28a745"></span> Event</span>
+                    </div>
                     <div class="calendar-grid" id="calendar-grid">
                         <!-- Headers -->
                         <div class="calendar-day-header">Sun</div>
@@ -1666,9 +1686,9 @@
                     </form>
                 </div>
 
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+                <div style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.06); border:1px solid #e5e7eb;">
                     @if(session('success'))
-                        <div style="background-color: #d4edda; color: #155724; padding: 12px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #c3e6cb;">
+                        <div style="background-color: #ecfdf3; color: #166534; padding: 12px 14px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #bbf7d0; font-weight:600;">
                             <i class="fas fa-check-circle"></i> {{ session('success') }}
                         </div>
                     @endif
@@ -1681,14 +1701,14 @@
                     @else
                         <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
                             @foreach($announcements as $a)
-                                <div style="border: 1px solid #eee; border-radius: 8px; padding: 15px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <h3 style="margin: 0; color: var(--primary-blue);">{{ $a->title }}</h3>
-                                        <span style="color: #777; font-size: 0.85rem;">{{ $a->created_at->format('M d, Y h:i A') }}</span>
+                                <div style="border-left: 4px solid var(--primary-blue); border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; background:#fff; box-shadow:0 6px 14px rgba(0,0,0,.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:12px; flex-wrap:wrap">
+                                        <h3 style="margin: 0; color: var(--primary-blue); font-weight:800; letter-spacing:-.01em">{{ $a->title }}</h3>
+                                        <span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:#374151;border:1px solid #e2e8f0;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700">{{ $a->created_at->format('M d, Y h:i A') }}</span>
                                     </div>
-                                    <p style="margin-top: 10px; color: #444; white-space: pre-line;">{{ $a->message }}</p>
-                                    <div style="margin-top: 8px; color: #777; font-size: 0.85rem;">
-                                        <i class="fas fa-user"></i> Posted by {{ $a->user->name }}
+                                    <p style="margin-top: 10px; color: #444; white-space: pre-line; line-height:1.7">{{ $a->message }}</p>
+                                    <div style="margin-top: 8px; color: #777; font-size: 0.85rem; display:flex; align-items:center; gap:8px;">
+                                        <span style="display:inline-flex;align-items:center;gap:6px;background:#e8effd;color:#1e3a8a;border:1px solid #c7d2fe;padding:4px 10px;border-radius:999px;font-weight:700"><i class="fas fa-user"></i> {{ $a->user->name }}</span>
                                     </div>
                                 </div>
                             @endforeach
