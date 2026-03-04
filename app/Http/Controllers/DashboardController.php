@@ -677,6 +677,24 @@ class DashboardController extends Controller
         return response()->json(['counts' => $counts]);
     }
 
+    public function userGenderCountsByRegion()
+    {
+        $rows = User::selectRaw('LOWER(TRIM(COALESCE(region,""))) as region, LOWER(TRIM(COALESCE(gender,""))) as gender, COUNT(*) as c')
+            ->groupBy('region', 'gender')
+            ->get();
+        $out = [];
+        foreach ($rows as $row) {
+            $region = $row->region ?? '';
+            $g = $row->gender ?? '';
+            $key = $g === 'male' ? 'male' : ($g === 'female' ? 'female' : 'other');
+            if (!isset($out[$region])) {
+                $out[$region] = ['male' => 0, 'female' => 0, 'other' => 0];
+            }
+            $out[$region][$key] += (int) $row->c;
+        }
+        return response()->json(['gender_counts' => $out]);
+    }
+
     public function importLocationMaster(Request $request)
     {
         $request->validate([
