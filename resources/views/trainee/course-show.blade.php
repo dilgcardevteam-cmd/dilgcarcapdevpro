@@ -96,7 +96,126 @@
         .view-only .mc-actions { display:none !important; }
         .view-only .mc .mc-option { pointer-events:none; cursor:default; }
     </style>
-        </style>
+    <style>
+        :root{
+            --blue:#002C76;
+            --blue-700:#0f3b8f;
+            --blue-500:#2563eb;
+            --green:#7fb73d;
+            --bg:#f4f6f9;
+            --border:#e2e8f0;
+            --card:#ffffff;
+            --muted:#64748b;
+            --shadow-sm:0 2px 8px rgba(15,23,42,.08);
+            --shadow-md:0 14px 30px rgba(15,23,42,.14);
+            --radius-lg:18px;
+        }
+        body{color:#0f172a;background:var(--bg)}
+        .app-header{display:none}
+        .topbar{
+            padding:8px 20px;
+            min-height:56px;
+            background:#fff;
+            border-bottom:1px solid #e5e7eb;
+            box-shadow:0 2px 6px rgba(15,23,42,.06);
+            position:fixed;
+            top:0;
+            left:250px;
+            right:0;
+            z-index:30;
+        }
+        .layout{height:100vh;grid-template-columns:250px 1fr}
+        .content{padding-top:72px}
+        .sidebar{
+            background:#002C76;
+            border-right:1px solid rgba(255,255,255,.12);
+            padding-top:0;
+            
+        }
+        .sidebar::before{
+            content:'';
+            display:block;
+            height:72px;
+            background:url('{{ asset('images/CAPDEV-PRO-LOGO.png') }}') no-repeat center;
+            background-size:160px auto;
+            border-bottom:1px solid rgba(255,255,255,.12);
+        }
+        .sidebar h3{
+            margin:0 0 6px;
+            padding:12px 18px;
+            font-weight:700;
+            letter-spacing:.01em;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            color:#fff;
+            border-bottom:1px solid rgba(255,255,255,.12);
+            border-left:4px solid var(--green);
+            background:rgba(255,255,255,.08);
+        }
+        .search{padding:10px 16px 6px;display:flex;justify-content:center}
+        .search input{
+            width:92%;
+            padding:9px 12px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.35);
+            box-shadow:inset 0 1px 1px rgba(0,0,0,.04);
+        }
+        .outline{padding:6px 12px 16px}
+        .module{
+            border-radius:12px;
+            box-shadow:0 6px 12px rgba(15,23,42,.1);
+            margin:10px 6px;
+            border:1px solid #dbe2ee;
+            overflow:hidden;
+        }
+        .module-header{
+            background:#ffffff;
+            border-radius:12px 12px 0 0;
+            padding:12px 14px;
+        }
+        .module-title{font-weight:800;color:#0f172a}
+        .module-kpi{color:var(--muted)}
+        .module-bar{background:#e6eefc}
+        .module-bar > span{background:linear-gradient(90deg,#1d4ed8,#2563eb)}
+        .topic{background:#f1f5f9}
+        .topic.active{background:#dbeafe}
+        .sub-item{border-radius:12px}
+        .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
+        .pane{
+            border-radius:16px;
+            box-shadow:0 12px 24px rgba(15,23,42,.12);
+            border:1px solid #e6edf5;
+        }
+        .field{
+            border-radius:14px;
+            box-shadow:0 1px 2px rgba(15,23,42,.04);
+        }
+        .chip{padding:6px 12px;color:#0f3b8f;border:1px solid #dbeafe;background:#eef2ff}
+        .btn-green{
+            box-shadow:0 10px 20px rgba(37,99,235,.2);
+        }
+        .topbar > div:nth-child(2){
+            font-weight:800;
+            font-size:1.6rem;
+            color:var(--blue-700);
+            letter-spacing:-.01em;
+        }
+        #videoWrap video{border-radius:14px;box-shadow:var(--shadow-sm)}
+        .back-btn{
+            width:34px;height:34px;border-radius:999px;
+            border:1px solid #dbe2ee;background:#fff;color:#0f3b8f;
+            display:inline-flex;align-items:center;justify-content:center;
+            text-decoration:none;box-shadow:0 2px 6px rgba(15,23,42,.08);
+        }
+        .back-btn:hover{background:#f8fafc}
+        @media (max-width: 980px){
+            .layout{height:auto}
+            .sidebar{display:none}
+            .topbar{left:0}
+            .content{padding-top:64px}
+        }
+    </style>
 </head>
 <body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }}">
     <header class="app-header">
@@ -114,7 +233,9 @@
     </header>
     
     <div class="topbar">
-        <div></div>
+        <div>
+            <a class="back-btn" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
+        </div>
         <div style="font-weight:700; font-size:1.60rem; color:var(--blue)">{{ $course->name }}</div>
         <div></div>
     </div>
