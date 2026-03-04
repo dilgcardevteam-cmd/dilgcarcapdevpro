@@ -275,11 +275,12 @@
         .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
         .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
         .hero-btn:hover{background:rgba(255,255,255,.12)}
-        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
-        .hero-metric{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px}
-        .hero-metric h4{margin:0 0 6px;font-size:.95rem;color:#fff}
-        .hero-meter{height:8px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
-        .hero-meter > span{display:block;height:100%;background:#7fb73d;width:0}
+        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+        .hero-metric{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+        .hero-metric h4{margin:0;font-size:.95rem;color:#374151;font-weight:700}
+        .metric-left{display:flex;align-items:center;gap:12px}
+        .metric-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8effd;color:var(--primary-blue);font-size:1.1rem;flex-shrink:0}
+        .metric-value{font-size:1.4rem;font-weight:800;color:var(--primary-blue)}
 
         /* Content Sections */
         .content-section {
@@ -1022,20 +1023,32 @@
                     </div>
                     <div class="hero-metrics">
                         <div class="hero-metric">
-                            <h4>Available Courses</h4>
-                            <div style="font-size:1.4rem;font-weight:800">{{ $totalAvailableCourses }}</div>
+                            <div class="metric-left">
+                                <div class="metric-icon"><i class="fas fa-book-open"></i></div>
+                                <h4>Available Courses</h4>
+                            </div>
+                            <div class="metric-value">{{ $totalAvailableCourses }}</div>
                         </div>
                         <div class="hero-metric">
-                            <h4>Courses Joined</h4>
-                            <div style="font-size:1.4rem;font-weight:800">{{ $totalCoursesJoined }}</div>
+                            <div class="metric-left">
+                                <div class="metric-icon" style="background:#ecfdf5;color:#0f766e"><i class="fas fa-user-graduate"></i></div>
+                                <h4>Courses Joined</h4>
+                            </div>
+                            <div class="metric-value">{{ $totalCoursesJoined }}</div>
                         </div>
                         <div class="hero-metric">
-                            <h4>Pending Enrollments</h4>
-                            <div style="font-size:1.4rem;font-weight:800">{{ $pendingCoursesCount ?? 0 }}</div>
+                            <div class="metric-left">
+                                <div class="metric-icon" style="background:#fff7ed;color:#9a3412"><i class="fas fa-hourglass-half"></i></div>
+                                <h4>Pending Enrollments</h4>
+                            </div>
+                            <div class="metric-value">{{ $pendingCoursesCount ?? 0 }}</div>
                         </div>
                         <div class="hero-metric">
-                            <h4>Finished Courses</h4>
-                            <div style="font-size:1.4rem;font-weight:800">{{ $completedCoursesCount ?? 0 }}</div>
+                            <div class="metric-left">
+                                <div class="metric-icon" style="background:#e0f2fe;color:#1d4ed8"><i class="fas fa-flag-checkered"></i></div>
+                                <h4>Finished Courses</h4>
+                            </div>
+                            <div class="metric-value">{{ $completedCoursesCount ?? 0 }}</div>
                         </div>
                     </div>
                 </div>
