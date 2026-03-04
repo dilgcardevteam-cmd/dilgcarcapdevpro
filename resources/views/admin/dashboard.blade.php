@@ -3516,10 +3516,11 @@
                                 <select id="filterDropdown" onchange="addFilter(this.value)" class="filter-select">
                                     <option value="">+ Add Filter</option>
                                     <optgroup label="Roles">
-                                        <option value="role:admin">Admin</option>
-                                        <option value="role:registrar">Registrar</option>
-                                        <option value="role:trainer">Coach</option>
-                                        <option value="role:trainee">Trainee</option>
+                                        @foreach(($roles ?? []) as $role)
+                                            <option value="role:{{ $role->name }}">
+                                                {{ $role->display_name ?? ucfirst(str_replace('_',' ', $role->name)) }}
+                                            </option>
+                                        @endforeach
                                     </optgroup>
                                     <optgroup label="Status">
                                         <option value="status:active">Active</option>
@@ -3548,10 +3549,9 @@
 
                         <!-- Hidden inputs for form submission -->
                         <div id="hiddenFilterInputs">
-                            <input type="checkbox" name="roles[]" value="admin" class="filter-checkbox" {{ in_array('admin', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="registrar" class="filter-checkbox" {{ in_array('registrar', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="trainer" class="filter-checkbox" {{ in_array('trainer', request('roles', [])) ? 'checked' : '' }} hidden>
-                            <input type="checkbox" name="roles[]" value="trainee" class="filter-checkbox" {{ in_array('trainee', request('roles', [])) ? 'checked' : '' }} hidden>
+                            @foreach(($roles ?? []) as $role)
+                                <input type="checkbox" name="roles[]" value="{{ $role->name }}" class="filter-checkbox" {{ in_array($role->name, request('roles', [])) ? 'checked' : '' }} hidden>
+                            @endforeach
                             
                             <input type="checkbox" name="statuses[]" value="active" class="filter-checkbox" {{ in_array('active', request('statuses', [])) ? 'checked' : '' }} hidden>
                             <input type="checkbox" name="statuses[]" value="freeze" class="filter-checkbox" {{ in_array('freeze', request('statuses', [])) ? 'checked' : '' }} hidden>
@@ -4389,10 +4389,18 @@
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 </svg>
                                 <select id="view_role" name="role" required disabled>
-                                    <option value="admin">Admin</option>
-                                    <option value="registrar">Registrar</option>
-                                    <option value="trainer">Coach</option>
-                                    <option value="trainee">Trainee</option>
+                                    @if(isset($roles) && $roles->count())
+                                        @foreach($roles as $role)
+                                            <option value="{{ $role->name }}">
+                                                {{ $role->display_name ?? ucfirst(str_replace('_',' ', $role->name)) }}
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        <option value="admin">Admin</option>
+                                        <option value="registrar">Registrar</option>
+                                        <option value="trainer">Coach</option>
+                                        <option value="trainee">Trainee</option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
