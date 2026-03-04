@@ -3595,6 +3595,7 @@
                             .accordion-item{border:1px solid #e5eef7;border-radius:12px;overflow:hidden;margin-bottom:10px}
                             .accordion-header{background:#f8fafc;padding:10px 12px;font-weight:800;color:#0B2C74;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
                             .accordion-content{display:none;padding:12px;background:#fff}
+                            .accordion-item.open .accordion-content{display:block}
                         </style>
                         <div class="access-tabs" style="display:none"></div>
                         @php
@@ -3603,7 +3604,6 @@
                             $permsByName = [];
                             foreach(($permissions ?? []) as $p){ $permsByName[$p->name] = $p; }
                             $groups = [
-                                'Dashboard' => ['view_dashboard'],
                                 'Users' => ['manage_users','edit_user','delete_user','manage_notifications'],
                                 'Courses' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
                                 'Certifications' => ['manage_certifications','issue_certificates','edit_certificates'],
@@ -3614,11 +3614,11 @@
                             @csrf
                             @foreach($groups as $groupName => $names)
                                 <div class="accordion-item">
-                                    <div class="accordion-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+                                    <div class="accordion-header">
                                         <span>{{ $groupName }}</span>
                                         <i class="fas fa-chevron-down"></i>
                                     </div>
-                                    <div class="accordion-content" style="display:none">
+                                    <div class="accordion-content">
                                         <div class="access-tabs">
                                             <button type="button" class="access-tab active" data-target="roles-{{ \Illuminate\Support\Str::slug($groupName) }}">Roles</button>
                                             <button type="button" class="access-tab" data-target="perms-{{ \Illuminate\Support\Str::slug($groupName) }}">Permissions</button>
@@ -3666,6 +3666,9 @@
                                                 </tbody>
                                             </table>
                                         </div>
+                                        <div class="panel-actions" style="margin-top:12px">
+                                            <button type="submit" class="btn btn-primary">Save Access</button>
+                                        </div>
                                         <script>
                                         (function(){
                                             var wrap = document.currentScript.parentElement;
@@ -3699,10 +3702,26 @@
                                     </div>
                                 </div>
                             @endforeach
-                            <div class="panel-actions" style="margin-top:12px">
-                                <button type="submit" class="btn btn-primary">Save Access</button>
-                            </div>
                         </form>
+                        <script>
+                        (function(){
+                            var section = document.getElementById('access-management');
+                            if(!section){ return; }
+                            var headers = section.querySelectorAll('.accordion-header');
+                            headers.forEach(function(h){
+                                h.addEventListener('click', function(){
+                                    var item = h.closest('.accordion-item');
+                                    var isOpen = item.classList.contains('open');
+                                    section.querySelectorAll('.accordion-item').forEach(function(it){
+                                        it.classList.remove('open');
+                                    });
+                                    if(!isOpen){
+                                        item.classList.add('open');
+                                    }
+                                });
+                            });
+                        })();
+                        </script>
                     @endif
                 </div>
             </section>
