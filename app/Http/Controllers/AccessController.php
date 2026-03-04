@@ -20,13 +20,27 @@ class AccessController extends Controller
     {
         $this->authorizeSuperAdmin();
         $matrix = (array) $request->input('matrix', []);
+        $selectedRoles = (array) $request->input('roles', []);
+        $selectedPerms = (array) $request->input('perms', []);
         DB::beginTransaction();
         try {
-            foreach ($matrix as $roleId => $permIds) {
-                $role = Role::find($roleId);
-                if (!$role) continue;
-                $ids = array_map('intval', array_keys(array_filter($permIds ?? [])));
-                $role->permissions()->sync($ids);
+            if (!empty($matrix)) {
+                foreach ($matrix as $roleId => $permIds) {
+                    $role = Role::find($roleId);
+                    if (!$role) continue;
+                    $ids = array_map('intval', array_keys(array_filter($permIds ?? [])));
+                    $role->permissions()->sync($ids);
+                }
+            } else {
+                $roleIds = array_map('intval', $selectedRoles);
+                $permIds = array_map('intval', $selectedPerms);
+                foreach ($roleIds as $rid) {
+                    $role = Role::find($rid);
+                    if (!$role) continue;
+                    $current = $role->permissions()->pluck('permission_id')->toArray();
+                    $next = array_values(array_unique(array_merge($current, $permIds)));
+                    $role->permissions()->sync($next);
+                }
             }
             DB::commit();
         } catch (\Throwable $e) {

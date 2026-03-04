@@ -3588,33 +3588,117 @@
                     @if(!$canAccess)
                         <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">Only Super Admin can manage access.</div>
                     @else
+                        <style>
+                            .access-tabs{display:flex;gap:8px;margin-bottom:12px}
+                            .access-tab{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800;cursor:pointer}
+                            .access-tab.active{background:#eef2ff;border-color:#cfe0ff}
+                            .accordion-item{border:1px solid #e5eef7;border-radius:12px;overflow:hidden;margin-bottom:10px}
+                            .accordion-header{background:#f8fafc;padding:10px 12px;font-weight:800;color:#0B2C74;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+                            .accordion-content{display:none;padding:12px;background:#fff}
+                        </style>
+                        <div class="access-tabs" style="display:none"></div>
+                        @php
+                            $permLabel = function($p){ return $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)); };
+                            $roleLabel = function($r){ return $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)); };
+                            $permsByName = [];
+                            foreach(($permissions ?? []) as $p){ $permsByName[$p->name] = $p; }
+                            $groups = [
+                                'Dashboard' => ['view_dashboard'],
+                                'Users' => ['manage_users','edit_user','delete_user','manage_notifications'],
+                                'Courses' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
+                                'Certifications' => ['manage_certifications','issue_certificates','edit_certificates'],
+                                'Discussions' => ['manage_discussions'],
+                            ];
+                        @endphp
                         <form method="POST" action="{{ route('admin.access.update') }}">
                             @csrf
-                            <div style="overflow:auto;border:1px solid #e5eef7;border-radius:12px">
-                                <table class="table-pro" style="min-width:860px">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:280px">Feature</th>
-                                            @foreach(($roles ?? []) as $r)
-                                                <th style="text-align:center">{{ $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)) }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach(($permissions ?? []) as $p)
-                                            <tr>
-                                                <td>{{ $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)) }}</td>
-                                                @foreach(($roles ?? []) as $r)
-                                                    @php $has = in_array($p->id, ($rolePermissions[$r->id] ?? []), true); @endphp
-                                                    <td style="text-align:center">
-                                                        <input type="checkbox" name="matrix[{{ $r->id }}][{{ $p->id }}]" {{ $has ? 'checked' : '' }}>
-                                                    </td>
-                                                @endforeach
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                            @foreach($groups as $groupName => $names)
+                                <div class="accordion-item">
+                                    <div class="accordion-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+                                        <span>{{ $groupName }}</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="accordion-content" style="display:none">
+                                        <div class="access-tabs">
+                                            <button type="button" class="access-tab active" data-target="roles-{{ \Illuminate\Support\Str::slug($groupName) }}">Roles</button>
+                                            <button type="button" class="access-tab" data-target="perms-{{ \Illuminate\Support\Str::slug($groupName) }}">Permissions</button>
+                                        </div>
+                                        <div id="roles-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="">
+                                            <table class="table-pro">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-roles"></th>
+                                                        <th style="width:320px">Roles</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach(($roles ?? []) as $r)
+                                                        <tr>
+                                                            <td style="text-align:center"><input type="checkbox" name="roles[]" value="{{ $r->id }}" class="role-check"></td>
+                                                            <td>{{ $roleLabel($r) }}</td>
+                                                            <td class="card-muted">System role: {{ $r->name }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div id="perms-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="display:none">
+                                            <table class="table-pro">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-perms"></th>
+                                                        <th style="width:320px">Permissions</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($names as $nm)
+                                                        @php $p = $permsByName[$nm] ?? null; @endphp
+                                                        @if($p)
+                                                            <tr>
+                                                                <td style="text-align:center"><input type="checkbox" name="perms[]" value="{{ $p->id }}" class="perm-check"></td>
+                                                                <td>{{ $permLabel($p) }}</td>
+                                                                <td class="card-muted">System permission: {{ $p->name }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <script>
+                                        (function(){
+                                            var wrap = document.currentScript.parentElement;
+                                            var tabs = wrap.querySelectorAll('.access-tab');
+                                            tabs.forEach(function(t){
+                                                t.addEventListener('click', function(){
+                                                    tabs.forEach(function(x){ x.classList.remove('active'); });
+                                                    this.classList.add('active');
+                                                    var target = this.getAttribute('data-target');
+                                                    wrap.querySelectorAll('.tab-pane').forEach(function(p){
+                                                        p.style.display = (p.id === target) ? '' : 'none';
+                                                    });
+                                                });
+                                            });
+                                            var clearRoles = wrap.querySelector('.clear-all-roles');
+                                            var roleChecks = wrap.querySelectorAll('.role-check');
+                                            if(clearRoles){
+                                                clearRoles.addEventListener('change', function(){
+                                                    roleChecks.forEach(function(c){ c.checked = clearRoles.checked; });
+                                                });
+                                            }
+                                            var clearPerms = wrap.querySelector('.clear-all-perms');
+                                            var permChecks = wrap.querySelectorAll('.perm-check');
+                                            if(clearPerms){
+                                                clearPerms.addEventListener('change', function(){
+                                                    permChecks.forEach(function(c){ c.checked = clearPerms.checked; });
+                                                });
+                                            }
+                                        })();
+                                        </script>
+                                    </div>
+                                </div>
+                            @endforeach
                             <div class="panel-actions" style="margin-top:12px">
                                 <button type="submit" class="btn btn-primary">Save Access</button>
                             </div>
