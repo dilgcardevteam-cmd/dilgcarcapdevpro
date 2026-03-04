@@ -14,6 +14,7 @@ use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\ClassAnnouncementController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\AccessController;
 
 Route::get('/', function () {
     $displayUsers = \App\Models\User::where('display_type', 'our_team')->get();
@@ -58,6 +59,8 @@ Route::resource('/admin/roles', RoleController::class)
     ->only(['index','store','update','destroy'])
     ->middleware(['auth'])
     ->names('admin.roles');
+// Access management (permissions matrix) - Super Admin only
+Route::post('/admin/access', [AccessController::class, 'update'])->middleware(['auth'])->name('admin.access.update');
 Route::get('/stats/users-by-province', [DashboardController::class, 'userCountsByProvince'])->middleware(['auth'])->name('stats.users.by-province');
 Route::get('/stats/users-by-region', [DashboardController::class, 'userCountsByRegion'])->middleware(['auth'])->name('stats.users.by-region');
 Route::get('/stats/users-gender-by-region', [DashboardController::class, 'userGenderCountsByRegion'])->middleware(['auth'])->name('stats.users.gender-by-region');

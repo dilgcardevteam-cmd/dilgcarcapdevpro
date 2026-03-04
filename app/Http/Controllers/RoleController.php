@@ -8,23 +8,23 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    protected function authorizeAdmin(): void
+    protected function authorizeSuperAdmin(): void
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+        if (!auth()->check() || auth()->user()->role !== 'super_admin') {
             abort(403);
         }
     }
 
     public function index()
     {
-        $this->authorizeAdmin();
+        $this->authorizeSuperAdmin();
         $roles = Role::orderBy('name')->get();
         return view('admin.roles.index', compact('roles'));
     }
 
     public function store(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorizeSuperAdmin();
         $validated = $request->validate([
             'name' => 'required|string|max:100|regex:/^[a-z0-9_]+$/|unique:roles,name',
             'display_name' => 'nullable|string|max:100',
@@ -35,7 +35,7 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role)
     {
-        $this->authorizeAdmin();
+        $this->authorizeSuperAdmin();
         $validated = $request->validate([
             'name' => 'required|string|max:100|regex:/^[a-z0-9_]+$/|unique:roles,name,' . $role->id,
             'display_name' => 'nullable|string|max:100',
@@ -50,7 +50,7 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
-        $this->authorizeAdmin();
+        $this->authorizeSuperAdmin();
         $role->delete();
         return redirect()->route('dashboard', ['tab' => 'roles-management'])->with('success_roles', 'Role deleted.');
     }

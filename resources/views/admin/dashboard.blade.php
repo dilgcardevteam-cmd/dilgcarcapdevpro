@@ -37,7 +37,7 @@
         .pro-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff}
         .empty-state{background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center}
         .form-label{font-size:.85rem;color:#6b7280;margin-bottom:6px;font-weight:700}
-        .input-pro{width:100%;padding:10px 12px;border:1px solid #e5eef7;border-radius:10px;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
+        .input-pro{width:95%;padding:10px 12px;border:1px solid #e5eef7;border-radius:10px;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
         .input-pro:focus{outline:none;border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(199,210,254,.35)}
         .panel-actions{display:flex;align-items:center;gap:10px}
         .roles-shell{display:grid;grid-template-columns:1fr 2fr;gap:24px}
@@ -2575,7 +2575,7 @@
     <header class="header">
         <div class="header-left">
             <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <div id="header-section-title" class="header-section-title">Dashboard</div>
+            <div id="header-section-title" class="header-section-title">Access Control</div>
         </div>
         <div class="header-right">
             <div class="profile-menu">
@@ -2632,10 +2632,16 @@
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
-                <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
-                    <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
-                    <span class="menu-text">Roles Management</span>
-                </li>
+                @if(Auth::check() && Auth::user()->role === 'super_admin')
+                    <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
+                        <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
+                        <span class="menu-text">Roles Management</span>
+                    </li>
+                    <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
+                        <div class="menu-icon"><i class="fas fa-key"></i></div>
+                        <span class="menu-text">Access Control</span>
+                    </li>
+                @endif
                 <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
@@ -3263,10 +3269,34 @@
 
             <!-- Roles Management Section -->
             <section id="roles-management" class="content-section {{ request('tab') == 'roles-management' ? 'active' : '' }}">
-                @php $canManageRoles = auth()->check() && in_array(auth()->user()->role, ['admin','super_admin']); @endphp
+                @php $canManageRoles = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
+                    <style>
+                        .roles-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+                        .roles-card,.roles-form-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;box-shadow:0 10px 24px rgba(15,23,42,.06)}
+                        .roles-card-title{font-weight:800;color:#0B2C74;margin:0 0 12px}
+                        .roles-table{width:100%;border-collapse:separate;border-spacing:0 6px}
+                        .roles-table thead th{font-size:.85rem;color:#1f2937;text-align:left;padding:8px 10px;background:#f8fafc;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7}
+                        .roles-table thead th:first-child{border-radius:8px 0 0 8px}
+                        .roles-table thead th:last-child{border-radius:0 8px 8px 0}
+                        .roles-table tbody tr{background:#fff }
+                        .roles-table tbody td{padding:10px 20px;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7}
+                        .roles-table tbody td:first-child{border-left:1px solid #eef2f7;border-radius:8px 0 0 8px}
+                        .roles-table tbody td:last-child{border-right:1px solid #eef2f7;border-radius:0 8px 8px 0}
+                        .roles-table .input-pro{height:14px;width:100%}
+                        .role-actions{display:flex;gap:12px;flex-wrap:nowrap}
+                        .btn-role{padding:6px 12px;font-size:.78rem;border-radius:8px}
+                        .btn-role.btn-primary{background:#0B2C74;border-color:#0B2C74}
+                        .btn-role.btn-danger{background:#e11d48;border-color:#e11d48}
+                        .roles-form-card .form-label{display:block;margin:0 0 6px;color:#334155;font-weight:700}
+                        .roles-form-card .input-pro{height:28px}
+                        .roles-form-card .panel-actions{display:flex;justify-content:flex-end}
+                        @media (max-width: 1100px){
+                            .roles-grid{grid-template-columns:1fr}
+                        }
+                    </style>
                     <div class="insight-panel-header">
-                        <h2 class="section-title">Roles Management</h2>
+                        <!-- <h2 class="section-title">Roles Management</h2> -->
                         <span class="muted">Create and edit roles stored in the database</span>
                     </div>
                     @if(session('success_roles'))
@@ -3282,12 +3312,55 @@
                     @if(!$canManageRoles)
                         <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">You are not authorized to manage roles.</div>
                     @else
-                        <div class="roles-shell">
-                            <div>
-                                <h3 class="section-title">Add Role</h3>
-                                <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:12px">
+                        <div class="roles-grid">
+                            <div class="roles-card">
+                                <!-- <h3 class="roles-card-title">Roles Management</h3> -->
+                                <table class="roles-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40%">Name</th>
+                                            <th style="width:35%">Display Name</th>
+                                            <th style="width:25%">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse(($roles ?? []) as $role)
+                                            @php $formId = 'roleForm-'.$role->id; @endphp
+                                            <tr>
+                                                <td>
+                                                    <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
+                                                </td>
+                                                <td>
+                                                    <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" disabled form="{{ $formId }}">
+                                                </td>
+                                                <td>
+                                                    <div class="role-actions">
+                                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <button type="button" class="btn btn-primary btn-role role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
+                                                            <button type="submit" class="btn btn-primary btn-role role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger btn-role" onclick="return confirm('Delete this role?')">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="roles-form-card">
+                                <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:14px">
                                     @csrf
-                                    <label class="form-label">Name</label>
+                                    <label class="form-label">Display Name</label>
                                     <input class="input-pro" type="text" name="name" placeholder="e.g. super_admin">
                                     <label class="form-label">Display Name</label>
                                     <input class="input-pro" type="text" name="display_name" placeholder="e.g. Super Admin">
@@ -3295,50 +3368,6 @@
                                         <button type="submit" class="btn btn-primary">Create Role</button>
                                     </div>
                                 </form>
-                            </div>
-                            <div>
-                                <h3 class="section-title">Existing Roles</h3>
-                                <div>
-                                    <table class="table-pro">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Display Name</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse(($roles ?? []) as $role)
-                                                @php $formId = 'roleForm-'.$role->id; @endphp
-                                                <tr>
-                                                    <td>
-                                                        <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
-                                                    </td>
-                                                    <td>
-                                                        <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" disabled form="{{ $formId }}">
-                                                    </td>
-                                                    <td>
-                                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="button" class="btn btn-primary role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
-                                                            <button type="submit" class="btn btn-primary role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
-                                                        </form>
-                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex;margin-left:8px">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this role?')">Delete</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
                         </div>
                     @endif
@@ -3612,6 +3641,160 @@
                 </div>
             </section>
 
+            <!-- Access Management Section (Super Admin) -->
+            <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
+                @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
+                <div class="insight-panel">
+                    <div class="insight-panel-header">
+                        <h2 class="section-title">Access Control</h2>
+                        <span class="muted">Assign system feature access per role</span>
+                    </div>
+                    @if(session('success_access'))
+                        <div style="background:#e6fffa;color:#065f46;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('success_access') }}</div>
+                    @endif
+                    @if(session('error_access'))
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('error_access') }}</div>
+                    @endif
+                    @if(!$canAccess)
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">Only Super Admin can manage access.</div>
+                    @else
+                        <style>
+                            .access-tabs{display:flex;gap:8px;margin-bottom:12px}
+                            .access-tab{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800;cursor:pointer}
+                            .access-tab.active{background:#eef2ff;border-color:#cfe0ff}
+                            .accordion-item{border:1px solid #e5eef7;border-radius:12px;overflow:hidden;margin-bottom:10px}
+                            .accordion-header{background:#f8fafc;padding:10px 12px;font-weight:800;color:#0B2C74;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+                            .accordion-content{display:none;padding:12px;background:#fff}
+                            .accordion-item.open .accordion-content{display:block}
+                        </style>
+                        <div class="access-tabs" style="display:none"></div>
+                        @php
+                            $permLabel = function($p){ return $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)); };
+                            $roleLabel = function($r){ return $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)); };
+                            $permsByName = [];
+                            foreach(($permissions ?? []) as $p){ $permsByName[$p->name] = $p; }
+                            $groups = [
+                                'Admin' => ['manage_users','edit_user','delete_user','manage_notifications'],
+                                'Coach' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
+                                'Participant' => ['manage_certifications','issue_certificates','edit_certificates'],
+                                'Training Manager' => ['manage_discussions'],
+                            ];
+                        @endphp
+                        <form method="POST" action="{{ route('admin.access.update') }}">
+                            @csrf
+                            @foreach($groups as $groupName => $names)
+                                <div class="accordion-item">
+                                    <div class="accordion-header">
+                                        <span>{{ $groupName }}</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="accordion-content">
+                                        <div class="access-tabs">
+                                            <button type="button" class="access-tab active" data-target="roles-{{ \Illuminate\Support\Str::slug($groupName) }}">Roles</button>
+                                            <button type="button" class="access-tab" data-target="perms-{{ \Illuminate\Support\Str::slug($groupName) }}">Permissions</button>
+                                        </div>
+                                        <div id="roles-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="">
+                                            <table class="table-pro">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-roles"></th>
+                                                        <th style="width:320px">Roles</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach(($roles ?? []) as $r)
+                                                        <tr>
+                                                            <td style="text-align:center"><input type="checkbox" name="roles[]" value="{{ $r->id }}" class="role-check"></td>
+                                                            <td>{{ $roleLabel($r) }}</td>
+                                                            <td class="card-muted">System role: {{ $r->name }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div id="perms-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="display:none">
+                                            <table class="table-pro">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-perms"></th>
+                                                        <th style="width:320px">Permissions</th>
+                                                        <th>Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($names as $nm)
+                                                        @php $p = $permsByName[$nm] ?? null; @endphp
+                                                        @if($p)
+                                                            <tr>
+                                                                <td style="text-align:center"><input type="checkbox" name="perms[]" value="{{ $p->id }}" class="perm-check"></td>
+                                                                <td>{{ $permLabel($p) }}</td>
+                                                                <td class="card-muted">System permission: {{ $p->name }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="panel-actions" style="margin-top:12px">
+                                            <button type="submit" class="btn btn-primary">Save Access</button>
+                                        </div>
+                                        <script>
+                                        (function(){
+                                            var wrap = document.currentScript.parentElement;
+                                            var tabs = wrap.querySelectorAll('.access-tab');
+                                            tabs.forEach(function(t){
+                                                t.addEventListener('click', function(){
+                                                    tabs.forEach(function(x){ x.classList.remove('active'); });
+                                                    this.classList.add('active');
+                                                    var target = this.getAttribute('data-target');
+                                                    wrap.querySelectorAll('.tab-pane').forEach(function(p){
+                                                        p.style.display = (p.id === target) ? '' : 'none';
+                                                    });
+                                                });
+                                            });
+                                            var clearRoles = wrap.querySelector('.clear-all-roles');
+                                            var roleChecks = wrap.querySelectorAll('.role-check');
+                                            if(clearRoles){
+                                                clearRoles.addEventListener('change', function(){
+                                                    roleChecks.forEach(function(c){ c.checked = clearRoles.checked; });
+                                                });
+                                            }
+                                            var clearPerms = wrap.querySelector('.clear-all-perms');
+                                            var permChecks = wrap.querySelectorAll('.perm-check');
+                                            if(clearPerms){
+                                                clearPerms.addEventListener('change', function(){
+                                                    permChecks.forEach(function(c){ c.checked = clearPerms.checked; });
+                                                });
+                                            }
+                                        })();
+                                        </script>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </form>
+                        <script>
+                        (function(){
+                            var section = document.getElementById('access-management');
+                            if(!section){ return; }
+                            var headers = section.querySelectorAll('.accordion-header');
+                            headers.forEach(function(h){
+                                h.addEventListener('click', function(){
+                                    var item = h.closest('.accordion-item');
+                                    var isOpen = item.classList.contains('open');
+                                    section.querySelectorAll('.accordion-item').forEach(function(it){
+                                        it.classList.remove('open');
+                                    });
+                                    if(!isOpen){
+                                        item.classList.add('open');
+                                    }
+                                });
+                            });
+                        })();
+                        </script>
+                    @endif
+                </div>
+            </section>
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">

@@ -1292,16 +1292,24 @@
                             </div>
                         </div>
                         <div>
+                            <div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px">
+                                <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Summary</button>
+                                <button id="tm-course-tab-distribution" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Distribution</button>
+                            </div>
                             <div id="tm-donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
                             <div style="margin-top:10px;text-align:center">
                                 <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Active Courses</div>
                                 <div style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $cActive }}</div>
                             </div>
-                            <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
+                            <div id="tm-legend-course-distribution" style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
                                 <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Active <span id="tm-course-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
                                 <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#0B2C74;font-weight:800">Without Coach & Participants <span id="tm-course-legend-noboth" style="color:#6b7280;margin-left:6px"></span></div>
                                 <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Without Coaches <span id="tm-course-legend-nocoach" style="color:#6b7280;margin-left:6px"></span></div>
                                 <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b"></div><div style="color:#0B2C74;font-weight:800">Without Participants <span id="tm-course-legend-nopart" style="color:#6b7280;margin-left:6px"></span></div>
+                            </div>
+                            <div id="tm-legend-course-summary" style="display:none;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
+                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Active (Ready) <span id="tm-course-legend-summary-active" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b"></div><div style="color:#0B2C74;font-weight:800">Not Ready <span id="tm-course-legend-summary-notready" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                         </div>
                     </div>
@@ -1393,11 +1401,40 @@
                           var cNoPartOnly={{ $cNoParticipantOnly }};
                           var cTotal = cActive;
                           var cActiveBoth={{ $cActiveBoth }};
-                          renderArcDonut('tm-donut-courses', [cActiveBoth,cNoBoth,cNoCoachOnly,cNoPartOnly], ['#0B2C74','#FFD700','#B10606','#f59e0b']);
-                          document.getElementById('tm-course-legend-active').innerText = cActiveBoth+' · '+pct(cActiveBoth,cTotal)+'%';
-                          document.getElementById('tm-course-legend-noboth').innerText = cNoBoth+' · '+pct(cNoBoth,cTotal)+'%';
-                          document.getElementById('tm-course-legend-nocoach').innerText = cNoCoachOnly+' · '+pct(cNoCoachOnly,cTotal)+'%';
-                          document.getElementById('tm-course-legend-nopart').innerText = cNoPartOnly+' · '+pct(cNoPartOnly,cTotal)+'%';
+                          function drawCourseDistribution(){
+                            var dLegend=document.getElementById('tm-legend-course-distribution');
+                            var sLegend=document.getElementById('tm-legend-course-summary');
+                            if(dLegend) dLegend.style.display='grid';
+                            if(sLegend) sLegend.style.display='none';
+                            var btnS=document.getElementById('tm-course-tab-summary');
+                            var btnD=document.getElementById('tm-course-tab-distribution');
+                            if(btnS&&btnD){ btnS.style.background='#fff'; btnS.style.color='#0B2C74'; btnD.style.background='#0B2C74'; btnD.style.color='#fff'; }
+                            var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
+                            renderArcDonut('tm-donut-courses', [cActiveBoth,cNoBoth,cNoCoachOnly,cNoPartOnly], ['#0B2C74','#FFD700','#B10606','#f59e0b']);
+                            document.getElementById('tm-course-legend-active').innerText = cActiveBoth+' · '+pct(cActiveBoth,cTotal)+'%';
+                            document.getElementById('tm-course-legend-noboth').innerText = cNoBoth+' · '+pct(cNoBoth,cTotal)+'%';
+                            document.getElementById('tm-course-legend-nocoach').innerText = cNoCoachOnly+' · '+pct(cNoCoachOnly,cTotal)+'%';
+                            document.getElementById('tm-course-legend-nopart').innerText = cNoPartOnly+' · '+pct(cNoPartOnly,cTotal)+'%';
+                          }
+                          function drawCourseSummary(){
+                            var dLegend=document.getElementById('tm-legend-course-distribution');
+                            var sLegend=document.getElementById('tm-legend-course-summary');
+                            if(dLegend) dLegend.style.display='none';
+                            if(sLegend) sLegend.style.display='grid';
+                            var btnS=document.getElementById('tm-course-tab-summary');
+                            var btnD=document.getElementById('tm-course-tab-distribution');
+                            if(btnS&&btnD){ btnS.style.background='#0B2C74'; btnS.style.color='#fff'; btnD.style.background='#fff'; btnD.style.color='#0B2C74'; }
+                            var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
+                            var cNotReady = cNoBoth + cNoCoachOnly + cNoPartOnly;
+                            renderArcDonut('tm-donut-courses', [cActiveBoth,cNotReady], ['#0B2C74','#f59e0b']);
+                            document.getElementById('tm-course-legend-summary-active').innerText = cActiveBoth+' · '+pct(cActiveBoth,cTotal)+'%';
+                            document.getElementById('tm-course-legend-summary-notready').innerText = cNotReady+' · '+pct(cNotReady,cTotal)+'%';
+                          }
+                          drawCourseDistribution();
+                          var tabCourseSummary=document.getElementById('tm-course-tab-summary');
+                          var tabCourseDistribution=document.getElementById('tm-course-tab-distribution');
+                          if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseSummary); }
+                          if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseDistribution); }
                         })();
                     </script>
                     </div>
