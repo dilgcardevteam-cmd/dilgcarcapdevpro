@@ -102,7 +102,7 @@
                 : route('trainee.courses.show', $discussion->course).'?tab=forum';
         @endphp
         <div style="margin-bottom:12px">
-            <a href="{{ $forumUrl }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <a href="{{ $forumUrl }}" class="back-link"><i class="fas fa-arrow-left"></i>Back</a>
         </div>
         <div class="card" style="margin-bottom:12px;">
             <div class="topic-title">{{ $discussion->title }}</div>
