@@ -15,6 +15,7 @@ use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Role;
 
 class DashboardController extends Controller
 {
@@ -24,6 +25,7 @@ class DashboardController extends Controller
         $forceProfile = !$user->profile_completed;
 
         switch ($user->role) {
+            case 'super_admin':
             case 'admin':
                 $userCount = User::count();
                 $courseCount = Course::count(); // Counts only active
@@ -46,7 +48,7 @@ class DashboardController extends Controller
                 $frozenUsersCount = User::where('status', 'freeze')->count();
                 $trainersCount = User::whereIn('role', ['coach','trainer'])->count();
                 $traineesCount = User::whereIn('role', ['participant','trainee'])->count();
-                $adminsCount = User::where('role', 'admin')->count();
+                $adminsCount = User::whereIn('role', ['admin','super_admin'])->count();
                 $registrarsCount = User::where('role', 'registrar')->count();
                 $archivedCoursesCount = Course::onlyTrashed()->count();
                 $certificationCount = Certification::count();
@@ -77,11 +79,13 @@ class DashboardController extends Controller
                     $query->orderBy('created_at', 'desc');
                 }
                 $users = $query->paginate(8)->appends($request->query());
+                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
 
                 if ($request->ajax()) {
-                    return view('admin.partials.users-table', compact('users'))->render();
+                    return view('admin.partials.users-table', compact('users','roleDisplay'))->render();
                 }
 
+                $roles = Role::orderBy('name')->get();
                 return view('admin.dashboard', compact(
                     'userCount',
                     'users',
@@ -101,7 +105,9 @@ class DashboardController extends Controller
                     'registrarsCount',
                     'archivedCoursesCount',
                     'certificationCount',
-                    'recentCourses'
+                    'recentCourses',
+                    'roles',
+                    'roleDisplay'
                 ));
             case 'registrar':
                 $unapprovedCount = User::where('status', 'pending')->count();
@@ -235,8 +241,9 @@ class DashboardController extends Controller
                 elseif ($sort === 'alpha') $query->orderBy('name', 'asc');
                 else $query->orderBy('created_at', 'desc');
                 $users = $query->paginate(8)->appends($request->query());
+                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
                 if ($request->ajax()) {
-                    return view('registrar.partials.users-table', compact('users'))->render();
+                    return view('registrar.partials.users-table', compact('users','roleDisplay'))->render();
                 }
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
@@ -327,18 +334,20 @@ class DashboardController extends Controller
         $actor = Auth::user();
         if ($actor && $actor->role === 'registrar') {
             // Registrars may only change role and status
+            $allowedRoles = Role::pluck('name')->toArray();
             $validated = $request->validate([
-                'role' => 'required|string|in:admin,registrar,training_manager,coach,trainer,participant,trainee',
+                'role' => 'required|string|in:' . implode(',', $allowedRoles),
                 'status' => 'required|string|in:active,freeze,pending',
             ]);
             $user->update($validated);
             return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'User role/status updated.');
         }
 
+        $allowedRoles = Role::pluck('name')->toArray();
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|string|in:admin,registrar,training_manager,coach,trainer,participant,trainee',
+            'role' => 'required|string|in:' . implode(',', $allowedRoles),
             'status' => 'required|string|in:active,freeze,pending',
             'region' => 'nullable|string|max:255',
             'province' => 'nullable|string|max:255',
@@ -374,7 +383,7 @@ class DashboardController extends Controller
     public function convertRegistrarToTrainingManager(Request $request, User $user)
     {
         $actor = Auth::user();
-        if (!$actor || $actor->role !== 'admin') {
+        if (!$actor || !in_array($actor->role, ['admin','super_admin'])) {
             abort(403);
         }
         if ($user->role !== 'registrar') {
@@ -430,7 +439,7 @@ class DashboardController extends Controller
     public function rollbackTrainingManager(Request $request, User $user)
     {
         $actor = Auth::user();
-        if (!$actor || $actor->role !== 'admin') {
+        if (!$actor || !in_array($actor->role, ['admin','super_admin'])) {
             abort(403);
         }
         $last = \App\Models\RoleChangeAudit::where('user_id',$user->id)->orderBy('id','desc')->first();

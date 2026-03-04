@@ -13,6 +13,7 @@ use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\ClassAnnouncementController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\RoleController;
 
 Route::get('/', function () {
     $displayUsers = \App\Models\User::where('display_type', 'our_team')->get();
@@ -52,6 +53,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])
     ->name('dashboard');
+// Roles management
+Route::resource('/admin/roles', RoleController::class)
+    ->only(['index','store','update','destroy'])
+    ->middleware(['auth'])
+    ->names('admin.roles');
 Route::get('/stats/users-by-province', [DashboardController::class, 'userCountsByProvince'])->middleware(['auth'])->name('stats.users.by-province');
 Route::get('/stats/users-by-region', [DashboardController::class, 'userCountsByRegion'])->middleware(['auth'])->name('stats.users.by-region');
 Route::get('/admin/courses/create', [CourseController::class, 'create'])->middleware(['auth'])->name('admin.courses.create');

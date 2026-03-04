@@ -30,8 +30,25 @@
         .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;background:#fff;color:#111827;font-weight:700;cursor:pointer}
         .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
         .btn-disabled{background:#e5e7eb;color:#6b7280;border-color:#e5e7eb;cursor:not-allowed}
+        .btn-primary{background:#0B2C74;color:#fff;border-color:#0B2C74}
+        .btn-primary:hover{filter:brightness(1.05)}
+        .btn-danger{background:#dc2626;color:#fff;border-color:#dc2626}
+        .btn-danger:hover{filter:brightness(1.05)}
         .pro-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff}
         .empty-state{background:#fff;border:1px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center}
+        .form-label{font-size:.85rem;color:#6b7280;margin-bottom:6px;font-weight:700}
+        .input-pro{width:100%;padding:10px 12px;border:1px solid #e5eef7;border-radius:10px;background:#fff;transition:border-color .2s ease,box-shadow .2s ease}
+        .input-pro:focus{outline:none;border-color:#c7d2fe;box-shadow:0 0 0 4px rgba(199,210,254,.35)}
+        .panel-actions{display:flex;align-items:center;gap:10px}
+        .roles-shell{display:grid;grid-template-columns:1fr 2fr;gap:24px}
+        @media(max-width:1024px){.roles-shell{grid-template-columns:1fr}}
+        .table-pro{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5eef7;border-radius:12px;overflow:hidden}
+        .table-pro thead th{background:#f8fafc;padding:12px;text-align:left;font-weight:800;color:#0B2C74;border-bottom:1px solid #e5eef7}
+        .table-pro tbody td{padding:10px;border-bottom:1px solid #e5eef7}
+        .table-pro tbody tr:last-child td{border-bottom:none}
+        .card-muted{color:#64748b}
+        .section-title{margin:0;color:#0B2C74;font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
+        .muted{color:#64748b}
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -2615,6 +2632,10 @@
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
+                <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
+                    <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
+                    <span class="menu-text">Roles Management</span>
+                </li>
                 <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
@@ -3190,6 +3211,87 @@
                             
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Roles Management Section -->
+            <section id="roles-management" class="content-section {{ request('tab') == 'roles-management' ? 'active' : '' }}">
+                @php $canManageRoles = auth()->check() && in_array(auth()->user()->role, ['admin','super_admin']); @endphp
+                <div class="insight-panel">
+                    <div class="insight-panel-header">
+                        <h2 class="section-title">Roles Management</h2>
+                        <span class="muted">Create and edit roles stored in the database</span>
+                    </div>
+                    @if(session('success_roles'))
+                        <div style="background:#e6fffa;color:#065f46;padding:12px;border-radius:10px;margin-bottom:12px">
+                            {{ session('success_roles') }}
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div style="background:#fff7ed;color:#9a3412;padding:12px;border-radius:10px;margin-bottom:12px">
+                            {{ $errors->first() }}
+                        </div>
+                    @endif
+                    @if(!$canManageRoles)
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">You are not authorized to manage roles.</div>
+                    @else
+                        <div class="roles-shell">
+                            <div>
+                                <h3 class="section-title">Add Role</h3>
+                                <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:12px">
+                                    @csrf
+                                    <label class="form-label">Name</label>
+                                    <input class="input-pro" type="text" name="name" placeholder="e.g. super_admin">
+                                    <label class="form-label">Display Name</label>
+                                    <input class="input-pro" type="text" name="display_name" placeholder="e.g. Super Admin">
+                                    <div class="panel-actions">
+                                        <button type="submit" class="btn btn-primary">Create Role</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div>
+                                <h3 class="section-title">Existing Roles</h3>
+                                <div>
+                                    <table class="table-pro">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Display Name</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse(($roles ?? []) as $role)
+                                                <tr>
+                                                    <td>
+                                                        <form method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:flex;gap:8px;align-items:center">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <input class="input-pro" type="text" name="name" value="{{ $role->name }}" style="flex:1">
+                                                            <input class="input-pro" type="text" name="display_name" value="{{ $role->display_name }}" style="flex:1">
+                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                        </form>
+                                                    </td>
+                                                    <td style="display:none"></td>
+                                                    <td>
+                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this role?')">Delete</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </section>
 
@@ -5712,6 +5814,7 @@
                 'dashboard-home': 'Dashboard',
                 'user-management': 'User Management',
                 'course-management': 'Course Management',
+                'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
                 'system-settings': 'System Settings'
             };
@@ -5729,6 +5832,7 @@
                     'dashboard-home': 'Dashboard',
                     'user-management': 'User Management',
                     'course-management': 'Course Management',
+                    'roles-management': 'Roles Management',
                     'certification-management': 'Certifications'
                 };
                 const headerTitleEl = document.getElementById('header-section-title');
