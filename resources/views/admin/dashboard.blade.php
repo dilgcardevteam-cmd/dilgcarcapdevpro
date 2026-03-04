@@ -2575,7 +2575,7 @@
     <header class="header">
         <div class="header-left">
             <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <div id="header-section-title" class="header-section-title">Dashboard</div>
+            <div id="header-section-title" class="header-section-title">Access Control</div>
         </div>
         <div class="header-right">
             <div class="profile-menu">
@@ -3627,10 +3627,10 @@
                             $permsByName = [];
                             foreach(($permissions ?? []) as $p){ $permsByName[$p->name] = $p; }
                             $groups = [
-                                'Users' => ['manage_users','edit_user','delete_user','manage_notifications'],
-                                'Courses' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
-                                'Certifications' => ['manage_certifications','issue_certificates','edit_certificates'],
-                                'Discussions' => ['manage_discussions'],
+                                'Admin' => ['manage_users','edit_user','delete_user','manage_notifications'],
+                                'Coach' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
+                                'Participant' => ['manage_certifications','issue_certificates','edit_certificates'],
+                                'Training Manager' => ['manage_discussions'],
                             ];
                         @endphp
                         <form method="POST" action="{{ route('admin.access.update') }}">
