@@ -39,10 +39,12 @@ class DashboardController extends Controller
                     $managedRoles = ['provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
                 } elseif ($user->role === 'super_admin') {
                     $managedRoles = [
+                        'admin','super_admin','registrar',
                         'training_manager','coach','trainer','participant','trainee',
                         'central_office_training_manager','central_office_coach','central_office_participants',
                         'regional_office_training_manager','regional_office_coach','regional_office_participants',
                         'provincial_office_training_manager','provincial_office_coach','provincial_office_participants',
+                        'central_office_admin','regional_office_admin','provincial_office_admin',
                     ];
                 } else { // ordinary admin
                     $managedRoles = ['training_manager','coach','trainer','participant','trainee'];
