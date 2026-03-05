@@ -23,10 +23,13 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $forceProfile = !$user->profile_completed;
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
 
-        switch ($user->role) {
-            case 'super_admin':
-            case 'admin':
+        switch (true) {
+            case in_array($user->role, $adminRoles, true):
                 $userCount = User::count();
                 $courseCount = Course::count(); // Counts only active
                 $courses = Course::orderBy('created_at', 'desc')->get();
@@ -34,21 +37,21 @@ class DashboardController extends Controller
                 $certifications = Certification::all();
                 $recentCourses = Course::latest()->take(5)->get();
                 $pendingCourses = \App\Models\Course::onlyTrashed()
-                    ->whereHas('users', function($q){
-                        $q->whereIn('role', ['coach','trainer']);
+                    ->whereHas('users', function($q) use ($coachRoles) {
+                        $q->whereIn('role', $coachRoles);
                     })
                     ->get();
                 $pendingCoursesCount = \App\Models\Course::onlyTrashed()
-                    ->whereHas('users', function($q){
-                        $q->whereIn('role', ['coach','trainer']);
+                    ->whereHas('users', function($q) use ($coachRoles) {
+                        $q->whereIn('role', $coachRoles);
                     })
                     ->count();
                 $activeUsersCount = User::where('status', 'active')->count();
                 $pendingUsersTotal = User::where('status', 'pending')->count();
                 $frozenUsersCount = User::where('status', 'freeze')->count();
-                $trainersCount = User::whereIn('role', ['coach','trainer'])->count();
-                $traineesCount = User::whereIn('role', ['participant','trainee'])->count();
-                $adminsCount = User::whereIn('role', ['admin','super_admin'])->count();
+                $trainersCount = User::whereIn('role', $coachRoles)->count();
+                $traineesCount = User::whereIn('role', $participantRoles)->count();
+                $adminsCount = User::whereIn('role', $adminRoles)->count();
                 $registrarsCount = User::where('role', 'registrar')->count();
                 $archivedCoursesCount = Course::onlyTrashed()->count();
                 $certificationCount = Certification::count();
@@ -116,13 +119,13 @@ class DashboardController extends Controller
                     'rolePermissions',
                     'roleDisplay'
                 ));
-            case 'registrar':
+            case $user->role === 'registrar':
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();
-                $pendingTraineesCount = User::whereIn('role', ['participant','trainee'])->where('status', 'pending')->count();
+                $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
                 $totalCourses = Course::count();
                 $courses = Course::with('users')->get();
-                $potentialParticipants = User::whereIn('role', ['coach','trainer', 'participant','trainee'])->where('status', 'active')->get();
+                $potentialParticipants = User::whereIn('role', array_merge($coachRoles,$participantRoles))->where('status', 'active')->get();
                 
                 // Fetch Notifications
                 $notifications = Notification::where('user_id', $user->id)
@@ -147,12 +150,10 @@ class DashboardController extends Controller
                     $expanded = [];
                     foreach ($roles as $r) {
                         $expanded[] = $r;
-                        if ($r === 'trainer' && !in_array('coach', $roles, true)) $expanded[] = 'coach';
-                        if ($r === 'coach' && !in_array('trainer', $roles, true)) $expanded[] = 'trainer';
-                        if ($r === 'trainee' && !in_array('participant', $roles, true)) $expanded[] = 'participant';
-                        if ($r === 'participant' && !in_array('trainee', $roles, true)) $expanded[] = 'trainee';
-                        if ($r === 'training_manager' && !in_array('registrar', $roles, true)) $expanded[] = 'registrar';
-                        if ($r === 'registrar' && !in_array('training_manager', $roles, true)) $expanded[] = 'training_manager';
+                        if (in_array($r, ['trainer','coach'], true)) { $expanded = array_merge($expanded, $coachRoles); }
+                        if (in_array($r, ['trainee','participant'], true)) { $expanded = array_merge($expanded, $participantRoles); }
+                        if (in_array($r, ['training_manager','registrar'], true)) { $expanded = array_merge($expanded, $tmRoles); }
+                        if ($r === 'admin') { $expanded = array_merge($expanded, $adminRoles); }
                     }
                     $query->whereIn('role', array_unique($expanded));
                 }
@@ -188,8 +189,7 @@ class DashboardController extends Controller
                     'unreadNotificationsCount',
                     'forceProfile'
                 ));
-            case 'coach':
-            case 'trainer':
+            case in_array($user->role, $coachRoles, true):
                 // Get courses where the trainer is assigned (assuming pivot table handles this)
                 // Also eager load materials and assessments
                 $myCourses = $user->courses()
@@ -229,14 +229,14 @@ class DashboardController extends Controller
                     ->count();
 
                 return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
-            case 'training_manager':
+            case in_array($user->role, $tmRoles, true):
                 // Reuse registrar dashboard logic for training manager
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();
-                $pendingTraineesCount = User::whereIn('role', ['participant','trainee'])->where('status', 'pending')->count();
+                $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
                 $totalCourses = Course::count();
                 $courses = Course::with('users')->get();
-                $potentialParticipants = User::whereIn('role', ['coach','trainer', 'participant','trainee'])->where('status', 'active')->get();
+                $potentialParticipants = User::whereIn('role', array_merge($coachRoles,$participantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
                 $query = User::query();
