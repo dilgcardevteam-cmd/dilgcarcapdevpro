@@ -19,7 +19,15 @@
                         $location = trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
                         $roleMap = isset($roleDisplay) && is_array($roleDisplay) ? $roleDisplay : [];
                         $rawRole = $user->role;
-                        $roleClass = in_array($rawRole, ['super_admin','admin','registrar','training_manager','coach','trainer','trainee','participant']) ? ($rawRole === 'trainer' ? 'coach' : $rawRole) : 'trainee';
+                        $knownRoles = [
+                            'super_admin','admin','registrar',
+                            'training_manager','coach','trainer','trainee','participant',
+                            'central_office_admin','regional_office_admin','provincial_office_admin',
+                            'central_office_training_manager','regional_office_training_manager','provincial_office_training_manager',
+                            'central_office_coach','regional_office_coach','provincial_office_coach',
+                            'central_office_participants','regional_office_participants','provincial_office_participants',
+                        ];
+                        $roleClass = in_array($rawRole, $knownRoles) ? ($rawRole === 'trainer' ? 'coach' : $rawRole) : 'trainee';
                         $roleLabel = $roleMap[$rawRole] ?? ($rawRole === 'trainer' ? 'Coach' : ($rawRole === 'training_manager' ? 'Training Manager' : ucfirst(str_replace('_',' ',$rawRole))));
                         $statusValue = $user->status ?? 'active';
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
