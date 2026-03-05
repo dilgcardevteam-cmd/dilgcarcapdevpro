@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             UserSeeder::class,
             OfficeRoleUserSeeder::class,
+            GenderSeeder::class,
         ]);
     }
 }

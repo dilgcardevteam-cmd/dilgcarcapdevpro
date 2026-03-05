@@ -68,6 +68,22 @@
             align-items: center;
             gap: 15px;
         }
+        /* Notification (pro style) */
+        .notification-container{position:relative;margin-right:10px}
+        .notification-bell{cursor:pointer;position:relative;color:#0B2C74;font-size:1.2rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background-color .18s ease}
+        .notification-bell:hover{background:#f1f5f9}
+        .notification-badge{position:absolute;top:5px;right:5px;background:#dc2626;color:#fff;border-radius:999px;padding:2px 6px;font-size:.7rem;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(220,38,38,.3)}
+        .notification-dropdown{display:none;position:absolute;top:50px;right:-10px;width:320px;background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(2,6,23,.12);z-index:1000;overflow:hidden;border:1px solid #e5e7eb}
+        .notification-header{padding:14px;border-bottom:1px solid #e5e7eb;font-weight:800;color:#0B2C74;display:flex;justify-content:space-between;align-items:center;background:#f8fafc}
+        .chip-new{background:#eef2ff;color:#0B2C74;border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;font-size:.78rem;font-weight:800}
+        .notification-list{max-height:350px;overflow-y:auto}
+        .notification-item{padding:12px 14px;border-bottom:1px solid #f0f3f7;cursor:pointer;transition:background-color .18s ease;display:block;text-decoration:none;color:inherit}
+        .notification-item:hover{background:#f9fbff}
+        .notification-item.unread{background:#eef6ff}
+        .notification-title{font-size:.95rem;font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px}
+        .unread-dot{width:8px;height:8px;border-radius:50%;background:#0B2C74;display:inline-block}
+        .notification-message{font-size:.85rem;color:#64748b;margin-top:4px}
+        .notification-time{font-size:.78rem;color:#9aa3af;margin-top:6px}
 
         .logout-btn {
             background-color: #d9534f;
@@ -256,54 +272,20 @@
         }
 
         /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        @media (min-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1200px){ .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-
-        .stat-card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            transition: transform 0.3s;
-        }
+        .stats-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px;margin-bottom:24px}
+        @media (min-width: 900px){ .stats-grid{grid-template-columns:repeat(2,1fr)} }
+        @media (min-width: 1200px){ .stats-grid{grid-template-columns:repeat(4,1fr)} }
+        .stat-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;box-shadow:0 8px 24px rgba(17,24,39,.06);transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
 
         .stat-card:hover {
             transform: translateY(-5px);
         }
 
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(0, 44, 118, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-blue);
-            font-size: 1.5rem;
-            margin-right: 20px;
-        }
+        .stat-icon{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center}
 
-        .stat-info h3 {
-            margin: 0;
-            font-size: 2.5rem;
-            color: var(--primary-blue);
-            font-weight: 700;
-        }
+        .stat-info h3{margin:0;font-size:1.6rem;color:#002C76}
 
-        .stat-info p {
-            margin: 5px 0 0;
-            color: var(--light-text);
-            font-size: 1rem;
-        }
+        .stat-info p{margin:0;color:#6b7280}
 
         /* Modal Styles */
         .modal {
@@ -1100,33 +1082,33 @@
         </div>
         <div class="header-right">
             <!-- Notification Bell -->
-            <div class="notification-container" style="position: relative; margin-right: 20px;">
-                <div class="notification-bell" onclick="toggleNotifications()" style="cursor: pointer; position: relative; color: var(--primary-blue); font-size: 1.2rem;">
+            <div class="notification-container">
+                <div class="notification-bell" onclick="toggleNotifications()">
                     <i class="fas fa-bell"></i>
                     @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                        <span class="notification-badge" style="position: absolute; top: -8px; right: -8px; background-color: #d9534f; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold;">{{ $unreadNotificationsCount }}</span>
+                        <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
                     @endif
                 </div>
                 
-                <div id="notificationDropdown" class="notification-dropdown" style="display: none; position: absolute; top: 40px; right: 0; width: 300px; background-color: white; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; overflow: hidden;">
-                    <div style="padding: 10px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--primary-blue); display: flex; justify-content: space-between; align-items: center;">
+                <div id="notificationDropdown" class="notification-dropdown">
+                    <div class="notification-header">
                         <span>Notifications</span>
-                        <span style="font-size: 0.8rem; color: var(--light-text);">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }} New</span>
+                        <span class="chip-new">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }} New</span>
                     </div>
-                    <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
+                    <div class="notification-list">
                         @if(isset($notifications) && $notifications->count() > 0)
                             @foreach($notifications as $notification)
-                                <div class="notification-item" onclick="markAsRead('{{ $notification->id }}', '{{ $notification->link }}')" style="padding: 10px 15px; border-bottom: 1px solid #eee; cursor: pointer; background-color: {{ $notification->is_read ? 'white' : '#e3f2fd' }}; transition: background-color 0.2s;">
-                                    <div style="font-size: 0.9rem; font-weight: bold; color: var(--dark-text); margin-bottom: 5px;">
-                                        @if(!$notification->is_read) <span style="display: inline-block; width: 8px; height: 8px; background-color: #007bff; border-radius: 50%; margin-right: 5px;"></span> @endif
+                                <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}" onclick="markAsRead('{{ $notification->id }}', '{{ $notification->link }}')">
+                                    <div class="notification-title">
+                                        @if(!$notification->is_read) <span class="unread-dot"></span> @endif
                                         {{ $notification->title }}
                                     </div>
-                                    <div style="font-size: 0.8rem; color: var(--light-text); margin-bottom: 5px;">{{ $notification->message }}</div>
-                                    <div style="font-size: 0.7rem; color: #aaa;">{{ $notification->created_at->diffForHumans() }}</div>
+                                    <div class="notification-message">{{ $notification->message }}</div>
+                                    <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
                                 </div>
                             @endforeach
                         @else
-                            <div style="padding: 20px; text-align: center; color: var(--light-text);">No notifications</div>
+                            <div class="notification-item" style="text-align:center;color:#64748b">No notifications</div>
                         @endif
                     </div>
                 </div>
@@ -1179,6 +1161,10 @@
                 <li class="menu-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
                     <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                     <span class="menu-text">Training Management</span>
+                </li>
+                <li class="menu-item {{ request('tab') == 'activity-logs' ? 'active' : '' }}" onclick="showContent('activity-logs', this)">
+                    <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                    <span class="menu-text">Activity Logs</span>
                 </li>
             </ul>
         </aside>
@@ -1262,73 +1248,7 @@
                     $pct = function($n,$t){ return $t>0 ? round(($n/$t)*100) : 0; };
                 @endphp
                 <div class="insight-grid" style="margin-top:14px">
-                    <div class="insight-col">
-                        <div class="insight-panel">
-                        <div class="insight-panel-header">
-                            <h2>Recent Requests</h2>
-                            <span>Last 5</span>
-                        </div>
-                        @php $recent = isset($notifications) ? $notifications->take(5) : collect(); @endphp
-                        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
-                            @forelse($recent as $n)
-                                <li style="border:1px solid #e5e7eb;border-radius:10px;padding:10px">
-                                    <div style="font-weight:800;color:#0B2C74">{{ $n->title }}</div>
-                                    <div style="color:#64748b;font-size:.85rem;margin-top:4px">{{ $n->message }}</div>
-                                    <div style="color:#94a3b8;font-size:.78rem;margin-top:6px">{{ $n->created_at->diffForHumans() }}</div>
-                                </li>
-                            @empty
-                                <li class="muted">No recent changes</li>
-                            @endforelse
-                        </ul>
-                        </div>
-                        <div class="insight-panel">
-                        <div class="insight-panel-header">
-                            <h2>Recent Changes</h2>
-                            <span>Last 5</span>
-                        </div>
-                        @php
-                            $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
-                            $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(10)->get();
-                            $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(10)->get();
-                            $coachAssignments = \DB::table('course_user')
-                                ->join('courses','course_user.course_id','=','courses.id')
-                                ->join('users','course_user.user_id','=','users.id')
-                                ->whereIn('users.role',['coach','trainer'])
-                                ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
-                                ->orderBy('course_user.created_at','desc')
-                                ->take(5)->get();
-                            $enrollments = \DB::table('course_user')
-                                ->join('courses','course_user.course_id','=','courses.id')
-                                ->join('users','course_user.user_id','=','users.id')
-                                ->whereIn('users.role',['participant','trainee'])
-                                ->where('course_user.status','active')
-                                ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
-                                ->orderBy('course_user.created_at','desc')
-                                ->take(5)->get();
-                            $feed = collect();
-                            foreach($approvedUsers as $u){ $feed->push(['title'=>'Approved User','desc'=>$actorName.' approved <strong>'.$u->name.'</strong>','time'=>$u->updated_at]); }
-                            foreach($updatedUsers as $u){
-                                $feed->push(['title'=>'Edited User Status','desc'=>$actorName.' edited user status to <strong>'.ucfirst($u->status).'</strong> for <strong>'.$u->name.'</strong>','time'=>$u->updated_at]);
-                                $feed->push(['title'=>'Edited User Role','desc'=>$actorName.' edited user role to <strong>'.str_replace('_',' ', $u->role).'</strong> for <strong>'.$u->name.'</strong>','time'=>$u->updated_at]);
-                            }
-                            foreach($coachAssignments as $r){ $feed->push(['title'=>'Selected Coach','desc'=>$actorName.' selected coach <strong>'.$r->user_name.'</strong> for course <strong>'.$r->course_name.'</strong>','time'=>$r->at]); }
-                            foreach($enrollments as $r){ $feed->push(['title'=>'Enrolled Participant','desc'=>$actorName.' enrolled participant <strong>'.$r->user_name.'</strong> for course <strong>'.$r->course_name.'</strong>','time'=>$r->at]); }
-                            $feed = $feed->sortByDesc('time')->take(5);
-                        @endphp
-                        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px">
-                            @forelse($feed as $f)
-                                <li style="border:1px solid #e5e7eb;border-radius:10px;padding:10px">
-                                    <div style="font-weight:800;color:#0B2C74">{{ $f['title'] }}</div>
-                                    <div style="color:#64748b;font-size:.85rem;margin-top:4px">{!! $f['desc'] !!}</div>
-                                    <div style="color:#94a3b8;font-size:.78rem;margin-top:6px">{{ \Carbon\Carbon::parse($f['time'])->diffForHumans() }}</div>
-                                </li>
-                            @empty
-                                <li class="muted">No recent changes</li>
-                            @endforelse
-                        </ul>
-                        </div>
-                    </div>
-                    <div class="insight-col"><div class="insight-panel">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px"><div class="insight-panel">
                     <div class="insight-panel-header">
                         <h2>Accounts & Courses Overview</h2>
                         <span>Totals</span>
@@ -1534,7 +1454,7 @@
                                 $monthCounts[] = \App\Models\User::whereBetween('created_at', [$start, $end])->count();
                             }
                         @endphp
-                        <div id="tm-line-users" style="width:100%;height:280px"></div>
+                        <div id="tm-line-users" style="width:100%;min-width:480px;height:280px"></div>
                         <script>
                             (function(){
                                 var labels = @json($monthLabels);
@@ -1542,27 +1462,44 @@
                                 var elId = 'tm-line-users';
                                 var el = document.getElementById(elId);
                                 if(!el){ return; }
-                                var width = 640, height = 280, margin = {top:16,right:20,bottom:32,left:40};
-                                var svg = d3.select('#'+elId).append('svg').attr('width', width).attr('height', height);
+                                var panel = el.closest('.insight-panel');
+                                var width = Math.max(480, (panel ? panel.clientWidth - 40 : (el.clientWidth || 640)));
+                                var height = 280, margin = {top:18,right:28,bottom:32,left:40};
+                                var svg = d3.select('#'+elId).append('svg').attr('width', '100%').attr('height', height).attr('viewBox','0 0 '+width+' '+height).attr('preserveAspectRatio','xMidYMid meet');
                                 var innerW = width - margin.left - margin.right;
                                 var innerH = height - margin.top - margin.bottom;
                                 var g = svg.append('g').attr('transform','translate('+margin.left+','+margin.top+')');
                                 var x = d3.scalePoint().domain(labels).range([0, innerW]).padding(0.5);
                                 var y = d3.scaleLinear().domain([0, d3.max(data)||0]).nice().range([innerH, 0]);
-                                g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0));
-                                g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
+                                g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-weight','700');
+                                g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-weight','700');
+                                var grid = g.append('g').attr('stroke','#e5e7eb').attr('stroke-width',1).attr('opacity',0.7);
+                                grid.selectAll('line').data(y.ticks(5)).enter().append('line').attr('x1',0).attr('x2',innerW).attr('y1',function(d){return y(d);}).attr('y2',function(d){return y(d);});
+                                var defs = svg.append('defs');
+                                var grad = defs.append('linearGradient').attr('id','trendGrad').attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1');
+                                grad.append('stop').attr('offset','0%').attr('stop-color','#0B2C74').attr('stop-opacity',0.25);
+                                grad.append('stop').attr('offset','100%').attr('stop-color','#0B2C74').attr('stop-opacity',0);
                                 var line = d3.line().x(function(d,i){ return x(labels[i]); }).y(function(d){ return y(d); }).curve(d3.curveMonotoneX);
-                                var path = g.append('path').datum(data).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',2).attr('d', line);
+                                var area = d3.area().x(function(d,i){ return x(labels[i]); }).y0(innerH).y1(function(d){ return y(d); }).curve(d3.curveMonotoneX);
+                                g.append('path').datum(data).attr('fill','url(#trendGrad)').attr('d', area);
+                                var path = g.append('path').datum(data).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',2.5).attr('d', line);
                                 var totalLen = path.node().getTotalLength();
                                 path.attr('stroke-dasharray', totalLen+' '+totalLen).attr('stroke-dashoffset', totalLen)
                                     .transition().duration(900).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0);
-                                g.selectAll('circle').data(data).enter().append('circle')
+                                var points = g.selectAll('circle').data(data).enter().append('circle')
                                     .attr('cx', function(d,i){ return x(labels[i]); })
                                     .attr('cy', function(d){ return y(d); })
-                                    .attr('r', 3.5)
+                                    .attr('r', 4)
                                     .attr('fill', '#0B2C74')
                                     .style('opacity', 0)
                                     .transition().delay(900).duration(250).style('opacity', 1);
+                                var tip = d3.select('#'+elId).append('div').style('position','absolute').style('display','none').style('background','#fff').style('border','1px solid #e5e7eb').style('border-radius','8px').style('padding','6px 8px').style('box-shadow','0 10px 20px rgba(17,24,39,.12)').style('color','#0B2C74').style('font-weight','800').style('font-size','.85rem');
+                                g.selectAll('circle').on('mouseenter', function(event, d){
+                                    var i = Array.prototype.indexOf.call(points.nodes(), this);
+                                    tip.style('display','block').html(labels[i]+': '+d);
+                                    var bx = event.pageX, by = event.pageY;
+                                    tip.style('left', (bx+12)+'px').style('top', (by-24)+'px');
+                                }).on('mouseleave', function(){ tip.style('display','none'); });
                             })();
                         </script>
                     </div></div>
@@ -1704,6 +1641,68 @@
                             @endforeach
                         </div>
                     @endif
+                </div>
+            </section>
+
+            <section id="activity-logs" class="content-section {{ request('tab') == 'activity-logs' ? 'active' : '' }}">
+                <div style="background:#fff;padding:20px;border-radius:12px;box-shadow:0 10px 24px rgba(15,23,42,.08);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <i class="fas fa-clock-rotate-left" style="color:#002C76;"></i>
+                            <h3 style="margin:0;color:#002C76">Activity Logs</h3>
+                        </div>
+                        <span style="color:#6b7280">Recent</span>
+                    </div>
+                    @php
+                        $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
+                        $logs = collect();
+                        $recent = isset($notifications) ? $notifications->take(20) : collect();
+                        foreach($recent as $n){
+                            $logs->push([
+                                'title' => $n->title,
+                                'desc' => $n->message,
+                                'time' => $n->created_at,
+                            ]);
+                        }
+                        $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        foreach($approvedUsers as $u){ $logs->push(['title'=>'Approved User','desc'=>$actorName.' approved '.$u->name,'time'=>$u->updated_at]); }
+                        $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        foreach($updatedUsers as $u){
+                            $logs->push(['title'=>'Edited Status','desc'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'time'=>$u->updated_at]);
+                            $logs->push(['title'=>'Edited Role','desc'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'time'=>$u->updated_at]);
+                        }
+                        $coachAssignments = \DB::table('course_user')
+                            ->join('courses','course_user.course_id','=','courses.id')
+                            ->join('users','course_user.user_id','=','users.id')
+                            ->whereIn('users.role',['coach','trainer'])
+                            ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
+                            ->orderBy('course_user.created_at','desc')
+                            ->take(10)->get();
+                        foreach($coachAssignments as $r){ $logs->push(['title'=>'Assigned Coach','desc'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        $enrollments = \DB::table('course_user')
+                            ->join('courses','course_user.course_id','=','courses.id')
+                            ->join('users','course_user.user_id','=','users.id')
+                            ->whereIn('users.role',['participant','trainee'])
+                            ->where('course_user.status','active')
+                            ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
+                            ->orderBy('course_user.created_at','desc')
+                            ->take(10)->get();
+                        foreach($enrollments as $r){ $logs->push(['title'=>'Enrolled Participant','desc'=>$actorName.' enrolled '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        $logs = $logs->sortByDesc('time')->take(30);
+                    @endphp
+                    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:10px">
+                        @forelse($logs as $l)
+                            <li style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 20px rgba(17,24,39,.06)">
+                                <div style="display:flex;align-items:center;justify-content:space-between">
+                                    <div style="font-weight:800;color:#0B2C74">{{ $l['title'] }}</div>
+                                    <span style="color:#94a3b8;font-size:.78rem">{{ \Carbon\Carbon::parse($l['time'])->diffForHumans() }}</span>
+                                </div>
+                                <div style="color:#64748b;font-size:.9rem;margin-top:6px">{{ $l['desc'] }}</div>
+                            </li>
+                        @empty
+                            <li class="muted">No activity yet.</li>
+                        @endforelse
+                    </ul>
                 </div>
             </section>
 
@@ -1870,11 +1869,8 @@
 <script>
     function toggleNotifications() {
         var dropdown = document.getElementById('notificationDropdown');
-        if (dropdown.style.display === 'none') {
-            dropdown.style.display = 'block';
-        } else {
-            dropdown.style.display = 'none';
-        }
+        if (!dropdown) return;
+        dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
     }
 
     function markAsRead(notificationId, link) {
@@ -1896,13 +1892,13 @@
                     var count = parseInt(badge.innerText);
                     if (count > 1) {
                         badge.innerText = count - 1;
-                        var headerCount = document.querySelector('.notification-dropdown span:last-child');
+                        var headerCount = document.querySelector('.notification-header .chip-new');
                         if (headerCount) {
                             headerCount.innerText = (count - 1) + ' New';
                         }
                     } else {
                         badge.remove();
-                        var headerCount = document.querySelector('.notification-dropdown span:last-child');
+                        var headerCount = document.querySelector('.notification-header .chip-new');
                         if (headerCount) {
                             headerCount.innerText = '0 New';
                         }
@@ -2343,7 +2339,8 @@
         const titles = {
             'dashboard-home': 'Dashboard',
             'user-management': 'User Management',
-            'trainer-trainee-management': 'Training Management'
+            'trainer-trainee-management': 'Training Management',
+            'activity-logs': 'Activity Logs'
         };
         const titleElement = document.getElementById('page-title');
         if (titleElement) {

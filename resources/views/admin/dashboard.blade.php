@@ -2774,7 +2774,7 @@
                                 </span>
                             </div>
                             <div id="ph-map-wrap" style="position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05);">
-                                <div id="ph-map" style="width:100%;height:500px;overflow:hidden;background:#f8fafc;border-radius:12px;position:relative;"></div>
+                                <div id="ph-map" style="width:100%;height:500px;overflow:hidden;background:#dbeafe;border-radius:12px;position:relative;"></div>
                                 
                                 <div id="map-controls" style="position:absolute;top:30px;right:30px;display:flex;flex-direction:column;gap:8px;z-index:10;">
                                     <button type="button" id="btn-zoom-in" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-plus"></i></button>
@@ -2852,7 +2852,8 @@
                                     'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson',
                                     'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/provdists.lowres.geojson'
                                   ],
-                                  counts: '{{ route('stats.users.by-region') }}'
+                                  counts: '{{ route('stats.users.by-region') }}',
+                                  gender: '{{ route('stats.users.gender-by-region') }}'
                                 },
                                 province: {
                                   geo: [
@@ -2918,7 +2919,7 @@
                                 // 0 handled separately as gray; 1-10 Low, 11-50 Medium, 51+ High
                                 var colorScale = d3.scaleThreshold()
                                     .domain([11, 51])
-                                    .range(['#fef08a', '#f97316', '#ef4444']);
+                                    .range(['#fde047', '#fb923c', '#e11d48']);
 
                                 g.selectAll('path')
                                   .data(geo.features)
@@ -2937,19 +2938,40 @@
                                     v = (window.__counts || {})[n] || 0;
                                     return v === 0 ? '#f1f5f9' : colorScale(v);
                                   })
-                                  .attr('stroke', function(){ return mode==='region' ? 'none' : '#cbd5e1'; })
-                                  .attr('stroke-width', function(){ return mode==='region' ? 0 : 0.8; })
+                                  .attr('stroke', function(d){
+                                    if(mode==='region'){
+                                      var raw = d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '';
+                                      var n = normalizeRegion(raw);
+                                      var v = (window.__counts || {})[n] || 0;
+                                      return v>0 ? '#0B2C74' : '#93c5fd';
+                                    }
+                                    return '#cbd5e1';
+                                  })
+                                  .attr('stroke-width', function(d){
+                                    if(mode==='region'){
+                                      var raw = d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '';
+                                      var n = normalizeRegion(raw);
+                                      var v = (window.__counts || {})[n] || 0;
+                                      return v>0 ? 1.2 : 0.8;
+                                    }
+                                    return 0.8;
+                                  })
                                   .attr('vector-effect', 'non-scaling-stroke') // Keep stroke width constant on zoom
                                   .style('cursor', 'pointer')
-                                  .style('transition', 'fill 0.2s ease, stroke 0.2s ease')
-                                  .on('mouseenter', function(event, d){
-                                    if(mode!=='region'){
-                                      d3.select(this)
-                                          .attr('stroke', '#0f172a')
-                                          .attr('stroke-width', 1.5)
-                                          .style('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))')
-                                          .raise();
+                                  .style('transition', 'fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease')
+                                  .style('filter', function(d){
+                                    if(mode==='region'){
+                                      var raw = d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '';
+                                      var n = normalizeRegion(raw);
+                                      var v = (window.__counts || {})[n] || 0;
+                                      return v>0 ? 'drop-shadow(0 6px 10px rgba(11,44,116,.18))' : 'none';
                                     }
+                                    return 'none';
+                                  })
+                                  .on('mouseenter', function(event, d){
+                                    d3.select(this)
+                                        .style('filter','drop-shadow(0 8px 16px rgba(15,23,42,.25))')
+                                        .raise();
                                     
                                     var label, v;
                                     if(mode==='region'){
@@ -2962,13 +2984,24 @@
                                     
                                     if(tooltip){
                                       tooltip.style.display='block';
-                                      tooltip.innerHTML = `
-                                        <div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">${label}</div>
-                                        <div style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#64748b">
-                                            <div style="width:8px;height:8px;border-radius:50%;background:${v>0?'#22c55e':'#94a3b8'}"></div>
-                                            ${v} user${v!==1?'s':''}
-                                        </div>
-                                      `;
+                                      var gcounts = {};
+                                      if(mode==='region'){ gcounts = (window.__gender || {})[normalizeRegion(label)] || {}; }
+                                      var m = gcounts.male || 0;
+                                      var f = gcounts.female || 0;
+                                      var o = (typeof gcounts.other === 'number') ? gcounts.other : Math.max(0, v - (m + f));
+                                      tooltip.innerHTML = ''
+                                        + '<div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">'+label+'</div>'
+                                        + '<div style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#64748b">'
+                                        +   '<div style="width:8px;height:8px;border-radius:50%;background:'+ (v>0?'#22c55e':'#94a3b8') +'"></div>'
+                                        +   (v)+' user'+(v!==1?'s':'')
+                                        + '</div>'
+                                        + (mode==='region'
+                                            ? '<div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;margin-top:4px">'
+                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#1e3a8a"><i class="fas fa-mars"></i> '+m+'</span>'
+                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#b91c1c"><i class="fas fa-venus"></i> '+f+'</span>'
+                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#334155"><i class="fas fa-circle-notch"></i> '+o+'</span>'
+                                              + '</div>'
+                                            : '');
                                       moveTooltip(event);
                                     }
                                   })
@@ -2976,14 +3009,16 @@
                                     moveTooltip(event);
                                   })
                                   .on('mouseleave', function(){
-                                    if(mode!=='region'){
-                                      d3.select(this)
-                                          .attr('stroke', '#cbd5e1')
-                                          .attr('stroke-width', 0.8)
-                                          .style('filter', 'none');
-                                    }else{
-                                      d3.select(this).style('filter','none');
-                                    }
+                                    d3.select(this).style('filter', function(){
+                                      if(mode==='region'){
+                                        var d = d3.select(this).datum();
+                                        var raw = d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '';
+                                        var n = normalizeRegion(raw);
+                                        var v = (window.__counts || {})[n] || 0;
+                                        return v>0 ? 'drop-shadow(0 6px 10px rgba(11,44,116,.18))' : 'none';
+                                      }
+                                      return 'none';
+                                    });
                                     if(tooltip){ tooltip.style.display='none'; }
                                   })
                                   .on('click', function(event, d){
@@ -3032,21 +3067,32 @@
                               function loadCountsAndMap(){
                                 try{
                                   var countsUrl = urls[mode].counts;
+                                  var genderUrl = urls[mode].gender;
                                   var inline = mode==='region' ? countsInlineRegion : countsInlineProvince;
                                   window.__counts = normalizeCounts(inline || {}, mode);
-                                  fetch(countsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                  var p1 = fetch(countsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
                                     .then(function(res){ return res.ok ? res.json() : null; })
                                     .then(function(data){ 
                                       if(data && data.counts){ window.__counts = normalizeCounts(data.counts, mode); } 
                                       var total = Object.values(window.__counts || {}).reduce(function(a,b){ return a+(b||0); }, 0);
                                       var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
-                                      load(urls[mode].geo.slice());
-                                    })
-                                    .catch(function(){ 
-                                      var total = Object.values(window.__counts || {}).reduce(function(a,b){ return a+(b||0); }, 0);
-                                      var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
-                                      load(urls[mode].geo.slice());
                                     });
+                                  var p2 = (genderUrl && mode==='region')
+                                    ? fetch(genderUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                        .then(function(res){ return res.ok ? res.json() : null; })
+                                        .then(function(data){ 
+                                          var graw = (data && data.gender_counts) ? data.gender_counts : {}; 
+                                          var gn = {}; 
+                                          for (var k in graw) { 
+                                            if (!Object.prototype.hasOwnProperty.call(graw, k)) continue; 
+                                            var nk = normalizeRegion(k); 
+                                            gn[nk] = graw[k]; 
+                                          } 
+                                          window.__gender = gn; 
+                                        })
+                                    : Promise.resolve();
+                                  Promise.all([p1,p2]).then(function(){ load(urls[mode].geo.slice()); })
+                                    .catch(function(){ load(urls[mode].geo.slice()); });
                                 }catch(e){
                                   window.__counts = {};
                                   var total = 0; var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
@@ -3127,6 +3173,7 @@
                                       .attr('fill',function(d,i){return colors[i];})
                                       .attr('stroke','#ffffff')
                                       .attr('stroke-width','1.2')
+                                      .style('filter','drop-shadow(0 6px 10px rgba(17,24,39,.12))')
                                       .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
                                       .on('mouseout', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1)'); });
                                   paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', function(d){
@@ -3139,7 +3186,7 @@
                                       .attr('dy','.35em')
                                       .attr('text-anchor','middle')
                                       .attr('font-size','12px')
-                                      .attr('fill','#0f172a')
+                                      .attr('fill', function(d,i){ return colors[i] === '#FFD700' ? '#0f172a' : '#ffffff'; })
                                       .text(function(d){ var p=total? Math.round((d.value/total)*100):0; return p>0? (p+'%'):''; });
                                   }
                                   // Accounts
