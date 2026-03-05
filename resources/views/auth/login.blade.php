@@ -1645,8 +1645,6 @@
                 if (levelLabel === 'Central Office') {
                     var finalOffice = this.value || '';
                     if (finalOffice) {
-                        // Set provinceSelect to final selection for submission
-                        provinceSelect.value = finalOffice;
                         provinceSelect.disabled = false;
                     }
                     return;
