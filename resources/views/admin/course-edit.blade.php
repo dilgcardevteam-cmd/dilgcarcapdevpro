@@ -226,8 +226,8 @@
                         <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:8px;">
                             <label style="margin:0;">Modules & Topics</label>
                         </div>
-                        <div id="modulesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
-                        <div id="modulesError" class="error-text" style="display:none;"></div>
+                    <div id="modulesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+                    <div id="modulesError" class="error-text" style="display:none;"></div>
                     </div>
                     <div class="actions" style="justify-content: space-between;">
                         <button type="button" class="btn btn-cancel" id="backToDetails">Back</button>
@@ -274,6 +274,8 @@
                 </div>
                 <div class="module-body">
                     <div class="topics"></div>
+                    <div class="module-exam" style="margin:12px 0 6px 0"></div>
+                    <textarea class="module-exam-json" name="modules[${index}][exam_json]" style="display:none"></textarea>
                 </div>
             `;
             container.appendChild(wrapper);
@@ -369,16 +371,25 @@
         function reindexModules(){
             const container = document.getElementById('modulesContainer');
             const modules = Array.from(container.children);
+            let moduleCounter = 0;
             modules.forEach((wrapper, i) => {
-                const idxBadge = wrapper.querySelector('.module-index');
-                idxBadge.textContent = i+1;
-                const numberLabel = wrapper.querySelector('.module-number-label');
-                if (numberLabel) numberLabel.textContent = `Module ${i+1}:`;
-                const titleInput = wrapper.querySelector('.module-title-input');
-                if (titleInput) titleInput.name = `modules[${i}][title]`;
-                const topicsContainer = wrapper.querySelector('.topics');
-                if (topicsContainer) {
-                    reindexTopics(topicsContainer);
+                if(wrapper.classList.contains('module-wrapper')){
+                    moduleCounter++;
+                    const idxBadge = wrapper.querySelector('.module-index');
+                    idxBadge.textContent = moduleCounter;
+                    const numberLabel = wrapper.querySelector('.module-number-label');
+                    if (numberLabel) numberLabel.textContent = `Module ${moduleCounter}:`;
+                    const titleInput = wrapper.querySelector('.module-title-input');
+                    if (titleInput) titleInput.name = `modules[${i}][title]`;
+                    const topicsContainer = wrapper.querySelector('.topics');
+                    if (topicsContainer) {
+                        reindexTopics(topicsContainer);
+                    }
+                    const examTa = wrapper.querySelector('.module-exam-json');
+                    if (examTa) examTa.name = `modules[${i}][exam_json]`;
+                } else if(wrapper.classList.contains('exam-wrapper')){
+                    const ta = wrapper.querySelector('.exam-json');
+                    if(ta) ta.name = `modules[${i}][exam_json]`;
                 }
             });
         }
@@ -857,6 +868,17 @@
                     if(fbC) q.feedback_correct = fbC;
                     if(fbI) q.feedback_incorrect = fbI;
                     fields.push({ type:'question', question: q });
+                } else if(t === 'exam'){
+                    const duration = parseInt(b.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                    const list = b.querySelectorAll('.exam-q-list .q-item');
+                    const qs = [];
+                    list.forEach(node=>{
+                        try{
+                            const obj = JSON.parse(node.dataset.payload||'{}');
+                            if(obj && obj.type && obj.text){ qs.push(obj); }
+                        }catch(e){}
+                    });
+                    fields.push({ type:'exam', timer_minutes: duration, questions: qs });
                 }
             });
             const textarea = panel.querySelector('textarea[name$="[fields_json]"]');
@@ -1317,6 +1339,130 @@
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
         }
+        function ensureModuleExam(wrapper){
+            const body = wrapper.querySelector('.module-body');
+            const host = body.querySelector('.module-exam');
+            const hidden = body.querySelector('.module-exam-json');
+            if(host.dataset.bound==='1') return host;
+            host.dataset.bound = '1';
+            host.innerHTML = `
+                <div class="q-block">
+                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
+                        <div style="font-weight:800;color:#0B2C74">Exam</div>
+                        <label style="display:flex;align-items:center;gap:8px">
+                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                        </label>
+                    </div>
+                    <div class="exam-questions" style="margin-top:10px">
+                        <div class="exam-q-list"></div>
+                        <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
+                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                                <label class="q-col" style="display:block">
+                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
+                                    <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
+                                </label>
+                                <label class="q-col" style="display:block">
+                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
+                                    <select class="eq-type">
+                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="identification">Identification</option>
+                                        <option value="true_false">True or False</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="eq-choices" style="margin-top:8px"></div>
+                            <div class="eq-id" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Answer</label>
+                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
+                            <div class="eq-tf" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Answer</label>
+                                <select class="eq-tf-answer" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                    <option value="true">True</option>
+                                    <option value="false">False</option>
+                                </select>
+                            </div>
+                            <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+                                <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            __bindAutosizeTextareas(host);
+            function renderChoices(){
+                const wrap = host.querySelector('.eq-choices');
+                wrap.innerHTML = '';
+                const group = 'exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.innerHTML = `
+                        <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                            <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                            <input type="text" class="eq-option" placeholder="${ph}">
+                        </label>
+                    `;
+                    wrap.appendChild(row);
+                });
+            }
+            renderChoices();
+            function syncBuilderBoxes(){
+                const t = host.querySelector('.eq-type').value;
+                host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
+                host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
+                host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+            }
+            function syncExamJSON(){
+                const duration = parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const list = host.querySelectorAll('.exam-q-list .q-item');
+                const qs = [];
+                list.forEach(node=>{
+                    try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
+                });
+                hidden.value = JSON.stringify({ timer_minutes: duration, questions: qs });
+            }
+            host.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
+            host.addEventListener('input', syncExamJSON);
+            host.addEventListener('change', syncExamJSON);
+            host.querySelector('.eq-add').addEventListener('click', function(){
+                const t = host.querySelector('.eq-type').value;
+                const text = (host.querySelector('.eq-text').value||'').trim();
+                if(!text) return;
+                let obj = null;
+                if(t==='multiple_choice'){
+                    const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
+                    if(opts.length<2) return;
+                    const checked = host.querySelector('.eq-correct:checked');
+                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                }else if(t==='identification'){
+                    const ans = (host.querySelector('.eq-id-answer').value||'').trim();
+                    obj = { type:'identification', text, answer: ans };
+                }else if(t==='true_false'){
+                    const ans = host.querySelector('.eq-tf-answer').value === 'true';
+                    obj = { type:'true_false', text, answer: ans };
+                }
+                const listEl = host.querySelector('.exam-q-list');
+                const idx = listEl.children.length + 1;
+                const node = document.createElement('div');
+                node.className = 'q-item';
+                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. '+obj.text+'</div>'
+                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                node.dataset.payload = JSON.stringify(obj);
+                listEl.appendChild(node);
+                host.querySelector('.eq-text').value='';
+                host.querySelectorAll('.eq-option').forEach(i=> i.value='');
+                const r = host.querySelector('.eq-correct'); if(r) r.checked=false;
+                host.querySelector('.eq-id-answer').value='';
+                host.querySelector('.eq-tf-answer').value='true';
+                syncExamJSON();
+            });
+            syncBuilderBoxes(); syncExamJSON();
+            return host;
+        }
         function dmAddQuestion(){
             const sel = document.querySelector('.field-block.selected-field');
             if(sel){
@@ -1340,6 +1486,170 @@
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
+        }
+        function dmAddExam(){
+            const anchor = DM_STATE.currentAnchor;
+            const container = document.getElementById('modulesContainer');
+            let afterEl = null;
+            if(anchor){
+                afterEl = anchor.closest('.module-wrapper') || anchor.closest('.exam-wrapper');
+            } else if(container.lastElementChild){
+                afterEl = container.lastElementChild;
+            }
+            const host = createCourseExam(afterEl);
+            if(host) { host.scrollIntoView({behavior:'smooth', block:'center'}); }
+            const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
+        }
+        function createCourseExam(afterEl, prefill){
+            const container = document.getElementById('modulesContainer');
+            const idx = container.children.length;
+            const wrap = document.createElement('div');
+            wrap.className = 'exam-wrapper';
+            wrap.innerHTML = `
+                <div class="exam-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
+                    <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Course Exam</div>
+                    <div>
+                        <button type="button" class="delete-btn" title="Delete exam" onclick="this.closest('.exam-wrapper').remove(); reindexModules();"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <div class="q-block">
+                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
+                        <div style="font-weight:800;color:#0B2C74">Course Exam</div>
+                        <label style="display:flex;align-items:center;gap:8px">
+                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                        </label>
+                    </div>
+                    <div class="exam-questions" style="margin-top:10px">
+                        <div class="exam-q-list"></div>
+                        <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
+                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                                <label class="q-col" style="display:block">
+                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
+                                    <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
+                                </label>
+                                <label class="q-col" style="display:block">
+                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
+                                    <select class="eq-type">
+                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="identification">Identification</option>
+                                        <option value="true_false">True or False</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="eq-choices" style="margin-top:8px"></div>
+                            <div class="eq-id" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Answer</label>
+                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
+                            <div class="eq-tf" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Answer</label>
+                                <select class="eq-tf-answer" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                    <option value="true">True</option>
+                                    <option value="false">False</option>
+                                </select>
+                            </div>
+                            <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+                                <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <textarea class="exam-json" name="modules[${idx}][exam_json]" style="display:none"></textarea>
+            `;
+            if(afterEl && afterEl.parentElement === container){
+                container.insertBefore(wrap, afterEl.nextSibling);
+            }else{
+                container.appendChild(wrap);
+            }
+            __bindAutosizeTextareas(wrap);
+            function renderChoices(){
+                const wrapChoices = wrap.querySelector('.eq-choices');
+                wrapChoices.innerHTML = '';
+                const group = 'course_exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.innerHTML = `
+                        <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                            <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                            <input type="text" class="eq-option" placeholder="${ph}">
+                        </label>
+                    `;
+                    wrapChoices.appendChild(row);
+                });
+            }
+            function syncBuilderBoxes(){
+                const t = wrap.querySelector('.eq-type').value;
+                wrap.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
+                wrap.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
+                wrap.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                if(t==='multiple_choice' && wrap.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+            }
+            function syncExamJSON(){
+                const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const list = wrap.querySelectorAll('.exam-q-list .q-item');
+                const qs = [];
+                list.forEach(node=>{
+                    try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
+                });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ timer_minutes: duration, questions: qs });
+            }
+            wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
+            wrap.addEventListener('input', syncExamJSON);
+            wrap.addEventListener('change', syncExamJSON);
+            wrap.querySelector('.eq-add').addEventListener('click', function(){
+                const t = wrap.querySelector('.eq-type').value;
+                const text = (wrap.querySelector('.eq-text').value||'').trim();
+                if(!text) return;
+                let obj = null;
+                if(t==='multiple_choice'){
+                    const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
+                    if(opts.length<2) return;
+                    const checked = wrap.querySelector('.eq-correct:checked');
+                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                }else if(t==='identification'){
+                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    obj = { type:'identification', text, answer: ans };
+                }else if(t==='true_false'){
+                    const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
+                    obj = { type:'true_false', text, answer: ans };
+                }
+                const listEl = wrap.querySelector('.exam-q-list');
+                const idx = listEl.children.length + 1;
+                const node = document.createElement('div');
+                node.className = 'q-item';
+                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. '+obj.text+'</div>'
+                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                node.dataset.payload = JSON.stringify(obj);
+                listEl.appendChild(node);
+                wrap.querySelector('.eq-text').value='';
+                wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
+                const r = wrap.querySelector('.eq-correct'); if(r) r.checked=false;
+                wrap.querySelector('.eq-id-answer').value='';
+                wrap.querySelector('.eq-tf-answer').value='true';
+                syncExamJSON();
+            });
+            renderChoices(); syncBuilderBoxes(); syncExamJSON();
+            if(prefill){
+                try{
+                    wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
+                    const listEl = wrap.querySelector('.exam-q-list');
+                    (prefill.questions||[]).forEach((q, i2)=>{
+                        const node = document.createElement('div');
+                        node.className = 'q-item';
+                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||q.title||'')+'</div>'
+                            + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
+                        node.dataset.payload = JSON.stringify(q);
+                        listEl.appendChild(node);
+                    });
+                    syncExamJSON();
+                }catch(e){}
+            }
+            reindexModules();
+            return wrap;
         }
         function dmAddTopic(){
             const anchor = DM_STATE.currentAnchor;
@@ -1365,12 +1675,33 @@
             const container = document.getElementById('modulesContainer');
             container.innerHTML = '';
             mods.forEach((mod, mi)=>{
+                if(mod && mod.exam && (!Array.isArray(mod.topics) || mod.topics.length===0)){
+                    createCourseExam(null, mod.exam);
+                    return;
+                }
                 createModule();
                 const wrapper = container.lastElementChild;
                 const titleInput = wrapper.querySelector('.module-title-input');
                 titleInput.value = mod.title || '';
                 const body = wrapper.querySelector('.module-body');
                 body.style.display = 'block';
+                if(mod.exam){
+                    const host = ensureModuleExam(wrapper);
+                    if(host){
+                        const hidden = wrapper.querySelector('.module-exam-json');
+                        try{ hidden.value = JSON.stringify(mod.exam); }catch(e){}
+                        const dur = host.querySelector('.exam-duration'); if(dur) dur.value = mod.exam.timer_minutes || '';
+                        const listEl = host.querySelector('.exam-q-list');
+                        (mod.exam.questions||[]).forEach((q, idx)=>{
+                            const node = document.createElement('div');
+                            node.className = 'q-item';
+                            node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(idx+1)+'. '+(q.text||q.title||'')+'</div>'
+                                + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
+                            node.dataset.payload = JSON.stringify(q);
+                            listEl.appendChild(node);
+                        });
+                    }
+                }
                 const topics = Array.isArray(mod.topics) ? mod.topics : [];
                 topics.forEach((t, ti)=>{
                     addTopicInput(body);

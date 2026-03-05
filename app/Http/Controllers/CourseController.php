@@ -175,10 +175,44 @@ class CourseController extends Controller
                     ];
                 }
             }
-            $modules[] = [
+            $exam = null;
+            if (isset($module['exam_json'])) {
+                $e = json_decode($module['exam_json'], true);
+                if (is_array($e)) {
+                    // Optional: strip essay types if present
+                    $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                    }));
+                    $exam = [
+                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'questions' => $qs,
+                    ];
+                }
+            }
+            $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
             ];
+            if ($exam) { $mArr['exam'] = $exam; }
+            $modules[] = $mArr;
+        }
+        // Append course-level exam as a special tail module if provided
+        $cexam = $request->input('course_exam_json');
+        if ($cexam) {
+            $e = json_decode($cexam, true);
+            if (is_array($e)) {
+                $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                }));
+                $modules[] = [
+                    'title' => 'Course Exam',
+                    'topics' => [],
+                    'exam' => [
+                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'questions' => $qs,
+                    ],
+                ];
+            }
         }
         if (!empty($modules)) {
             $validated['modules'] = $modules;
@@ -300,10 +334,47 @@ class CourseController extends Controller
                     ];
                 }
             }
-            $modules[] = [
+            $exam = null;
+            if (isset($module['exam_json'])) {
+                $e = json_decode($module['exam_json'], true);
+                if (is_array($e)) {
+                    $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                    }));
+                    $exam = [
+                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'questions' => $qs,
+                    ];
+                }
+            }
+            $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
             ];
+            if ($exam) { $mArr['exam'] = $exam; }
+            $modules[] = $mArr;
+        }
+        // Append/replace course-level exam on update if provided
+        $cexam = $request->input('course_exam_json');
+        if ($cexam) {
+            $e = json_decode($cexam, true);
+            if (is_array($e)) {
+                $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                }));
+                // Remove previous 'Course Exam' module if exists
+                $modules = array_values(array_filter($modules, function($m){
+                    return !(isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics']));
+                }));
+                $modules[] = [
+                    'title' => 'Course Exam',
+                    'topics' => [],
+                    'exam' => [
+                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'questions' => $qs,
+                    ],
+                ];
+            }
         }
         if (!empty($modules)) {
             $validated['modules'] = $modules;
