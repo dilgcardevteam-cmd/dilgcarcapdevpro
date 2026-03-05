@@ -246,7 +246,7 @@
                 <button type="button" class="rail-btn" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Text</span></button>
                 <button type="button" class="rail-btn" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
                 <button type="button" class="rail-btn" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
-                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Multiple Choice</span></button>
+                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Questions</span></button>
                 <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
                 <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
@@ -519,16 +519,28 @@
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = `
                 <div class="q-block">
-                    <div class="q-header">
-                        <select class="q-type">
-                            <option value="multiple_choice">Multiple choice</option>
-                        </select>
-                        <input type="text" class="q-title" placeholder="Type your question" required>
+                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                        <label class="q-col" style="display:block">
+                            <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
+                            <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
+                        </label>
+                        <label class="q-col" style="display:block">
+                            <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
+                            <select class="q-type">
+                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="identification">Identification</option>
+                                <option value="true_false">True or False</option>
+                                <option value="essay">Essay</option>
+                            </select>
+                        </label>
                     </div>
                     <div class="q-options"></div>
                     <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
                         <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
                         <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
+                    </div>
+                    <div class="q-add-under" style="margin-top:10px;">
+                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
                     </div>
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
@@ -544,6 +556,7 @@
                 </div>
             `;
             list.appendChild(block);
+            __bindAutosizeTextareas(block);
             setupDefaultOptions(block);
             const qInput = block.querySelector('.q-title'); if(qInput){ qInput.focus(); }
             block.querySelector('.q-type').addEventListener('change', function(){
@@ -588,16 +601,28 @@
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = `
                 <div class="q-block">
-                    <div class="q-header">
-                        <select class="q-type">
-                            <option value="multiple_choice">Multiple choice</option>
-                        </select>
-                        <input type="text" class="q-title" placeholder="Type your question" required>
+                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                        <label class="q-col" style="display:block">
+                            <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
+                            <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
+                        </label>
+                        <label class="q-col" style="display:block">
+                            <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
+                            <select class="q-type">
+                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="identification">Identification</option>
+                                <option value="true_false">True or False</option>
+                                <option value="essay">Essay</option>
+                            </select>
+                        </label>
                     </div>
                     <div class="q-options"></div>
                     <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
                         <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
                         <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
+                    </div>
+                    <div class="q-add-under" style="margin-top:10px;">
+                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
                     </div>
                     <div class="q-actions">
                         <div class="left">
@@ -608,6 +633,7 @@
                 </div>
             `;
             current.parentElement.insertBefore(block, current.nextSibling);
+            __bindAutosizeTextareas(block);
             setupDefaultOptions(block);
             const qInput = block.querySelector('.q-title'); if(qInput){ qInput.focus(); }
             block.querySelector('.q-type').addEventListener('change', function(){
@@ -636,11 +662,43 @@
             syncFieldsJSON(panel);
         }
         function setupDefaultOptions(block){
-            const type = 'multiple_choice';
+            const type = block.querySelector('.q-type') ? block.querySelector('.q-type').value : 'multiple_choice';
             const options = block.querySelector('.q-options');
             options.innerHTML = '';
-            addOptionRow(options, 'Option 1');
-            addOptionRow(options, '');
+            const oldGuide = block.querySelector('.q-correct-guide');
+            if(oldGuide) oldGuide.remove();
+            function addGuide(text){
+                const g = document.createElement('div');
+                g.className = 'q-correct-guide';
+                g.style.cssText = 'color:#64748b;font-size:.85rem;margin:6px 0 4px 0;';
+                g.textContent = text;
+                options.parentElement.insertBefore(g, options);
+            }
+            if(type === 'multiple_choice'){
+                addGuide('Mark the circle for the correct answer.');
+                addOptionRow(options, 'Choice A');
+                addOptionRow(options, 'Choice B');
+                addOptionRow(options, 'Choice C');
+                addOptionRow(options, 'Choice D');
+                ensureAddOptionLink(options);
+            } else if(type === 'true_false'){
+                addGuide('Mark the circle for the correct answer.');
+                addOptionRow(options, 'True');
+                addOptionRow(options, 'False');
+            } else if(type === 'identification'){
+                const box = document.createElement('div');
+                box.className = 'q-blanks';
+                options.appendChild(box);
+                addBlankAnswerRow(box, 'Answer 1');
+                addBlankAnswerRow(box, 'Answer 2');
+                ensureAddBlankLink(box);
+            } else if(type === 'essay'){
+                const ta = document.createElement('textarea');
+                ta.className = 'q-essay';
+                ta.rows = 3;
+                ta.placeholder = 'Rubric or guidance (optional)';
+                options.appendChild(ta);
+            }
         }
         function addOptionRow(container, placeholder){
             const row = document.createElement('div');
@@ -666,16 +724,90 @@
             ensureAddOptionLink(container);
         }
         function ensureAddOptionLink(container){
-            if(container.querySelector('.add-option-link')) return;
+            let link = container.querySelector('.add-option-link');
+            if(!link){
+                link = document.createElement('button');
+                link.type='button';
+                link.className='add-option-link';
+                link.style.cssText='background:none;border:none;color:#0d6efd;cursor:pointer;text-align:left;padding:0;margin-top:4px;';
+                link.textContent='Add option';
+                link.addEventListener('click', ()=> {
+                    addOptionRow(container, '');
+                    const panel = container.closest('.fields-panel');
+                    if(panel) syncFieldsJSON(panel);
+                });
+            }
+            // Always move link to the end so it appears after the last choice
+            container.appendChild(link);
+        }
+        function addMatchRow(container, leftPH, rightPH){
+            const row = document.createElement('div');
+            row.className = 'match-row';
+            row.style.display = 'grid';
+            row.style.gridTemplateColumns = '1fr 1fr auto';
+            row.style.gap = '8px';
+            row.innerHTML = `
+                <input type="text" class="q-left" placeholder="${leftPH||'Left'}">
+                <input type="text" class="q-right" placeholder="${rightPH||'Right'}">
+                <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;">X</button>
+            `;
+            row.querySelector('button').addEventListener('click', ()=> {
+                row.remove();
+                const fp = container.closest('.fields-panel');
+                if(fp) syncFieldsJSON(fp);
+            });
+            container.appendChild(row);
+            const fp = container.closest('.fields-panel');
+            row.querySelectorAll('input').forEach(i => i.addEventListener('input', ()=> {
+                if(fp) syncFieldsJSON(fp);
+            }));
+        }
+        function ensureAddPairLink(container){
+            if(container.querySelector('.add-pair-link')) return;
             const link = document.createElement('button');
             link.type='button';
-            link.className='add-option-link';
+            link.className='add-pair-link';
             link.style.cssText='background:none;border:none;color:#0d6efd;cursor:pointer;text-align:left;padding:0;margin-top:4px;';
-            link.textContent='Add option';
+            link.textContent='Add pair';
             link.addEventListener('click', ()=> {
-                addOptionRow(container, '');
-                const panel = container.closest('.fields-panel');
-                if(panel) syncFieldsJSON(panel);
+                addMatchRow(container, 'Left', 'Right');
+                const fp = container.closest('.fields-panel');
+                if(fp) syncFieldsJSON(fp);
+            });
+            container.appendChild(link);
+        }
+        function addBlankAnswerRow(container, placeholder){
+            const row = document.createElement('div');
+            row.className = 'blank-row';
+            row.style.display='grid';
+            row.style.gridTemplateColumns='1fr auto';
+            row.style.gap='8px';
+            row.innerHTML = `
+                <input type="text" class="q-blank-option" placeholder="${placeholder||'Acceptable answer'}">
+                <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;">X</button>
+            `;
+            row.querySelector('button').addEventListener('click', ()=> {
+                row.remove();
+                const fp = container.closest('.fields-panel');
+                if(fp) syncFieldsJSON(fp);
+            });
+            container.appendChild(row);
+            const fp = container.closest('.fields-panel');
+            row.querySelectorAll('input').forEach(i => i.addEventListener('input', ()=> {
+                if(fp) syncFieldsJSON(fp);
+            }));
+        }
+        function ensureAddBlankLink(container){
+            if(container.querySelector('.add-blank-link')) return;
+            const link = document.createElement('button');
+            link.type='button';
+            link.className='add-blank-link';
+            link.style.cssText='background:none;border:none;color:#0d6efd;cursor:pointer;text-align:left;padding:0;margin-top:4px;';
+            link.textContent='Add answer';
+            link.addEventListener('click', ()=> {
+                addBlankAnswerRow(container, 'Answer');
+                const fp = container.closest('.fields-panel');
+                if(fp) syncFieldsJSON(fp);
             });
             container.appendChild(link);
         }
@@ -695,15 +827,31 @@
                     fields.push({ type:'text', html });
                 } else if(t === 'question'){
                     const qb = b.querySelector('.q-block');
-                    const type = 'multiple_choice';
+                    const type = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice';
                     const title = qb.querySelector('.q-title').value || 'Untitled Question';
                     const required = false;
                     const q = { type, title, required };
-                    const opts = Array.from(qb.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
-                    q.options = opts;
-                    const rows = Array.from(qb.querySelectorAll('.q-option-row'));
-                    const answerIndex = rows.findIndex(r => r.querySelector('.q-correct') && r.querySelector('.q-correct').checked);
-                    if(answerIndex >= 0) q.answer_index = answerIndex;
+                    if(type === 'multiple_choice' || type === 'true_false'){
+                        const opts = Array.from(qb.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
+                        q.options = opts.length ? opts : (type==='true_false' ? ['True','False'] : []);
+                        const rows = Array.from(qb.querySelectorAll('.q-option-row'));
+                        const answerIndex = rows.findIndex(r => r.querySelector('.q-correct') && r.querySelector('.q-correct').checked);
+                        if(answerIndex >= 0) q.answer_index = answerIndex;
+                    } else if(type === 'matching'){
+                        const pairs = [];
+                        qb.querySelectorAll('.q-matching .match-row').forEach(r=>{
+                            const l = r.querySelector('.q-left')?.value || '';
+                            const rt = r.querySelector('.q-right')?.value || '';
+                            if(l || rt) pairs.push([l, rt]);
+                        });
+                        q.pairs = pairs;
+                    } else if(type === 'fill_blank'){
+                        const answers = Array.from(qb.querySelectorAll('.q-blanks .q-blank-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
+                        q.answers = answers;
+                    } else if(type === 'essay'){
+                        const rb = qb.querySelector('.q-essay')?.value || '';
+                        if(rb) q.rubric = rb;
+                    }
                     const fbC = qb.querySelector('.q-fb-correct')?.value || '';
                     const fbI = qb.querySelector('.q-fb-incorrect')?.value || '';
                     if(fbC) q.feedback_correct = fbC;
@@ -833,10 +981,36 @@
                 updateProgress();
             }catch(e){}
         }
+        function __bindAutosizeTextareas(root){
+            const nodes = (root || document).querySelectorAll('textarea.q-autosize');
+            nodes.forEach(function(el){
+                if(el.__autosizeBound) return;
+                el.__autosizeBound = true;
+                const cs = window.getComputedStyle(el);
+                const lh = parseFloat(cs.lineHeight) || 20;
+                const min = Number(el.dataset.minLines || 3);
+                const max = Number(el.dataset.maxLines || 10);
+                const minH = Math.round(lh * min);
+                const maxH = Math.round(lh * max);
+                function fit(){
+                    el.style.height = 'auto';
+                    let h = el.scrollHeight;
+                    if(h < minH) h = minH;
+                    if(h > maxH) { h = maxH; el.style.overflowY = 'auto'; } else { el.style.overflowY = 'hidden'; }
+                    el.style.height = h + 'px';
+                }
+                ['input','change','cut','paste','drop'].forEach(function(evt){
+                    el.addEventListener(evt, function(){ setTimeout(fit,0); });
+                });
+                el.addEventListener('focus', fit);
+                fit();
+            });
+        }
         document.addEventListener('DOMContentLoaded', function(){
             bindTabs();
             restoreDraft();
             updateProgress();
+            __bindAutosizeTextareas(document);
             initDynamicMenu();
             const existing = {!! json_encode($course->modules ?? [], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!};
             populateExistingModules(existing);
