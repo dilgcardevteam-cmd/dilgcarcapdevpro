@@ -2762,7 +2762,7 @@
                             $rcMax = $regionCounts->max() ?? 0;
                             $pcMax = $provinceCounts->max() ?? 0;
                         @endphp
-                        <div class="insight-panel">
+                        <div class="insight-panel" style="background:#fff; border:1px solid #e5e7eb; border-radius:20px; box-shadow:0 24px 48px rgba(2,6,23,.08); color:#0f172a;">
                             <div class="insight-panel-header">
                                 <h2 id="ph-map-title">Users by Region</h2>
                                 <span style="display:flex;align-items:center;gap:8px">
@@ -2773,32 +2773,43 @@
                                     </select>
                                 </span>
                             </div>
-                            <div id="ph-map-wrap" style="position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05);">
-                                <div id="ph-map" style="width:100%;height:500px;overflow:hidden;background:#dbeafe;border-radius:12px;position:relative;"></div>
+                            <div id="ph-map-wrap" style="position:relative;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15);">
+                                <div id="ph-map" style="width:100%;height:480px;overflow:hidden;background:#eaf2ff;border-radius:12px;position:relative;"></div>
                                 
                                 <div id="map-controls" style="position:absolute;top:30px;right:30px;display:flex;flex-direction:column;gap:8px;z-index:10;">
-                                    <button type="button" id="btn-zoom-in" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-plus"></i></button>
-                                    <button type="button" id="btn-zoom-out" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-minus"></i></button>
-                                    <button type="button" id="btn-reset-zoom" style="width:36px;height:36px;border:none;background:#fff;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Reset View" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-expand"></i></button>
+                                    <button type="button" id="btn-zoom-in" style="width:38px;height:38px;background:#ffffff;border:1px solid #cfe0ff;border-radius:10px;box-shadow:0 6px 14px rgba(2,6,23,.12);color:#0b3b8f;cursor:pointer;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='#f1f5fb';this.style.transform='scale(1.05)'" onmouseout="this.style.background='#ffffff';this.style.transform='scale(1)'"><i class="fas fa-plus"></i></button>
+                                    <button type="button" id="btn-zoom-out" style="width:38px;height:38px;background:#ffffff;border:1px solid #cfe0ff;border-radius:10px;box-shadow:0 6px 14px rgba(2,6,23,.12);color:#0b3b8f;cursor:pointer;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='#f1f5fb';this.style.transform='scale(1.05)'" onmouseout="this.style.background='#ffffff';this.style.transform='scale(1)'"><i class="fas fa-minus"></i></button>
+                                    <button type="button" id="btn-reset-zoom" style="width:38px;height:38px;background:#ffffff;border:1px solid #cfe0ff;border-radius:10px;box-shadow:0 6px 14px rgba(2,6,23,.12);color:#0b3b8f;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Reset View" onmouseover="this.style.background='#f1f5fb';this.style.transform='scale(1.05)'" onmouseout="this.style.background='#ffffff';this.style.transform='scale(1)'"><i class="fas fa-expand"></i></button>
                                 </div>
 
                                 <div id="ph-map-legend" style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
                                     <div style="display:flex;align-items:center;gap:8px;">
-                                        <div style="width:16px;height:16px;border-radius:4px;background:#fef08a;border:1px solid #fde047;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Low (0–10)</span>
+                                        <div style="width:14px;height:14px;border-radius:999px;background:#fde047;box-shadow:0 0 0 2px rgba(250,204,21,.4)"></div>
+                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Low (0–10)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
-                                        <div style="width:16px;height:16px;border-radius:4px;background:#f97316;border:1px solid #ea580c;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">Medium (11–50)</span>
+                                        <div style="width:14px;height:14px;border-radius:999px;background:#fb923c;box-shadow:0 0 0 2px rgba(245,158,11,.4)"></div>
+                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Medium (11–50)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
-                                        <div style="width:16px;height:16px;border-radius:4px;background:#ef4444;border:1px solid #dc2626;"></div>
-                                        <span style="font-size:0.9rem;color:#475569;font-weight:600;">High (51+)</span>
+                                        <div style="width:14px;height:14px;border-radius:999px;background:#e11d48;box-shadow:0 0 0 2px rgba(239,68,68,.4)"></div>
+                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">High (51+)</span>
                                     </div>
                                 </div>
-                                <div id="ph-map-total" style="margin-top:8px;text-align:center;color:#64748b;font-size:.85rem;font-weight:700"></div>
+                                <div id="ph-map-total" style="margin-top:8px;text-align:center;color:#cbd5e1;font-size:.85rem;font-weight:700"></div>
+                                <div id="ph-growth" style="margin-top:18px;background:#eaf2ff;border:1px solid #cfe0ff;border-radius:12px;padding:14px">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#0b3b8f">
+                                        <div style="font-weight:800">Monthly Growth</div>
+                                        <div style="display:flex;align-items:center;gap:12px;font-size:.85rem;color:#334155;font-weight:700">
+                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#3b82f6"></span> User Registrations</span>
+                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#22c55e"></span> Course Completions</span>
+                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#eab308"></span> Certificates Issued</span>
+                                        </div>
+                                    </div>
+                                    <div id="ph-growth-line" style="width:100%;height:200px"></div>
+                                </div>
                             </div>
-                            <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;box-shadow:0 10px 25px rgba(0,0,0,0.15);pointer-events:none;color:#0f172a;min-width:150px;"></div>
+                            <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(12,20,60,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;box-shadow:0 20px 40px rgba(2,6,23,.6);pointer-events:none;color:#e5e7eb;min-width:220px;"></div>
                             <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                             <script>
@@ -2864,6 +2875,8 @@
                                   counts: '{{ route('stats.users.by-province') }}'
                                 }
                               };
+                              var regionAnalyticsUrl = '{{ route('stats.region.analytics') }}';
+                              var monthlyGrowthUrl = '{{ route('stats.monthly.growth') }}';
                               var modeSel = document.getElementById('ph-map-mode');
                               var mode = (modeSel && modeSel.value) || 'region';
                               
@@ -2989,19 +3002,22 @@
                                       var m = gcounts.male || 0;
                                       var f = gcounts.female || 0;
                                       var o = (typeof gcounts.other === 'number') ? gcounts.other : Math.max(0, v - (m + f));
+                                      var a = (window.__analytics || {})[normalizeRegion(label)] || {};
+                                      var users = a.users || v;
+                                      var coursesCompleted = a.courses_completed || 0;
+                                      var certsIssued = a.certs_issued || 0;
                                       tooltip.innerHTML = ''
-                                        + '<div style="font-weight:800;font-size:0.95rem;margin-bottom:2px;color:#002C76">'+label+'</div>'
-                                        + '<div style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#64748b">'
-                                        +   '<div style="width:8px;height:8px;border-radius:50%;background:'+ (v>0?'#22c55e':'#94a3b8') +'"></div>'
-                                        +   (v)+' user'+(v!==1?'s':'')
+                                        + '<div style="font-weight:800;font-size:1rem;margin-bottom:2px;color:#e5e7eb">'+label+'</div>'
+                                        + '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 8px;font-size:0.88rem;color:#cbd5e1;margin-top:6px">'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:6px"></span><span><strong>Users</strong>: '+users+'</span>'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-top:6px"></span><span><strong>Courses Completed</strong>: '+coursesCompleted+'</span>'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#eab308;margin-top:6px"></span><span><strong>Certificates Issued</strong>: '+certsIssued+'</span>'
                                         + '</div>'
-                                        + (mode==='region'
-                                            ? '<div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;margin-top:4px">'
-                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#1e3a8a"><i class="fas fa-mars"></i> '+m+'</span>'
-                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#b91c1c"><i class="fas fa-venus"></i> '+f+'</span>'
-                                                + '<span style="display:inline-flex;align-items:center;gap:6px;color:#334155"><i class="fas fa-circle-notch"></i> '+o+'</span>'
-                                              + '</div>'
-                                            : '');
+                                        + '<div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;margin-top:8px">'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#93c5fd"><i class="fas fa-mars"></i> '+m+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#fecaca"><i class="fas fa-venus"></i> '+f+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#cbd5e1"><i class="fas fa-circle-notch"></i> '+o+'</span>'
+                                        + '</div>';
                                       moveTooltip(event);
                                     }
                                   })
@@ -3091,7 +3107,13 @@
                                           window.__gender = gn; 
                                         })
                                     : Promise.resolve();
-                                  Promise.all([p1,p2]).then(function(){ load(urls[mode].geo.slice()); })
+                                  var p3 = fetch(regionAnalyticsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                    .then(function(res){ return res.ok ? res.json() : null; })
+                                    .then(function(data){ window.__analytics = (data && data.analytics) ? data.analytics : {}; });
+                                  var p4 = fetch(monthlyGrowthUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                    .then(function(res){ return res.ok ? res.json() : null; })
+                                    .then(function(data){ window.__growth = data || {}; drawGrowth(); });
+                                  Promise.all([p1,p2,p3,p4]).then(function(){ load(urls[mode].geo.slice()); })
                                     .catch(function(){ load(urls[mode].geo.slice()); });
                                 }catch(e){
                                   window.__counts = {};
@@ -3122,6 +3144,28 @@
                                     // Re-render or re-center logic if needed
                                 }, 250);
                               });
+                              function drawGrowth(){
+                                var el=document.getElementById('ph-growth-line');
+                                if(!el || !window.__growth){return;}
+                                el.innerHTML='';
+                                var months= (window.__growth.months || []);
+                                var reg= (window.__growth.registrations || []);
+                                var comp= (window.__growth.completions || []);
+                                var cert= (window.__growth.certificates || []);
+                                var w= el.clientWidth || 600, h= 200, m= {top:10,right:20,bottom:28,left:36};
+                                var svg2=d3.select('#ph-growth-line').append('svg').attr('width','100%').attr('height',h).attr('viewBox','0 0 '+w+' '+h);
+                                var iw=w-m.left-m.right, ih=h-m.top-m.bottom;
+                                var g2=svg2.append('g').attr('transform','translate('+m.left+','+m.top+')');
+                                var x=d3.scalePoint().domain(months).range([0,iw]).padding(0.5);
+                                var maxY=d3.max([d3.max(reg)||0,d3.max(comp)||0,d3.max(cert)||0])||0;
+                                var y=d3.scaleLinear().domain([0,maxY]).nice().range([ih,0]);
+                                    g2.append('g').attr('transform','translate(0,'+ih+')').call(d3.axisBottom(x).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-size','10px');
+                                    g2.append('g').call(d3.axisLeft(y).ticks(4).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-size','10px');
+                                var lineF=function(arr){ return d3.line().x(function(d,i){ return x(months[i]); }).y(function(d){ return y(d); }).curve(d3.curveMonotoneX)(arr); };
+                                g2.append('path').attr('d', lineF(reg)).attr('fill','none').attr('stroke','#3b82f6').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(59,130,246,.5))');
+                                g2.append('path').attr('d', lineF(comp)).attr('fill','none').attr('stroke','#22c55e').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(34,197,94,.5))');
+                                g2.append('path').attr('d', lineF(cert)).attr('fill','none').attr('stroke','#eab308').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(234,179,8,.5))');
+                              }
                             })();
                             </script>
                         </div>
@@ -3315,6 +3359,9 @@
                         <div class="roles-grid">
                             <div class="roles-card">
                                 <!-- <h3 class="roles-card-title">Roles Management</h3> -->
+                                <div style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:10px;gap:10px">
+                                    <input id="rolesSearchInput" type="text" placeholder="Search roles..." class="input-pro" style="width:260px">
+                                </div>
                                 <table class="roles-table">
                                     <thead>
                                         <tr>
@@ -3338,13 +3385,13 @@
                                                         <form id="{{ $formId }}" method="POST" action="{{ route('admin.roles.update', $role) }}" style="display:inline-flex;gap:8px;align-items:center">
                                                             @csrf
                                                             @method('PUT')
-                                                            <button type="button" class="btn btn-primary btn-role role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}">Edit</button>
-                                                            <button type="submit" class="btn btn-primary btn-role role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none">Save</button>
+                                                            <button type="button" class="btn btn-primary btn-role role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}"><i class="fas fa-pen"></i>&nbsp;Edit</button>
+                                                            <button type="submit" class="btn btn-primary btn-role role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none"><i class="fas fa-save"></i>&nbsp;Save</button>
                                                         </form>
                                                         <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-role" onclick="return confirm('Delete this role?')">Delete</button>
+                                                            <button type="submit" class="btn btn-danger btn-role" onclick="return confirm('Delete this role?')"><i class="fas fa-trash"></i>&nbsp;Delete</button>
                                                         </form>
                                                     </div>
                                                 </td>
@@ -3354,13 +3401,17 @@
                                                 <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No roles found.</td>
                                             </tr>
                                         @endforelse
+                                        <tr id="rolesNoMatchRow" style="display:none">
+                                            <td colspan="3" class="card-muted" style="padding:12px;text-align:center">No matching roles.</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                             <div class="roles-form-card">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:#0B2C74;font-weight:800">Add Role</div>
                                 <form method="POST" action="{{ route('admin.roles.store') }}" style="display:grid;gap:14px">
                                     @csrf
-                                    <label class="form-label">Display Name</label>
+                                    <label class="form-label">Name</label>
                                     <input class="input-pro" type="text" name="name" placeholder="e.g. super_admin">
                                     <label class="form-label">Display Name</label>
                                     <input class="input-pro" type="text" name="display_name" placeholder="e.g. Super Admin">
@@ -3387,6 +3438,26 @@
                         if(saveBtn){ saveBtn.style.display = ''; }
                     });
                 });
+                var searchInput = document.getElementById('rolesSearchInput');
+                if(searchInput){
+                    searchInput.addEventListener('input', function(){
+                        var q = (this.value || '').toLowerCase().trim();
+                        var rows = document.querySelectorAll('.roles-table tbody tr');
+                        var visible = 0;
+                        rows.forEach(function(r){
+                            if(r.id === 'rolesNoMatchRow') return;
+                            var tds = r.querySelectorAll('td');
+                            if(tds.length < 2) return;
+                            var name = (tds[0].querySelector('input')?.value || tds[0].textContent || '').toLowerCase();
+                            var disp = (tds[1].querySelector('input')?.value || tds[1].textContent || '').toLowerCase();
+                            var show = !q || name.includes(q) || disp.includes(q);
+                            r.style.display = show ? '' : 'none';
+                            if(show) visible++;
+                        });
+                        var noRow = document.getElementById('rolesNoMatchRow');
+                        if(noRow){ noRow.style.display = visible === 0 ? '' : 'none'; }
+                    });
+                }
             })();
             </script>
 

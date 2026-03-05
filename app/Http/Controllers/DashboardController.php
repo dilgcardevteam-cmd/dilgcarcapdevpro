@@ -110,10 +110,17 @@ class DashboardController extends Controller
                 }
 
                 $roles = Role::orderBy('name')->get();
-                $permissions = \App\Models\Permission::orderBy('name')->get();
+                $permissions = \Illuminate\Support\Facades\Schema::hasTable('permissions')
+                    ? \DB::table('permissions')->orderBy('name')->get()
+                    : collect();
                 $rolePermissions = [];
-                foreach ($roles as $r) {
-                    $rolePermissions[$r->id] = $r->permissions()->pluck('permission_id')->toArray();
+                if (\Illuminate\Support\Facades\Schema::hasTable('role_permission')) {
+                    foreach ($roles as $r) {
+                        $rolePermissions[$r->id] = \DB::table('role_permission')
+                            ->where('role_id', $r->id)
+                            ->pluck('permission_id')
+                            ->toArray();
+                    }
                 }
                 return view('admin.dashboard', compact(
                     'userCount',
@@ -763,6 +770,64 @@ class DashboardController extends Controller
             $out[$region][$key] += (int) $row->c;
         }
         return response()->json(['gender_counts' => $out]);
+    }
+
+    public function regionAnalytics()
+    {
+        $usersByRegion = User::selectRaw('LOWER(TRIM(COALESCE(region,""))) as region, COUNT(*) as c')
+            ->groupBy('region')
+            ->pluck('c', 'region');
+        $certsByRegion = \Illuminate\Support\Facades\Schema::hasTable('certification_user')
+            ? \DB::table('certification_user')
+                ->join('users', 'certification_user.user_id', '=', 'users.id')
+                ->selectRaw('LOWER(TRIM(COALESCE(users.region,""))) as region, COUNT(*) as c')
+                ->groupBy('region')
+                ->pluck('c', 'region')
+            : collect();
+        $completionsByRegion = \Illuminate\Support\Facades\Schema::hasTable('course_user')
+            ? \DB::table('course_user')
+                ->join('users', 'course_user.user_id', '=', 'users.id')
+                ->selectRaw('LOWER(TRIM(COALESCE(users.region,""))) as region, COUNT(*) as c')
+                ->whereIn('course_user.status', ['completed', 'finished', 'done'])
+                ->groupBy('region')
+                ->pluck('c', 'region')
+            : collect();
+        $out = [];
+        $keys = array_unique(array_merge(array_keys($usersByRegion->toArray()), array_keys($certsByRegion->toArray()), array_keys($completionsByRegion->toArray())));
+        foreach ($keys as $r) {
+            $out[$r] = [
+                'users' => (int) ($usersByRegion[$r] ?? 0),
+                'courses_completed' => (int) ($completionsByRegion[$r] ?? 0),
+                'certs_issued' => (int) ($certsByRegion[$r] ?? 0),
+            ];
+        }
+        return response()->json(['analytics' => $out]);
+    }
+
+    public function monthlyGrowth()
+    {
+        $months = [];
+        $regs = [];
+        $comps = [];
+        $certs = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $m = \Carbon\Carbon::now()->subMonths($i);
+            $months[] = $m->format('M');
+            $start = $m->copy()->startOfMonth();
+            $end = $m->copy()->endOfMonth();
+            $regs[] = User::whereBetween('created_at', [$start, $end])->count();
+            if (\Illuminate\Support\Facades\Schema::hasTable('course_user')) {
+                $comps[] = \DB::table('course_user')->whereBetween('updated_at', [$start, $end])->whereIn('status', ['completed', 'finished', 'done'])->count();
+            } else {
+                $comps[] = 0;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('certification_user')) {
+                $certs[] = \DB::table('certification_user')->whereBetween('issued_at', [$start, $end])->count();
+            } else {
+                $certs[] = 0;
+            }
+        }
+        return response()->json(['months' => $months, 'registrations' => $regs, 'completions' => $comps, 'certificates' => $certs]);
     }
 
     public function importLocationMaster(Request $request)
