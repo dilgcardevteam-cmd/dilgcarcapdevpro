@@ -988,7 +988,7 @@
                     <a class="dropdown-item" href="#" onclick="showContent('certificates', null)">
                         <i class="fas fa-certificate"></i> <span>Certificates</span>
                     </a>
-                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
@@ -1593,6 +1593,9 @@
 
                 </div>
             </div>
+            @if(request('tab') == 'help-support')
+                @include('dashboard.help-support')
+            @endif
 
         </div>
     </div>
@@ -1611,6 +1614,7 @@
                 <a id="certificateDownloadBtn" href="#" onclick="downloadCertificateFramePDF(event)" style="display:inline-block;background-color:#002C76;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:700">Download PDF</a>
             </div>
         </div>
+        
     </div>
 
     <!-- Enrollment Confirmation Modal -->

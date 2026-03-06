@@ -1138,7 +1138,7 @@
                     <a class="dropdown-item" href="{{ route('trainer.courses.create') }}">
                         <i class="fas fa-plus-circle"></i> <span>Create Course</span>
                     </a>
-                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
@@ -1190,7 +1190,7 @@
         <div class="main-content">
             
             <!-- Dashboard Home Section -->
-            <div id="dashboard-home" class="content-section active">
+            <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
                 @if(session('success'))
                 <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     <i class="fas fa-check-circle"></i> {{ session('success') }}
@@ -1384,6 +1384,9 @@
                 </div>
                 </div>
             </div>
+            @if(request('tab') == 'help-support')
+                @include('dashboard.help-support')
+            @endif
 
             <!-- My Courses Section (Same as above but dedicated page) -->
             <div id="my-courses" class="content-section">

@@ -107,8 +107,9 @@ Route::get('/psgc/cities/{code}/barangays', [DashboardController::class, 'barang
 // Role conversion: Registrar -> Training Manager
 Route::post('/admin/users/{user}/convert-registrar-to-training-manager', [DashboardController::class, 'convertRegistrarToTrainingManager'])->middleware(['auth'])->name('admin.users.convert_to_training_manager');
 Route::post('/admin/users/{user}/rollback-training-manager', [DashboardController::class, 'rollbackTrainingManager'])->middleware(['auth'])->name('admin.users.rollback_training_manager');
-// Trainee assessment answering
+// Trainee assessment answering and shared Help & Support
 Route::middleware('auth')->group(function(){
+    Route::get('/help-support', [DashboardController::class, 'helpSupport'])->name('help.support');
     Route::get('/trainee/assessments/{assessment}/take', [AssessmentAnswerController::class, 'take'])->name('trainee.assessments.take');
     Route::post('/trainee/assessments/{assessment}/submit', [AssessmentAnswerController::class, 'submit'])->name('trainee.assessments.submit');
 });

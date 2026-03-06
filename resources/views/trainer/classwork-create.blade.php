@@ -58,7 +58,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     <div id="profileDropdown" style="position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none">
       <a class="dropdown-item" href="{{ route('profile.setup') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-user-cog"></i> <span>Profile</span></a>
       <a class="dropdown-item" href="{{ route('trainer.courses.create') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-plus-circle"></i> <span>Create Course</span></a>
-      <a class="dropdown-item" href="mailto:support@capdevpro.local" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
+      <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
       <form method="POST" action="{{ route('logout') }}" style="margin:0">
         @csrf
         <button type="submit" class="dropdown-item" style="display:flex;align-items:center;gap:10px;padding:10px 14px;color:#b91c1c;background:none;border:none;text-align:left;width:100%"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>

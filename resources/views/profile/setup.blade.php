@@ -555,6 +555,9 @@
             <a class="dropdown-item" href="#" onclick="openProfileSettings();return false;">
                 <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
             </a>
+            <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
+                <i class="fas fa-life-ring"></i> <span>Help & Support</span>
+            </a>
             <form method="POST" action="{{ route('logout') }}" style="margin:0">
                 @csrf
                 <button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;">

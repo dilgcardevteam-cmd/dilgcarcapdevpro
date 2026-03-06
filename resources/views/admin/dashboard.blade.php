@@ -3759,7 +3759,9 @@
                     <i class="fas fa-search" style="color:#0b3b8f"></i>
                     <input id="helpSearchInput" type="text" placeholder="Search Help (e.g. password, enroll, certificate)">
                 </div>
+                @if(!Auth::check() || Auth::user()->role !== 'super_admin')
                 <div class="suggest-row" id="helpSuggest"></div>
+                @endif
                 <div class="help-grid">
                     <div class="help-card">
                         <div class="help-head"><i class="fas fa-question-circle"></i> Quick FAQs</div>
