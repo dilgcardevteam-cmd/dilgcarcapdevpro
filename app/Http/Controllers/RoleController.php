@@ -30,7 +30,7 @@ class RoleController extends Controller
             'display_name' => 'nullable|string|max:100',
         ]);
         Role::create($validated);
-        return redirect()->route('dashboard', ['tab' => 'roles-management'])->with('success_roles', 'Role created.');
+        return redirect()->route('dashboard', ['tab' => 'access-management'])->with('success_access', 'Role created.');
     }
 
     public function update(Request $request, Role $role)

@@ -2633,10 +2633,6 @@
                     <span class="menu-text">Course Management</span>
                 </li>
                 @if(Auth::check() && Auth::user()->role === 'super_admin')
-                    <li class="menu-item {{ request('tab') == 'roles-management' ? 'active' : '' }}" onclick="showContent('roles-management', this)">
-                        <div class="menu-icon"><i class="fas fa-user-shield"></i></div>
-                        <span class="menu-text">Roles Management</span>
-                    </li>
                     <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
                         <div class="menu-icon"><i class="fas fa-key"></i></div>
                         <span class="menu-text">Access Control</span>
@@ -3784,9 +3780,13 @@
             <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
                 @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
-                    <div class="insight-panel-header">
-                        <h2 class="section-title">Access Control</h2>
+                    <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
                         <span class="muted">Assign system feature access per role</span>
+                        @if($canAccess)
+                            <button type="button" onclick="openAddRoleModal()" class="btn-update" style="background:#002C76;color:#fff;border-color:#002C76;display:inline-flex;align-items:center;gap:8px; border-radius:8px">
+                                <i class="fas fa-plus"></i> Add Role
+                            </button>
+                        @endif
                     </div>
                     @if(session('success_access'))
                         <div style="background:#e6fffa;color:#065f46;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('success_access') }}</div>
@@ -3805,54 +3805,48 @@
                             .accordion-header{background:#f8fafc;padding:10px 12px;font-weight:800;color:#0B2C74;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
                             .accordion-content{display:none;padding:12px;background:#fff}
                             .accordion-item.open .accordion-content{display:block}
+                            /* Pro Modal Styles */
+                            .pro-modal{background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 24px 48px rgba(2,6,23,.18);width:520px;max-width:95vw;overflow:hidden}
+                            .pro-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e5e7eb;background:linear-gradient(180deg,rgba(243,246,255,.8),rgba(255,255,255,.6))}
+                            .pro-modal-title{display:flex;align-items:center;gap:10px;font-weight:800;color:#0B2C76}
+                            .pro-modal-title .badge{width:36px;height:36px;border-radius:10px;background:#0B2C76;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+                            .pro-modal-close{background:#fff;border:1px solid #e5e7eb;border-radius:999px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer}
+                            .pro-modal-body{padding:18px;display:grid;gap:14px}
+                            .pro-field{display:grid;gap:6px}
+                            .pro-label{font-size:.78rem;color:#64748b;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+                            .pro-input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;font-size:.95rem}
+                            .pro-modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 18px;border-top:1px solid #e5e7eb;background:#f8fafc}
+                            .btn-ghost{background:#fff;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:10px 16px;font-weight:700}
+                            .btn-solid{background:#00a859;border:1px solid #00a859;color:#fff;border-radius:999px;padding:10px 16px;font-weight:800}
                         </style>
                         <div class="access-tabs" style="display:none"></div>
                         @php
                             $permLabel = function($p){ return $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)); };
                             $roleLabel = function($r){ return $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)); };
-                            $permsByName = [];
-                            foreach(($permissions ?? []) as $p){ $permsByName[$p->name] = $p; }
-                            $groups = [
-                                'Admin' => ['manage_users','edit_user','delete_user','manage_notifications'],
-                                'Coach' => ['manage_courses','create_course','approve_course','edit_course','delete_course','manage_materials','manage_assessments'],
-                                'Participant' => ['manage_certifications','issue_certificates','edit_certificates'],
-                                'Training Manager' => ['manage_discussions'],
-                            ];
+                            $allPerms = ($permissions ?? collect());
+                            $allRoles = ($roles ?? collect());
+                            $priority = ['admin', 'training_manager', 'coach', 'participant'];
+                            $sortedRoles = $allRoles->sort(function($a,$b) use ($priority){
+                                $pa = array_search($a->name, $priority); $pb = array_search($b->name, $priority);
+                                if ($pa !== false && $pb !== false) return $pa <=> $pb;
+                                if ($pa !== false) return -1;
+                                if ($pb !== false) return 1;
+                                return strcmp($a->display_name ?? $a->name, $b->display_name ?? $b->name);
+                            });
                         @endphp
                         <form method="POST" action="{{ route('admin.access.update') }}">
                             @csrf
-                            @foreach($groups as $groupName => $names)
+                            @foreach($sortedRoles as $role)
                                 <div class="accordion-item">
                                     <div class="accordion-header">
-                                        <span>{{ $groupName }}</span>
+                                        <span>{{ $roleLabel($role) }}</span>
                                         <i class="fas fa-chevron-down"></i>
                                     </div>
                                     <div class="accordion-content">
                                         <div class="access-tabs">
-                                            <button type="button" class="access-tab active" data-target="roles-{{ \Illuminate\Support\Str::slug($groupName) }}">Roles</button>
-                                            <button type="button" class="access-tab" data-target="perms-{{ \Illuminate\Support\Str::slug($groupName) }}">Permissions</button>
+                                            <button type="button" class="access-tab active" data-target="perms-role-{{ $role->id }}">Permissions</button>
                                         </div>
-                                        <div id="roles-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="">
-                                            <table class="table-pro">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-roles"></th>
-                                                        <th style="width:320px">Roles</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach(($roles ?? []) as $r)
-                                                        <tr>
-                                                            <td style="text-align:center"><input type="checkbox" name="roles[]" value="{{ $r->id }}" class="role-check"></td>
-                                                            <td>{{ $roleLabel($r) }}</td>
-                                                            <td class="card-muted">System role: {{ $r->name }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div id="perms-{{ \Illuminate\Support\Str::slug($groupName) }}" class="tab-pane" style="display:none">
+                                        <div id="perms-role-{{ $role->id }}" class="tab-pane" style="">
                                             <table class="table-pro">
                                                 <thead>
                                                     <tr>
@@ -3862,15 +3856,19 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach($names as $nm)
-                                                        @php $p = $permsByName[$nm] ?? null; @endphp
-                                                        @if($p)
-                                                            <tr>
-                                                                <td style="text-align:center"><input type="checkbox" name="perms[]" value="{{ $p->id }}" class="perm-check"></td>
-                                                                <td>{{ $permLabel($p) }}</td>
-                                                                <td class="card-muted">System permission: {{ $p->name }}</td>
-                                                            </tr>
-                                                        @endif
+                                                    @php $assigned = ($rolePermissions[$role->id] ?? []); @endphp
+                                                    @foreach($allPerms as $p)
+                                                        <tr>
+                                                            <td style="text-align:center">
+                                                                <input type="checkbox"
+                                                                       name="matrix[{{ $role->id }}][{{ $p->id }}]"
+                                                                       value="1"
+                                                                       class="perm-check"
+                                                                       {{ in_array($p->id, $assigned, true) ? 'checked' : '' }}>
+                                                            </td>
+                                                            <td>{{ $permLabel($p) }}</td>
+                                                            <td class="card-muted">System permission: {{ $p->name }}</td>
+                                                        </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
@@ -3881,22 +3879,13 @@
                                         <script>
                                         (function(){
                                             var wrap = document.currentScript.parentElement;
-                                            var tabs = wrap.querySelectorAll('.access-tab');
-                                            tabs.forEach(function(t){
-                                                t.addEventListener('click', function(){
-                                                    tabs.forEach(function(x){ x.classList.remove('active'); });
-                                                    this.classList.add('active');
-                                                    var target = this.getAttribute('data-target');
+                                            var tabBtn = wrap.querySelector('.access-tab');
+                                            if (tabBtn) {
+                                                tabBtn.addEventListener('click', function(){
+                                                    tabBtn.classList.add('active');
                                                     wrap.querySelectorAll('.tab-pane').forEach(function(p){
-                                                        p.style.display = (p.id === target) ? '' : 'none';
+                                                        p.style.display = (p.id === tabBtn.getAttribute('data-target')) ? '' : 'none';
                                                     });
-                                                });
-                                            });
-                                            var clearRoles = wrap.querySelector('.clear-all-roles');
-                                            var roleChecks = wrap.querySelectorAll('.role-check');
-                                            if(clearRoles){
-                                                clearRoles.addEventListener('change', function(){
-                                                    roleChecks.forEach(function(c){ c.checked = clearRoles.checked; });
                                                 });
                                             }
                                             var clearPerms = wrap.querySelector('.clear-all-perms');
@@ -3912,6 +3901,8 @@
                                 </div>
                             @endforeach
                         </form>
+                        @if(Auth::check() && Auth::user()->role === 'super_admin')
+                        @endif
                         <script>
                         (function(){
                             var section = document.getElementById('access-management');
@@ -5086,6 +5077,40 @@
         </div>
     </div>
 
+    <!-- Add Role Modal (global overlay) -->
+    @if(Auth::check() && Auth::user()->role === 'super_admin')
+    <div id="addRoleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle" style="align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+        <div class="modal-content pro-modal" style="margin:0;">
+            <div class="pro-modal-header">
+                <div class="pro-modal-title">
+                    <div class="badge"><i class="fas fa-user-shield"></i></div>
+                    <div id="addRoleTitle">Add Role</div>
+                </div>
+                <button type="button" class="pro-modal-close" onclick="closeAddRoleModal()" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form method="POST" action="{{ route('admin.roles.store') }}">
+                @csrf
+                <div class="pro-modal-body">
+                    <div class="pro-field">
+                        <label class="pro-label">Role Name</label>
+                        <input class="pro-input" type="text" name="name" placeholder="e.g. super_admin" required>
+                    </div>
+                    <div class="pro-field">
+                        <label class="pro-label">Display Name</label>
+                        <input class="pro-input" type="text" name="display_name" placeholder="e.g. Super Admin">
+                    </div>
+                </div>
+                <div class="pro-modal-actions">
+                    <button type="button" class="btn-ghost" onclick="closeAddRoleModal()">Cancel</button>
+                    <button type="submit" class="btn-solid">Create Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <script>
         // Profile Edit Logic
         let isProfileEditing = false;
@@ -5979,6 +6004,17 @@
             document.getElementById('certifyUserModal').style.display = 'none';
         }
 
+        function openAddRoleModal(){
+            var ov=document.getElementById('addRoleModal');
+            if(ov){ ov.style.display='flex'; setTimeout(()=>{ try{ ov.querySelector('input[name="name"]').focus(); }catch(e){} }, 50); }
+        }
+        function closeAddRoleModal(){
+            var ov=document.getElementById('addRoleModal');
+            if(ov){ ov.style.display='none'; }
+        }
+        document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ closeAddRoleModal(); } });
+        document.addEventListener('click', function(ev){ var ov=document.getElementById('addRoleModal'); if(!ov) return; if(ov.style.display==='flex' && ev.target===ov){ closeAddRoleModal(); } });
+
         function switchCertTab(tab){
             var tabs = ['create','view','certify'];
             tabs.forEach(function(name){
@@ -6396,7 +6432,8 @@
                 'course-management': 'Course Management',
                 'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
-                'system-settings': 'System Settings'
+                'system-settings': 'System Settings',
+                'access-management': 'Access Control'
             };
             const sidebarTitleEl = document.getElementById('sidebar-section-title');
             if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
@@ -6413,7 +6450,8 @@
                     'user-management': 'User Management',
                     'course-management': 'Course Management',
                     'roles-management': 'Roles Management',
-                    'certification-management': 'Certifications'
+                    'certification-management': 'Certifications',
+                    'access-management': 'Access Control'
                 };
                 const headerTitleEl = document.getElementById('header-section-title');
                 if(headerTitleEl){ headerTitleEl.textContent = titles[id] || 'Dashboard'; }
