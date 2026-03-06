@@ -982,7 +982,7 @@
                         <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
                         <div class="dropdown-meta-role">{{ ucfirst(Auth::user()->role) }}</div>
                     </div>
-                    <a class="dropdown-item" href="{{ route('profile.setup') }}">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
                     <a class="dropdown-item" href="#" onclick="showContent('certificates', null)">

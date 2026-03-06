@@ -18,13 +18,87 @@
 
     $avatarSrc = $user->avatar_url;
 @endphp
-
 <style>
-    .profile-page {
+    :root {
+        --primary-blue: #002C76;
+        --primary-green: #7fb73d;
+        --bg-color: #f4f6f9;
+        --sidebar-width: 250px;
+        --sidebar-collapsed-width: 70px;
+        --header-height: 80px;
+    }
+    body > .header:first-of-type { display: none !important; }
+    .header {
+        background-color: white;
+        padding: 15px 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: var(--header-height);
+        box-sizing: border-box;
+        z-index: 1000;
+        position: fixed;
+        top: 0;
+        left: var(--sidebar-width);
+        right: 0;
+        transition: left .3s ease;
+    }
+    .header-left{display:flex;align-items:center}
+    .header-section-title{margin-left:12px;font-weight:700;color:var(--primary-blue);font-size:1.2rem;letter-spacing:-.01em}
+    .header-toggle{background:none;border:none;color:var(--primary-blue);font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
+    .header-toggle:hover{background:#f0f2f7}
+    .profile-menu{position:relative}
+    .profile-trigger{display:flex;align-items:center;gap:8px;cursor:pointer}
+    .profile-caret{font-size:.9rem;color:#666}
+    .profile-dropdown{position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
+    .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
+    .profile-dropdown .dropdown-item:hover{background:#f8fafc}
+    .profile-dropdown .danger{color:#b91c1c}
+    .notification-container{position:relative;margin-right:10px}
+    .notification-bell{cursor:pointer;position:relative;color:var(--primary-blue);font-size:1.2rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background-color .2s}
+    .notification-bell:hover{background-color:#f5f5f5}
+    .notification-badge{position:absolute;top:5px;right:5px;background:#d9534f;color:#fff;border-radius:50%;padding:2px 6px;font-size:.7rem;font-weight:700;border:2px solid #fff}
+    .notification-dropdown{display:none;position:absolute;top:50px;right:-10px;width:320px;background:#fff;border-radius:8px;box-shadow:0 5px 20px rgba(0,0,0,.15);z-index:1000;overflow:hidden;border:1px solid #eee}
+    .notification-header{padding:15px;border-bottom:1px solid #eee;font-weight:700;color:var(--primary-blue);display:flex;justify-content:space-between;align-items:center;background:#f9f9f9}
+    .notification-list{max-height:350px;overflow-y:auto}
+    .notification-item{padding:15px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background-color .2s;display:block;text-decoration:none;color:inherit}
+    .notification-item:hover{background:#f9f9f9}
+    .notification-item.unread{background:#e3f2fd}
+    .notification-item.unread:hover{background:#daeefc}
+    .notification-title{font-size:.9rem;font-weight:700;color:#333;margin-bottom:5px;display:flex;align-items:center}
+    .unread-dot{display:inline-block;width:8px;height:8px;background:#007bff;border-radius:50%;margin-right:8px;flex-shrink:0}
+    .notification-message{font-size:.85rem;color:#58585b;margin-bottom:5px;line-height:1.4}
+    .notification-time{font-size:.75rem;color:#999}
+    .empty-notifications{padding:30px;text-align:center;color:#58585b;font-style:italic}
+    .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height));transition:margin-left .3s ease}
+    .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
+    .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
+    body.sidebar-collapsed .header{left:var(--sidebar-collapsed-width)}
+    body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed-width)}
+    .sidebar-brand{display:flex;align-items:center;justify-content:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .sidebar-logo{height:70px}
+    .nav-menu{list-style:none;padding:10px 6px;margin:0;flex:1;display:block}
+    .nav-item{margin:4px 6px}
+    .nav-link{display:flex;align-items:center;gap:12px;padding:12px 16px;color:#e6eefb;text-decoration:none;border-radius:8px;transition:background-color .2s,color .2s}
+    .nav-link:hover,.nav-link.active{background-color:rgba(255,255,255,.12);color:#ffffff}
+    .nav-icon{width:22px;font-size:1.1rem;text-align:center}
+    .main-content{flex:1;padding:30px;overflow-y:auto;background-color:var(--bg-color)}
+    .content-section{display:none}
+    .content-section.active{display:block}
+    @media (max-width: 992px){
+        .dashboard-container{flex-direction:column;overflow:visible}
+        .sidebar,.sidebar.collapsed{width:100%;max-width:100%}
+        .main-content{padding:16px;overflow:visible}
+        .nav-menu{display:block;overflow:visible;white-space:normal}
+    }
+</style>
+<style>
         width: 100%;
         flex: 1;
         box-sizing: border-box;
         padding: 0;
+        display: flex;
         display: flex;
         overflow-x: hidden;
     }
@@ -427,16 +501,358 @@
     });
 </script>
 
+<header class="header">
+    <div class="header-left">
+        <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div id="header-section-title" class="header-section-title">Dashboard</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+        <div class="notification-container">
+            <div class="notification-bell" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                    <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
+                @endif
+            </div>
+            <div id="notificationDropdown" class="notification-dropdown">
+                <div class="notification-header">
+                    <span>Notifications</span>
+                    <span style="font-size:.8rem;color:#58585b;background:#eee;padding:2px 8px;border-radius:10px;">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }} New</span>
+                </div>
+                <div class="notification-list">
+                    @if(isset($notifications) && $notifications->count() > 0)
+                        @foreach($notifications as $notification)
+                            <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}" onclick="markAsRead('{{ $notification->id }}', '{{ $notification->link }}')">
+                                <div class="notification-title">
+                                    @if(!$notification->is_read) <span class="unread-dot"></span> @endif
+                                    {{ $notification->title }}
+                                </div>
+                                <div class="notification-message">{{ $notification->message }}</div>
+                                <div class="notification-time"><i class="far fa-clock" style="margin-right:3px;"></i> {{ $notification->created_at->diffForHumans() }}</div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="empty-notifications">
+                            <i class="far fa-bell-slash" style="font-size:2rem;color:#ddd;margin-bottom:10px;display:block;"></i>
+                            No notifications yet
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    <div class="profile-menu">
+        <div class="profile-trigger" onclick="toggleProfileMenu()">
+            @if(Auth::user()->profile_picture)
+                <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+            @else
+                <div style="width:35px;height:35px;border-radius:50%;background:#002C76;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">
+                    {{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}
+                </div>
+            @endif
+            <i class="fas fa-chevron-down profile-caret"></i>
+        </div>
+        <div id="profileDropdown" class="profile-dropdown">
+            <a class="dropdown-item" href="#" onclick="openProfileSettings();return false;">
+                <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
+            </a>
+            <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                @csrf
+                <button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </button>
+            </form>
+            <div id="profileSettingsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2500;">
+                <div style="position:absolute;top:56px;left:0;right:0;bottom:0;display:flex;justify-content:center;">
+                    <div style="width:min(1200px,95vw);height:calc(100% - 72px);padding:14px;box-sizing:border-box;">
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 12px 24px rgba(15,23,42,.12);height:100%;overflow:auto;position:relative;">
+                            <div style="position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #e5e7eb;background:#fff;border-radius:14px 14px 0 0">
+                                <div style="font-weight:800;color:#002C76">Profile Settings</div>
+                                <button type="button" onclick="closeProfileSettings()" style="border:none;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;cursor:pointer">Close</button>
+                            </div>
+                            <div class="content" style="padding:18px;">
+                                @if(session('profile_required'))
+                                    <div class="alert">Please complete your coCoach so we can personalize your experience and enable course access.</div>
+                                @endif
+                                @if(session('success_profile'))
+                                    <div class="alert">{{ session('success_profile') }}</div>
+                                @endif
+                                @if ($errors->any())
+                                    <div class="alert alert-error">
+                                        <ul style="margin:0 0 0 18px;">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                                <div class="tabs-container">
+                                    <button type="button" class="tab-btn" data-tab-target="tab-info" onclick="showTab('tab-info')">Personal Information</button>
+                                    <button type="button" class="tab-btn" data-tab-target="tab-password" onclick="showTab('tab-password')">Password</button>
+                                    <button type="button" class="tab-btn" data-tab-target="tab-history" onclick="showTab('tab-history')">History</button>
+                                </div>
+                                <div id="tab-info" class="tab-pane">
+                                    <p class="why">All fields marked with <span class="require">*</span> are required.</p>
+                                    <form action="{{ route('profile.setup.store') }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="hidden" name="section" value="info">
+                                        <div class="avatar-wrap">
+                                            <img id="preview" class="avatar" src="{{ $avatarSrc }}" alt="Profile picture preview">
+                                            <div class="form-group" style="margin:0;">
+                                                <label>coCoach Picture</label>
+                                                <input type="file" name="profile_picture" accept="image/*" onchange="previewImage(this)">
+                                            </div>
+                                        </div>
+                                        <h3 class="section-title">Basic Details</h3>
+                                        <div class="grid">
+                                            <div class="form-group">
+                                                <label>First Name <span class="require">*</span></label>
+                                                <input type="text" name="first_name" value="{{ old('first_name', $firstParsed) }}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Middle Name</label>
+                                                <input type="text" name="middle_name" value="{{ old('middle_name', $middleParsed) }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Last Name <span class="require">*</span></label>
+                                                <input type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Email <span class="require">*</span></label>
+                                                <input type="email" name="email" value="{{ old('email', $user->email) }}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Mobile Number <span class="require">*</span></label>
+                                                <input type="text" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Gender</label>
+                                                <select name="gender">
+                                                    <option value="" {{ old('gender', $user->gender) == '' ? 'selected' : '' }}>Select</option>
+                                                    <option value="Male" {{ old('gender', $user->gender) == 'Male' ? 'selected' : '' }}>Male</option>
+                                                    <option value="Female" {{ old('gender', $user->gender) == 'Female' ? 'selected' : '' }}>Female</option>
+                                                    <option value="Prefer not to say" {{ old('gender', $user->gender) == 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <h3 class="section-title">Address</h3>
+                                        @php
+                                            $profileRegion = old('region', $user->region);
+                                            $profileProvince = old('province', $user->province);
+                                            $profileCity = old('city', $user->city);
+                                            $profileBarangay = old('barangay', $user->barangay);
+                                        @endphp
+                                        <div class="grid">
+                                            <div class="form-group">
+                                                <label>Region <span class="require">*</span></label>
+                                                <select id="setup_region" name="region" required data-selected="{{ $profileRegion }}">
+                                                    <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                                    @if($profileRegion)
+                                                        <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                                    @endif
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Province <span class="require">*</span></label>
+                                                <select id="setup_province" name="province" required data-selected="{{ $profileProvince }}">
+                                                    <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                                    @if($profileProvince)
+                                                        <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
+                                                    @endif
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>City/Municipality <span class="require">*</span></label>
+                                                <select id="setup_city" name="city" required data-selected="{{ $profileCity }}">
+                                                    <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                                    @if($profileCity)
+                                                        <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
+                                                    @endif
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Barangay <span class="require">*</span></label>
+                                                <select id="setup_barangay" name="barangay" required data-selected="{{ $profileBarangay }}">
+                                                    <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
+                                                    @if($profileBarangay)
+                                                        <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
+                                                    @endif
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="actions">
+                                            <button class="btn btn-primary" type="submit">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div id="tab-password" class="tab-pane">
+                                    <form action="{{ route('profile.setup.store') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="section" value="password">
+                                        <div class="password-panel">
+                                            <div class="password-header">
+                                                <div class="icon"><i class="fas fa-lock"></i></div>
+                                                <div>
+                                                    <h2>Change Password</h2>
+                                                    <p>Ensure your account is using a long, random password to stay secure.</p>
+                                                </div>
+                                            </div>
+                                            <hr class="password-hr">
+                                            <div class="grid">
+                                                <div class="form-group single-col">
+                                                    <label>Current Password</label>
+                                                    <input type="password" name="current_password" required>
+                                                </div>
+                                                <div class="form-group single-col">
+                                                    <label>New Password</label>
+                                                    <input type="password" name="password" required>
+                                                </div>
+                                                <div class="form-group single-col">
+                                                    <label>Confirm Password</label>
+                                                    <input type="password" name="password_confirmation" required>
+                                                </div>
+                                            </div>
+                                            <div class="actions" style="justify-content:flex-start;">
+                                                <button class="btn btn-primary btn-password" type="submit">Update Password</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div id="tab-history" class="tab-pane">
+                                    @if(isset($notifications) && $notifications->count())
+                                        <div class="history-list">
+                                            @foreach($notifications as $n)
+                                                <div class="history-item">
+                                                    <div class="history-title">{{ $n->title }}</div>
+                                                    <div class="history-message">{{ $n->message }}</div>
+                                                    <div class="history-time">{{ $n->created_at->diffForHumans() }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="alert" style="background:#f8fafc; color:#475569; border-color:#e2e8f0;">
+                                            No account history or announcements yet.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</header>
+<div class="dashboard-container">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this); return false;">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link">
+                    <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                    <span class="nav-text">My Courses</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('dashboard', ['tab' => 'calendar']) }}" class="nav-link">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    <span class="nav-text">Calendar</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('dashboard', ['tab' => 'announcements']) }}" class="nav-link">
+                    <i class="fas fa-bullhorn nav-icon"></i>
+                    <span class="nav-text">Announcements</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="main-content">
+    <div id="dashboard-home" class="content-section">
+        <div class="control-hero">
+            <div class="control-hero-top">
+                <div>
+                    <div class="control-hero-title">Welcome, Coach</div>
+                    <div class="control-hero-sub">Monitor learning outcomes and efficiently manage classes.</div>
+                </div>
+            </div>
+            <div class="hero-metrics" style="margin-top:14px">
+                <div class="hero-metric">
+                    <div class="metric-left">
+                        <div class="metric-icon"><i class="fas fa-book"></i></div>
+                        <div>
+                            <div class="metric-value">0</div>
+                            <div style="color:#6b7280;font-weight:700;font-size:.9rem">Courses Teaching</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-metric">
+                    <div class="metric-left">
+                        <div class="metric-icon" style="background:#e8f5e9;color:#2e7d32"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="metric-value">0</div>
+                            <div style="color:#6b7280;font-weight:700;font-size:.9rem">Total Students</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-metric">
+                    <div class="metric-left">
+                        <div class="metric-icon" style="background:#e0f2fe;color:#0369a1"><i class="fas fa-calendar-alt"></i></div>
+                        <div>
+                            <div class="metric-value">0</div>
+                            <div style="color:#6b7280;font-weight:700;font-size:.9rem">Upcoming Events</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-metric">
+                    <div class="metric-left">
+                        <div class="metric-icon" style="background:#fff7ed;color:#9a3412"><i class="fas fa-bell"></i></div>
+                        <div>
+                            <div class="metric-value">0</div>
+                            <div style="color:#6b7280;font-weight:700;font-size:.9rem">New Notifications</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 24px rgba(15,23,42,.08);padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <div style="font-weight:800;color:#0f172a">Available Courses</div>
+                    <div style="color:#6b7280;font-weight:700">0 available</div>
+                </div>
+                <div style="border-radius:12px;border:1px dashed #d8e1ef;background:#f8fafc;padding:18px;text-align:center;color:#64748b">
+                    <div style="font-size:1.6rem;margin-bottom:6px"><i class="fas fa-book-open"></i></div>
+                    No available courses at the moment.
+                </div>
+            </div>
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 24px rgba(15,23,42,.08);padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <div style="font-weight:800;color:#0f172a">Enrolled Courses</div>
+                    <div style="color:#6b7280;font-weight:700">0 enrolled</div>
+                </div>
+                <div style="border-radius:12px;border:1px dashed #d8e1ef;background:#f8fafc;padding:18px;text-align:center;color:#64748b">
+                    <div style="font-size:1.6rem;margin-bottom:6px"><i class="fas fa-folder-open"></i></div>
+                    You have not been assigned to any courses yet.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="profile-section" class="content-section active">
 <div class="profile-page">
     <div class="setup-wrap">
         <div class="setup-card">
             <div class="card-head">
-                <h1 class="card-title"><i class="fas fa-user-cog"></i> {{ $isProfileCompleted ? 'Profile Settings' : 'Complete Your Profile' }}</h1>
+                <h1 class="card-title"><i class="fas fa-user-cog"></i> {{ $isProfileCompleted ? 'coCoach Settings' : 'Complete Your coCoach' }}</h1>
                 <div class="header-quick">
-                    <a class="logout-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
                     @if(!$isProfileCompleted)
                         <span class="badge badge-required"><i class="fas fa-lock"></i> Required before dashboard</span>
                     @else
@@ -445,193 +861,99 @@
                 </div>
             </div>
 
-            <div class="content">
-                @if(session('profile_required'))
-                    <div class="alert">
-                        Please complete your profile so we can personalize your experience and enable course access.
-                    </div>
-                @endif
-
-                @if(session('success_profile'))
-                    <div class="alert">
-                        {{ session('success_profile') }}
-                    </div>
-                @endif
-
-                @if ($errors->any())
-                    <div class="alert alert-error">
-                        <ul style="margin:0 0 0 18px;">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <div class="tabs-container">
-                    <button type="button" class="tab-btn" data-tab-target="tab-info" onclick="showTab('tab-info')">Personal Information</button>
-                    <button type="button" class="tab-btn" data-tab-target="tab-password" onclick="showTab('tab-password')">Password</button>
-                    <button type="button" class="tab-btn" data-tab-target="tab-history" onclick="showTab('tab-history')">History</button>
-                </div>
-
-                <div id="tab-info" class="tab-pane">
-                    <p class="why">All fields marked with <span class="require">*</span> are required.</p>
-
-                    <form action="{{ route('profile.setup.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="section" value="info">
-
-                        <div class="avatar-wrap">
-                            <img id="preview" class="avatar" src="{{ $avatarSrc }}" alt="Profile picture preview">
-                            <div class="form-group" style="margin:0;">
-                                <label>Profile Picture</label>
-                                <input type="file" name="profile_picture" accept="image/*" onchange="previewImage(this)">
-                            </div>
-                        </div>
-
-                        <h3 class="section-title">Basic Details</h3>
-                        <div class="grid">
-                            <div class="form-group">
-                                <label>First Name <span class="require">*</span></label>
-                                <input type="text" name="first_name" value="{{ old('first_name', $firstParsed) }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Middle Name</label>
-                                <input type="text" name="middle_name" value="{{ old('middle_name', $middleParsed) }}">
-                            </div>
-                            <div class="form-group">
-                                <label>Last Name <span class="require">*</span></label>
-                                <input type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Email <span class="require">*</span></label>
-                                <input type="email" name="email" value="{{ old('email', $user->email) }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Mobile Number <span class="require">*</span></label>
-                                <input type="text" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Gender</label>
-                                <select name="gender">
-                                    <option value="" {{ old('gender', $user->gender) == '' ? 'selected' : '' }}>Select</option>
-                                    <option value="Male" {{ old('gender', $user->gender) == 'Male' ? 'selected' : '' }}>Male</option>
-                                    <option value="Female" {{ old('gender', $user->gender) == 'Female' ? 'selected' : '' }}>Female</option>
-                                    <option value="Prefer not to say" {{ old('gender', $user->gender) == 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <h3 class="section-title">Address</h3>
-                        @php
-                            $profileRegion = old('region', $user->region);
-                            $profileProvince = old('province', $user->province);
-                            $profileCity = old('city', $user->city);
-                            $profileBarangay = old('barangay', $user->barangay);
-                        @endphp
-                        <div class="grid">
-                            <div class="form-group">
-                                <label>Region <span class="require">*</span></label>
-                                <select id="setup_region" name="region" required data-selected="{{ $profileRegion }}">
-                                    <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
-                                    @if($profileRegion)
-                                        <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Province <span class="require">*</span></label>
-                                <select id="setup_province" name="province" required data-selected="{{ $profileProvince }}">
-                                    <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
-                                    @if($profileProvince)
-                                        <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>City/Municipality <span class="require">*</span></label>
-                                <select id="setup_city" name="city" required data-selected="{{ $profileCity }}">
-                                    <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
-                                    @if($profileCity)
-                                        <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Barangay <span class="require">*</span></label>
-                                <select id="setup_barangay" name="barangay" required data-selected="{{ $profileBarangay }}">
-                                    <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
-                                    @if($profileBarangay)
-                                        <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="actions">
-                            <button class="btn btn-primary" type="submit">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="tab-password" class="tab-pane">
-                    <form action="{{ route('profile.setup.store') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="section" value="password">
-
-                        <div class="password-panel">
-                            <div class="password-header">
-                                <div class="icon"><i class="fas fa-lock"></i></div>
-                                <div>
-                                    <h2>Change Password</h2>
-                                    <p>Ensure your account is using a long, random password to stay secure.</p>
-                                </div>
-                            </div>
-                            <hr class="password-hr">
-
-                            <div class="grid">
-                                <div class="form-group single-col">
-                                    <label>Current Password</label>
-                                    <input type="password" name="current_password" required>
-                                </div>
-                                <div class="form-group single-col">
-                                    <label>New Password</label>
-                                    <input type="password" name="password" required>
-                                </div>
-                                <div class="form-group single-col">
-                                    <label>Confirm Password</label>
-                                    <input type="password" name="password_confirmation" required>
-                                </div>
-                            </div>
-
-                            <div class="actions" style="justify-content:flex-start;">
-                                <button class="btn btn-primary btn-password" type="submit">Update Password</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="tab-history" class="tab-pane">
-                    @if(isset($notifications) && $notifications->count())
-                        <div class="history-list">
-                            @foreach($notifications as $n)
-                                <div class="history-item">
-                                    <div class="history-title">{{ $n->title }}</div>
-                                    <div class="history-message">{{ $n->message }}</div>
-                                    <div class="history-time">{{ $n->created_at->diffForHumans() }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="alert" style="background:#f8fafc; color:#475569; border-color:#e2e8f0;">
-                            No account history or announcements yet.
-                        </div>
-                    @endif
-                </div>
-            </div>
+            
         </div>
+    </div>
 </div>
+    </div>
 
+<script>
+function toggleSidebar() {
+    var s=document.getElementById('sidebar');
+    s.classList.toggle('collapsed');
+    var collapsed=s.classList.contains('collapsed');
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    var logo=document.querySelector('.sidebar-logo');
+    if(logo){
+        var full=logo.getAttribute('data-full-src');
+        var small=logo.getAttribute('data-collapsed-src');
+        if(full&&small){ logo.src=collapsed?small:full; }
+    }
+}
+function toggleProfileMenu(){
+    var d=document.getElementById('profileDropdown');
+    var trigger=document.querySelector('.profile-trigger');
+    if(!d) return;
+    var open=d.style.display==='block';
+    d.style.display=open?'none':'block';
+    if(trigger){trigger.classList.toggle('open', !open);}
+}
+function openProfileSettings(){
+    var ov=document.getElementById('profileSettingsOverlay');
+    if(ov){ ov.style.display='block'; }
+    // Ensure the tabs reflect active state
+    showTab('tab-info');
+}
+function closeProfileSettings(){
+    var ov=document.getElementById('profileSettingsOverlay');
+    if(ov){ ov.style.display='none'; }
+}
+document.addEventListener('click',function(ev){
+    var menu=document.querySelector('.profile-menu');
+    var d=document.getElementById('profileDropdown');
+    if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
+});
+function toggleNotifications(){
+    var dropdown=document.getElementById('notificationDropdown');
+    if(!dropdown) return;
+    dropdown.style.display=(dropdown.style.display==='block')?'none':'block';
+}
+function markAsRead(notificationId, link){
+    event.stopPropagation();
+    fetch('/notifications/' + notificationId + '/mark-as-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({})
+    }).then(r=>r.json()).then(data=>{
+        var badge=document.querySelector('.notification-badge');
+        if(badge){
+            var count=parseInt(badge.innerText);
+            if(count>1){
+                badge.innerText=count-1;
+                var headerCount=document.querySelector('.notification-header span:last-child');
+                if(headerCount){ headerCount.innerText=(count-1)+' New'; }
+            }else{
+                badge.remove();
+                var headerCount=document.querySelector('.notification-header span:last-child');
+                if(headerCount){ headerCount.innerText='0 New'; }
+            }
+        }
+        if(link&&link!=='null'&&link!==''){ window.location.href=link; }
+    }).catch(()=>{ if(link&&link!=='null'&&link!==''){ window.location.href=link; }});
+}
+document.addEventListener('click',function(e){
+    var container=document.querySelector('.notification-container');
+    var dropdown=document.getElementById('notificationDropdown');
+    if(container&&dropdown&&!container.contains(e.target)){ dropdown.style.display='none'; }
+});
+function updateHeaderTitle(id){
+    var titleEl=document.getElementById('header-section-title');
+    if(!titleEl) return;
+    if(id==='dashboard-home') titleEl.textContent='Dashboard';
+    else if(id==='profile-section') titleEl.textContent='coCoach';
+}
+function showContent(id, el){
+    document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+    var target=document.getElementById(id);
+    if(target){ target.classList.add('active'); }
+    document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
+    if(el){ el.classList.add('active'); }
+    updateHeaderTitle(id);
+}
+</script>
 <script>
 function initSetupLocationDropdowns() {
     const regionSelect = document.getElementById('setup_region');
