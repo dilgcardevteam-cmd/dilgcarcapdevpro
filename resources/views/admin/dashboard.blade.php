@@ -3540,19 +3540,34 @@
                                     <div class="dz-meta">
                                         <div id="psgcFileName" class="dz-file">No file selected</div>
                                         <div class="cta-row">
-                                            <button id="psgcImportBtn" type="submit" class="btn btn-blue btn-wide" disabled>Import</button>
+                                            <select id="psgcMode" name="mode" class="input-pro" style="flex:1">
+                                                <option value="insert_only">Insert Only</option>
+                                                <option value="insert_update" selected>Insert + Update</option>
+                                                <option value="replace_all">Replace All</option>
+                                            </select>
+                                            <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
                                     </div>
                                     <div class="progress"><div id="psgcProg"></div></div>
                                 </form>
                                 <div class="chips" id="psgcResult" style="display:none"></div>
+                                <div id="psgcSummaryModal" class="modal" style="display:none">
+                                    <div class="modal-content" style="max-width:720px;width:92vw">
+                                        <span id="psgcSummaryClose" class="close" style="position:absolute;top:10px;right:14px">&times;</span>
+                                        <h3 class="section-title" style="text-align:left;margin-bottom:8px">Import Summary</h3>
+                                        <div id="psgcSummaryBody" class="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+                                        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px">
+                                            <button type="button" id="psgcSummaryOk" class="btn btn-primary">OK</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="import-side">
                             <div class="side-head"><i class="fas fa-info-circle"></i> File Requirements</div>
                             <ul class="side-list">
-                                <li>Headers: region_code, region_name, province_code, province_name</li>
+                                <li>Headers: region, province, city/munacipility and barangay</li>
                                 <li>UTF-8 CSV, comma-separated</li>
                                 <li>Large files may take time to process</li>
                             </ul>
@@ -3608,6 +3623,8 @@
                             rs.innerHTML='';
                             prog.style.width='35%';
                             var fd=new FormData(form);
+                                    var mode=document.getElementById('psgcMode').value||'insert_update';
+                                    fd.append('mode', mode);
                             fetch(form.action, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
                                 .then(function(r){ return r.json(); })
                                 .then(function(j){
@@ -3615,8 +3632,36 @@
                                         st.textContent='Import completed';
                                         prog.style.width='100%';
                                         rs.style.display='flex';
-                                        var reg=j.regions||0, prov=j.provinces||0;
-                                        rs.innerHTML='<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span><span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>';
+                                                var reg=j.regions||0, prov=j.provinces||0, cities=j.cities||0, brgys=j.barangays||0;
+                                                var total=j.total_rows||0, ins=j.inserted||0, upd=j.updated||0, sk=j.skipped||0, err=j.errors||0;
+                                        rs.innerHTML=''
+                                            +'<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span>'
+                                            +'<span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>'
+                                            +'<span class="chip"><i class="fas fa-city"></i> Cities/Municipalities '+cities+'</span>'
+                                                    +'<span class="chip"><i class="fas fa-home"></i> Barangays '+brgys+'</span>'
+                                                    +'<span class="chip"><i class="fas fa-list"></i> Total Rows '+total+'</span>'
+                                                    +'<span class="chip" style="background:#ecfdf5;border-color:#bbf7d0;color:#166534"><i class="fas fa-plus"></i> Inserted '+ins+'</span>'
+                                                    +'<span class="chip" style="background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a"><i class="fas fa-sync"></i> Updated '+upd+'</span>'
+                                                    +'<span class="chip" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412"><i class="fas fa-ban"></i> Skipped '+sk+'</span>'
+                                                    +'<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606"><i class="fas fa-exclamation-triangle"></i> Errors '+err+'</span>';
+                                        var sb=document.getElementById('psgcSummaryBody');
+                                        var fnText=document.getElementById('psgcFileName').textContent||'Uploaded file';
+                                        sb.innerHTML=''
+                                            +'<span class="chip"><i class="fas fa-file"></i> '+fnText+'</span>'
+                                            +'<span class="chip"><i class="fas fa-sliders-h"></i> Mode '+mode.replace('_',' ')+'</span>'
+                                            +'<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span>'
+                                            +'<span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>'
+                                            +'<span class="chip"><i class="fas fa-city"></i> Cities/Municipalities '+cities+'</span>'
+                                            +'<span class="chip"><i class="fas fa-home"></i> Barangays '+brgys+'</span>'
+                                            +'<span class="chip"><i class="fas fa-list"></i> Total Rows '+total+'</span>'
+                                            +'<span class="chip" style="background:#ecfdf5;border-color:#bbf7d0;color:#166534"><i class="fas fa-plus"></i> Inserted '+ins+'</span>'
+                                            +'<span class="chip" style="background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a"><i class="fas fa-sync"></i> Updated '+upd+'</span>'
+                                            +'<span class="chip" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412"><i class="fas fa-ban"></i> Skipped '+sk+'</span>'
+                                            +'<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606"><i class="fas fa-exclamation-triangle"></i> Errors '+err+'</span>';
+                                        var md=document.getElementById('psgcSummaryModal');
+                                        md.style.display='block';
+                                        document.getElementById('psgcSummaryOk').onclick=function(){ md.style.display='none'; };
+                                        document.getElementById('psgcSummaryClose').onclick=function(){ md.style.display='none'; };
                                     }else{
                                         st.textContent='Import failed';
                                         prog.style.width='0%';

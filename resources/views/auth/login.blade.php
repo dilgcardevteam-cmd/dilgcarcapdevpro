@@ -1288,10 +1288,10 @@
         const oldCity = @json(old('city'));
         const oldBarangay = @json(old('barangay'));
         const BUREAUS = [
-            'BUREAU OF LOCAL GOVERNMENT DEVELOPMENT (BLGD)',
-            'BUREAU OF LOCAL GOVERNMENT SUPERVISION (BLGS)',
-            'OFFICE OF PROJECT DEVELOPMENT SERVICES (OPDS)',
-            'NATIONAL BARANGAY OPERATIONS OFFICE (NBOO)',
+            'Bureau of Local Government Development (BLGD)',
+            'Bureau of Local Government Supervision (BLGS)',
+            'Office of Project Development Services (OPDS)',
+            'National Barangay Operations Office (NBOO)',
         ];
         const SERVICES = [
             'Administrative Service',
@@ -1391,7 +1391,7 @@
             ph2.selected = true;
             ph2.textContent = 'Select Region';
             regionSelect.appendChild(ph2);
-            fetch('https://psgc.gitlab.io/api/regions/')
+            fetch('{{ route('psgc.regions') }}')
                 .then(function(response){ return response.json(); })
                 .then(function(data){
                     data.sort(function(a,b){ return a.name.localeCompare(b.name); });
@@ -1399,7 +1399,7 @@
                         var option = document.createElement('option');
                         option.value = region.name;
                         option.dataset.code = region.code;
-                        option.textContent = region.name + ' (' + region.regionName + ')';
+                        option.textContent = region.name;
                         if (oldRegion && oldRegion === region.name) {
                             option.selected = true;
                             ph2.selected = false;
@@ -1446,7 +1446,7 @@
             if (levelLabel === 'DILG Regional Office') {
                 // Show "Select Region" instead of office
                 provinceSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
-                fetch('https://psgc.gitlab.io/api/regions/')
+                fetch('{{ route('psgc.regions') }}')
                     .then(function(response){ return response.json(); })
                     .then(function(data){
                         data.sort(function(a,b){ return a.name.localeCompare(b.name); });
@@ -1454,7 +1454,7 @@
                             var opt = document.createElement('option');
                             opt.value = region.name;
                             opt.dataset.code = region.code;
-                            opt.textContent = region.name + ' (' + region.regionName + ')';
+                            opt.textContent = region.name;
                             provinceSelect.appendChild(opt);
                         });
                         provinceSelect.disabled = false;
@@ -1468,15 +1468,15 @@
             }
             if (levelLabel === 'DILG Provincial Office') {
                 // Only Select Office -> provincial offices
-                fetch('https://psgc.gitlab.io/api/provinces/')
+                fetch('{{ route('psgc.regions') }}')
                     .then(function(response){ return response.json(); })
                     .then(function(data){
                         data.sort(function(a,b){ return a.name.localeCompare(b.name); });
-                        data.forEach(function(province){
+                        data.forEach(function(region){
                             var opt = document.createElement('option');
-                            opt.value = province.name + ' Office';
-                            opt.dataset.code = province.code;
-                            opt.textContent = 'DILG ' + province.name + ' Office';
+                            opt.value = region.name + ' Office';
+                            opt.dataset.code = region.code;
+                            opt.textContent = 'DILG ' + region.name + ' Office';
                             provinceSelect.appendChild(opt);
                         });
                         provinceSelect.disabled = false;
@@ -1499,7 +1499,7 @@
 
             if (!regionCode) return;
 
-            fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
+            fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
                 .then(response => response.json())
                 .then(data => {
                     data.sort((a, b) => a.name.localeCompare(b.name));
@@ -1551,7 +1551,7 @@
 
             if (!cityCode) return;
 
-            fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
+            fetch(`{{ url('/psgc/cities') }}/${cityCode}/barangays`)
                 .then(response => response.json())
                 .then(data => {
                     data.sort((a, b) => a.name.localeCompare(b.name));
@@ -1659,8 +1659,8 @@
 
         function fetchCities(code, isRegion, selectedCity = null, selectedBarangay = null) {
             let url = isRegion 
-                ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
-                : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
+                ? `{{ url('/psgc/regions') }}/${code}/cities`
+                : `{{ url('/psgc/provinces') }}/${code}/cities`;
 
             citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
             citySelect.disabled = true;
@@ -1675,7 +1675,7 @@
                     data.forEach(city => {
                         const option = document.createElement('option');
                         option.value = city.name;
-                        option.dataset.code = city.code; // Store code for fetching barangays
+                        option.dataset.code = city.code;
                         option.textContent = city.name;
                         if (selectedCity && selectedCity === city.name) {
                             option.selected = true;

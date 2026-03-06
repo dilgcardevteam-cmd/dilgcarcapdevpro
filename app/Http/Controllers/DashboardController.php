@@ -834,6 +834,7 @@ class DashboardController extends Controller
 
     public function importLocationMaster(Request $request)
     {
+        @set_time_limit(300);
         $request->validate([
             'psgc_file' => 'required|file',
         ]);
@@ -865,59 +866,254 @@ class DashboardController extends Controller
         }
 
         $header = $rows[0];
-        $cols = array_map(function($c){ return strtolower(trim((string)$c)); }, $header);
+        $norm = function($s){
+            $s = strtolower(trim((string)$s));
+            $s = str_replace(['/', '-', ' '], '_', $s);
+            return $s;
+        };
+        $canonical = function(string $name): string {
+            $n = trim($name);
+            $ln = strtolower($n);
+            if (in_array($ln, ['baguio city','city of baguio','baguio'], true)) {
+                return 'City of Baguio';
+            }
+            return $n;
+        };
+        $cols = array_map($norm, $header);
         $iRegionCode = array_search('region_code', $cols);
         $iRegionName = array_search('region_name', $cols);
+        if ($iRegionName === false) $iRegionName = array_search('region', $cols);
         $iProvinceCode = array_search('province_code', $cols);
         $iProvinceName = array_search('province_name', $cols);
-        if ($iRegionCode === false || $iRegionName === false) {
-            return response()->json(['ok' => false, 'error' => 'Missing region headers'], 422);
+        if ($iProvinceName === false) $iProvinceName = array_search('province', $cols);
+        $iCityCode = array_search('city_code', $cols);
+        $iCityName = array_search('city_munacipility', $cols);
+        if ($iCityName === false) $iCityName = array_search('city_municipality', $cols);
+        if ($iCityName === false) $iCityName = array_search('city', $cols);
+        if ($iCityName === false) $iCityName = array_search('municipality', $cols);
+        $iBarangayCode = array_search('barangay_code', $cols);
+        $iBarangayName = array_search('barangay_name', $cols);
+        if ($iBarangayName === false) $iBarangayName = array_search('barangay', $cols);
+        if ($iRegionName === false) {
+            return response()->json(['ok' => false, 'error' => 'Missing region header'], 422);
         }
         $regionsInserted = 0;
         $provincesInserted = 0;
+        $citiesInserted = 0;
+        $barangaysInserted = 0;
+        $makeCode = function($name){
+            $h = sha1(strtolower(trim((string)$name)));
+            return strtoupper(substr($h, 0, 10));
+        };
+        $mode = strtolower(trim((string)($request->input('mode','insert_update'))));
+        if (!in_array($mode, ['insert_only','insert_update','replace_all'], true)) {
+            $mode = 'insert_update';
+        }
+        $totalRows = max(0, count($rows) - 1);
+        $inserted = 0;
+        $updated = 0;
+        $skipped = 0;
+        $errors = 0;
+
         \DB::beginTransaction();
         try {
-            $regionIdByCode = [];
+            if ($mode === 'replace_all') {
+                \DB::table('barangays')->delete();
+                \DB::table('cities')->delete();
+                \DB::table('provinces')->delete();
+                \DB::table('regions')->delete();
+            }
+            $existingCombos = [];
+            if ($mode !== 'replace_all') {
+                $ex = \DB::table('barangays as b')
+                    ->join('cities as c', 'b.city_id', '=', 'c.id')
+                    ->join('provinces as p', 'c.province_id', '=', 'p.id')
+                    ->join('regions as r', 'p.region_id', '=', 'r.id')
+                    ->selectRaw('UPPER(r.region_name) as region, UPPER(p.province_name) as province, UPPER(c.city_name) as city, UPPER(b.barangay_name) as barangay')
+                    ->get();
+                foreach ($ex as $row) {
+                    $key = "{$row->region}|{$row->province}|{$row->city}|{$row->barangay}";
+                    $existingCombos[$key] = true;
+                }
+            }
+            $regionSet = [];
+            $provinceSet = [];
+            $citySet = [];
+            $barangaySet = [];
             for ($ri = 1; $ri < count($rows); $ri++) {
                 $row = $rows[$ri];
-                $regionCode = isset($row[$iRegionCode]) ? trim($row[$iRegionCode]) : '';
-                $regionName = isset($row[$iRegionName]) ? trim($row[$iRegionName]) : '';
-                if ($regionCode && $regionName) {
-                    $existing = \DB::table('regions')->where('region_code', $regionCode)->first();
-                    if ($existing) {
-                        \DB::table('regions')->where('id', $existing->id)->update(['region_name' => $regionName, 'updated_at' => now()]);
-                        $regionIdByCode[$regionCode] = $existing->id;
-                    } else {
-                        $id = \DB::table('regions')->insertGetId(['region_code' => $regionCode, 'region_name' => $regionName, 'created_at' => now(), 'updated_at' => now()]);
-                        $regionIdByCode[$regionCode] = $id;
-                        $regionsInserted++;
-                    }
+                $regionName = $iRegionName !== false && isset($row[$iRegionName]) ? trim($row[$iRegionName]) : '';
+                $regionCode = $iRegionCode !== false && isset($row[$iRegionCode]) ? trim($row[$iRegionCode]) : '';
+                if (!$regionCode && $regionName) $regionCode = $makeCode($regionName);
+                $regionNameU = strtoupper($regionName);
+                if ($regionNameU) {
+                    $regionSet[$regionCode] = ['region_code' => $regionCode, 'region_name' => $regionNameU, 'created_at' => now(), 'updated_at' => now()];
                 }
-                if ($iProvinceCode !== false && $iProvinceName !== false) {
-                    $provCode = isset($row[$iProvinceCode]) ? trim($row[$iProvinceCode]) : '';
-                    $provName = isset($row[$iProvinceName]) ? trim($row[$iProvinceName]) : '';
-                    if ($provCode && $provName && $regionCode) {
-                        $regionId = $regionIdByCode[$regionCode] ?? (\DB::table('regions')->where('region_code', $regionCode)->value('id'));
-                        if ($regionId) {
-                            $existingP = \DB::table('provinces')->where('province_code', $provCode)->first();
-                            if ($existingP) {
-                                \DB::table('provinces')->where('id', $existingP->id)->update(['province_name' => $provName, 'region_id' => $regionId, 'updated_at' => now()]);
-                            } else {
-                                \DB::table('provinces')->insert(['region_id' => $regionId, 'province_code' => $provCode, 'province_name' => $provName, 'created_at' => now(), 'updated_at' => now()]);
-                                $provincesInserted++;
-                            }
+                $provName = $iProvinceName !== false && isset($row[$iProvinceName]) ? trim($row[$iProvinceName]) : '';
+                $provCode = $iProvinceCode !== false && isset($row[$iProvinceCode]) ? trim($row[$iProvinceCode]) : '';
+                if (!$provCode && $provName) $provCode = $makeCode($provName);
+                $provNameU = strtoupper($canonical($provName));
+                if ($provNameU && $regionCode) {
+                    $provinceSet[$provCode] = ['province_code' => $provCode, 'province_name' => $provNameU, 'region_code' => $regionCode, 'created_at' => now(), 'updated_at' => now()];
+                }
+                $cityName = $iCityName !== false && isset($row[$iCityName]) ? trim($row[$iCityName]) : '';
+                $cityCode = $iCityCode !== false && isset($row[$iCityCode]) ? trim($row[$iCityCode]) : '';
+                if (!$cityCode && $cityName) $cityCode = $makeCode($cityName);
+                $cityNameU = strtoupper($canonical($cityName));
+                if ($cityNameU && $provCode) {
+                    // Special instruction: if city is City of Baguio, set province also to City of Baguio
+                    if ($cityNameU === 'CITY OF BAGUIO') {
+                        $provinceSet[$provCode] = ['province_code' => $provCode, 'province_name' => 'CITY OF BAGUIO', 'region_code' => $regionCode, 'created_at' => now(), 'updated_at' => now()];
+                    }
+                    $citySet[$cityCode] = ['city_code' => $cityCode, 'city_name' => $cityNameU, 'province_code' => $provCode, 'created_at' => now(), 'updated_at' => now()];
+                }
+                $barangayName = $iBarangayName !== false && isset($row[$iBarangayName]) ? trim($row[$iBarangayName]) : '';
+                $barangayCode = $iBarangayCode !== false && isset($row[$iBarangayCode]) ? trim($row[$iBarangayCode]) : '';
+                if (!$barangayCode && $barangayName) $barangayCode = $makeCode($barangayName);
+                $barangayNameU = strtoupper($barangayName);
+                if ($barangayNameU && $cityCode) {
+                    $key = "{$regionNameU}|{$provNameU}|{$cityNameU}|{$barangayNameU}";
+                    if ($mode === 'insert_only' && isset($existingCombos[$key])) {
+                        $skipped++;
+                        continue;
+                    } elseif ($mode === 'insert_update' && isset($existingCombos[$key])) {
+                        $updated++;
+                    } else {
+                        $inserted++;
+                    }
+                    $barangaySet[$barangayCode ?: $barangayNameU] = ['barangay_code' => $barangayCode, 'barangay_name' => $barangayNameU, 'city_code' => $cityCode, 'created_at' => now(), 'updated_at' => now()];
+                }
+            }
+            if (!empty($regionSet)) {
+                $chunks = array_chunk(array_values($regionSet), 1000);
+                foreach ($chunks as $chunk) {
+                    \DB::table('regions')->upsert($chunk, ['region_code'], ['region_name','updated_at']);
+                }
+                $regionsInserted = count($regionSet);
+            }
+            $regionIds = \DB::table('regions')->whereIn('region_code', array_keys($regionSet))->pluck('id','region_code')->toArray();
+            $provinceRows = [];
+            foreach ($provinceSet as $pc => $p) {
+                $rid = $regionIds[$p['region_code']] ?? null;
+                if ($rid) {
+                    $provinceRows[] = ['province_code' => $p['province_code'], 'province_name' => $p['province_name'], 'region_id' => $rid, 'created_at' => $p['created_at'], 'updated_at' => $p['updated_at']];
+                }
+            }
+            if (!empty($provinceRows)) {
+                $chunks = array_chunk($provinceRows, 1000);
+                foreach ($chunks as $chunk) {
+                    \DB::table('provinces')->upsert($chunk, ['province_code'], ['province_name','region_id','updated_at']);
+                }
+                $provincesInserted = count($provinceRows);
+            }
+            $provinceIds = \DB::table('provinces')->whereIn('province_code', array_column($provinceRows, 'province_code'))->pluck('id','province_code')->toArray();
+            $cityRows = [];
+            foreach ($citySet as $cc => $c) {
+                $pid = $provinceIds[$c['province_code']] ?? null;
+                if ($pid) {
+                    $cityRows[] = ['city_code' => $c['city_code'], 'city_name' => $c['city_name'], 'province_id' => $pid, 'created_at' => $c['created_at'], 'updated_at' => $c['updated_at']];
+                }
+            }
+            if (!empty($cityRows)) {
+                $chunks = array_chunk($cityRows, 1000);
+                foreach ($chunks as $chunk) {
+                    \DB::table('cities')->upsert($chunk, ['city_code'], ['city_name','province_id','updated_at']);
+                }
+                $citiesInserted = count($cityRows);
+            }
+            $cityIds = \DB::table('cities')->whereIn('city_code', array_column($cityRows, 'city_code'))->pluck('id','city_code')->toArray();
+            $barangayRows = [];
+            foreach ($barangaySet as $bk => $b) {
+                $cid = $cityIds[$b['city_code']] ?? null;
+                if ($cid) {
+                    $barangayRows[] = ['barangay_code' => $b['barangay_code'], 'barangay_name' => $b['barangay_name'], 'city_id' => $cid, 'created_at' => $b['created_at'], 'updated_at' => $b['updated_at']];
+                }
+            }
+            if (!empty($barangayRows)) {
+                $chunks = array_chunk($barangayRows, 1000);
+                foreach ($chunks as $chunk) {
+                    \DB::table('barangays')->upsert($chunk, ['barangay_code'], ['barangay_name','city_id','updated_at']);
+                }
+                $barangaysInserted = count($barangayRows);
+            }
+            $baguioCityId = \DB::table('cities')->where('city_name', 'City of Baguio')->value('id');
+            if (!$baguioCityId) {
+                $baguioProvinceId = \DB::table('provinces')->where('province_name', 'City of Baguio')->value('id');
+                if ($baguioProvinceId) {
+                    $baguioCityId = \DB::table('cities')->insertGetId(['province_id' => $baguioProvinceId, 'city_code' => $makeCode('City of Baguio'), 'city_name' => 'City of Baguio', 'created_at' => now(), 'updated_at' => now()]);
+                }
+            }
+            if ($baguioCityId) {
+                $baguioList = [
+                    'APUGAN-LOAKAN','ASIN ROAD','ATOK TRAIL','BAKAKENG CENTRAL','BAKAKENG NORTH','HAPPY HOLLOW','BALSIGAN','BAYAN PARK WEST','BAYAN PARK EAST','BROOKSPOINT','BROOKSIDE','CABINET HILL-TEACHER\'S CAMP','CAMP ALLEN','CAMP 7','CAMP 8','CAMPO FILIPINO','CITY CAMP CENTRAL','CITY CAMP PROPER','COUNTRY CLUB VILLAGE','CRESENCIA VILLAGE','DAGSIAN, UPPER','DPS AREA','DIZON SUBDIVISION','QUIRINO HILL, EAST','ENGINEERS\' HILL','FAIRVIEW VILLAGE','FORT DEL PILAR','GENERAL LUNA, UPPER','GENERAL LUNA, LOWER','GIBRALTAR','GREENWATER VILLAGE','GUISAD CENTRAL','GUISAD SORONG','HILLSIDE','HOLY GHOST EXTENSION','HOLY GHOST PROPER','IMELDA VILLAGE','IRISAN','KAYANG EXTENSION','KIAS','KAGITINGAN','LOAKAN PROPER','LOPEZ JAENA','LOURDES SUBDIVISION EXTENSION','DAGSIAN, LOWER','LOURDES SUBDIVISION, LOWER','QUIRINO HILL, LOWER','GENERAL EMILIO F. AGUINALDO','LUALHATI','LUCNAB','MAGSAYSAY, LOWER','MAGSAYSAY PRIVATE ROAD','AURORA HILL PROPER','BAL-MARCOVILLE','QUIRINO HILL, MIDDLE','MILITARY CUT-OFF','MINES VIEW PARK','MODERN SITE, EAST','MODERN SITE, WEST','NEW LUCBAN','AURORA HILL, NORTH CENTRAL','SANITARY CAMP, NORTH','OUTLOOK DRIVE','PACDAL','PINGET','PINSAO PILOT PROJECT','PINSAO PROPER','POLIWES','PUCSUSAN','MRR-QUEEN OF PEACE','ROCK QUARRY, LOWER','SALUD MITRA','SAN ANTONIO VILLAGE','SAN LUIS VILLAGE','SAN ROQUE VILLAGE','SAN VICENTE','SANTA ESCOLASTICA','SANTO ROSARIO','SANTO TOMAS SCHOOL AREA','SANTO TOMAS PROPER','SCOUT BARRIO','SESSION ROAD AREA','SLAUGHTER HOUSE AREA','SANITARY CAMP, SOUTH','SAINT JOSEPH VILLAGE','TEODORA ALONZO','TRANCOVILLE','ROCK QUARRY, UPPER','VICTORIA VILLAGE','QUIRINO HILL, WEST','ANDRES BONIFACIO','LEGARDA-BURNHAM-KISAD','IMELDA R. MARCOS','LOURDES SUBDIVISION, PROPER','QUIRINO-MAGSAYSAY, UPPER','A. BONIFACIO-CAGUIOA-RIMANDO','AMBIONG','AURORA HILL, SOUTH CENTRAL','ABANAO-ZANDUETA-KAYONG-CHUGUM-OTEK','BAGONG LIPUNAN','BGH COMPOUND','BAYAN PARK VILLAGE','CAMDAS SUBDIVISION','PALMA-URBANO','DOMINICAN HILL-MIRADOR','ALFONSO TABORA','DONTOGAN','FERDINAND','HAPPY HOMES','HARRISON-CLAUDIO CARANTES','HONEYMOON','KABAYANIHAN','KAYANG-HILLTOP','GABRIELA SILANG','LIWANAG-LOAKAN','MALCOLM SQUARE-PERFECTO','MANUEL A. ROXAS','PADRE BURGOS','QUEZON HILL, UPPER','ROCK QUARRY, MIDDLE','PHIL-AM','QUEZON HILL PROPER','MIDDLE QUEZON HILL SUBDIVISION','RIZAL MONUMENT AREA','SLU-SVP HOUSING VILLAGE','SOUTH DRIVE','MAGSAYSAY, UPPER','MARKET SUBDIVISION, UPPER','PADRE ZAMORA'
+                ];
+                foreach ($baguioList as $bn) {
+                    $exists = \DB::table('barangays')->where('barangay_name', $bn)->first();
+                    if ($exists) {
+                        if ($exists->city_id != $baguioCityId) {
+                            \DB::table('barangays')->where('id', $exists->id)->update(['city_id' => $baguioCityId, 'updated_at' => now()]);
                         }
+                    } else {
+                        \DB::table('barangays')->insert(['city_id' => $baguioCityId, 'barangay_code' => $makeCode($bn), 'barangay_name' => $bn, 'created_at' => now(), 'updated_at' => now()]);
+                        $inserted++;
                     }
                 }
             }
             \DB::commit();
         } catch (\Throwable $e) {
             \DB::rollBack();
-            return response()->json(['ok' => false, 'error' => 'Import error'], 500);
+            \Log::error('Location import failed', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
-        return response()->json(['ok' => true, 'regions' => $regionsInserted, 'provinces' => $provincesInserted]);
+        return response()->json([
+            'ok' => true,
+            'regions' => $regionsInserted,
+            'provinces' => $provincesInserted,
+            'cities' => $citiesInserted,
+            'barangays' => $barangaysInserted,
+            'total_rows' => $totalRows,
+            'inserted' => $inserted,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ]);
     }
 
+    public function regionsJson()
+    {
+        $rows = \DB::table('regions')->orderBy('region_name')->get(['region_code as code','region_name as name']);
+        return response()->json($rows);
+    }
+    public function provincesByRegionJson(string $regionCode)
+    {
+        $regionId = \DB::table('regions')->where('region_code', $regionCode)->value('id');
+        if (!$regionId) return response()->json([]);
+        $rows = \DB::table('provinces')->where('region_id', $regionId)->orderBy('province_name')->get(['province_code as code','province_name as name']);
+        return response()->json($rows);
+    }
+    public function citiesByRegionJson(string $regionCode)
+    {
+        $regionId = \DB::table('regions')->where('region_code', $regionCode)->value('id');
+        if (!$regionId) return response()->json([]);
+        $provinceIds = \DB::table('provinces')->where('region_id', $regionId)->pluck('id')->toArray();
+        if (empty($provinceIds)) return response()->json([]);
+        $rows = \DB::table('cities')->whereIn('province_id', $provinceIds)->orderBy('city_name')->get(['city_code as code','city_name as name']);
+        return response()->json($rows);
+    }
+    public function citiesByProvinceJson(string $provinceCode)
+    {
+        $provinceId = \DB::table('provinces')->where('province_code', $provinceCode)->value('id');
+        if (!$provinceId) return response()->json([]);
+        $rows = \DB::table('cities')->where('province_id', $provinceId)->orderBy('city_name')->get(['city_code as code','city_name as name']);
+        return response()->json($rows);
+    }
+    public function barangaysByCityJson(string $cityCode)
+    {
+        $cityId = \DB::table('cities')->where('city_code', $cityCode)->value('id');
+        if (!$cityId) return response()->json([]);
+        $rows = \DB::table('barangays')->where('city_id', $cityId)->orderBy('barangay_name')->get(['barangay_code as code','barangay_name as name']);
+        return response()->json($rows);
+    }
     private function parseXlsxToRows(string $filePath): array
     {
         $rows = [];

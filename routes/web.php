@@ -97,6 +97,13 @@ Route::get('/trainer/test-banks', [TrainerController::class, 'listTestBanks'])->
 Route::post('/trainer/test-banks', [TrainerController::class, 'storeTestBank'])->middleware(['auth'])->name('trainer.test-banks.store');
 Route::delete('/trainer/test-banks/{template}', [TrainerController::class, 'destroyTestBank'])->middleware(['auth'])->name('trainer.test-banks.destroy');
 
+// Public PSGC-like location endpoints for signup
+Route::get('/psgc/regions', [DashboardController::class, 'regionsJson'])->name('psgc.regions');
+Route::get('/psgc/regions/{code}/provinces', [DashboardController::class, 'provincesByRegionJson'])->name('psgc.provinces.by-region');
+Route::get('/psgc/regions/{code}/cities', [DashboardController::class, 'citiesByRegionJson'])->name('psgc.cities.by-region');
+Route::get('/psgc/provinces/{code}/cities', [DashboardController::class, 'citiesByProvinceJson'])->name('psgc.cities.by-province');
+Route::get('/psgc/cities/{code}/barangays', [DashboardController::class, 'barangaysByCityJson'])->name('psgc.barangays.by-city');
+
 // Role conversion: Registrar -> Training Manager
 Route::post('/admin/users/{user}/convert-registrar-to-training-manager', [DashboardController::class, 'convertRegistrarToTrainingManager'])->middleware(['auth'])->name('admin.users.convert_to_training_manager');
 Route::post('/admin/users/{user}/rollback-training-manager', [DashboardController::class, 'rollbackTrainingManager'])->middleware(['auth'])->name('admin.users.rollback_training_manager');
