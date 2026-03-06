@@ -3560,7 +3560,7 @@
                                     <input id="psgcFile" type="file" name="psgc_file" accept=".csv,.xlsx" style="display:none">
                                     <div class="dz-meta">
                                         <div id="psgcFileName" class="dz-file">No file selected</div>
-                                        <div class="cta-row">
+                                            <div class="cta-row">
                                             <select id="psgcMode" name="mode" class="input-pro" style="flex:1">
                                                 <option value="insert_only">Insert Only</option>
                                                 <option value="insert_update" selected>Insert + Update</option>
