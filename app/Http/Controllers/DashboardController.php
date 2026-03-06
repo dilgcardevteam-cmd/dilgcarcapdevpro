@@ -1249,4 +1249,9 @@ class DashboardController extends Controller
         }
         return max(0, $n - 1);
     }
+
+    public function helpSupport()
+    {
+        return view('help_support');
+    }
 }

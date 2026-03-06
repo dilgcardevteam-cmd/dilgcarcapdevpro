@@ -756,7 +756,7 @@
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
-                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">

@@ -59,7 +59,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     <div id="profileDropdown" class="profile-dropdown">
       <a class="dropdown-item" href="{{ route('profile.setup') }}"><i class="fas fa-user-cog"></i> <span>Profile</span></a>
       <a class="dropdown-item" href="{{ route('trainer.courses.create') }}"><i class="fas fa-plus-circle"></i> <span>Create Course</span></a>
-      <a class="dropdown-item" href="mailto:support@capdevpro.local"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
+      <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
       <form method="POST" action="{{ route('logout') }}" style="margin:0">@csrf<button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button></form>
     </div>
   </div>
