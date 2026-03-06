@@ -64,6 +64,15 @@
         .module-title { display:flex;align-items:center;gap:12px;margin:0;color:#001f54;font-size:1rem; flex: 1; min-width: 0; }
         .module-index { width:28px;height:28px;border-radius:50%;background:#00a859;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700; }
         .module-number-label { white-space: nowrap; font-weight: 600; color: #001f54; }
+        .exam-header { cursor: grab; }
+        .exam-wrapper.dragging { opacity:.6; transform: scale(.995); }
+        #modulesContainer .drop-placeholder { height:0; border-top:3px solid #3b82f6; border-radius:2px; margin:6px 0; }
+        .kebab-btn{ width:34px;height:34px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;color:#111827;display:flex;align-items:center;justify-content:center;cursor:pointer; }
+        .kebab-btn:hover{ background:#f8fafc; }
+        .kebab-menu{ position:absolute; right:0; top:100%; margin-top:6px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.12); display:none; min-width:180px; z-index:50; }
+        .kebab-menu.open{ display:block; }
+        .kebab-item{ display:flex; gap:10px; align-items:center; padding:10px 12px; cursor:pointer; color:#111827; }
+        .kebab-item:hover{ background:#f1f5f9; }
         .module-title-input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; }
         .module-actions { display:flex; align-items:center; gap:8px; }
         .chevron-btn { background:#f1f5f9; color:#111827; border:none; width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
@@ -296,9 +305,15 @@
                         <span class="module-number-label">Module ${index+1}:</span>
                         <input class="module-title-input" type="text" name="modules[${index}][title]" placeholder="Module title" required>
                     </div>
-                    <div class="module-actions">
-                        <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
-                        <button type="button" class="delete-btn" title="Delete module" onclick="removeModule(this, event)"><i class="fas fa-trash-alt"></i></button>
+                    <div class="module-actions" style="position:relative;display:flex;align-items:center;gap:8px;">
+                        <button type="button" class="kebab-btn" title="More actions" onclick="openKebab(this)">
+                            <i class="fas fa-ellipsis-vertical"></i>
+                        </button>
+                        <div class="kebab-menu">
+                            <div class="kebab-item" onclick="kebabAddTopic(this)"><i class="fas fa-stream"></i> Add Topic</div>
+                            <div class="kebab-item" onclick="kebabAddModule(this)"><i class="fas fa-layer-group"></i> Add Module</div>
+                            <div class="kebab-item" onclick="kebabDeleteModule(this)"><i class="fas fa-trash"></i> Delete Section</div>
+                        </div>
                         <button type="button" class="chevron-btn" onclick="toggleChevron(this)"><i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
@@ -309,6 +324,7 @@
                 </div>
             `;
             container.appendChild(wrapper);
+            reindexModules();
             updateProgress();
         }
         function toggleChevron(btn){
@@ -336,9 +352,14 @@
                         <span style="color:#6b7280;width:40px;">${moduleIndex+1}.${idx}</span>
                         <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Topic title" required maxlength="80" style="flex:1;">
                     </div>
-                    <div style="display:flex;gap:8px;">
-                        <button type="button" class="btn btn-small" style="background:#0038A7;" onclick="addSubtopicRow(this)">Add Subtopic</button>
-                        <button type="button" class="delete-btn" title="Delete topic" onclick="removeTopicRow(this)"><i class="fas fa-trash-alt"></i></button>
+                    <div style="position:relative;display:flex;gap:8px;align-items:center;">
+                        <button type="button" class="kebab-btn" title="More actions" onclick="openKebab(this)">
+                            <i class="fas fa-ellipsis-vertical"></i>
+                        </button>
+                        <div class="kebab-menu">
+                            <div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>
+                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash"></i> Delete Topic</div>
+                        </div>
                     </div>
                 </div>
                 <div class="subtopics" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -400,6 +421,39 @@
             row.remove();
             reindexTopics(topics);
             updateProgress();
+        }
+        function openKebab(btn){
+            const menu = btn.parentElement.querySelector('.kebab-menu');
+            document.querySelectorAll('.kebab-menu.open').forEach(m=>{ if(m!==menu) m.classList.remove('open'); });
+            if(menu){ menu.classList.toggle('open'); }
+            document.addEventListener('click', function onDoc(e){
+                if(!menu) return document.removeEventListener('click', onDoc);
+                if(!menu.contains(e.target) && e.target!==btn){
+                    menu.classList.remove('open'); document.removeEventListener('click', onDoc);
+                }
+            });
+        }
+        function kebabAddTopic(el){
+            const wrapper = el.closest('.module-wrapper');
+            const body = wrapper?.querySelector('.module-body');
+            if(body){ body.style.display='block'; addTopicInput(body); }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
+        function kebabAddModule(el){
+            createModule(); el.closest('.kebab-menu').classList.remove('open');
+        }
+        function kebabDeleteModule(el){
+            if(!confirm('Delete this module?')) return;
+            const wrapper = el.closest('.module-wrapper'); if(wrapper){ wrapper.remove(); reindexModules(); updateProgress(); }
+        }
+        function kebabAddSubtopic(el){
+            const topicRow = el.closest('.topic-row'); if(topicRow){ addSubtopicRow(topicRow); }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
+        function kebabDeleteTopic(el){
+            if(!confirm('Delete this topic?')) return;
+            const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); }
+            el.closest('.kebab-menu').classList.remove('open');
         }
         function reindexTopics(container){
             const wrapper = container.closest('.module-wrapper');
@@ -1911,11 +1965,16 @@
             wrap.innerHTML = `
                 <div class="exam-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
                     <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Course Exam</div>
-                    <div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <button type="button" class="chevron-btn" onclick="toggleExamChevron(this)" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>
                         <button type="button" class="delete-btn" title="Delete exam" onclick="this.closest('.exam-wrapper').remove(); reindexModules();"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
                 <div class="q-block">
+                    <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px">
+                        <input class="exam-title" type="text" placeholder="Exam title (optional)" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                        <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
+                    </div>
                     <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
                         <div style="font-weight:800;color:#0B2C74">Course Exam</div>
                         <label style="display:flex;align-items:center;gap:8px">
@@ -1965,6 +2024,53 @@
             }else{
                 container.appendChild(wrap);
             }
+            // Drag and drop for exam wrapper
+            wrap.setAttribute('draggable','true');
+            wrap.addEventListener('dragstart', (e)=>{
+                window.__dragExam = wrap;
+                wrap.classList.add('dragging');
+                // auto-minimize during drag
+                const body = wrap.querySelector('.q-block');
+                const icon = wrap.querySelector('.chevron-btn i');
+                const wasOpen = (body.style.display === '' || body.style.display === 'block');
+                wrap.dataset.prevOpen = wasOpen ? '1' : '0';
+                body.style.display = 'none';
+                if(icon) icon.style.transform = 'rotate(0deg)';
+                e.dataTransfer.effectAllowed='move';
+                try{ e.dataTransfer.setData('text/plain','exam'); }catch(_){} 
+            });
+            wrap.addEventListener('dragend', ()=>{
+                wrap.classList.remove('dragging'); 
+                const body = wrap.querySelector('.q-block');
+                const icon = wrap.querySelector('.chevron-btn i');
+                if(wrap.dataset.prevOpen === '1'){ body.style.display = 'block'; if(icon) icon.style.transform = 'rotate(180deg)'; }
+                window.__dragExam=null; 
+                const ph = cont.__dropPlaceholder; if(ph && ph.parentNode){ ph.parentNode.removeChild(ph); }
+            });
+            const cont = document.getElementById('modulesContainer');
+            if(!cont.__dndBound){
+                cont.__dndBound = true;
+                cont.addEventListener('dragover', (e)=>{
+                    if(!window.__dragExam) return;
+                    e.preventDefault();
+                    const ph = cont.__dropPlaceholder || (cont.__dropPlaceholder = Object.assign(document.createElement('div'), {className:'drop-placeholder'}));
+                    const before = getDropBeforeElement(cont, e.clientY);
+                    if(before==null){ cont.appendChild(ph); }
+                    else { cont.insertBefore(ph, before); }
+                });
+                cont.addEventListener('drop', (e)=>{
+                    if(window.__dragExam){
+                        e.preventDefault();
+                        const ph = cont.__dropPlaceholder;
+                        const before = getDropBeforeElement(cont, e.clientY);
+                        if(before==null){ cont.appendChild(window.__dragExam); }
+                        else { cont.insertBefore(window.__dragExam, before); }
+                        if(ph && ph.parentNode){ ph.parentNode.removeChild(ph); }
+                        reindexModules();
+                        window.__dragExam=null;
+                    }
+                });
+            }
             __bindAutosizeTextareas(wrap);
             function renderChoices(){
                 const wrapChoices = wrap.querySelector('.eq-choices');
@@ -1991,12 +2097,14 @@
             }
             function syncExamJSON(){
                 const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const title = (wrap.querySelector('.exam-title')?.value || '').trim();
+                const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
                 const list = wrap.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ timer_minutes: duration, questions: qs });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
             }
             wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             wrap.addEventListener('input', syncExamJSON);
@@ -2029,7 +2137,7 @@
                 listEl.appendChild(node);
                 wrap.querySelector('.eq-text').value='';
                 wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
-                const r = wrap.querySelector('.eq-correct'); if(r) r.checked=false;
+                wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 wrap.querySelector('.eq-id-answer').value='';
                 wrap.querySelector('.eq-tf-answer').value='true';
                 syncExamJSON();
@@ -2038,6 +2146,8 @@
             if(prefill){
                 try{
                     wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
+                    if(prefill.title) wrap.querySelector('.exam-title').value = prefill.title;
+                    if(prefill.description) wrap.querySelector('.exam-desc').value = prefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
                     (prefill.questions||[]).forEach((q, i2)=>{
                         const node = document.createElement('div');
@@ -2052,6 +2162,39 @@
             }
             reindexModules();
             return wrap;
+        }
+        function getDropBeforeElement(container, y){
+            const els = [...container.querySelectorAll('.module-wrapper, .exam-wrapper:not(.dragging)')];
+            for(let i=0;i<els.length;i++){
+                const el = els[i];
+                const box = el.getBoundingClientRect();
+                if(y < box.top + box.height/2) return el;
+            }
+            return null;
+        }
+        function toggleExamChevron(btn){
+            const wrapper = btn.closest('.exam-wrapper');
+            const body = wrapper.querySelector('.q-block');
+            const icon = btn.querySelector('i');
+            const open = (body.style.display === '' || body.style.display === 'block');
+            body.style.display = open ? 'none' : 'block';
+            if(icon) icon.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+        function moveOutlineItemUp(btn){
+            const wrapper = btn.closest('.exam-wrapper');
+            const container = document.getElementById('modulesContainer');
+            if(wrapper && wrapper.previousElementSibling){
+                container.insertBefore(wrapper, wrapper.previousElementSibling);
+                reindexModules();
+            }
+        }
+        function moveOutlineItemDown(btn){
+            const wrapper = btn.closest('.exam-wrapper');
+            const container = document.getElementById('modulesContainer');
+            if(wrapper && wrapper.nextElementSibling){
+                container.insertBefore(wrapper.nextElementSibling, wrapper);
+                reindexModules();
+            }
         }
         function dmAddReflection(){
             const anchor = DM_STATE.currentAnchor;

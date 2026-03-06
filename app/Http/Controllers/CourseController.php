@@ -184,6 +184,8 @@ class CourseController extends Controller
                         return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                     }));
                     $exam = [
+                        'title' => (string) ($e['title'] ?? ''),
+                        'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'questions' => $qs,
                     ];
@@ -342,6 +344,8 @@ class CourseController extends Controller
                         return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                     }));
                     $exam = [
+                        'title' => (string) ($e['title'] ?? ''),
+                        'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'questions' => $qs,
                     ];
