@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'credits' => [
+        'organization' => env('APP_ORG', null),
+        'team' => [
+            'Juan Dela Cruz',
+            'Maria Santos',
+            'Jose Ramirez',
+            'Anna Lopez',
+            'Michael Reyes',
+            'Daniel Cruz',
+        ],
+    ],
+
 ];

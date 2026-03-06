@@ -2208,9 +2208,29 @@
         const roleMap = {
             'coach': 'coach',
             'participant': 'participant',
-            'training_manager': 'training_manager'
+            'training_manager': 'training_manager',
+            'trainer': 'coach',
+            'trainee': 'participant',
+            'super_admin': 'admin',
+            'admin': 'admin',
+            'central_office_admin': 'admin',
+            'regional_office_admin': 'admin',
+            'provincial_office_admin': 'admin',
+            'central_office_coach': 'coach',
+            'regional_office_coach': 'coach',
+            'provincial_office_coach': 'coach',
+            'central_office_participants': 'participant',
+            'regional_office_participants': 'participant',
+            'provincial_office_participants': 'participant',
+            'central_office_training_manager': 'training_manager',
+            'regional_office_training_manager': 'training_manager',
+            'provincial_office_training_manager': 'training_manager'
         };
         const mappedVal = type === 'role' ? (roleMap[val] || val) : val;
+        // For single-role view: uncheck other roles when selecting a role filter
+        if (type === 'role') {
+            document.querySelectorAll('input[name="roles[]"]').forEach(cb => { cb.checked = false; });
+        }
         const checkbox = document.querySelector(`input[name="${inputName}"][value="${mappedVal}"]`);
         if (checkbox) {
             checkbox.checked = true;
