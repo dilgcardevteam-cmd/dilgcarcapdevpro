@@ -3535,7 +3535,6 @@
                                     <input id="psgcFile" type="file" name="psgc_file" accept=".csv,.xlsx" style="display:none">
                                     <div class="dz-meta">
                                         <div id="psgcFileName" class="dz-file">No file selected</div>
-<<<<<<< HEAD
                                         <div class="cta-row">
                                             <div class="import-mode-wrap" style="display:flex;align-items:center;gap:8px;margin-right:auto">
                                                 <label for="psgcMode" class="form-label" style="margin:0">Import Mode</label>
@@ -3545,14 +3544,12 @@
                                                     <option value="replace_all">Replace All</option>
                                                 </select>
                                             </div>
-=======
                                             <div class="cta-row">
                                             <select id="psgcMode" name="mode" class="input-pro" style="flex:1">
                                                 <option value="insert_only">Insert Only</option>
                                                 <option value="insert_update" selected>Insert + Update</option>
                                                 <option value="replace_all">Replace All</option>
                                             </select>
->>>>>>> 3f0a77906cba737584e4fa689dd8f19f1f159b49
                                             <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
@@ -3707,8 +3704,6 @@
                     })();
                 </script>
             </section>
-<<<<<<< HEAD
-=======
 
             <section id="help-support" class="content-section {{ request('tab') == 'help-support' ? 'active' : '' }}">
                 <style>
@@ -3947,7 +3942,6 @@
                     })();
                 </script>
             </section>
->>>>>>> 3f0a77906cba737584e4fa689dd8f19f1f159b49
             <!-- User Management Section -->
             <section id="user-management" class="content-section {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
