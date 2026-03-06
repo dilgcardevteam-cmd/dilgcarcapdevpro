@@ -44,7 +44,7 @@ class DashboardController extends Controller
             $forceProfile = false;
             $pendingCoursesCount = 0;
             $earnedCertificates = collect([]);
-            return view('coparticipant.dashboard', compact(
+            return view('trainee.dashboard', compact(
                 'notifications',
                 'unreadNotificationsCount',
                 'myCourses',

@@ -31,11 +31,15 @@ class OfficeRoleUserSeeder extends Seeder
                     'name' => $u['name'],
                     'password' => Hash::make('password123'),
                     'role' => $u['role'],
-                    'region' => 'DILG',
-                    'province' => null,
-                    'city' => null,
+                    'region' => in_array($u['role'], ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants']) ? 'DILG Central Office'
+                        : (in_array($u['role'], ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants']) ? 'DILG Regional Office'
+                        : 'DILG Provincial Office'),
+                    'province' => in_array($u['role'], ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants']) ? 'Bureaus' : 'DILG Cordillera Administrative Region (CAR) Office',
+                    'city' => in_array($u['role'], ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants']) ? 'Bureau of Local Government Development (BLGD)' : null,
                     'barangay' => null,
                     'status' => 'active',
+                    'profile_completed' => true,
+                    'profile_completed_at' => now(),
                 ]
             );
         }

@@ -300,18 +300,42 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
-            // Auto-mark profile as completed for manual accounts with sufficient info
+            // Ensure DILG office users have pre-populated office/location and skip profile setup
             $u = Auth::user();
-            if (
-                !$u->profile_completed &&
-                empty($u->google_id) &&
-                $u->name &&
-                $u->email &&
-                $u->region && $u->province && $u->city && $u->barangay
-            ) {
-                $u->profile_completed = true;
-                $u->profile_completed_at = now();
-                $u->save();
+            if ($u && !$u->profile_completed) {
+                $role = $u->role ?? '';
+                $isCentral = in_array($role, ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'], true);
+                $isRegional = in_array($role, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
+                $isProvincial = in_array($role, ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'], true);
+                if ($isCentral || $isRegional || $isProvincial) {
+                    if ($isCentral) {
+                        $u->region = $u->region ?: 'DILG Central Office';
+                        $u->province = $u->province ?: 'Bureaus';
+                        $u->city = $u->city ?: 'Bureau of Local Government Development (BLGD)';
+                        $u->barangay = $u->barangay ?: null;
+                    } elseif ($isRegional) {
+                        $u->region = $u->region ?: 'DILG Regional Office';
+                        $u->province = $u->province ?: 'DILG Cordillera Administrative Region (CAR) Office';
+                        $u->city = $u->city ?: null;
+                        $u->barangay = $u->barangay ?: null;
+                    } elseif ($isProvincial) {
+                        $u->region = $u->region ?: 'DILG Provincial Office';
+                        $u->province = $u->province ?: 'DILG Cordillera Administrative Region (CAR) Office';
+                        $u->city = $u->city ?: null;
+                        $u->barangay = $u->barangay ?: null;
+                    }
+                    $u->profile_completed = true;
+                    $u->profile_completed_at = now();
+                    $u->save();
+                } elseif (
+                    empty($u->google_id) &&
+                    $u->name && $u->email &&
+                    $u->region && $u->province && $u->city && $u->barangay
+                ) {
+                    $u->profile_completed = true;
+                    $u->profile_completed_at = now();
+                    $u->save();
+                }
             }
 
             return redirect()->intended('dashboard');
