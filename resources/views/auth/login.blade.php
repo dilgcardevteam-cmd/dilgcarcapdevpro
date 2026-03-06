@@ -1347,7 +1347,7 @@
                     provinceContainer.style.display = levelLabel ? '' : 'none';
                 }
                 if (cityContainer) {
-                    cityContainer.style.display = (levelLabel === 'Central Office') ? '' : 'none';
+                    cityContainer.style.display = (levelLabel === 'DILG Central Office') ? '' : 'none';
                 }
                 if (barangayContainer) {
                     barangayContainer.style.display = 'none';
@@ -1370,7 +1370,7 @@
                 ph.selected = true;
                 ph.textContent = 'Select Level';
                 regionSelect.appendChild(ph);
-                ['Central Office','DILG Regional Office','DILG Provincial Office'].forEach(function(label){
+                ['DILG Central Office','DILG Regional Office','DILG Provincial Office'].forEach(function(label){
                     var opt = document.createElement('option');
                     opt.value = label;
                     opt.textContent = label;
@@ -1424,7 +1424,7 @@
             if (cityContainer) cityContainer.style.display = 'none';
             if (barangayContainer) barangayContainer.style.display = 'none';
             if (!levelLabel) { applyAgencyMode(); return; }
-            if (levelLabel === 'Central Office') {
+            if (levelLabel === 'DILG Central Office') {
                 // Step 1: Select Office -> Bureaus or Services
                 ['Bureaus','Services'].forEach(function(label){
                     var opt = document.createElement('option');
@@ -1598,7 +1598,7 @@
             // DILG: custom behavior
             if (agencySelect && agencySelect.value === 'DILG') {
                 var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
-                if (levelLabel === 'Central Office') {
+                if (levelLabel === 'DILG Central Office') {
                     var category = this.value; // Bureaus or Services
                     if (citySelect) {
                         citySelect.innerHTML = '<option value="" disabled selected>' + (category === 'Bureaus' ? 'Select Bureaus' : 'Select Services') + '</option>';
@@ -1642,7 +1642,7 @@
             // DILG Central Office: treat citySelect as Bureaus/Services selector and set Office (provinceSelect) to final pick
             if (agencySelect && agencySelect.value === 'DILG') {
                 var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
-                if (levelLabel === 'Central Office') {
+                if (levelLabel === 'DILG Central Office') {
                     var finalOffice = this.value || '';
                     if (finalOffice) {
                         provinceSelect.disabled = false;

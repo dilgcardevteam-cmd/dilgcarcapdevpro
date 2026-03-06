@@ -2181,27 +2181,12 @@
             letter-spacing: 0.01em;
         }
 
-        /* Normal accounts: Orange */
-        .badge-role-admin { background: #f59e0b; color: #ffffff; }
-        .badge-role-registrar { background: #f59e0b; color: #ffffff; }
-        .badge-role-training_manager { background: #f59e0b; color: #ffffff; }
-        .badge-role-trainer { background: #f59e0b; color: #ffffff; }
-        .badge-role-coach { background: #f59e0b; color: #ffffff; }
-        .badge-role-participant { background: #f59e0b; color: #ffffff; }
-        .badge-role-trainee { background: #f59e0b; color: #ffffff; }
-        /* Office roles: CO Yellow, RO Blue, PO Red */
-        .badge-role-central_office_admin,
-        .badge-role-central_office_training_manager,
-        .badge-role-central_office_coach,
-        .badge-role-central_office_participants { background: #fde047; color: #1f2937; }
-        .badge-role-regional_office_admin,
-        .badge-role-regional_office_training_manager,
-        .badge-role-regional_office_coach,
-        .badge-role-regional_office_participants { background: #1d4ed8; color: #ffffff; }
-        .badge-role-provincial_office_admin,
-        .badge-role-provincial_office_training_manager,
-        .badge-role-provincial_office_coach,
-        .badge-role-provincial_office_participants { background: #dc2626; color: #ffffff; }
+        .badge-role-admin { background: #1d4ed8; color: #ffffff; }
+        .badge-role-registrar { background: #0284c7; color: #ffffff; }
+        .badge-role-training_manager { background: #0284c7; color: #ffffff; }
+        .badge-role-trainer { background: #16a34a; color: #ffffff; }
+        .badge-role-coach { background: #16a34a; color: #ffffff; }
+        .badge-role-trainee { background: #d97706; color: #ffffff; }
 
         .badge-status-active { background: #16a34a; color: #ffffff; }
         .badge-status-freeze { background: #dc2626; color: #ffffff; }
@@ -2614,7 +2599,7 @@
                     <a class="dropdown-item" href="{{ route('dashboard') }}?tab=profile-section">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
-                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
+                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
@@ -2665,12 +2650,6 @@
                     <div class="menu-icon"><i class="fas fa-cogs"></i></div>
                     <span class="menu-text">System Settings</span>
                 </li>
-                @if(!Auth::check() || Auth::user()->role !== 'super_admin')
-                    <li class="menu-item {{ request('tab') == 'help-support' ? 'active' : '' }}" onclick="showContent('help-support', this)">
-                        <div class="menu-icon"><i class="fas fa-life-ring"></i></div>
-                        <span class="menu-text">Help & Support</span>
-                    </li>
-                @endif
             </ul>
         </aside>
 
@@ -3561,11 +3540,14 @@
                                     <div class="dz-meta">
                                         <div id="psgcFileName" class="dz-file">No file selected</div>
                                         <div class="cta-row">
-                                            <select id="psgcMode" name="mode" class="input-pro" style="flex:1">
-                                                <option value="insert_only">Insert Only</option>
-                                                <option value="insert_update" selected>Insert + Update</option>
-                                                <option value="replace_all">Replace All</option>
-                                            </select>
+                                            <div class="import-mode-wrap" style="display:flex;align-items:center;gap:8px;margin-right:auto">
+                                                <label for="psgcMode" class="form-label" style="margin:0">Import Mode</label>
+                                                <select id="psgcMode" name="mode" class="input-pro" style="max-width:220px">
+                                                    <option value="insert_only">Insert Only</option>
+                                                    <option value="insert_update" selected>Insert + Update</option>
+                                                    <option value="replace_all">Replace All</option>
+                                                </select>
+                                            </div>
                                             <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
@@ -3573,16 +3555,6 @@
                                     <div class="progress"><div id="psgcProg"></div></div>
                                 </form>
                                 <div class="chips" id="psgcResult" style="display:none"></div>
-                                <div id="psgcSummaryModal" class="modal" style="display:none">
-                                    <div class="modal-content" style="max-width:720px;width:92vw">
-                                        <span id="psgcSummaryClose" class="close" style="position:absolute;top:10px;right:14px">&times;</span>
-                                        <h3 class="section-title" style="text-align:left;margin-bottom:8px">Import Summary</h3>
-                                        <div id="psgcSummaryBody" class="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-                                        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:10px">
-                                            <button type="button" id="psgcSummaryOk" class="btn btn-primary">OK</button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div class="import-side">
@@ -3646,6 +3618,7 @@
                             var fd=new FormData(form);
                                     var mode=document.getElementById('psgcMode').value||'insert_update';
                                     fd.append('mode', mode);
+                            var startTime=performance.now();
                             fetch(form.action, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
                                 .then(function(r){ return r.json(); })
                                 .then(function(j){
@@ -3655,34 +3628,63 @@
                                         rs.style.display='flex';
                                                 var reg=j.regions||0, prov=j.provinces||0, cities=j.cities||0, brgys=j.barangays||0;
                                                 var total=j.total_rows||0, ins=j.inserted||0, upd=j.updated||0, sk=j.skipped||0, err=j.errors||0;
-                                        rs.innerHTML=''
-                                            +'<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span>'
-                                            +'<span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>'
-                                            +'<span class="chip"><i class="fas fa-city"></i> Cities/Municipalities '+cities+'</span>'
-                                                    +'<span class="chip"><i class="fas fa-home"></i> Barangays '+brgys+'</span>'
-                                                    +'<span class="chip"><i class="fas fa-list"></i> Total Rows '+total+'</span>'
-                                                    +'<span class="chip" style="background:#ecfdf5;border-color:#bbf7d0;color:#166534"><i class="fas fa-plus"></i> Inserted '+ins+'</span>'
-                                                    +'<span class="chip" style="background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a"><i class="fas fa-sync"></i> Updated '+upd+'</span>'
-                                                    +'<span class="chip" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412"><i class="fas fa-ban"></i> Skipped '+sk+'</span>'
-                                                    +'<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606"><i class="fas fa-exclamation-triangle"></i> Errors '+err+'</span>';
-                                        var sb=document.getElementById('psgcSummaryBody');
-                                        var fnText=document.getElementById('psgcFileName').textContent||'Uploaded file';
-                                        sb.innerHTML=''
-                                            +'<span class="chip"><i class="fas fa-file"></i> '+fnText+'</span>'
-                                            +'<span class="chip"><i class="fas fa-sliders-h"></i> Mode '+mode.replace('_',' ')+'</span>'
-                                            +'<span class="chip"><i class="fas fa-map"></i> Regions '+reg+'</span>'
-                                            +'<span class="chip"><i class="fas fa-flag"></i> Provinces '+prov+'</span>'
-                                            +'<span class="chip"><i class="fas fa-city"></i> Cities/Municipalities '+cities+'</span>'
-                                            +'<span class="chip"><i class="fas fa-home"></i> Barangays '+brgys+'</span>'
-                                            +'<span class="chip"><i class="fas fa-list"></i> Total Rows '+total+'</span>'
-                                            +'<span class="chip" style="background:#ecfdf5;border-color:#bbf7d0;color:#166534"><i class="fas fa-plus"></i> Inserted '+ins+'</span>'
-                                            +'<span class="chip" style="background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a"><i class="fas fa-sync"></i> Updated '+upd+'</span>'
-                                            +'<span class="chip" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412"><i class="fas fa-ban"></i> Skipped '+sk+'</span>'
-                                            +'<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606"><i class="fas fa-exclamation-triangle"></i> Errors '+err+'</span>';
-                                        var md=document.getElementById('psgcSummaryModal');
-                                        md.style.display='block';
-                                        document.getElementById('psgcSummaryOk').onclick=function(){ md.style.display='none'; };
-                                        document.getElementById('psgcSummaryClose').onclick=function(){ md.style.display='none'; };
+                                        var elapsedSec=((performance.now()-startTime)/1000).toFixed(1);
+                                        var banner='<div style=\"display:flex;align-items:center;gap:10px;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;padding:12px 14px;border-radius:12px;font-weight:800\">'
+                                            +'<i class=\"fas fa-check-circle\"></i>'
+                                            +'<span>Import Completed Successfully</span>'
+                                            +'<span style=\"margin-left:auto;font-weight:700;color:#065f46\">'+total.toLocaleString()+' records processed successfully in '+elapsedSec+' seconds.</span>'
+                                            +'</div>';
+                                        var statCard=function(bg,border,color,icon,label,val){
+                                            return '<div style=\"background:'+bg+';border:1px solid '+border+';color:'+color+';border-radius:14px;padding:14px 16px;box-shadow:0 8px 18px rgba(15,23,42,.07)\">'
+                                                +'<div style=\"display:flex;align-items:center;gap:10px\">'
+                                                +'<div style=\"width:36px;height:36px;border-radius:12px;background:#ffffff22;display:flex;align-items:center;justify-content:center\"><i class=\"'+icon+'\"></i></div>'
+                                                +'<div><div style=\"font-size:.78rem;font-weight:700;opacity:.9\">'+label+'</div><div style=\"font-size:1.3rem;font-weight:800\">'+val.toLocaleString()+'</div></div>'
+                                                +'</div>'
+                                                +'</div>';
+                                        };
+                                        var gridStats='<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px\">'
+                                            +statCard('#eef6ff','#cfe0ff','#0B2C74','fas fa-list','Total Records',total)
+                                            +statCard('#ecfdf5','#bbf7d0','#166534','fas fa-plus','Inserted',ins)
+                                            +statCard('#eef2ff','#c7d2fe','#1e3a8a','fas fa-sync','Updated',upd)
+                                            +statCard('#fff7ed','#fed7aa','#9a3412','fas fa-ban','Skipped',sk)
+                                            +statCard('#fff5f5','#fecaca','#b10606','fas fa-exclamation-triangle','Errors',err)
+                                            +'</div>';
+                                        var breakdownCard=function(icon,label,val){
+                                            return '<div style=\"background:#f8fafc;border:1px solid #dbe3f1;color:#0B2C74;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px\">'
+                                                +'<i class=\"'+icon+'\"></i><span style=\"font-weight:700\">'+label+'</span>'
+                                                +'<span style=\"margin-left:auto;font-weight:800\">'+val.toLocaleString()+'</span></div>';
+                                        };
+                                        var breakdown='<div style=\"margin-top:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:12px\">'
+                                            +'<div style=\"font-weight:800;color:#0B2C74;margin-bottom:8px\">Location Breakdown</div>'
+                                            +'<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px\">'
+                                            +breakdownCard('fas fa-map','Regions',reg)
+                                            +breakdownCard('fas fa-flag','Provinces',prov)
+                                            +breakdownCard('fas fa-city','Cities/Municipalities',cities)
+                                            +breakdownCard('fas fa-home','Barangays',brgys)
+                                            +'</div></div>';
+                                        var steps=['File uploaded','CSV validated','Regions processed','Provinces processed','Cities processed','Barangays processed','Database commit completed'];
+                                        var timelineItems=steps.map(function(s){ return '<div style=\"display:flex;align-items:center;gap:10px\"><i class=\"fas fa-check-circle\" style=\"color:#16a34a\"></i><span style=\"font-weight:700;color:#334155\">'+s+'</span></div>'; }).join('');
+                                        var timeline='<div style=\"margin-top:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:12px\">'
+                                            +'<div style=\"font-weight:800;color:#0B2C74;margin-bottom:8px\">Import Activity Log</div>'
+                                            +'<div style=\"display:grid;gap:8px\">'+timelineItems+'</div>'
+                                            +'</div>';
+                                        var actions='<div style=\"margin-top:12px;display:flex;align-items:center;gap:10px\">'
+                                            +'<a href=\"{{ route('psgc.regions') }}\" target=\"_blank\" class=\"btn btn-primary\" style=\"display:inline-flex;align-items:center;gap:8px\"><i class=\"fas fa-eye\"></i> View Imported Data</a>'
+                                            +'<button type=\"button\" id=\"psgcImportAgainBtn\" class=\"btn\" style=\"display:inline-flex;align-items:center;gap:8px\"><i class=\"fas fa-file-upload\"></i> Import Another File</button>'
+                                            +'</div>';
+                                        rs.innerHTML='<div style=\"width:100%;display:flex;flex-direction:column;gap:10px\">'+banner+gridStats+breakdown+timeline+actions+'</div>';
+                                        var again=document.getElementById('psgcImportAgainBtn');
+                                        if(again){
+                                            again.addEventListener('click', function(){
+                                                fi.value='';
+                                                fn.textContent='No file selected';
+                                                btn.disabled=true;
+                                                document.getElementById('psgcStatus').textContent='';
+                                                prog.style.width='0%';
+                                                rs.style.display='none';
+                                                rs.innerHTML='';
+                                            });
+                                        }
                                     }else{
                                         st.textContent='Import failed';
                                         prog.style.width='0%';
@@ -3697,242 +3699,6 @@
                                     rs.innerHTML='<span class="chip" style="background:#fff5f5;border-color:#fecaca;color:#b10606">Network or server error</span>';
                                 });
                         });
-                    })();
-                </script>
-            </section>
-
-            <section id="help-support" class="content-section {{ request('tab') == 'help-support' ? 'active' : '' }}">
-                <style>
-                    .help-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-                    .help-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 12px 28px rgba(15,23,42,.08);padding:18px;transition:transform .2s ease, box-shadow .2s ease;border-top-width:2px;border-top-color:#c7d2fe}
-                    .help-card:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(15,23,42,.12)}
-                    .help-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;color:#0b3b8f;font-weight:800}
-                    .help-sub{color:#64748b;font-size:.9rem}
-                    .help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-                    .help-chip{display:inline-flex;align-items:center;gap:8px;background:#ffffff;color:#0b3b8f;border:1px solid #c7d2fe;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;text-decoration:none;box-shadow:0 6px 14px rgba(2,6,23,.06);transition:all .18s ease}
-                    .help-chip i{color:#0b3b8f}
-                    .help-chip:hover{background:#eef2ff;border-color:#a5b4fc;box-shadow:0 10px 22px rgba(2,6,23,.12);transform:translateY(-1px)}
-                    .help-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;color:#64748b}
-                    .help-link{color:#0b3b8f;font-weight:700;text-decoration:none}
-                    .help-hero{background:linear-gradient(135deg,#081C3A 0%,#0B2C74 50%,#1e88e5 100%);color:#fff;border-radius:20px;box-shadow:0 24px 48px rgba(2,6,23,.26);padding:22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;overflow:hidden}
-                    .help-hero:before{content:"";position:absolute;inset:-40px -60px auto auto;width:280px;height:280px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.25),transparent);filter:blur(10px)}
-                    .help-hero-title{font-weight:800;letter-spacing:-.01em}
-                    .help-hero-sub{opacity:.95;font-size:.95rem}
-                    .help-search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:12px 16px;box-shadow:0 12px 24px rgba(2,6,23,.12);margin:16px 0}
-                    .help-search input{border:none;outline:none;width:100%;font-weight:800;color:#0b3b8f}
-                    .help-search input::placeholder{color:#94a3b8}
-                    @keyframes aglow{0%{opacity:.6;transform:translateX(-30%) skewX(-12deg)}50%{opacity:.9}100%{opacity:.6;transform:translateX(130%) skewX(-12deg)}}
-                    .help-hero::after{content:"";position:absolute;top:0;left:-30%;width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,.0),rgba(255,255,255,.25),rgba(255,255,255,.0));filter:blur(8px);animation:aglow 4s linear infinite}
-                    .suggest-row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
-                    .suggest-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#f8fafc;color:#0b3b8f;font-weight:800;cursor:pointer}
-                    @media (hover:hover){.help-card{will-change:transform;transform-style:preserve-3d;transition:transform .18s ease, box-shadow .18s ease}}
-                    .category-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-                    .category-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#f8fafc;color:#0b3b8f;font-weight:800;cursor:pointer}
-                    .category-chip.active{background:#eef2ff;border-color:#c7d2fe}
-                    .faq-item{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
-                    .faq-head{background:#f8fafc;padding:10px 12px;cursor:pointer;font-weight:800;color:#0b3b8f;display:flex;align-items:center;justify-content:space-between}
-                    .faq-body{display:none;padding:12px;color:#64748b;background:#fff}
-                    .kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-                    .kb-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08)}
-                    .kb-title{color:#0b3b8f;font-weight:800}
-                    .team-heading{grid-column:1/-1;text-align:center;font-weight:900;color:#0b2c74;font-size:1.25rem;letter-spacing:-.01em}
-                    .team-supervisor{grid-column:1/-1;justify-self:center;max-width:520px}
-                    .status-banner{background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);color:#fff;border-radius:16px;padding:14px;box-shadow:0 12px 24px rgba(2,6,23,.2);display:flex;align-items:center;justify-content:space-between}
-                    .team-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:3px solid #e5e7eb;background:#f1f5f9}
-                </style>
-                <div class="settings-bar">
-                    <h2 style="margin:0;color:#002C76">Help & Support</h2>
-                </div>
-                <div class="help-hero">
-                    <div>
-                        <div class="help-hero-title">Need Assistance?</div>
-                        <div class="help-hero-sub">Search FAQs, view guides, or contact support</div>
-                    </div>
-                    @if(Auth::user() && Auth::user()->role !== 'super_admin')
-                    <div class="help-actions">
-                        <a class="help-chip" href="mailto:support@capdevpro.local"><i class="fas fa-envelope"></i> Email</a>
-                        <a class="help-chip" href="tel:+63-999-000-0000"><i class="fas fa-phone"></i> Call</a>
-                    </div>
-                    @endif
-                </div>
-                <div class="help-search">
-                    <i class="fas fa-search" style="color:#0b3b8f"></i>
-                    <input id="helpSearchInput" type="text" placeholder="Search Help (e.g. password, enroll, certificate)">
-                </div>
-                <div class="suggest-row" id="helpSuggest"></div>
-                <div class="help-grid">
-                    <div class="help-card">
-                        <div class="help-head"><i class="fas fa-question-circle"></i> Quick FAQs</div>
-                        <div class="faq-item" data-tags="password profile security reset">
-                            <div class="faq-head">How to reset password? <i class="fas fa-chevron-down"></i></div>
-                            <div class="faq-body">Go to Profile → Security and use Reset Password.</div>
-                        </div>
-                        <div class="faq-item" data-tags="pending approval registrar user activation">
-                            <div class="faq-head">Why is my account pending? <i class="fas fa-chevron-down"></i></div>
-                            <div class="faq-body">Registrar approval is required before activation.</div>
-                        </div>
-                        <div class="faq-item" data-tags="enroll course enrollment join training">
-                            <div class="faq-head">How to enroll in a course? <i class="fas fa-chevron-down"></i></div>
-                            <div class="faq-body">Open Course Management and click Enroll on the desired course.</div>
-                        </div>
-                    </div>
-                    <div class="help-card">
-                        <div class="help-head"><i class="fas fa-book-open"></i> Getting Started</div>
-                        <div class="help-sub">Complete your profile and set your location for accurate analytics.</div>
-                        <div class="help-actions">
-                            <a class="help-chip" href="{{ route('dashboard', ['tab' => 'user-management']) }}"><i class="fas fa-users"></i> Manage Users</a>
-                            <a class="help-chip" href="{{ route('dashboard', ['tab' => 'course-management']) }}"><i class="fas fa-book"></i> Manage Courses</a>
-                            <a class="help-chip" href="{{ route('dashboard', ['tab' => 'system-settings']) }}"><i class="fas fa-cogs"></i> System Settings</a>
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="help-card">
-                        <div class="help-head"><i class="fas fa-wrench"></i> Troubleshooting</div>
-                        <ul class="help-list">
-                            <li>Clear browser cache if UI looks outdated.</li>
-                            <li>Ensure you selected the correct office scope (CO/RO/PO).</li>
-                            <li>Import PSGC data in System Settings for accurate regional mapping.</li>
-                        </ul>
-                    </div>
-                    <div class="help-card team-heading">DILG-CAR Developer Team</div>
-                    
-                    <div class="help-card team-member" data-name="Mark Ezekiel Zareno" data-role="Developer, System Architect" data-avatar="{{ asset('images/team/mark_ezekiel_zareno.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/mark_ezekiel_zareno.jpg') }}" alt="Mark Ezekiel Zareno" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Mark Ezekiel Zareno</div>
-                        <div class="help-sub">Developer, System Architect</div>
-                    </div>
-                    <div class="help-card team-member" data-name="Josiah Carrera" data-role="Developer, System Architect" data-avatar="{{ asset('images/team/josiah_carrera.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/josiah_carrera.jpg') }}" alt="Josiah Carrera" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Josiah Carrera</div>
-                        <div class="help-sub">Developer, System Architect</div>
-                    </div>
-                    <div class="help-card team-member" data-name="Rahm Soriano" data-role="UI/UX Designer, Developer" data-avatar="{{ asset('images/team/rahm_soriano.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/rahm_soriano.jpg') }}" alt="Rahm Soriano" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Rahm Soriano</div>
-                        <div class="help-sub">UI/UX Designer, Developer</div>
-                    </div>
-                    <div class="help-card team-member" data-name="Kevin Aquino" data-role="UI/UX Designer, Developer & QA Tester" data-avatar="{{ asset('images/team/kevin_aquino.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/kevin_aquino.jpg') }}" alt="Kevin Aquino" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Kevin Aquino</div>
-                        <div class="help-sub">UI/UX Designer, Developer & QA Tester</div>
-                    </div>
-                    <div class="help-card team-member" data-name="Kathleen Charm Daroy" data-role="UI/UX Designer, System Analyst" data-avatar="{{ asset('images/team/kathleen_charm_daroy.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/kathleen_charm_daroy.jpg') }}" alt="Kathleen Charm Daroy" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Kathleen Charm Daroy</div>
-                        <div class="help-sub">UI/UX Designer, System Analyst</div>
-                    </div>
-                    <div class="help-card team-member" data-name="Patrick Medrano" data-role="Developer, Database Administrator" data-avatar="{{ asset('images/team/patrick_medrano.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/patrick_medrano.jpg') }}" alt="Patrick Medrano" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> Patrick Medrano</div>
-                        <div class="help-sub">Developer, Database Administrator</div>
-                    </div>
-                    <div class="help-card team-member team-supervisor" data-name="DILG-CAR Team Supervisor" data-role="Team Supervisor" data-avatar="{{ asset('images/team/supervisor.jpg') }}">
-                        <div class="help-head"><img class="team-avatar" src="{{ asset('images/team/supervisor.jpg') }}" alt="DILG-CAR Team Supervisor" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'"> DILG-CAR Team Supervisor</div>
-                        <div class="help-sub">Team Supervisor</div>
-                    </div>
-                    
-                </div>
-                <div id="teamProfileModal" style="display:none;position:fixed;inset:0;z-index:1600">
-                    <div id="teamBackdrop" style="position:absolute;inset:0;background:rgba(2,6,23,.5)"></div>
-                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 24px 60px rgba(2,6,23,.24);overflow:hidden">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e5e7eb;background:#f8fafc">
-                            <div style="font-weight:800;color:#0b2c74">Profile</div>
-                            <button id="teamClose" style="border:none;background:transparent;cursor:pointer;color:#64748b;font-size:1.25rem;line-height:1">×</button>
-                        </div>
-                        <div style="padding:18px;display:flex;align-items:center;gap:16px">
-                            <img id="teamAvatar" src="{{ asset('images/user.png') }}" alt="Avatar" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid #e5e7eb;background:#f1f5f9">
-                            <div style="flex:1;min-width:0">
-                                <div id="teamName" style="font-weight:900;font-size:1.1rem;color:#0b2c74"></div>
-                                <div id="teamRole" style="color:#475569;margin-top:4px"></div>
-                                <div style="margin-top:12px">
-                                    <a id="teamPublicLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #c7d2fe;border-radius:999px;text-decoration:none;color:#0b2c74;font-weight:800"><i class="fas fa-id-card"></i> View Public Profile</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <script>
-                    (function(){
-                        var input=document.getElementById('helpSearchInput');
-                        var items=[].slice.call(document.querySelectorAll('#help-support .faq-item'));
-                        var kb=[].slice.call(document.querySelectorAll('#help-support .kb-card'));
-                        var teamCards=[].slice.call(document.querySelectorAll('#help-support .team-member'));
-                        var suggest=document.getElementById('helpSuggest');
-                        var TEAM_LINKS={
-                            'Mark Ezekiel Zareno':'https://web-portfolio-project-delta.vercel.app/about.html',
-                            'Josiah Carrera':'#',
-                            'Rahm Soriano':'https://rahmyls-fproject.vercel.app/#projects',
-                            'Kevin Aquino':'https://aquinokevs.github.io/my-portfolio/',
-                            'Kathleen Charm Daroy':'https://myfinalprojectelective3.vercel.app/?brid=aBn8sPL39MT8662jS-3s3Q#projects',
-                            'Patrick Medrano':'https://project01-myportfolio.vercel.app/#',
-                            'DILG-CAR Team Supervisor':'#'
-                        };
-                        var tModal=document.getElementById('teamProfileModal');
-                        var tBackdrop=document.getElementById('teamBackdrop');
-                        var tClose=document.getElementById('teamClose');
-                        var tName=document.getElementById('teamName');
-                        var tRole=document.getElementById('teamRole');
-                        var tAvatar=document.getElementById('teamAvatar');
-                        var tLink=document.getElementById('teamPublicLink');
-                        function toggle(el){
-                            var body=el.querySelector('.faq-body'); var shown=body.style.display==='block';
-                            body.style.display=shown?'none':'block';
-                        }
-                        items.forEach(function(it){ it.querySelector('.faq-head').addEventListener('click', function(){ toggle(it); }); });
-                        if(input){
-                            input.addEventListener('input', function(){
-                                var q=(this.value||'').toLowerCase().trim();
-                                items.forEach(function(it){
-                                    var t=(it.getAttribute('data-tags')||'').toLowerCase();
-                                    var show=!q || t.indexOf(q)>=0;
-                                    it.style.display=show?'':'none';
-                                });
-                                kb.forEach(function(card){
-                                    var t=(card.getAttribute('data-tags')||'').toLowerCase();
-                                    var show=!q || t.indexOf(q)>=0;
-                                    card.style.display=show?'':'none';
-                                });
-                            });
-                        }
-                        if(suggest){
-                            var tags=['password','enroll','roles','account','PSGC','reports','courses','print certificate'];
-                            tags.forEach(function(t){
-                                var a=document.createElement('a');
-                                a.className='suggest-chip';
-                                a.textContent=t;
-                                a.href='#';
-                                a.addEventListener('click', function(e){ e.preventDefault(); if(input){ input.value=t; input.dispatchEvent(new Event('input',{bubbles:true})); input.focus(); }});
-                                suggest.appendChild(a);
-                            });
-                        }
-                        if(window.matchMedia('(hover: hover)').matches){
-                            var cards=[].slice.call(document.querySelectorAll('#help-support .help-card'));
-                            cards.forEach(function(c){
-                                c.addEventListener('mousemove', function(e){
-                                    var r=c.getBoundingClientRect(); var x=(e.clientX-r.left)/r.width; var y=(e.clientY-r.top)/r.height;
-                                    c.style.transform='perspective(900px) rotateY('+((x-.5)*6)+'deg) rotateX('+((.5-y)*6)+'deg) translateY(-2px)';
-                                    c.style.boxShadow='0 18px 36px rgba(15,23,42,.14)';
-                                });
-                                c.addEventListener('mouseleave', function(){ c.style.transform=''; c.style.boxShadow=''; });
-                            });
-                        }
-                        function openTeam(name, role, avatar){
-                            if(!tModal) return;
-                            if(tName) tName.textContent=name||'';
-                            if(tRole) tRole.textContent=role||'';
-                            if(tAvatar){ tAvatar.src=avatar||'{{ asset('images/user.png') }}'; tAvatar.onerror=function(){ this.onerror=null; this.src='{{ asset('images/user.png') }}'; }; }
-                            if(tLink){ tLink.href=TEAM_LINKS[name] || '#'; }
-                            tModal.style.display='block';
-                        }
-                        function closeTeam(){ if(tModal) tModal.style.display='none'; }
-                        teamCards.forEach(function(card){
-                            card.style.cursor='pointer';
-                            card.addEventListener('click', function(){
-                                var n=card.getAttribute('data-name')||'';
-                                var r=card.getAttribute('data-role')||'';
-                                var a=card.getAttribute('data-avatar')||'';
-                                openTeam(n,r,a);
-                            });
-                        });
-                        if(tBackdrop) tBackdrop.addEventListener('click', closeTeam);
-                        if(tClose) tClose.addEventListener('click', closeTeam);
-                        document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeTeam(); });
-                        
                     })();
                 </script>
             </section>
@@ -5368,6 +5134,24 @@
             const selectedCity = citySelect.dataset.selected || '';
             const selectedBarangay = barangaySelect.dataset.selected || '';
 
+            const myRole = '{{ Auth::user()->role }}';
+            const OFFICE_ROLES = {
+                central: ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'],
+                regional: ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'],
+                provincial: ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants']
+            };
+            const IS_OFFICE = (role, group) => OFFICE_ROLES[group].includes(role);
+            const isDILGMode = IS_OFFICE(myRole, 'central') || IS_OFFICE(myRole, 'regional') || IS_OFFICE(myRole, 'provincial');
+            const BUREAUS = [
+                'Bureau of Local Government Development','Bureau of Local Government Supervision','Bureau of Fire Protection',
+                'Bureau of Jail Management and Penology','National Police Commission','Philippine National Police',
+                'National Barangay Operations Office','Office of Project Development Services','Public Affairs and Communication Service'
+            ];
+            const SERVICES = [
+                'Administrative Service','Financial and Management Service','Information Systems and Technology Management Service',
+                'Internal Audit Service','Legal Service','Planning Service','Policy and Performance Monitoring Service','Local Government Capability Development Division'
+            ];
+
             const resetSelect = (selectElement, placeholder) => {
                 selectElement.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
             };
@@ -5392,7 +5176,7 @@
                     return;
                 }
 
-                fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
+                fetch(`{{ url('/psgc/cities') }}/${cityCode}/barangays`)
                     .then(response => response.json())
                     .then(data => {
                         data.sort((a, b) => a.name.localeCompare(b.name));
@@ -5423,8 +5207,8 @@
 
             function fetchCities(code, isRegion, selectedCityValue = null, selectedBarangayValue = null) {
                 const url = isRegion
-                    ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
-                    : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
+                    ? `{{ url('/psgc/regions') }}/${code}/cities`
+                    : `{{ url('/psgc/provinces') }}/${code}/cities`;
 
                 resetSelect(citySelect, 'Select City/Municipality');
                 resetSelect(barangaySelect, 'Select Barangay');
@@ -5484,7 +5268,7 @@
                     return;
                 }
 
-                fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
+                fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
                     .then(response => response.json())
                     .then(data => {
                         data.sort((a, b) => a.name.localeCompare(b.name));
@@ -5562,7 +5346,87 @@
                 loadBarangays(cityCode);
             });
 
-            fetch('https://psgc.gitlab.io/api/regions/')
+            if (isDILGMode) {
+                const regionLabel = IS_OFFICE(myRole, 'central') ? 'DILG Central Office' : (IS_OFFICE(myRole, 'regional') ? 'DILG Regional Office' : 'DILG Provincial Office');
+                resetSelect(regionSelect, 'Select Level');
+                const opt = document.createElement('option');
+                opt.value = regionLabel;
+                opt.textContent = regionLabel;
+                opt.selected = true;
+                opt.dataset.code = 'DILG';
+                regionSelect.appendChild(opt);
+                // Adjust labels for DILG mode
+                const provLabel = regionSelect.closest('.profile-page-fields')?.querySelector('label.profile-field-label:nth-of-type(2)');
+                if (provLabel) { provLabel.childNodes[provLabel.childNodes.length-1].textContent = 'Office'; }
+                // Office Type and Office selection for Central Office
+                resetSelect(provinceSelect, IS_OFFICE(myRole, 'central') ? 'Select Office Type' : 'Select Office');
+                if (IS_OFFICE(myRole, 'central')) {
+                    ['Bureaus','Services'].forEach(lbl => {
+                        const o = document.createElement('option');
+                        o.value = lbl;
+                        o.textContent = lbl;
+                        provinceSelect.appendChild(o);
+                    });
+                    provinceSelect.addEventListener('change', function(){
+                        const cat = this.value;
+                        resetSelect(citySelect, cat === 'Bureaus' ? 'Select Bureaus' : 'Select Services');
+                        const list = cat === 'Bureaus' ? BUREAUS : SERVICES;
+                        let matched = false;
+                        list.forEach(item => {
+                            const o = document.createElement('option');
+                            o.value = item;
+                            o.textContent = item;
+                            if (selectedProvince && selectedProvince === item) { o.selected = true; matched = true; }
+                            citySelect.appendChild(o);
+                        });
+                        if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
+                        citySelect.disabled = false;
+                        // Barangay hidden in central office mode
+                        const barangayGroup = document.getElementById('profile_barangay')?.closest('.form-group');
+                        if (barangayGroup) barangayGroup.style.display = 'none';
+                    });
+                    // Preselect type by checking existing province value
+                    if (selectedProvince) {
+                        const isB = BUREAUS.includes(selectedProvince);
+                        provinceSelect.value = isB ? 'Bureaus' : 'Services';
+                        provinceSelect.dispatchEvent(new Event('change'));
+                    }
+                } else if (IS_OFFICE(myRole, 'regional')) {
+                    // Only Region (Level) editable; hide others
+                    const groups = [provinceSelect, citySelect, barangaySelect].map(s => s.closest('.form-group'));
+                    groups.forEach(g => { if (g) g.style.display = 'none'; });
+                } else if (IS_OFFICE(myRole, 'provincial')) {
+                    // Only Office/Province editable — aggregate provinces across all regions
+                    resetSelect(provinceSelect, 'Select Office');
+                    fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
+                        let items = [];
+                        for (const reg of regions) {
+                            try {
+                                const res = await fetch(`{{ url('/psgc/regions') }}/${reg.code}/provinces`);
+                                const data = await res.json();
+                                items = items.concat(data.map(p=>({code:p.code,name:p.name})));
+                            } catch(e) {}
+                        }
+                        items.sort((a,b)=>a.name.localeCompare(b.name));
+                        let matched=false;
+                        items.forEach(p=>{
+                            const o=document.createElement('option');
+                            o.value = `${p.name} Office`;
+                            o.dataset.code = p.code;
+                            o.textContent = `${p.name} Office`;
+                            if (selectedProvince && (selectedProvince === `${p.name} Office` || selectedProvince === p.name)) { o.selected=true; matched=true; }
+                            provinceSelect.appendChild(o);
+                        });
+                        if (selectedProvince && !matched) addFallbackOption(provinceSelect, selectedProvince);
+                    }).catch(()=>{ if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince); });
+                    const groups = [citySelect, barangaySelect].map(s => s.closest('.form-group'));
+                    groups.forEach(g => { if (g) g.style.display = 'none'; });
+                }
+                syncProfileLocationSelectState();
+                return;
+            }
+
+            fetch(`{{ url('/psgc/regions') }}`)
                 .then(response => response.json())
                 .then(data => {
                     resetSelect(regionSelect, 'Select Region');
@@ -5574,7 +5438,7 @@
                         const option = document.createElement('option');
                         option.value = region.name;
                         option.dataset.code = region.code;
-                        option.textContent = `${region.name} (${region.regionName})`;
+                        option.textContent = region.name;
                         if (selectedRegion && selectedRegion === region.name) {
                             option.selected = true;
                             selectedRegionCode = region.code;
@@ -5664,6 +5528,24 @@
                 return option;
             };
 
+            const OFFICE_ROLES = {
+                central: ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'],
+                regional: ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'],
+                provincial: ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants']
+            };
+            const BUREAUS = [
+                'Bureau of Local Government Development','Bureau of Local Government Supervision','Bureau of Fire Protection',
+                'Bureau of Jail Management and Penology','National Police Commission','Philippine National Police',
+                'National Barangay Operations Office','Office of Project Development Services','Public Affairs and Communication Service'
+            ];
+            const SERVICES = [
+                'Administrative Service','Financial and Management Service','Information Systems and Technology Management Service',
+                'Internal Audit Service','Legal Service','Planning Service','Policy and Performance Monitoring Service','Local Government Capability Development Division'
+            ];
+            const currentRole = document.getElementById('view_role')?.value || '';
+            const IS_OFFICE = (role, group) => OFFICE_ROLES[group].includes(role);
+            const isDILGMode = IS_OFFICE(currentRole, 'central') || IS_OFFICE(currentRole, 'regional') || IS_OFFICE(currentRole, 'provincial');
+
             function loadBarangays(cityCode, selectedBarangayValue = null) {
                 resetSelect(barangaySelect, 'Select Barangay');
                 syncViewLocationSelectState();
@@ -5674,7 +5556,7 @@
                     return;
                 }
 
-                fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
+                fetch(`{{ url('/psgc/cities') }}/${cityCode}/barangays`)
                     .then(response => response.json())
                     .then(data => {
                         data.sort((a, b) => a.name.localeCompare(b.name));
@@ -5705,8 +5587,8 @@
 
             function fetchCities(code, isRegion, selectedCityValue = null, selectedBarangayValue = null) {
                 const url = isRegion
-                    ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
-                    : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
+                    ? `{{ url('/psgc/regions') }}/${code}/cities`
+                    : `{{ url('/psgc/provinces') }}/${code}/cities`;
 
                 resetSelect(citySelect, 'Select City/Municipality');
                 resetSelect(barangaySelect, 'Select Barangay');
@@ -5766,7 +5648,7 @@
                     return;
                 }
 
-                fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
+                fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
                     .then(response => response.json())
                     .then(data => {
                         data.sort((a, b) => a.name.localeCompare(b.name));
@@ -5829,7 +5711,75 @@
             resetSelect(barangaySelect, 'Select Barangay');
             syncViewLocationSelectState();
 
-            fetch('https://psgc.gitlab.io/api/regions/')
+            if (isDILGMode) {
+                const regionLabel = IS_OFFICE(currentRole, 'central') ? 'DILG Central Office' : (IS_OFFICE(currentRole, 'regional') ? 'DILG Regional Office' : 'DILG Provincial Office');
+                resetSelect(regionSelect, 'Select Level');
+                const opt = document.createElement('option');
+                opt.value = regionLabel;
+                opt.textContent = regionLabel;
+                opt.selected = true;
+                opt.dataset.code = 'DILG';
+                regionSelect.appendChild(opt);
+                const provLabelNode = regionSelect.closest('.profile-location-grid')?.querySelector('.form-group:nth-of-type(2) label');
+                if (provLabelNode) { provLabelNode.textContent = IS_OFFICE(currentRole, 'central') ? 'Office Type' : 'Office'; }
+                if (IS_OFFICE(currentRole, 'central')) {
+                    resetSelect(provinceSelect, 'Select Office Type');
+                    ['Bureaus','Services'].forEach(lbl => {
+                        const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o);
+                    });
+                    provinceSelect.addEventListener('change', function(){
+                        const cat = this.value;
+                        resetSelect(citySelect, cat === 'Bureaus' ? 'Select Bureaus' : 'Select Services');
+                        const list = cat === 'Bureaus' ? BUREAUS : SERVICES;
+                        let matched=false;
+                        list.forEach(item=>{
+                            const o=document.createElement('option'); o.value=item; o.textContent=item;
+                            if (selectedProvince && selectedProvince === item) { o.selected=true; matched=true; }
+                            citySelect.appendChild(o);
+                        });
+                        if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
+                        citySelect.disabled = false;
+                        const barangayGroup = barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
+                    });
+                    if (selectedProvince) {
+                        const isB = BUREAUS.includes(selectedProvince);
+                        provinceSelect.value = isB ? 'Bureaus' : 'Services';
+                        provinceSelect.dispatchEvent(new Event('change'));
+                    }
+                } else if (IS_OFFICE(currentRole, 'regional')) {
+                    const groups = [provinceSelect, citySelect, barangaySelect].map(s => s.closest('.form-group'));
+                    groups.forEach(g => { if (g) g.style.display = 'none'; });
+                } else if (IS_OFFICE(currentRole, 'provincial')) {
+                    resetSelect(provinceSelect, 'Select Office');
+                    fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
+                        let items = [];
+                        for (const reg of regions) {
+                            try {
+                                const res = await fetch(`{{ url('/psgc/regions') }}/${reg.code}/provinces`);
+                                const data = await res.json();
+                                items = items.concat(data.map(p=>({code:p.code,name:p.name})));
+                            } catch(e) {}
+                        }
+                        items.sort((a,b)=>a.name.localeCompare(b.name));
+                        let matched=false;
+                        items.forEach(p=>{
+                            const o=document.createElement('option');
+                            o.value = `${p.name} Office`;
+                            o.dataset.code = p.code;
+                            o.textContent = `${p.name} Office`;
+                            if (selectedProvince && (selectedProvince === `${p.name} Office` || selectedProvince === p.name)) { o.selected=true; matched=true; }
+                            provinceSelect.appendChild(o);
+                        });
+                        if (selectedProvince && !matched) addFallbackOption(provinceSelect, selectedProvince);
+                    }).catch(()=>{ if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince); });
+                    const groups = [citySelect, barangaySelect].map(s => s.closest('.form-group'));
+                    groups.forEach(g => { if (g) g.style.display = 'none'; });
+                }
+                syncViewLocationSelectState();
+                return;
+            }
+
+            fetch(`{{ url('/psgc/regions') }}`)
                 .then(response => response.json())
                 .then(data => {
                     resetSelect(regionSelect, 'Select Region');
@@ -5841,7 +5791,7 @@
                         const option = document.createElement('option');
                         option.value = region.name;
                         option.dataset.code = region.code;
-                        option.textContent = `${region.name} (${region.regionName})`;
+                        option.textContent = region.name;
                         if (selectedRegion && selectedRegion === region.name) {
                             option.selected = true;
                             selectedRegionCode = region.code;
@@ -6603,6 +6553,16 @@
             );
 
             modal.style.display = 'flex';
+            const roleSelect = document.getElementById('view_role');
+            if (roleSelect) {
+                roleSelect.addEventListener('change', function(){
+                    const curRegion = document.getElementById('view_region')?.value || '';
+                    const curProvince = document.getElementById('view_province')?.value || '';
+                    const curCity = document.getElementById('view_city')?.value || '';
+                    const curBarangay = document.getElementById('view_barangay')?.value || '';
+                    initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
+                });
+            }
         }
 
         function closeViewModal() {
