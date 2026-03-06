@@ -71,6 +71,15 @@ class DiscussionController extends Controller
                 ->where('user_id', auth()->id())
                 ->value('type');
         }
+        if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
+            return view('roparticipant.discussions.show', [
+                'discussion' => $discussion,
+                'discussionLikes' => $likes,
+                'discussionDislikes' => $dislikes,
+                'userDiscussionReaction' => $userReact,
+                'commentsCount' => $commentsCount,
+            ]);
+        }
         return view('trainee.discussions.show', [
             'discussion' => $discussion,
             'discussionLikes' => $likes,

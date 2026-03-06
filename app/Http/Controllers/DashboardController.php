@@ -44,7 +44,120 @@ class DashboardController extends Controller
             $forceProfile = false;
             $pendingCoursesCount = 0;
             $earnedCertificates = collect([]);
-            return view('trainee.dashboard', compact(
+            return view('coparticipant.dashboard', compact(
+                'notifications',
+                'unreadNotificationsCount',
+                'myCourses',
+                'classroomCourses',
+                'pendingCourses',
+                'availableCourses',
+                'completedCoursesCount',
+                'activeCoursesCount',
+                'announcements',
+                'calendarEvents',
+                'totalAvailableCourses',
+                'totalCoursesJoined',
+                'courseStatuses',
+                'forceProfile',
+                'pendingCoursesCount',
+                'earnedCertificates'
+            ));
+        }
+        if (isset($user->email) && strtolower($user->email) === 'co_tm@gmail.com') {
+            $notifications = Notification::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+            $unreadNotificationsCount = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+            $managedRoles = ['coach','trainer','participant','trainee'];
+            $managedCoachRoles = ['coach','trainer'];
+            $managedParticipantRoles = ['participant','trainee'];
+            $unapprovedCount = \App\Models\User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
+            $approvedCount = \App\Models\User::whereIn('role', $managedRoles)->where('status', 'active')->count();
+            $pendingTraineesCount = \App\Models\User::whereIn('role', $managedParticipantRoles)->where('status', 'pending')->count();
+            $totalCourses = \App\Models\Course::count();
+            $courses = \App\Models\Course::with('users')->get();
+            $potentialParticipants = \App\Models\User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))
+                ->where('status', 'active')->get();
+            $query = \App\Models\User::query()->whereIn('role', $managedRoles);
+            if ($request->filled('search')) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            }
+            if ($request->has('roles')) {
+                $query->whereIn('role', array_intersect((array)$request->roles, $managedRoles));
+            }
+            if ($request->has('statuses')) {
+                $query->whereIn('status', $request->statuses);
+            }
+            $sort = $request->get('sort', 'newest');
+            if ($sort === 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            } elseif ($sort === 'alpha') {
+                $query->orderBy('name', 'asc');
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+            $users = $query->paginate(8)->appends($request->query());
+            $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
+            $forceProfile = false;
+            if ($request->ajax()) {
+                return view('cotm.partials.users-table', compact('users','roleDisplay'))->render();
+            }
+            $roles = Role::orderBy('name')->get();
+            $permissions = \Illuminate\Support\Facades\Schema::hasTable('permissions')
+                ? \DB::table('permissions')->orderBy('name')->get()
+                : collect();
+            $rolePermissions = [];
+            if (\Illuminate\Support\Facades\Schema::hasTable('role_permission')) {
+                foreach ($roles as $r) {
+                    $rolePermissions[$r->id] = \DB::table('role_permission')
+                        ->where('role_id', $r->id)
+                        ->pluck('permission_id')
+                        ->toArray();
+                }
+            }
+            return view('cotm.dashboard', compact(
+                'notifications',
+                'unreadNotificationsCount',
+                'unapprovedCount',
+                'approvedCount',
+                'pendingTraineesCount',
+                'totalCourses',
+                'users',
+                'courses',
+                'potentialParticipants',
+                'forceProfile',
+                'roles',
+                'permissions',
+                'rolePermissions',
+                'roleDisplay'
+            ));
+        }
+        if (isset($user->email) && strtolower($user->email) === 'ro_participant@gmail.com') {
+            $notifications = Notification::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+            $unreadNotificationsCount = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+            $myCourses = collect([]);
+            $classroomCourses = collect([]);
+            $pendingCourses = collect([]);
+            $availableCourses = collect([]);
+            $completedCoursesCount = 0;
+            $activeCoursesCount = 0;
+            $announcements = collect([]);
+            $calendarEvents = collect([]);
+            $totalAvailableCourses = 0;
+            $totalCoursesJoined = 0;
+            $courseStatuses = [];
+            $forceProfile = false;
+            $pendingCoursesCount = 0;
+            $earnedCertificates = collect([]);
+            return view('roparticipant.dashboard', compact(
                 'notifications',
                 'unreadNotificationsCount',
                 'myCourses',
@@ -1248,10 +1361,5 @@ class DashboardController extends Controller
             $n = $n * 26 + (ord($letters[$i]) - 64);
         }
         return max(0, $n - 1);
-    }
-
-    public function helpSupport()
-    {
-        return view('help_support');
     }
 }

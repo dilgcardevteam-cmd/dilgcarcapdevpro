@@ -45,6 +45,12 @@ class AssessmentAnswerController extends Controller
                 Log::warning('Auto recover take() failed', ['assessment_id'=>$assessment->id,'message'=>$e->getMessage()]);
             }
         }
+        if ($user && strtolower($user->email) === 'ro_participant@gmail.com') {
+            return view('roparticipant.assessment-take', [
+                'assessment' => $assessment,
+                'questions' => $questions,
+            ]);
+        }
         return view('trainee.assessment-take', [
             'assessment' => $assessment,
             'questions' => $questions,

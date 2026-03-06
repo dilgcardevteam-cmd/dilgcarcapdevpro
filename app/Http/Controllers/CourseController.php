@@ -484,6 +484,15 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
+        if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
+            return view('roparticipant.course-landing', [
+                'course' => $course,
+                'status' => $status,
+                'announcements' => $announcements,
+                'discussions' => $discussions,
+                'completion' => $completion,
+            ]);
+        }
         return view('trainee.course-landing', [
             'course' => $course,
             'status' => $status,
@@ -573,6 +582,13 @@ class CourseController extends Controller
             if ($pivot) {
                 $status = $pivot->pivot->status ?? 'active';
             }
+        }
+        if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
+            return view('roparticipant.course-show', [
+                'course' => $course,
+                'status' => $status,
+                'viewOnly' => $status !== 'active',
+            ]);
         }
         return view('trainee.course-show', [
             'course' => $course,
