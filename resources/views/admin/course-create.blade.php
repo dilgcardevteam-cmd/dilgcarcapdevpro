@@ -127,8 +127,15 @@
         .q-actions .right { display:flex; gap:8px; align-items:center; margin-left:auto; }
         .q-actions .divider { width:1px; height:20px; background:#e5e7eb; }
         .field-move-controls { display:inline-flex; align-items:center; gap:6px; }
+        .field-move-controls { display:none !important; }
+        .drag-handle.field-move-btn{ width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #d1d5db; background:#f8fafc; border-radius:8px; color:#334155; cursor:grab; }
+        .drag-handle.field-move-btn:hover{ background:#eef2ff; border-color:#c7d2fe; color:#1e3a8a; }
+        .field-block.dragging{ opacity:.7; }
+        .fields-panel .drop-placeholder{ height:0; border-top:2px solid #3b82f6; margin:6px 0; }
         .field-move-btn { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #d1d5db; background:#f8fafc; border-radius:8px; color:#334155; cursor:pointer; }
         .field-move-btn:hover { background:#eef2ff; border-color:#c7d2fe; color:#1e3a8a; }
+        .pill-btn { width:auto !important; height:auto !important; padding:8px 12px !important; gap:8px !important; border-radius:12px !important; background:#fff !important; box-shadow:0 3px 8px rgba(0,0,0,.06) !important; }
+        .pill-btn i { margin-right:6px; }
         #dynamicMenu { position: absolute; top: 0; left: 0; transform: translate(0,0); transition: transform 360ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms; z-index: 2000; opacity: 0; pointer-events: none; }
         #dynamicMenu.no-anim { transition: none !important; }
         #dynamicMenu .dm-container { display:flex; align-items:flex-start; gap:8px; }
@@ -182,7 +189,6 @@
     </header>
     @endif
     <div class="page-container">
-        <h1>Add Course</h1>
         <div class="card" aria-live="polite">
             <div class="progress" role="status" aria-live="polite" aria-label="Course setup progress">
                 <div class="progress-track" aria-hidden="true">
@@ -278,10 +284,64 @@
             </form>
         </div>
     </div>
+    <div id="tableModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(420px,92vw);padding:16px">
+            <div style="font-weight:800;color:#0f172a;margin-bottom:10px;">Insert Table</div>
+            <div style="display:flex;gap:12px">
+                <label style="flex:1">
+                    <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Rows</div>
+                    <input id="tblRows" type="number" min="1" max="20" value="2" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </label>
+                <label style="flex:1">
+                    <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Columns</div>
+                    <input id="tblCols" type="number" min="1" max="12" value="2" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </label>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                <button type="button" class="btn btn-small" style="background:#6b7280" onclick="tableModalCancel()">Cancel</button>
+                <button type="button" class="btn btn-small" style="background:#0d6efd" onclick="tableModalOK()">Insert</button>
+            </div>
+        </div>
+    </div>
+    <div id="splitModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(440px,92vw);padding:16px">
+            <div style="font-weight:800;color:#0f172a;margin-bottom:10px;">Split Cells</div>
+            <div style="display:flex;gap:12px">
+                <label style="flex:1">
+                    <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Number of columns</div>
+                    <input id="splitCols" type="number" min="1" max="12" value="2" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </label>
+                <label style="flex:1">
+                    <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Number of rows</div>
+                    <input id="splitRows" type="number" min="1" max="20" value="1" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </label>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                <input id="splitMerge" type="checkbox"> <span style="font-size:14px;color:#334155">Merge cells before split</span>
+            </label>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                <button type="button" class="btn btn-small" style="background:#6b7280" onclick="document.getElementById('splitModal').style.display='none'">Cancel</button>
+                <button type="button" class="btn btn-small" style="background:#0d6efd" onclick="splitModalOK()">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="videoModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(520px,92vw);padding:16px">
+            <div style="font-weight:800;color:#0f172a;margin-bottom:10px;">Embed Video</div>
+            <label style="display:block">
+                <div style="font-size:12px;color:#6b7280;margin-bottom:6px">Paste a YouTube, Vimeo, or direct video URL</div>
+                <input id="videoUrl" type="text" placeholder="https://..." style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+            </label>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                <button type="button" class="btn btn-small" style="background:#6b7280" onclick="videoModalCancel()">Cancel</button>
+                <button type="button" class="btn btn-small" style="background:#0d6efd" onclick="videoModalOK()">Insert</button>
+            </div>
+        </div>
+    </div>
     <div id="dynamicMenu" aria-hidden="true">
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
-                <button type="button" class="rail-btn" data-type="field" title="Add Text" aria-label="Add Text" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Text</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
                 <button type="button" class="rail-btn" data-type="field" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
                 <button type="button" class="rail-btn" data-type="field" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
                 <button type="button" class="rail-btn" data-type="field" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Questions</span></button>
@@ -312,7 +372,7 @@
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddTopic(this)"><i class="fas fa-stream"></i> Add Topic</div>
                             <div class="kebab-item" onclick="kebabAddModule(this)"><i class="fas fa-layer-group"></i> Add Module</div>
-                            <div class="kebab-item" onclick="kebabDeleteModule(this)"><i class="fas fa-trash"></i> Delete Section</div>
+                            <div class="kebab-item" onclick="kebabDeleteModule(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
                         </div>
                         <button type="button" class="chevron-btn" onclick="toggleChevron(this)"><i class="fas fa-chevron-down"></i></button>
                     </div>
@@ -358,7 +418,7 @@
                         </button>
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>
-                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash"></i> Delete Topic</div>
+                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Topic</div>
                         </div>
                     </div>
                 </div>
@@ -518,6 +578,105 @@
             document.execCommand(cmd, false, null);
             syncFieldsJSON(editor.closest('.fields-panel'));
         }
+        function applyFontName(sel){
+            const editor = sel.closest('.text-block')?.querySelector('.editor');
+            if(!editor) return;
+            editor.focus();
+            document.execCommand('fontName', false, sel.value);
+            syncFieldsJSON(editor.closest('.fields-panel'));
+        }
+        function applyFontSize(sel){
+            const editor = sel.closest('.text-block')?.querySelector('.editor');
+            if(!editor) return;
+            const sizeMap = { '12':2,'14':3,'16':3,'18':4,'20':5,'24':5,'28':6,'32':7 };
+            const n = sizeMap[sel.value] || 3;
+            editor.focus();
+            document.execCommand('fontSize', false, n);
+            syncFieldsJSON(editor.closest('.fields-panel'));
+        }
+        function applyFontSizeStep(btn, step){
+            const wrap = btn.closest('.editor-toolbar');
+            const sel = wrap.querySelector('.et-size');
+            const sizes = ['12','14','16','18','20','24','28','32'];
+            let idx = sizes.indexOf(sel.value);
+            idx = Math.min(sizes.length-1, Math.max(0, idx + step));
+            sel.value = sizes[idx];
+            applyFontSize(sel);
+        }
+        function applyColor(input){
+            const editor = input.closest('.text-block')?.querySelector('.editor');
+            if(!editor) return;
+            editor.focus();
+            document.execCommand('foreColor', false, input.value);
+            syncFieldsJSON(editor.closest('.fields-panel'));
+        }
+        function applyHighlight(input){
+            const editor = input.closest('.text-block')?.querySelector('.editor');
+            if(!editor) return;
+            editor.focus();
+            document.execCommand('hiliteColor', false, input.value);
+            syncFieldsJSON(editor.closest('.fields-panel'));
+        }
+        function togglePalette(btn, mode){
+            const bar = btn.closest('.editor-toolbar');
+            const menu = bar.querySelector('.palette-menu');
+            if(!menu) return;
+            menu.dataset.mode = mode;
+            const theme = ['#000000','#111827','#1f2937','#374151','#4b5563','#6b7280','#9ca3af','#d1d5db','#e5e7eb','#f3f4f6',
+                           '#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#0e7490','#10b981','#22c55e','#84cc16','#eab308'];
+            const standard = ['#ef4444','#f59e0b','#fde047','#10b981','#06b6d4','#3b82f6','#1d4ed8','#7c3aed','#000000','#9ca3af'];
+            const fill = (el, colors)=>{
+                el.innerHTML = '';
+                colors.forEach(c=>{
+                    const b = document.createElement('button');
+                    b.type='button';
+                    b.style.cssText = 'width:18px;height:18px;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer;background:'+c;
+                    b.onclick = ()=> applyPaletteColor(menu, c);
+                    el.appendChild(b);
+                });
+            };
+            fill(menu.querySelector('.grid.theme'), theme);
+            fill(menu.querySelector('.grid.standard'), standard);
+            menu.querySelector('.no-color').onclick = ()=> applyPaletteColor(menu, mode==='hilite' ? 'transparent' : 'inherit');
+            menu.style.display = (menu.style.display==='block' ? 'none' : 'block');
+            document.addEventListener('click', function onDoc(e){
+                if(!menu.contains(e.target) && e.target!==btn){
+                    menu.style.display='none';
+                    document.removeEventListener('click', onDoc);
+                }
+            });
+        }
+        function applyPaletteColor(menu, color){
+            const mode = menu.dataset.mode || 'fore';
+            const toolbar = menu.closest('.editor-toolbar');
+            const editor = toolbar.closest('.text-block')?.querySelector('.editor');
+            if(!editor) return;
+            editor.focus();
+            if(mode==='hilite'){
+                document.execCommand('hiliteColor', false, color);
+            }else{
+                document.execCommand('foreColor', false, color);
+            }
+            const group = toolbar.querySelector('.color-group');
+            if(group){
+                const sw = group.querySelector(mode==='hilite' ? 'button:nth-child(2) .swatch' : 'button:nth-child(1) .swatch');
+                if(sw){ sw.style.background = color==='inherit'?'#111827':color; }
+            }
+            menu.style.display='none';
+            syncFieldsJSON(editor.closest('.fields-panel'));
+        }
+        function toggleEditorTab(btn){
+            const bar = btn.closest('.editor-toolbar');
+            const active = btn.getAttribute('data-tab');
+            bar.querySelectorAll('.et-tab').forEach(t=>{
+                if(t===btn){ t.classList.add('active'); t.style.background='#eef2ff'; }
+                else { t.classList.remove('active'); t.style.background='#fff'; }
+            });
+            const textBox = bar.querySelector('.et-text-tools');
+            const insBox = bar.querySelector('.et-insert-tools');
+            if(active==='text'){ textBox.style.display='flex'; insBox.style.display='none'; }
+            else { textBox.style.display='none'; insBox.style.display='flex'; }
+        }
         function insertLink(btn){
             const url = prompt('Enter URL');
             if(!url) return;
@@ -527,16 +686,105 @@
             syncFieldsJSON(editor.closest('.fields-panel'));
         }
         function insertTable(btn){
-            const rows = parseInt(prompt('Rows'), 10) || 2;
-            const cols = parseInt(prompt('Columns'), 10) || 2;
-            let html = '<table style="width:100%;border-collapse:collapse;" border="1">';
-            for(let r=0;r<rows;r++){ html += '<tr>'; for(let c=0;c<cols;c++){ html += '<td style="padding:6px;">&nbsp;</td>'; } html += '</tr>'; }
-            html += '</table>';
-            const editor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
+            const rows = parseInt(btn.dataset.rows||'2', 10) || 2;
+            const cols = parseInt(btn.dataset.cols||'2', 10) || 2;
+            let tbl = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;" border="1">';
+            for(let r=0;r<rows;r++){ tbl += '<tr>'; for(let c=0;c<cols;c++){ tbl += '<td style="padding:6px;">&nbsp;</td>'; } tbl += '</tr>'; }
+            tbl += '</table>';
+            const html = `
+                <div class="table-wrap" style="position:relative;margin:6px 0;">
+                    <div class="t-handle-col" onclick="tableAddColRight(this)" title="Add column" style="position:absolute;right:-12px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:8px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;">+</div>
+                    <div class="t-handle-row" onclick="tableAddRowBelow(this)" title="Add row" style="position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:8px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;">+</div>
+                    ${tbl}
+                </div>`;
+            const editor = (window.__tableTargetEditor) || btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
+            window.__tableTargetEditor = null;
             editor.focus();
             document.execCommand('insertHTML', false, html);
             syncFieldsJSON(editor.closest('.fields-panel'));
         }
+        function bindEditorKeyBehavior(scope){
+            const editors = scope.querySelectorAll ? scope.querySelectorAll('.editor') : [];
+            editors.forEach(ed=>{
+                ed.addEventListener('keydown', function(e){
+                    if(e.key !== 'Backspace' && e.key !== 'Delete') return;
+                    const panel = ed.closest('.fields-panel');
+                    const sel = window.getSelection();
+                    if(!sel || sel.rangeCount===0) return;
+                    const node = sel.anchorNode ? (sel.anchorNode.nodeType===1 ? sel.anchorNode : sel.anchorNode.parentElement) : ed;
+                    let target = node ? node.closest('figure.img-std, .table-wrap') : null;
+                    if(!target && e.key==='Backspace'){
+                        // if caret at start of a block, check previous siblings
+                        let prev = node && node.previousElementSibling;
+                        while(prev && !prev.matches('figure.img-std, .table-wrap')) prev = prev.previousElementSibling;
+                        if(prev) target = prev;
+                    }
+                    if(target){
+                        e.preventDefault();
+                        target.remove();
+                        syncFieldsJSON(panel);
+                    }
+                });
+            });
+        }
+        function tableAddRowBelow(el){
+            const table = el.parentElement.querySelector('table');
+            const cols = table.querySelector('tr')?.children.length || 1;
+            const tr = document.createElement('tr');
+            for(let i=0;i<cols;i++){ const td=document.createElement('td'); td.style.padding='6px'; td.innerHTML='&nbsp;'; tr.appendChild(td); }
+            table.querySelector('tbody') ? table.querySelector('tbody').appendChild(tr) : table.appendChild(tr);
+        }
+        function tableAddColRight(el){
+            const table = el.parentElement.querySelector('table');
+            table.querySelectorAll('tr').forEach(tr=>{ const td=document.createElement('td'); td.style.padding='6px'; td.innerHTML='&nbsp;'; tr.appendChild(td); });
+        }
+        function splitModalOK(){
+            const m = document.getElementById('splitModal');
+            const cols = parseInt(m.querySelector('#splitCols').value||'1',10);
+            const rows = parseInt(m.querySelector('#splitRows').value||'1',10);
+            const merge = !!m.querySelector('#splitMerge').checked;
+            const cell = window.__ctxCell; if(!cell){ m.style.display='none'; return; }
+            const row = cell.parentElement;
+            const table = row.parentElement;
+            const colIdx = Array.from(row.children).indexOf(cell);
+            // Merge placeholder: no colspans in current simple table, ignore
+            // Replace current cell with 'cols' cells
+            const toInsertInRow = Math.max(1, cols);
+            for(let i=0;i<toInsertInRow;i++){
+                const td = (i===0)? cell : document.createElement('td');
+                td.style.padding='6px';
+                td.innerHTML='&nbsp;';
+                if(i>0){ row.insertBefore(td, cell.nextSibling); }
+            }
+            // Add rows below if rows>1
+            const totalCols = row.children.length;
+            for(let r=1;r<rows;r++){
+                const newRow = document.createElement('tr');
+                for(let c=0;c<totalCols;c++){
+                    const td = document.createElement('td'); td.style.padding='6px'; td.innerHTML='&nbsp;';
+                    newRow.appendChild(td);
+                }
+                table.insertBefore(newRow, row.nextSibling);
+            }
+            m.style.display='none';
+        }
+        function openTableModal(btn){
+            const editor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
+            window.__tableTargetEditor = editor;
+            const m = document.getElementById('tableModal');
+            m.style.display='flex';
+            m.querySelector('#tblRows').value = '2';
+            m.querySelector('#tblCols').value = '2';
+        }
+        function tableModalOK(){
+            const m = document.getElementById('tableModal');
+            const rows = parseInt(m.querySelector('#tblRows').value||'2', 10);
+            const cols = parseInt(m.querySelector('#tblCols').value||'2', 10);
+            const fakeBtn = { dataset:{ rows:String(rows), cols:String(cols) } };
+            insertTable(fakeBtn);
+            m.style.display='none';
+        }
+        function tableModalCancel(){ document.getElementById('tableModal').style.display='none'; window.__tableTargetEditor=null; }
         function triggerImagePicker(btn){
             const input = btn.parentElement.querySelector('input[type=file]');
             input.click();
@@ -552,34 +800,57 @@
             }
             const editor = input.closest('.text-block')?.querySelector('.editor') || input.closest('.materials-panel')?.querySelector('.editor');
             editor.focus();
-            const placeholder = `<div style="padding:8px;border:1px dashed #cbd5e1;border-radius:8px;margin:6px 0;background:#f8fafc;">
-                <strong>Image selected:</strong> ${file.name}
-                <div style="font-size:12px;color:#64748b;">Will be handled outside text fields</div>
-            </div>`;
-            document.execCommand('insertHTML', false, placeholder);
+            const url = URL.createObjectURL(file);
+            const html = `
+                <figure class="img-std" contenteditable="false" style="width:100%;max-width:100%;margin:6px 0;">
+                    <div style="position:relative;width:100%;aspect-ratio:20/11;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#f8fafc">
+                        <img src="${url}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                    </div>
+                </figure><p><br></p>`;
+            document.execCommand('insertHTML', false, html);
             syncFieldsJSON(editor.closest('.fields-panel'));
         }
-        function triggerVideoPicker(btn){
-            const input = btn.parentElement.querySelector('input[type=file][data-video]');
-            input.click();
+        function openVideoModal(btn){
+            window.__videoTargetEditor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
+            const m = document.getElementById('videoModal');
+            m.style.display='flex';
+            m.querySelector('#videoUrl').value = '';
         }
-        function insertVideoFromFile(input){
-            const file = input.files && input.files[0];
-            if(!file) return;
-            const types = ['video/mp4','video/webm','video/ogg'];
-            if (!types.includes(file.type) || file.size > 200 * 1024 * 1024) {
-                alert('Invalid video. Max 200MB. MP4/WebM/Ogg only.');
-                input.value = '';
-                return;
-            }
-            const editor = input.closest('.text-block')?.querySelector('.editor') || input.closest('.materials-panel')?.querySelector('.editor');
+        function videoModalOK(){
+            const m = document.getElementById('videoModal');
+            const url = (m.querySelector('#videoUrl').value||'').trim();
+            if(!url){ m.style.display='none'; return; }
+            const editor = window.__videoTargetEditor;
+            window.__videoTargetEditor = null;
+            const embed = toEmbedURL(url);
+            const html = `
+                <figure class="vid-std" contenteditable="false" style="width:100%;max-width:100%;margin:6px 0;">
+                    <div style="position:relative;width:100%;aspect-ratio:16/9;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#000">
+                        <iframe src="${embed}" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+                    </div>
+                </figure><p><br></p>`;
             editor.focus();
-            const placeholder = `<div style="padding:8px;border:1px dashed #cbd5e1;border-radius:8px;margin:6px 0;background:#f8fafc;">
-                <strong>Video selected:</strong> ${file.name}
-                <div style="font-size:12px;color:#64748b;">Will be handled outside text fields</div>
-            </div>`;
-            document.execCommand('insertHTML', false, placeholder);
+            document.execCommand('insertHTML', false, html);
             syncFieldsJSON(editor.closest('.fields-panel'));
+            m.style.display='none';
+        }
+        function videoModalCancel(){ document.getElementById('videoModal').style.display='none'; window.__videoTargetEditor=null; }
+        function toEmbedURL(url){
+            try{
+                const u = new URL(url);
+                if(u.hostname.includes('youtube.com')){
+                    const id = u.searchParams.get('v');
+                    if(id) return 'https://www.youtube.com/embed/'+id;
+                }
+                if(u.hostname==='youtu.be'){
+                    return 'https://www.youtube.com/embed'+u.pathname;
+                }
+                if(u.hostname.includes('vimeo.com')){
+                    const id = u.pathname.split('/').filter(Boolean).pop();
+                    return 'https://player.vimeo.com/video/'+id;
+                }
+                return url;
+            }catch(e){ return url; }
         }
         // Fields builder
         function openAddMenu(btn){
@@ -627,26 +898,85 @@
             block.className = 'field-block text-block';
             block.setAttribute('data-type','text');
             block.innerHTML = `
-                <div class="editor-toolbar" style="display:none">
-                    <input type="file" accept="image/png,image/jpeg,image/gif" onchange="insertImageFromInput(this)">
-                    <input type="file" accept="video/mp4,video/webm,video/ogg" data-video="1" onchange="insertVideoFromFile(this)">
+                <div class="editor-toolbar" style="display:block;margin-bottom:6px">
+                    <div class="et-tabs" style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+                        <div class="et-undo" style="display:flex;gap:6px;margin-right:8px">
+                            <button type="button" class="field-move-btn" onclick="execCmd(this,'undo')" title="Undo"><i class="fas fa-rotate-left"></i></button>
+                            <button type="button" class="field-move-btn" onclick="execCmd(this,'redo')" title="Redo"><i class="fas fa-rotate-right"></i></button>
+                        </div>
+                        <button type="button" class="et-tab active" data-tab="text" onclick="toggleEditorTab(this)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#eef2ff;color:#111827;font-weight:700;">Text</button>
+                        <button type="button" class="et-tab" data-tab="insert" onclick="toggleEditorTab(this)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111827;font-weight:700;">Insert</button>
+                    </div>
+                    <div class="et-text-tools" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <div class="et-fontsize" style="display:inline-flex;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                        <select class="et-font" onchange="applyFontName(this)" style="border:0;padding:6px 8px;">
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                        <select class="et-size" onchange="applyFontSize(this)" style="border:0;border-left:1px solid #e5e7eb;padding:6px 8px;width:72px;">
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16" selected>16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                        <option value="24">24</option>
+                        <option value="28">28</option>
+                        <option value="32">32</option>
+                    </select>
+                        </div>
+                        <button type="button" class="field-move-btn" onclick="applyFontSizeStep(this,1)" title="Increase Size">A+</button>
+                        <button type="button" class="field-move-btn" onclick="applyFontSizeStep(this,-1)" title="Decrease Size">A-</button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                        <div class="color-group" style="position:relative;display:inline-flex;gap:6px;align-items:center;">
+                            <button type="button" class="field-move-btn" onclick="togglePalette(this,'fore')" title="Font Color" aria-haspopup="true"><span style="display:inline-block;width:16px;height:16px;border:1px solid #cbd5e1;position:relative"><span class="swatch" style="position:absolute;left:2px;right:2px;bottom:2px;height:4px;background:#1d4ed8;"></span></span></button>
+                            <button type="button" class="field-move-btn" onclick="togglePalette(this,'hilite')" title="Highlight" aria-haspopup="true"><span style="display:inline-block;width:16px;height:16px;border:1px solid #cbd5e1;position:relative"><span class="swatch" style="position:absolute;left:2px;right:2px;bottom:2px;height:8px;background:#fde047;"></span></span></button>
+                            <div class="palette-menu" role="menu" style="display:none;position:absolute;top:36px;left:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 24px rgba(0,0,0,.12);padding:8px;z-index:40;width:240px;">
+                                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Theme Colors</div>
+                                <div class="grid theme" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:8px;"></div>
+                                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Standard Colors</div>
+                                <div class="grid standard" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;"></div>
+                                <div class="no-color" style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;"><span style="width:16px;height:16px;border:1px solid #cbd5e1;position:relative;"><span style="position:absolute;left:-2px;right:-2px;top:7px;height:2px;background:#ef4444;transform:rotate(-20deg);"></span></span><span style="font-size:12px;color:#6b7280">No Color</span></div>
+                            </div>
+                        </div>
+                        <span class="divider"></span>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'insertOrderedList')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                        <span class="divider"></span>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'outdent')" title="Outdent"><i class="fas fa-outdent"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'indent')" title="Indent"><i class="fas fa-indent"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'removeFormat')" title="Clear Formatting"><i class="fas fa-eraser"></i></button>
+                    </div>
+                    <div class="et-insert-tools" style="display:none;gap:12px;align-items:stretch;flex-wrap:wrap;">
+                        <button type="button" class="field-move-btn pill-btn" onclick="openTableModal(this)" title="Insert Table"><i class="fas fa-table"></i><span>Table</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="triggerImagePicker(this)" title="Insert Image"><i class="fas fa-image"></i><span>Picture</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="openVideoModal(this)" title="Insert Video"><i class="fas a-video"></i><span>Video</span></button>
+                        <input type="file" accept="image/png,image/jpeg,image/gif" onchange="insertImageFromInput(this)" style="display:none">
+                    </div>
                 </div>
-                <div class="editor" contenteditable="true" aria-label="Text field editor"></div>
+                <div class="editor" contenteditable="true" aria-label="Text field editor" style="min-height:120px;border:1px solid #e5e7eb;border-radius:10px;padding:10px;"></div>
                 <div class="q-actions" style="position:relative;">
                     <div class="right">
                         <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate field"><i class="fas fa-clone"></i></button>
-                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete field"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete field"><i class="fas fa-trash-alt"></i></button>
                         <span class="divider"></span>
-                        <div class="field-move-controls" aria-label="Move field actions">
-                            <button type="button" class="field-move-btn" onclick="moveFieldUp(this)" title="Move up" aria-label="Move up"><i class="fas fa-arrow-up"></i></button>
-                            <button type="button" class="field-move-btn" onclick="moveFieldDown(this)" title="Move down" aria-label="Move down"><i class="fas fa-arrow-down"></i></button>
-                        </div>
+                        <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                     </div>
                 </div>
             `;
             list.appendChild(block);
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
             block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
+            bindFieldDrag(block);
+            bindEditorEnhancements(block);
             if(origin && origin.closest){
                 const menuWrap = origin.closest('.add-menu');
                 if(menuWrap) menuWrap.style.display='none';
@@ -691,12 +1021,9 @@
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
-                            <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete question"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete question"><i class="fas fa-trash-alt"></i></button>
                             <span class="divider"></span>
-                            <div class="field-move-controls" aria-label="Move field actions">
-                                <button type="button" class="field-move-btn" onclick="moveFieldUp(this)" title="Move up" aria-label="Move up"><i class="fas fa-arrow-up"></i></button>
-                                <button type="button" class="field-move-btn" onclick="moveFieldDown(this)" title="Move down" aria-label="Move down"><i class="fas fa-arrow-down"></i></button>
-                            </div>
+                            <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                         </div>
                     </div>
                 </div>
@@ -711,6 +1038,7 @@
             });
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
             block.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(block); });
+            bindFieldDrag(block);
             if(origin && origin.closest){
                 const menuWrap = origin.closest('.add-menu');
                 if(menuWrap) menuWrap.style.display='none';
@@ -743,6 +1071,7 @@
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
+            bindEditorEnhancements(block);
         }
         function addQuestionFieldAfter(btn){
             const current = btn.closest('.field-block');
@@ -793,6 +1122,7 @@
                 syncFieldsJSON(panel);
             });
             block.addEventListener('input', ()=> syncFieldsJSON(panel));
+            bindFieldDrag(block);
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
@@ -827,14 +1157,235 @@
             clone.querySelectorAll('.q-correct').forEach(r => { r.name = newGroup; r.checked = false; });
             clone.addEventListener('input', ()=> syncFieldsJSON(panel));
             clone.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(clone); });
+            bindFieldDrag(clone);
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
+            bindEditorEnhancements(clone);
+        }
+        function bindEditorEnhancements(scope){
+            const editors = scope.querySelectorAll ? scope.querySelectorAll('.editor') : [];
+            editors.forEach(ed=>{
+                ed.addEventListener('contextmenu', function(e){
+                    const cell = e.target.closest('td,th');
+                    if(!cell) return;
+                    e.preventDefault();
+                    openTableCtxMenu(e.clientX, e.clientY, cell);
+                });
+                if(!ed.__resizeBound){
+                    ed.__resizeBound = true;
+                    attachTableResizeUI(ed);
+                }
+            });
+            bindEditorKeyBehavior(scope);
+        }
+        function attachTableResizeUI(editor){
+            const col = document.createElement('div');
+            const row = document.createElement('div');
+            col.style.cssText = 'position:absolute;width:3px;background:#3b82f6;cursor:col-resize;display:none;z-index:2000';
+            row.style.cssText = 'position:absolute;height:3px;background:#3b82f6;cursor:row-resize;display:none;z-index:2000';
+            editor.parentElement.style.position='relative';
+            editor.parentElement.appendChild(col);
+            editor.parentElement.appendChild(row);
+            let target = null, mode = null, startX=0,startY=0,startW=0,startH=0,colIndex=0;
+            editor.addEventListener('mousemove', (e)=>{
+                const td = e.target.closest('td,th');
+                if(!td) { col.style.display='none'; row.style.display='none'; return; }
+                const rect = td.getBoundingClientRect();
+                const nearRight = Math.abs(e.clientX - rect.right) <= 6;
+                const nearBottom = Math.abs(e.clientY - rect.bottom) <= 6;
+                const hostRect = editor.parentElement.getBoundingClientRect();
+                if(nearRight){
+                    col.style.display='block';
+                    col.style.left = (rect.right - hostRect.left - 1)+'px';
+                    col.style.top = (rect.top - hostRect.top)+'px';
+                    col.style.height = (rect.height)+'px';
+                } else { col.style.display='none'; }
+                if(nearBottom){
+                    row.style.display='block';
+                    row.style.top = (rect.bottom - hostRect.top - 1)+'px';
+                    row.style.left = (rect.left - hostRect.left)+'px';
+                    row.style.width = (rect.width)+'px';
+                } else { row.style.display='none'; }
+            });
+            col.addEventListener('mousedown', (e)=>{
+                e.preventDefault();
+                const td = document.elementFromPoint(e.clientX, e.clientY)?.closest('td,th');
+                if(!td) return;
+                target = td;
+                mode = 'col';
+                startX = e.clientX;
+                startW = td.offsetWidth;
+                colIndex = Array.from(td.parentElement.children).indexOf(td);
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onUp, { once:true });
+            });
+            row.addEventListener('mousedown', (e)=>{
+                e.preventDefault();
+                const td = document.elementFromPoint(e.clientX, e.clientY)?.closest('td,th');
+                if(!td) return;
+                target = td;
+                mode = 'row';
+                startY = e.clientY;
+                startH = td.offsetHeight;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onUp, { once:true });
+            });
+            function onDrag(e){
+                if(!target) return;
+                const tr = target.parentElement;
+                const table = tr.parentElement;
+                if(mode==='col'){
+                    const dx = e.clientX - startX;
+                    const w = Math.max(40, startW + dx);
+                    table.querySelectorAll('tr').forEach(r=>{
+                        const cell = r.children[colIndex];
+                        if(cell) cell.style.width = w+'px';
+                    });
+                }else if(mode==='row'){
+                    const dy = e.clientY - startY;
+                    const h = Math.max(24, startH + dy);
+                    tr.querySelectorAll('td,th').forEach(c=> c.style.height = h+'px');
+                }
+            }
+            function onUp(){
+                target = null; mode = null;
+                document.removeEventListener('mousemove', onDrag);
+            }
+        }
+        function openTableCtxMenu(x, y, cell){
+            let menu = document.getElementById('tblCtx');
+            if(!menu){
+                menu = document.createElement('div');
+                menu.id = 'tblCtx';
+                menu.style.cssText = 'position:fixed;z-index:3000;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.15);width:220px;padding:8px;';
+                document.body.appendChild(menu);
+            }
+            menu.innerHTML = `
+                <div style="font-weight:700;color:#0f172a;padding:8px 10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-table"></i> Insert</div>
+                <div style="padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <button class="btn btn-small" style="background:#f1f5f9;color:#111827" onclick="ctxIns('row-above')">Row Above</button>
+                    <button class="btn btn-small" style="background:#f1f5f9;color:#111827" onclick="ctxIns('row-below')">Row Below</button>
+                    <button class="btn btn-small" style="background:#f1f5f9;color:#111827" onclick="ctxIns('col-left')">Col Left</button>
+                    <button class="btn btn-small" style="background:#f1f5f9;color:#111827" onclick="ctxIns('col-right')">Col Right</button>
+                </div>
+                <div style="height:1px;background:#e5e7eb;margin:6px 8px;"></div>
+                <button class="btn btn-small" style="margin:6px 10px;background:#f1f5f9;color:#111827;width:calc(100% - 20px)" onclick="ctxSplit()">Split Cell</button>
+                <button class="btn btn-small" style="margin:0 10px 6px;background:#dc3545;width:calc(100% - 20px)" onclick="ctxDeleteCell()">Delete Cell</button>
+            `;
+            menu.style.left = Math.min(window.innerWidth-240, x) + 'px';
+            menu.style.top = Math.min(window.innerHeight-180, y) + 'px';
+            menu.style.display = 'block';
+            window.__ctxCell = cell;
+            document.addEventListener('click', function onDoc(){ menu.style.display='none'; document.removeEventListener('click', onDoc); });
+        }
+        function ctxIns(kind){
+            const cell = window.__ctxCell; if(!cell) return;
+            const row = cell.parentElement;
+            const table = row.parentElement;
+            if(kind==='row-above' || kind==='row-below'){
+                const r = document.createElement('tr');
+                for(let i=0;i<row.children.length;i++){ const td = document.createElement('td'); td.style.padding='6px'; td.innerHTML='&nbsp;'; r.appendChild(td); }
+                if(kind==='row-above') table.insertBefore(r, row); else table.insertBefore(r, row.nextSibling);
+            }else if(kind==='col-left' || kind==='col-right'){
+                const idx = Array.from(row.children).indexOf(cell);
+                Array.from(table.querySelectorAll('tr')).forEach(tr=>{
+                    const td = document.createElement('td'); td.style.padding='6px'; td.innerHTML='&nbsp;';
+                    if(kind==='col-left') tr.insertBefore(td, tr.children[idx]); else tr.insertBefore(td, tr.children[idx].nextSibling);
+                });
+            }
+        }
+        function ctxSplit(){
+            const m = document.getElementById('splitModal');
+            m.style.display='flex';
+            m.querySelector('#splitCols').value = '2';
+            m.querySelector('#splitRows').value = '1';
+            m.querySelector('#splitMerge').checked = false;
+        }
+        function ctxDeleteCell(){
+            const cell = window.__ctxCell; if(!cell) return;
+            const row = cell.parentElement;
+            cell.remove();
+            if(row.children.length===0) row.remove();
         }
         function deleteField(btn){
             const panel = btn.closest('.fields-panel');
             btn.closest('.field-block').remove();
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
+        }
+        function bindFieldDrag(block){
+            const type = (block.getAttribute('data-type')||'').toLowerCase();
+            if(!['text','question'].includes(type)) return;
+            const handle = block.querySelector('.drag-handle');
+            if(!handle) return;
+            const list = block.closest('.fields-panel')?.querySelector('.field-list');
+            if(!list) return;
+            block.setAttribute('draggable','false');
+            function enableDrag(){ block.setAttribute('draggable','true'); block.dataset.dragAllowed='1'; }
+            function disableDrag(){ block.setAttribute('draggable','false'); delete block.dataset.dragAllowed; }
+            handle.addEventListener('mousedown', enableDrag);
+            handle.addEventListener('touchstart', enableDrag, {passive:true});
+            // Make the handle itself draggable for more reliable UX
+            handle.setAttribute('draggable','true');
+            handle.addEventListener('dragstart', (e)=>{
+                enableDrag();
+                window.__dragField = block;
+                block.classList.add('dragging');
+                e.dataTransfer.effectAllowed='move';
+                try{ e.dataTransfer.setData('text/plain','field'); }catch(_){}
+            });
+            handle.addEventListener('dragend', ()=>{
+                block.classList.remove('dragging');
+                const ph = list.__dropPlaceholder;
+                if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
+                window.__dragField = null;
+                disableDrag();
+            });
+            block.addEventListener('dragstart', (e)=>{
+                if(block.dataset.dragAllowed !== '1'){ e.preventDefault(); disableDrag(); return; }
+                window.__dragField = block;
+                block.classList.add('dragging');
+                e.dataTransfer.effectAllowed='move';
+                try{ e.dataTransfer.setData('text/plain','field'); }catch(_){}
+                // collapse any open editors? keep as-is
+            });
+            block.addEventListener('dragend', ()=>{
+                block.classList.remove('dragging');
+                const ph = list.__dropPlaceholder;
+                if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
+                window.__dragField = null;
+                disableDrag();
+            });
+            if(!list.__dndBound){
+                list.__dndBound = true;
+                list.addEventListener('dragover', (e)=>{
+                    if(!window.__dragField) return;
+                    e.preventDefault();
+                    const ph = list.__dropPlaceholder || (list.__dropPlaceholder = Object.assign(document.createElement('div'), {className:'drop-placeholder'}));
+                    const before = getFieldDropBefore(list, e.clientY);
+                    if(before==null){ list.appendChild(ph); } else { list.insertBefore(ph, before); }
+                });
+                list.addEventListener('drop', (e)=>{
+                    if(!window.__dragField) return;
+                    e.preventDefault();
+                    const before = getFieldDropBefore(list, e.clientY);
+                    if(before==null){ list.appendChild(window.__dragField); } else { list.insertBefore(window.__dragField, before); }
+                    const ph = list.__dropPlaceholder;
+                    if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
+                    const panel = list.closest('.fields-panel');
+                    ensureReflectionLast(panel);
+                    syncFieldsJSON(panel);
+                    window.__dragField = null;
+                });
+            }
+        }
+        function getFieldDropBefore(list, y){
+            const els = [...list.querySelectorAll('.field-block:not(.dragging)')].filter(el=> (el.getAttribute('data-type')||'')!=='reflection');
+            for(let i=0;i<els.length;i++){
+                const box = els[i].getBoundingClientRect();
+                if(y < box.top + box.height/2) return els[i];
+            }
+            return null;
         }
         function syncFieldsJSON(panel){
             const blocks = Array.from(panel.querySelectorAll('.field-block'));
