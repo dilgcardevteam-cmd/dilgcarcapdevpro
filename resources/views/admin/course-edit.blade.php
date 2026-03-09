@@ -256,6 +256,16 @@
             </form>
         </div>
     </div>
+    <div id="correctModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(420px,92vw);padding:16px">
+            <div style="font-weight:800;color:#0f172a;margin-bottom:10px;">Set Correct Answer</div>
+            <div class="cm-list" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px;"></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                <button type="button" class="btn btn-small" style="background:#6b7280" onclick="correctModalCancel()">Cancel</button>
+                <button type="button" class="btn btn-small" style="background:#0d6efd" onclick="correctModalOK()">OK</button>
+            </div>
+        </div>
+    </div>
     <div id="videoModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
         <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(520px,92vw);padding:16px">
             <div style="font-weight:800;color:#0f172a;margin-bottom:10px;">Embed Video</div>
@@ -314,8 +324,6 @@
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
-                <button type="button" class="rail-btn" title="Add Image" aria-label="Add Image" onclick="dmAddImageUpload()"><i class="fas fa-image"></i><span class="rail-label">Add Image (upload)</span></button>
-                <button type="button" class="rail-btn" title="Add Video" aria-label="Add Video" onclick="dmAddVideoUpload()"><i class="fas fa-video"></i><span class="rail-label">Add Video (upload)</span></button>
                 <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Questions</span></button>
                 <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
                 <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
@@ -1023,9 +1031,11 @@
                         <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
                     </div>
                     <div class="q-actions">
-                        <div class="left">
-                            <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)">Duplicate</button>
-                            <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)">Delete</button>
+                        <div class="right" style="position:relative;">
+                            <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
+                            <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete question"><i class="fas fa-trash-alt"></i></button>
+                            <span class="divider"></span>
+                            <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1959,7 +1969,12 @@
                         </label>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
-                        <div class="exam-q-list"></div>
+                        <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
+                            <button type="button" class="btn btn-small nav-prev" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Previous</button>
+                            <div class="nav-track" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"></div>
+                            <button type="button" class="btn btn-small nav-next" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Next</button>
+                        </div>
+                        <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
                             <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                                 <label class="q-col" style="display:block">
@@ -1987,9 +2002,10 @@
                                     <option value="false">False</option>
                                 </select>
                             </div>
-                            <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
-                                <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
-                            </div>
+                    <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+                        <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
+                        <button type="button" class="btn btn-small eq-del" style="background:#dc3545;color:#fff;border:none;border-radius:8px;padding:8px 12px;opacity:.45;cursor:default" disabled onclick="deleteActiveExamQuestion(this)">Delete</button>
+                    </div>
                         </div>
                     </div>
                 </div>
@@ -2054,18 +2070,55 @@
                 const node = document.createElement('div');
                 node.className = 'q-item';
                 node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. '+obj.text+'</div>'
-                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>'
+                    + '<button type="button" class="btn btn-small" style="background:#dc3545;margin-top:6px" onclick="removeExamItem(this)">Delete</button>';
                 node.dataset.payload = JSON.stringify(obj);
                 listEl.appendChild(node);
                 host.querySelector('.eq-text').value='';
                 host.querySelectorAll('.eq-option').forEach(i=> i.value='');
-                const r = host.querySelector('.eq-correct'); if(r) r.checked=false;
+                host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 host.querySelector('.eq-id-answer').value='';
                 host.querySelector('.eq-tf-answer').value='true';
                 syncExamJSON();
+                updateExamNavigator.call(host.closest('.exam-wrapper'));
+                setActiveExamIndex(listEl.children.length);
             });
             syncBuilderBoxes(); syncExamJSON();
             return host;
+        }
+        function openCorrectAnswerModal(wrap, proceed){
+            window.__correctWrap = wrap;
+            window.__correctProceed = proceed;
+            const m = document.getElementById('correctModal');
+            const list = m.querySelector('.cm-list');
+            list.innerHTML = '';
+            const opts = Array.from(wrap.querySelectorAll('.eq-option')).map((i,idx)=> ({ text:(i.value||['Choice A','Choice B','Choice C','Choice D'][idx]), idx }));
+            opts.forEach(o=>{
+                const row = document.createElement('label');
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px';
+                row.innerHTML = `<input type="radio" name="cm-choice" value="${o.idx}"><span>${o.text}</span>`;
+                list.appendChild(row);
+            });
+            m.style.display='flex';
+        }
+        function correctModalOK(){
+            const m = document.getElementById('correctModal');
+            const sel = m.querySelector('input[name="cm-choice"]:checked');
+            if(!sel) return;
+            const wrap = window.__correctWrap;
+            const radios = Array.from(wrap.querySelectorAll('.eq-correct'));
+            radios.forEach(r=> r.checked=false);
+            const idx = parseInt(sel.value,10);
+            if(radios[idx]) radios[idx].checked = true;
+            m.style.display='none';
+            const cb = window.__correctProceed;
+            window.__correctWrap = null; window.__correctProceed = null;
+            if(typeof cb === 'function') cb();
+        }
+        function correctModalCancel(){
+            const m = document.getElementById('correctModal');
+            m.style.display='none';
+            window.__correctWrap = null; window.__correctProceed = null;
         }
         function dmAddQuestion(){
             const sel = document.querySelector('.field-block.selected-field');
@@ -2131,7 +2184,12 @@
                         </label>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
-                        <div class="exam-q-list"></div>
+                        <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
+                            <button type="button" class="btn btn-small nav-prev" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Previous</button>
+                            <div class="nav-track" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"></div>
+                            <button type="button" class="btn btn-small nav-next" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Next</button>
+                        </div>
+                        <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
                             <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                                 <label class="q-col" style="display:block">
@@ -2160,7 +2218,7 @@
                                 </select>
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
-                                <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
+                                <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
                             </div>
                         </div>
                     </div>
@@ -2252,6 +2310,7 @@
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
                 wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
+            updateExamNavigator.call(wrap);
             }
             wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             wrap.addEventListener('input', syncExamJSON);
@@ -2265,7 +2324,11 @@
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
                     if(opts.length<2) return;
                     const checked = wrap.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    if(!checked){
+                        openCorrectAnswerModal(wrap, ()=> wrap.querySelector('.eq-add').click());
+                        return;
+                    }
+                    const ans = parseInt(checked.value,10);
                     obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
@@ -2309,6 +2372,204 @@
             }
             reindexModules();
             return wrap;
+        }
+            function updateExamNavigator(){
+            const wrap = this.classList?.contains('exam-wrapper') ? this : document.querySelector('.exam-wrapper'); 
+            const nav = wrap.querySelector('.exam-nav');
+            if(!nav) return;
+            const track = nav.querySelector('.nav-track');
+            const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+            track.innerHTML = '';
+            const count = items.length + 1;
+            for(let i=0;i<count;i++){
+                const b = document.createElement('button');
+                b.className = 'nav-block';
+                b.textContent = (i+1);
+                b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
+                b.addEventListener('click', ()=> setActiveExamIndex(i));
+                track.appendChild(b);
+            }
+            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(getActiveExamIndex(wrap)-1);
+            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(getActiveExamIndex(wrap)+1);
+            setActiveExamIndex(getActiveExamIndex(wrap)); 
+        }
+        function getActiveExamIndex(wrap){
+            const track = wrap.querySelector('.nav-track');
+            const blocks = Array.from(track.children);
+            const idx = blocks.findIndex(b=> b.classList.contains('active'));
+            return idx>=0 ? idx : 0;
+        }
+        function setActiveExamIndex(i){
+            const wrap = document.querySelector('.exam-wrapper') || document;
+            const nav = wrap.querySelector('.exam-nav');
+            const track = nav.querySelector('.nav-track');
+            const blocks = Array.from(track.children);
+            const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+            if(items.length===0){
+                const builder = wrap.querySelector('.eq-text');
+                if(builder) builder.focus();
+            }
+            const clamped = Math.max(0, Math.min(items.length, i));
+            const prev = nav.querySelector('.nav-prev');
+            const next = nav.querySelector('.nav-next');
+            prev.disabled = clamped<=0;
+            next.disabled = clamped>=items.length;
+            prev.style.opacity = prev.disabled ? '.45' : '1';
+            next.style.opacity = next.disabled ? '.45' : '1';
+            prev.style.cursor = prev.disabled ? 'default' : 'pointer';
+            next.style.cursor = next.disabled ? 'default' : 'pointer';
+            const delBtn = wrap.querySelector('.eq-del');
+            if(delBtn){
+                const viewingExisting = clamped < items.length;
+                delBtn.disabled = !viewingExisting;
+                delBtn.style.opacity = viewingExisting ? '1' : '.45';
+                delBtn.style.cursor = viewingExisting ? 'pointer' : 'default';
+            }
+            blocks.forEach((b,bi)=>{
+                b.classList.toggle('active', bi===clamped);
+                if(bi===clamped){
+                    b.style.background = '#10b981';
+                    b.style.borderColor = '#10b981';
+                    b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
+                }else{
+                    b.style.background = '#3b82f6';
+                    b.style.borderColor = '#60a5fa';
+                    b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
+                }
+            });
+            if(clamped < items.length){
+                populateBuilderFromItem(wrap, clamped);
+            } else {
+                const builder = wrap.querySelector('.eq-text');
+                if(builder) builder.focus();
+            }
+        }
+        function recalcExamJSON(wrap){
+            const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
+            const title = (wrap.querySelector('.exam-title')?.value || '').trim();
+            const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
+            const list = wrap.querySelectorAll('.exam-q-list .q-item');
+            const qs = [];
+            list.forEach(node=>{
+                try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && (obj.text||obj.title)){ qs.push(obj); } }catch(e){}
+            });
+            const hidden = wrap.querySelector('.exam-json');
+            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
+        }
+        function populateBuilderFromItem(wrap, idx){
+            const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+            const node = items[idx];
+            if(!node) return;
+            let payload = {};
+            try{ payload = JSON.parse(node.dataset.payload||'{}'); }catch(e){}
+            const text = String(payload.text||'');
+            const type = String(payload.type||'multiple_choice');
+            wrap.querySelector('.eq-text').value = text;
+            const typeSel = wrap.querySelector('.eq-type');
+            if(typeSel){ typeSel.value = type; }
+            showBuilderBoxes(wrap);
+            if(type==='multiple_choice'){
+                ensureChoiceRows(wrap);
+                const choices = Array.isArray(payload.choices) ? payload.choices
+                                 : Array.isArray(payload.options) ? payload.options
+                                 : [];
+                const rows = Array.from(wrap.querySelectorAll('.eq-choices .q-option-row'));
+                rows.forEach((row,i)=>{
+                    const inp = row.querySelector('.eq-option');
+                    if(inp) inp.value = choices[i] || '';
+                });
+                const radios = Array.from(wrap.querySelectorAll('.eq-correct'));
+                radios.forEach(r=> r.checked = false);
+                const ai = typeof payload.answer_index==='number' ? payload.answer_index : 0;
+                if(radios[ai]) radios[ai].checked = true;
+            }else if(type==='identification'){
+                const ans = String(payload.answer||'');
+                wrap.querySelector('.eq-id-answer').value = ans;
+            }else if(type==='true_false'){
+                wrap.querySelector('.eq-tf-answer').value = payload.answer===false ? 'false' : 'true';
+            }
+        }
+        function showBuilderBoxes(wrap){
+            const t = wrap.querySelector('.eq-type').value;
+            const boxChoices = wrap.querySelector('.eq-choices');
+            const boxId = wrap.querySelector('.eq-id');
+            const boxTf = wrap.querySelector('.eq-tf');
+            if(boxChoices) boxChoices.style.display = (t==='multiple_choice') ? 'block' : 'none';
+            if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
+            if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
+            if(t==='multiple_choice'){
+                const rows = wrap.querySelectorAll('.eq-choices .q-option-row');
+                if(rows.length===0) ensureChoiceRows(wrap);
+            }
+        }
+        function ensureChoiceRows(wrap){
+            const wrapChoices = wrap.querySelector('.eq-choices');
+            if(!wrapChoices) return;
+            if(wrapChoices.querySelectorAll('.q-option-row').length>0) return;
+            const group = 'exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                const row = document.createElement('div');
+                row.className = 'q-option-row';
+                row.innerHTML = `
+                    <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                        <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                        <input type="text" class="eq-option" placeholder="${ph}">
+                    </label>
+                `;
+                wrapChoices.appendChild(row);
+            });
+        }
+        (function bindBuilderLiveUpdate(){
+            document.addEventListener('input', function(e){
+                const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
+                const idx = getActiveExamIndex(wrap);
+                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+                if(idx >= items.length) return;
+                const t = wrap.querySelector('.eq-type').value;
+                const text = (wrap.querySelector('.eq-text').value||'').trim();
+                let obj = null;
+                if(t==='multiple_choice'){
+                    const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
+                    const checked = wrap.querySelector('.eq-correct:checked');
+                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                }else if(t==='identification'){
+                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    obj = { type:'identification', text, answer: ans };
+                }else if(t==='true_false'){
+                    const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
+                    obj = { type:'true_false', text, answer: ans };
+                }
+                const node = items[idx];
+                node.dataset.payload = JSON.stringify(obj);
+                const title = node.querySelector('.qi-title');
+                if(title){ title.textContent = (idx+1)+'. '+(obj.text||''); }
+                recalcExamJSON(wrap);
+            }, { passive:true });
+            document.addEventListener('change', function(e){
+                const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
+                const idx = getActiveExamIndex(wrap);
+                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+                if(idx >= items.length) return;
+                const ev = new Event('input', { bubbles:true });
+                wrap.dispatchEvent(ev);
+            }, { passive:true });
+        })();
+        function deleteActiveExamQuestion(btn){
+            const wrap = btn.closest('.exam-wrapper');
+            const listEl = wrap.querySelector('.exam-q-list');
+            const active = getActiveExamIndex(wrap);
+            const items = Array.from(listEl.children);
+            if(items.length===0) return;
+            const target = items[Math.min(active, items.length-1)];
+            target.remove();
+            Array.from(listEl.children).forEach((n,i)=>{
+                const t = n.querySelector('.qi-title');
+                if(t){ const payload = JSON.parse(n.dataset.payload||'{}'); t.textContent = (i+1)+'. '+(payload.text||''); }
+            });
+            updateExamNavigator.call(wrap);
+            recalcExamJSON(wrap);
+            setActiveExamIndex(Math.max(0, active-1));
         }
         function getDropBeforeElement(container, y){
             const els = [...container.querySelectorAll('.module-wrapper, .exam-wrapper:not(.dragging)')];
