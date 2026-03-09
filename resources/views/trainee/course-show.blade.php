@@ -31,12 +31,12 @@
         /* Page Topbar (under header) */
         .topbar{display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:80px;z-index:10}
         .back{color:#0d6efd;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff}
-        .layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 56px)}
-        .sidebar{border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column}
+        .layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 56px);gap:14px;padding:14px}
+        .sidebar{border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:0 14px 30px rgba(15,23,42,.14)}
         .sidebar h3{margin:12px 12px 8px;color:#fff;font-size:1rem}
-        .search{padding:0 12px 12px}
-        .search input{width:90%;padding:8px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;background:#fff}
-        .outline{overflow:auto;padding:8px 8px 16px}
+        .search{padding:10px 12px 12px}
+        .search input{width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:999px;background:#fff;font-weight:700}
+        .outline{overflow:auto;padding:8px 8px 16px;scrollbar-width:thin}
         .module{border:1px solid var(--border);border-radius:10px;margin:8px;background:#fff}
         .module-header{display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;background:#f0f6ff;border-radius:10px 10px 0 0}
         .module-title{font-weight:800;color:#111827;font-size:1.05rem;letter-spacing:-0.01em;display:flex;align-items:center;gap:10px}
@@ -63,15 +63,24 @@
         .sub-connector{position:relative;padding-left:10px}
         .sub-connector::before{content:'';position:absolute;left:-18px;top:0;bottom:0;border-left:2px dashed #d1d5db}
         .content{padding:16px;overflow:auto}
-        .pane{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px}
+        .pane{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px}
         .pane h2{margin:6px 0 14px;color:#111827;font-size:1.75rem;font-weight:800;letter-spacing:-0.015em}
         .lock{display:flex;align-items:center;justify-content:center;height:420px;background:#e6eef7;border:2px dashed #bcd2ea;border-radius:12px;color:#223}
         .chips{display:flex;gap:8px;flex-wrap:wrap}
         .chip{background:#f1f5f9;border-radius:999px;border:1px solid var(--border);padding:4px 8px}
         .field{border:1px solid var(--border);border-radius:14px;margin:12px 0;padding:20px;background:#fff;min-height:96px}
         #contentBody .field:nth-child(even){background:#f8fafc}
+        /* Pro content rendering */
+        #contentBody .field img{max-width:100%;height:auto;border-radius:12px;display:block;margin:6px auto;box-shadow:0 10px 24px rgba(15,23,42,.08);border:1px solid var(--border)}
+        #contentBody .field iframe{width:100%;aspect-ratio:16/9;height:auto;border:none;border-radius:14px;box-shadow:0 14px 28px rgba(15,23,42,.14);border:1px solid var(--border);background:#000}
+        #contentBody .field table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;display:block}
+        #contentBody .field thead{background:#f8fafc}
+        #contentBody .field th,#contentBody .field td{padding:10px 12px;border-bottom:1px solid var(--border);min-width:90px}
+        #contentBody .field tr:last-child td{border-bottom:none}
+        #contentBody .field tr:nth-child(even){background:#fbfdff}
+        #contentBody .field p{margin:.5em 0;line-height:1.7}
         .subgroup{margin:10px 0 18px}
-        .subheader{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-weight:700;color:#111827;font-size:1.1rem;display:flex;align-items:center;justify-content:space-between}
+        .subheader{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-weight:800;color:#0f172a;font-size:1.05rem;display:flex;align-items:center;justify-content:space-between}
         .done-toggle{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:#1e3a8a;font-size:.9rem}
         .done-toggle input[type=checkbox]{width:18px;height:18px}
         .question .q-title{font-size:1.25rem;font-weight:800;margin:6px 0 12px;color:#111827}
@@ -112,20 +121,9 @@
         }
         body{color:#0f172a;background:var(--bg)}
         .app-header{display:none}
-        .topbar{
-            padding:8px 20px;
-            min-height:56px;
-            background:#fff;
-            border-bottom:1px solid #e5e7eb;
-            box-shadow:0 2px 6px rgba(15,23,42,.06);
-            position:fixed;
-            top:0;
-            left:250px;
-            right:0;
-            z-index:30;
-        }
+        .topbar{padding:10px 20px;min-height:60px;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 6px 16px rgba(15,23,42,.08);position:sticky;top:0;z-index:30}
         .layout{height:100vh;grid-template-columns:250px 1fr}
-        .content{padding-top:72px}
+        .content{padding-top:8px}
         .sidebar{
             background:#002C76;
             border-right:1px solid rgba(255,255,255,.12);
@@ -278,6 +276,10 @@
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
+        // Ensure modules is an array (some DBs return JSON as string)
+        if (typeof course.modules === 'string') {
+            try { course.modules = JSON.parse(course.modules || '[]') || []; } catch(e){ course.modules = []; }
+        }
         const status = @json($status);
         const isEnrolled = status === 'active';
         const viewOnly = @json($viewOnly ?? false);
@@ -297,16 +299,25 @@
                 }
             }
         }
-        function renderOutline(){
+        async function renderOutline(){
             const el=document.getElementById('outline');
             el.innerHTML='';
-            const mods = Array.isArray(course.modules)?course.modules:[];
+            let mods = Array.isArray(course.modules)?course.modules:[];
+            if(!mods.length){
+                try{
+                    const r = await fetch("{{ route('courses.modules.json', $course) }}", {credentials:'same-origin'});
+                    const j = r.ok ? await r.json() : null;
+                    if(j && j.ok && Array.isArray(j.modules)){ mods = j.modules; course.modules = mods; }
+                }catch(e){}
+            }
             mods.forEach((m,mi)=>{
                 const mod = document.createElement('div');
                 mod.className='module';
+                const st = (m && m.status) ? m.status : 'unlocked';
+                const icon = (st==='locked') ? '<i class="fas fa-lock" style="color:#64748b"></i> ' : '';
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
-                        <div class="module-title"><span>Module ${mi+1}: ${m.title||'Untitled'}</span><span class="module-kpi" id="kpi_${mi}"></span></div>
+                        <div class="module-title"><span>${icon}Module ${mi+1}: ${m.title||'Untitled'}</span><span class="module-kpi" id="kpi_${mi}"></span></div>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="module-bar"><span id="bar_${mi}"></span></div>
@@ -367,6 +378,14 @@
                     topicsCt.appendChild(tEl);
                 });
                 mod.querySelector('.module-header').addEventListener('click',()=>{
+                    // For trainees: block locked modules
+                    var role = "{{ auth()->user()->role ?? '' }}";
+                    var isTrainer = (role==='trainer' || role==='coach');
+                    const currentStatus = (mods[mi] && mods[mi].status) ? mods[mi].status : 'unlocked';
+                    if(!isTrainer && currentStatus==='locked'){
+                        alert('This module is locked by the trainer.');
+                        return;
+                    }
                     const open = topicsCt.style.display==='block';
                     topicsCt.style.display = open?'none':'block';
                     mod.querySelector('.module-header i').style.transform = open?'rotate(0deg)':'rotate(180deg)';
@@ -445,6 +464,14 @@
             document.getElementById('contentTitle').textContent = `${mi+1}.${ti}. ${(typeof t==='string')?t:(t.title||'Topic')}`;
             if(!isEnrolled && !viewOnly){
                 document.getElementById('contentBody').innerHTML = `<div class="lock"><div><div style="font-size:3rem;text-align:center;margin-bottom:8px;"><i class="fas fa-lock"></i></div><div style="text-align:center;color:#334;">Locked Content</div><div style="text-align:center;color:#556;max-width:420px;margin:8px auto 0;">You must be enrolled to view this topic’s materials and questions.</div></div></div>`;
+                return;
+            }
+            // Respect module lock for trainees
+            var role = "{{ auth()->user()->role ?? '' }}";
+            var isTrainer = (role==='trainer' || role==='coach');
+            const currentStatus = ((course.modules||[])[mi] && (course.modules||[])[mi].status) ? (course.modules||[])[mi].status : 'unlocked';
+            if(!isTrainer && currentStatus==='locked'){
+                document.getElementById('contentBody').innerHTML = `<div class="lock"><div><div style="font-size:3rem;text-align:center;margin-bottom:8px;"><i class="fas fa-lock"></i></div><div style="text-align:center;color:#334;">This module is locked by the trainer.</div><div style="text-align:center;color:#556;max-width:420px;margin:8px auto 0;">Please wait until the trainer unlocks this module.</div></div></div>`;
                 return;
             }
             const subs = Array.isArray(t.subtopics) ? t.subtopics : null;
@@ -762,6 +789,36 @@
             }
             /* removed correct answer reveal */
         }
+        // Auto-refresh module lock statuses every 15s
+        (function(){
+            function applyModuleStatuses(mods){
+                if(!Array.isArray(mods)) return;
+                for(let i=0;i<mods.length;i++){
+                    if(!course.modules || !course.modules[i]) continue;
+                    course.modules[i].status = mods[i].status || 'unlocked';
+                    const modEl = document.querySelectorAll('.module')[i];
+                    if(modEl){
+                        const title = modEl.querySelector('.module-title span');
+                        if(title){
+                            const hasLock = title.innerHTML.indexOf('fa-lock')>-1;
+                            const shouldLock = (mods[i].status==='locked');
+                            if(shouldLock && !hasLock){
+                                title.innerHTML = '<i class="fas fa-lock" style="color:#64748b"></i> ' + title.innerText.replace(/^(\s*\uF023\s*)?/,'');
+                            }else if(!shouldLock && hasLock){
+                                title.innerHTML = title.innerText;
+                            }
+                        }
+                    }
+                }
+            }
+            function tick(){
+                fetch("{{ route('courses.modules.status', $course) }}", {credentials:'same-origin'})
+                    .then(r=>r.ok?r.json():null)
+                    .then(j=>{ if(j&&j.ok&&Array.isArray(j.modules)){ applyModuleStatuses(j.modules); }})
+                    .catch(()=>{});
+            }
+            setInterval(tick, 15000);
+        })();
         renderVideo();
         if(!viewOnly){ loadReflectionMap(); }
         renderOutline();

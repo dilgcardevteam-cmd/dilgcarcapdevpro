@@ -194,6 +194,7 @@ class CourseController extends Controller
             $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
+                'status' => 'locked',
             ];
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
@@ -354,6 +355,7 @@ class CourseController extends Controller
             $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
+                'status' => $existing['status'] ?? 'locked',
             ];
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
@@ -750,6 +752,49 @@ class CourseController extends Controller
 
         return redirect()->route('dashboard', ['tab' => 'course-management'])
             ->with('success_course', 'Course updated successfully.');
+    }
+
+    public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)
+    {
+        $role = auth()->user()->role ?? null;
+        if (!in_array($role, ['trainer','coach','super_admin','admin'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+        $status = $request->input('status');
+        if (!in_array($status, ['locked','unlocked'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid status'], 422);
+        }
+        $mods = is_array($course->modules) ? $course->modules : [];
+        if (!array_key_exists($index, $mods)) {
+            return response()->json(['ok' => false, 'error' => 'Module not found'], 404);
+        }
+        $mods[$index]['status'] = $status;
+        $course->modules = $mods;
+        $course->save();
+        return response()->json(['ok' => true, 'status' => $status, 'module' => $mods[$index]]);
+    }
+
+    public function modulesStatus(\App\Models\Course $course)
+    {
+        $mods = is_array($course->modules) ? $course->modules : [];
+        $out = [];
+        foreach ($mods as $m) {
+            $out[] = [
+                'title' => (string)($m['title'] ?? ''),
+                'status' => (string)($m['status'] ?? 'unlocked'),
+            ];
+        }
+        return response()->json(['ok' => true, 'modules' => $out]);
+    }
+
+    public function modulesJson(\App\Models\Course $course)
+    {
+        $mods = $course->modules;
+        if (is_string($mods)) {
+            try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; }
+        }
+        if (!is_array($mods)) $mods = [];
+        return response()->json(['ok' => true, 'modules' => $mods]);
     }
 
     /**

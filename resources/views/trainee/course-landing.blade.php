@@ -727,6 +727,68 @@
             });
         });
     </script>
+    @if(!empty($asTrainer))
+    <script>
+        (function(){
+            function init(){
+                var list=document.getElementById('moduleAccessList');
+                if(!list) return;
+                // Toast (after body exists)
+                var toast=document.createElement('div');
+                toast.id='toast';
+                toast.style.cssText='position:fixed;right:16px;bottom:16px;background:#0b2c74;color:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 14px 30px rgba(2,6,23,.28);z-index:2000;display:none;font-weight:800';
+                document.body.appendChild(toast);
+                function showToast(msg){
+                    toast.textContent=msg;
+                    toast.style.display='block';
+                    clearTimeout(toast.__t); toast.__t=setTimeout(()=>{toast.style.display='none';},1800);
+                }
+                // Direct handler to avoid container interference
+                window.modToggle = function(btn){
+                    var card = btn.closest('.forum-card');
+                    var mi = btn.getAttribute('data-mi') || (card ? card.getAttribute('data-mi') : null);
+                    if(mi==null) return false;
+                    var next = btn.getAttribute('data-status')||'locked';
+                    fetch("{{ route('trainer.modules.set-status', ['course'=>$course, 'index'=>'__IDX__']) }}".replace('__IDX__', mi), {
+                        method:'POST',
+                        headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                        credentials:'same-origin',
+                        body: JSON.stringify({status: next})
+                    }).then(function(r){ return r.json(); })
+                    .then(function(j){
+                        if(j && j.ok){
+                            var st = j.status;
+                            var statusEl = card.querySelector('.mod-status');
+                            if(statusEl) statusEl.textContent = (st||'').charAt(0).toUpperCase() + (st||'').slice(1);
+                            btn.setAttribute('data-status', st==='locked' ? 'unlocked':'locked');
+                            btn.innerHTML = '<i class="fas fa-exchange-alt"></i> ' + (st==='locked'?'Unlock':'Lock');
+                            var titleWrap = card.querySelector('.forum-card > div:first-child');
+                            if(titleWrap){
+                                var html = titleWrap.innerHTML;
+                                if(st==='locked'){ html = html.replace(/fa-unlock/g,'fa-lock'); }
+                                else { html = html.replace(/fa-lock/g,'fa-unlock'); }
+                                titleWrap.innerHTML = html;
+                            }
+                            showToast('Module ' + (st==='locked'?'locked':'unlocked') + ' successfully');
+                        }else{
+                            alert(j && j.error ? j.error : 'Failed to update status');
+                        }
+                    }).catch(function(){ alert('Network error'); });
+                    return false;
+                };
+                // Delegation fallback
+                list.addEventListener('click', function(ev){
+                    var btn = ev.target.closest('.mod-toggle');
+                    if(!btn || !list.contains(btn)) return;
+                    ev.preventDefault();
+                    window.modToggle(btn);
+                });
+            }
+            if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); }
+            else { init(); }
+        })();
+    </script>
+    @endif
     </head>
     <body>
     <div id="deleteConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delTitle">
@@ -1042,6 +1104,37 @@
                 @php
                     $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && ((\Illuminate\Support\Facades\Auth::user()->role ?? null) === 'trainer'));
                 @endphp
+                @if(!empty($asTrainer))
+                <div class="container-box" style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-layer-group"></i></div>
+                            <div>Module Access Control</div>
+                        </div>
+                    </div>
+                    <div id="moduleAccessList" style="display:grid;gap:10px">
+                        @foreach(($course->modules ?? []) as $i => $m)
+                        @php $st = $m['status'] ?? 'unlocked'; @endphp
+                        <div class="forum-card" data-mi="{{ $i }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                            <div>
+                                <div style="font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px">
+                                    @if($st==='locked') <i class="fas fa-lock" style="color:#64748b"></i> @else <i class="fas fa-unlock" style="color:#16a34a"></i> @endif
+                                    Module {{ $i+1 }}: {{ $m['title'] ?? 'Untitled' }}
+                                </div>
+                                <div class="muted">Status: <span class="mod-status">{{ ucfirst($st) }}</span></div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-blue mod-toggle" data-mi="{{ $i }}" data-status="{{ $st==='locked'?'unlocked':'locked' }}" onclick="return modToggle(this)"><i class="fas fa-exchange-alt"></i> {{ $st==='locked'?'Unlock':'Lock' }}</button>
+                            </div>
+                        </div>
+                        @endforeach
+                        @if(empty($course->modules))
+                            <div class="muted">No modules found.</div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+                @if(!empty($asTrainer))
                 <div class="container-box">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                         <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
@@ -1140,6 +1233,7 @@
                         </div>
                     @endif
                 </div>
+                @endif
             </div>
             <div id="paneForum" class="card" role="tabpanel" aria-labelledby="tabBtnForum" style="display:none">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">

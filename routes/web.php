@@ -92,6 +92,12 @@ Route::get('/trainer/courses/{course}/classwork/create', [CourseController::clas
 // Trainer create material/assessment dedicated pages
 Route::get('/trainer/courses/{course}/materials/create', [CourseController::class, 'trainerMaterialCreate'])->middleware(['auth'])->name('trainer.courses.materials.create');
 Route::get('/trainer/courses/{course}/assessments/create', [CourseController::class, 'trainerAssessmentCreate'])->middleware(['auth'])->name('trainer.courses.assessments.create');
+// Trainer module status toggle (lock/unlock)
+Route::post('/trainer/courses/{course}/modules/{index}/status', [CourseController::class, 'setModuleStatus'])->middleware(['auth'])->name('trainer.modules.set-status');
+// Modules status snapshot (for auto-refresh on outline pages)
+Route::get('/courses/{course}/modules-status', [CourseController::class, 'modulesStatus'])->middleware(['auth'])->name('courses.modules.status');
+// Full modules JSON for fallback rendering
+Route::get('/courses/{course}/modules-json', [CourseController::class, 'modulesJson'])->middleware(['auth'])->name('courses.modules.json');
 // Test bank endpoints
 Route::get('/trainer/test-banks', [TrainerController::class, 'listTestBanks'])->middleware(['auth'])->name('trainer.test-banks.index');
 Route::post('/trainer/test-banks', [TrainerController::class, 'storeTestBank'])->middleware(['auth'])->name('trainer.test-banks.store');
