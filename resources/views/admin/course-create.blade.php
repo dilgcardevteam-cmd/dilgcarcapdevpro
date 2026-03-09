@@ -2411,7 +2411,13 @@
                         </label>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
+                        <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
+                            <button type="button" class="btn btn-small nav-prev" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Previous</button>
+                            <div class="nav-track" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"></div>
+                            <button type="button" class="btn btn-small nav-next" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Next</button>
+                        </div>
                         <div class="exam-q-list" style="display:none"></div>
+                        <div class="exam-form-inputs" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
                             <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                                 <label class="q-col" style="display:block">
@@ -2435,12 +2441,14 @@
                             <div class="eq-tf" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Answer</label>
                                 <select class="eq-tf-answer" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                    <option value="" selected disabled>Select answer</option>
                                     <option value="true">True</option>
                                     <option value="false">False</option>
                                 </select>
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
+                                <button type="button" class="btn btn-ghost eq-del" disabled>Delete</button>
                             </div>
                         </div>
                     </div>
@@ -2483,23 +2491,239 @@
             host.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             host.addEventListener('input', syncExamJSON);
             host.addEventListener('change', syncExamJSON);
+            function ensureInputsBox(){
+                let box = host.querySelector('.exam-form-inputs');
+                if(!box){
+                    box = document.createElement('div');
+                    box.className = 'exam-form-inputs';
+                    box.style.display = 'none';
+                    const container = host.querySelector('.exam-questions');
+                    if(container) container.appendChild(box);
+                }
+                return box;
+            }
+            function buildGroup(idx, type){
+                const div = document.createElement('div');
+                div.className = 'exam-input-group';
+                div.dataset.index = String(idx);
+                const t = String(type||'multiple_choice');
+                let html = '';
+                html += '<input type="hidden" name="questions['+idx+'][type]" value="'+t+'">';
+                html += '<input type="text" name="questions['+idx+'][question]" value="">';
+                if(t==='multiple_choice'){
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="hidden" name="questions['+idx+'][correct_answer]" value="">';
+                }else if(t==='identification'){
+                    html += '<input type="text" name="questions['+idx+'][answer]" value="">';
+                }else if(t==='true_false'){
+                    html += '<input type="text" name="questions['+idx+'][answer]" value="">';
+                }
+                div.innerHTML = html;
+                return div;
+            }
+            function addGroupFor(type){
+                const box = ensureInputsBox();
+                const idx = box.querySelectorAll('.exam-input-group').length;
+                const g = buildGroup(idx, type);
+                box.appendChild(g);
+                return g;
+            }
+            function updateGroup(idx, obj){
+                const box = ensureInputsBox();
+                const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                const g = groups[idx];
+                if(!g) return;
+                const base = 'questions['+idx+']';
+                const q = g.querySelector('input[name="'+base+'[question]"]'); if(q) q.value = obj.text||'';
+                const t = g.querySelector('input[name="'+base+'[type]"]'); if(t) t.value = obj.type||'multiple_choice';
+                if(obj.type==='multiple_choice'){
+                    const opts = g.querySelectorAll('input[name="'+base+'[options][]"]');
+                    const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
+                    opts.forEach((o,i)=>{ o.value = arr[i]||''; });
+                    const ca = g.querySelector('input[name="'+base+'[correct_answer]"]');
+                    if(ca) ca.value = (obj.answer_index==null || isNaN(obj.answer_index)) ? '' : String(obj.answer_index);
+                }else{
+                    const ans = g.querySelector('input[name="'+base+'[answer]"]');
+                    if(ans){
+                        if(obj.type==='identification'){ ans.value = obj.answer||''; }
+                        else if(obj.type==='true_false'){ ans.value = obj.answer==null?'':(obj.answer===true?'true':'false'); }
+                        else { ans.value=''; }
+                    }
+                }
+            }
+            function populateFromItem(idx){
+                const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
+                const node = items[idx]; if(!node) return;
+                let payload = {}; try{ payload = JSON.parse(node.dataset.payload||'{}'); }catch(e){}
+                const text = String(payload.text||'');
+                const type = String(payload.type||'multiple_choice');
+                const txt = host.querySelector('.eq-text'); if(txt) txt.value = text;
+                const sel = host.querySelector('.eq-type'); if(sel) sel.value = type;
+                syncBuilderBoxes();
+                if(type==='multiple_choice'){
+                    if(host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                    const rows = Array.from(host.querySelectorAll('.eq-choices .q-option-row'));
+                    const choices = Array.isArray(payload.choices) ? payload.choices : (Array.isArray(payload.options) ? payload.options : []);
+                    rows.forEach((row,i)=>{ const inp=row.querySelector('.eq-option'); if(inp) inp.value=choices[i]||''; });
+                    const radios = Array.from(host.querySelectorAll('.eq-correct')); radios.forEach(r=> r.checked=false);
+                    const ai = typeof payload.answer_index==='number' ? payload.answer_index : null;
+                    if(ai!=null && radios[ai]) radios[ai].checked=true;
+                }else if(type==='identification'){
+                    const ans = String(payload.answer||''); const a = host.querySelector('.eq-id-answer'); if(a) a.value = ans;
+                }else if(type==='true_false'){
+                    const a = host.querySelector('.eq-tf-answer'); if(a) a.value = payload.answer===false ? 'false' : 'true';
+                }
+            }
+            function clearBuilderBox(){
+                const t = host.querySelector('.eq-text'); if(t) t.value='';
+                host.querySelectorAll('.eq-option').forEach(i=> i.value='');
+                host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
+                const id = host.querySelector('.eq-id-answer'); if(id) id.value='';
+                const tf = host.querySelector('.eq-tf-answer'); if(tf) tf.value='';
+                const focus = host.querySelector('.eq-text'); if(focus) focus.focus();
+            }
+            function getActiveIndex(){
+                const track = host.querySelector('.nav-track');
+                if(!track){
+                    const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
+                    return Math.max(0, items.length - 1);
+                }
+                const blocks = Array.from(track.children);
+                const idx = blocks.findIndex(b=> b.classList.contains('active'));
+                return idx>=0 ? idx : 0;
+            }
+            function setActiveIndex(i){
+                const nav = host.querySelector('.exam-nav');
+                const track = nav ? nav.querySelector('.nav-track') : null;
+                const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
+                if(items.length===0) return;
+                const clamped = Math.max(0, Math.min(items.length, i));
+                if(nav && track){
+                    const prev = nav.querySelector('.nav-prev');
+                    const next = nav.querySelector('.nav-next');
+                    if(prev && next){
+                        prev.disabled = clamped<=0;
+                        next.disabled = clamped>=items.length;
+                        prev.style.opacity = prev.disabled ? '.45' : '1';
+                        next.style.opacity = next.disabled ? '.45' : '1';
+                        prev.style.cursor = prev.disabled ? 'default' : 'pointer';
+                        next.style.cursor = next.disabled ? 'default' : 'pointer';
+                    }
+                    const blocks = Array.from(track.children);
+                    blocks.forEach((b,bi)=>{
+                        b.classList.toggle('active', bi===clamped);
+                        if(bi===clamped){
+                            b.style.background = '#10b981';
+                            b.style.borderColor = '#10b981';
+                            b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
+                        }else{
+                            b.style.background = '#3b82f6';
+                            b.style.borderColor = '#60a5fa';
+                            b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
+                        }
+                    });
+                }
+                const delBtn = host.querySelector('.eq-del');
+                if(delBtn){
+                    const viewingExisting = clamped < items.length;
+                    delBtn.disabled = !viewingExisting;
+                    delBtn.style.opacity = viewingExisting ? '1' : '.45';
+                    delBtn.style.cursor = viewingExisting ? 'pointer' : 'default';
+                }
+                if(clamped < items.length){
+                    populateFromItem(clamped);
+                } else {
+                    const tVal = host.querySelector('.eq-type') ? host.querySelector('.eq-type').value : 'multiple_choice';
+                    let obj = null;
+                    if(tVal==='multiple_choice'){
+                        obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
+                    }else if(tVal==='identification'){
+                        obj = { type:'identification', text:'', answer: '' };
+                    }else if(tVal==='true_false'){
+                        obj = { type:'true_false', text:'', answer: null };
+                    } else {
+                        obj = { type:String(tVal||'multiple_choice'), text:'' };
+                    }
+                    const listEl = host.querySelector('.exam-q-list');
+                    const node = document.createElement('div');
+                    node.className = 'q-item';
+                    node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(items.length+1)+'. '+obj.text+'</div>'
+                        + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                    node.dataset.payload = JSON.stringify(obj);
+                    listEl.appendChild(node);
+                    addGroupFor(obj.type);
+                    updateNav();
+                    populateFromItem(items.length);
+                    const txt2 = host.querySelector('.eq-text'); if(txt2){ setTimeout(()=> txt2.focus(), 0); }
+                    return;
+                }
+                const txt = host.querySelector('.eq-text'); if(txt){ setTimeout(()=> txt.focus(), 0); }
+            }
+            function updateNav(){
+                const nav = host.querySelector('.exam-nav');
+                if(!nav) return;
+                const track = nav.querySelector('.nav-track');
+                if(!track) return;
+                const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
+                track.innerHTML = '';
+                const count = items.length + 1;
+                for(let i=0;i<count;i++){
+                    const b = document.createElement('button');
+                    b.className = 'nav-block';
+                    b.textContent = (i+1);
+                    b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
+                    if(i === items.length){ b.dataset.placeholder='1'; }
+                    b.addEventListener('click', ()=> setActiveIndex(i));
+                    track.appendChild(b);
+                }
+                nav.querySelector('.nav-prev').onclick = ()=> setActiveIndex(getActiveIndex()-1);
+                nav.querySelector('.nav-next').onclick = ()=> setActiveIndex(getActiveIndex()+1);
+                setActiveIndex(getActiveIndex());
+            }
+            const delBtnMod = host.querySelector('.eq-del');
+            if(delBtnMod && !delBtnMod.__bound){
+                delBtnMod.__bound = true;
+                delBtnMod.addEventListener('click', function(){
+                    const listEl = host.querySelector('.exam-q-list');
+                    const active = getActiveIndex();
+                    const items = Array.from(listEl.children);
+                    if(items.length===0) return;
+                    const target = items[Math.min(active, items.length-1)];
+                    target.remove();
+                    Array.from(listEl.children).forEach((n,i)=>{
+                        const t = n.querySelector('.qi-title');
+                        if(t){ const payload = JSON.parse(n.dataset.payload||'{}'); t.textContent = (i+1)+'. '+(payload.text||''); }
+                    });
+                    const box = ensureInputsBox();
+                    const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                    if(groups[Math.min(active, items.length-1)]) groups[Math.min(active, items.length-1)].remove();
+                    const left = Array.from(box.querySelectorAll('.exam-input-group'));
+                    left.forEach((g,i)=>{
+                        g.dataset.index = String(i);
+                        Array.from(g.querySelectorAll('input[name]')).forEach(inp=>{
+                            inp.name = inp.name.replace(/questions\[\d+\]/, 'questions['+i+']');
+                        });
+                    });
+                    updateNav();
+                    syncExamJSON();
+                    setActiveIndex(Math.max(0, active-1));
+                });
+            }
             host.querySelector('.eq-add').addEventListener('click', function(){
                 const t = host.querySelector('.eq-type').value;
-                const text = (host.querySelector('.eq-text').value||'').trim();
-                if(!text) return;
+                // Create a brand-new blank question object (independent state)
                 let obj = null;
                 if(t==='multiple_choice'){
-                    const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
-                    if(opts.length<2) return;
-                    const checked = host.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : 0;
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
                 }else if(t==='identification'){
-                    const ans = (host.querySelector('.eq-id-answer').value||'').trim();
-                    obj = { type:'identification', text, answer: ans };
+                    obj = { type:'identification', text:'', answer: '' };
                 }else if(t==='true_false'){
-                    const ans = host.querySelector('.eq-tf-answer').value === 'true';
-                    obj = { type:'true_false', text, answer: ans };
+                    obj = { type:'true_false', text:'', answer: null };
+                } else {
+                    obj = { type:String(t||'multiple_choice'), text:'' };
                 }
                 const listEl = host.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
@@ -2509,14 +2733,56 @@
                     + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
                 node.dataset.payload = JSON.stringify(obj);
                 listEl.appendChild(node);
+                // Clear builder input and set to blank state
                 host.querySelector('.eq-text').value='';
                 host.querySelectorAll('.eq-option').forEach(i=> i.value='');
-                const r = host.querySelector('.eq-correct'); if(r) r.checked=false;
+                host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 host.querySelector('.eq-id-answer').value='';
-                host.querySelector('.eq-tf-answer').value='true';
+                const tfSel = host.querySelector('.eq-tf-answer'); if(tfSel){ tfSel.value=''; }
+                addGroupFor(obj.type);
                 syncExamJSON();
+                updateNav();
+                setActiveIndex(idx-1);
+                // Focus handled by setActiveIndex
             });
-            syncBuilderBoxes(); syncExamJSON();
+            (function bindModuleExamLiveUpdate(){
+                document.addEventListener('input', function(e){
+                    if(!host.contains(e.target)) return;
+                    const idx = getActiveIndex();
+                    const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
+                    if(idx >= items.length) return;
+                    const t = host.querySelector('.eq-type').value;
+                    const text = (host.querySelector('.eq-text').value||'').trim();
+                    let obj = null;
+                    if(t==='multiple_choice'){
+                        const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim());
+                        const checked = host.querySelector('.eq-correct:checked');
+                        const ans = checked ? parseInt(checked.value,10) : null;
+                        obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                    }else if(t==='identification'){
+                        const ans = (host.querySelector('.eq-id-answer').value||'').trim();
+                        obj = { type:'identification', text, answer: ans };
+                    }else if(t==='true_false'){
+                        const val = host.querySelector('.eq-tf-answer').value;
+                        const ans = val === '' ? null : (val === 'true');
+                        obj = { type:'true_false', text, answer: ans };
+                    } else {
+                        obj = { type:String(t||'multiple_choice'), text };
+                    }
+                    const node = items[idx];
+                    node.dataset.payload = JSON.stringify(obj);
+                    const title = node.querySelector('.qi-title');
+                    if(title){ title.textContent = (idx+1)+'. '+(obj.text||''); }
+                    updateGroup(idx, obj);
+                    syncExamJSON();
+                }, { passive:true });
+                document.addEventListener('change', function(e){
+                    if(!host.contains(e.target)) return;
+                    const ev = new Event('input', { bubbles:true });
+                    host.dispatchEvent(ev);
+                }, { passive:true });
+            })();
+            syncBuilderBoxes(); syncExamJSON(); updateNav();
             expandModuleAccordion(body);
             return host;
         }
@@ -2552,6 +2818,7 @@
                             <button type="button" class="btn btn-small nav-next" style="white-space:nowrap;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:6px 10px">Next</button>
                         </div>
                         <div class="exam-q-list" style="display:none"></div>
+                        <div class="exam-form-inputs" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
                             <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                                 <label class="q-col" style="display:block">
@@ -2575,6 +2842,7 @@
                             <div class="eq-tf" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Answer</label>
                                 <select class="eq-tf-answer" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                    <option value="" selected disabled>Select answer</option>
                                     <option value="true">True</option>
                                     <option value="false">False</option>
                                 </select>
@@ -2674,32 +2942,110 @@
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
                 wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
-                updateExamNavigator();
             }
             wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             wrap.addEventListener('input', syncExamJSON);
             wrap.addEventListener('change', syncExamJSON);
+            // Allow clicking a question in the list to edit it
+            const listClick = wrap.querySelector('.exam-q-list');
+            if(listClick && !listClick.__bound){
+                listClick.__bound = true;
+                listClick.addEventListener('click', (e)=>{
+                    const item = e.target.closest('.q-item');
+                    if(!item) return;
+                    const items = Array.from(listClick.children);
+                    const idxClick = items.indexOf(item);
+                    if(idxClick>=0) setActiveExamIndex(idxClick);
+                });
+            }
+            function ensureExamInputsBox(){
+                let box = wrap.querySelector('.exam-form-inputs');
+                if(!box){
+                    box = document.createElement('div');
+                    box.className = 'exam-form-inputs';
+                    box.style.display = 'none';
+                    const host = wrap.querySelector('.exam-questions');
+                    if(host) host.appendChild(box);
+                }
+                return box;
+            }
+            function buildInputGroup(idx, type){
+                const div = document.createElement('div');
+                div.className = 'exam-input-group';
+                div.dataset.index = String(idx);
+                const t = String(type||'multiple_choice');
+                let html = '';
+                html += '<input type="hidden" name="questions['+idx+'][type]" value="'+t+'">';
+                html += '<input type="text" name="questions['+idx+'][question]" value="">';
+                if(t==='multiple_choice'){
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="text" name="questions['+idx+'][options][]" value="">';
+                    html += '<input type="hidden" name="questions['+idx+'][correct_answer]" value="">';
+                }
+                if(t==='identification'){
+                    html += '<input type="text" name="questions['+idx+'][answer]" value="">';
+                }
+                if(t==='true_false'){
+                    html += '<input type="text" name="questions['+idx+'][answer]" value="">';
+                }
+                div.innerHTML = html;
+                return div;
+            }
+            function reindexExamInputGroups(){
+                const box = ensureExamInputsBox();
+                const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                groups.forEach((g,i)=>{
+                    g.dataset.index = String(i);
+                    Array.from(g.querySelectorAll('input[name]')).forEach(inp=>{
+                        inp.name = inp.name.replace(/questions\[\d+\]/, 'questions['+i+']');
+                    });
+                });
+            }
+            function addExamInputGroupFor(type){
+                const box = ensureExamInputsBox();
+                const idx = box.querySelectorAll('.exam-input-group').length;
+                const group = buildInputGroup(idx, type);
+                box.appendChild(group);
+                return group;
+            }
+            function updateExamInputGroup(idx, obj){
+                const box = ensureExamInputsBox();
+                const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                const g = groups[idx];
+                if(!g) return;
+                const t = String(obj.type||'multiple_choice');
+                const tInput = g.querySelector('input[name="questions['+idx+'][type]"]');
+                if(tInput) tInput.value = t;
+                const qInput = g.querySelector('input[name="questions['+idx+'][question]"]');
+                if(qInput) qInput.value = String(obj.text||'');
+                if(t==='multiple_choice'){
+                    const opts = g.querySelectorAll('input[name="questions['+idx+'][options][]"]');
+                    const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
+                    opts.forEach((o, i)=>{ o.value = arr[i]||''; });
+                    const ca = g.querySelector('input[name="questions['+idx+'][correct_answer]"]');
+                    if(ca) ca.value = (obj.answer_index==null || isNaN(obj.answer_index)) ? '' : String(obj.answer_index);
+                } else if(t==='identification'){
+                    const ans = g.querySelector('input[name="questions['+idx+'][answer]"]');
+                    if(ans) ans.value = String(obj.answer||'');
+                } else if(t==='true_false'){
+                    const ans = g.querySelector('input[name="questions['+idx+'][answer]"]');
+                    if(ans) ans.value = (obj.answer==null ? '' : (obj.answer===true?'true':'false'));
+                }
+            }
             wrap.querySelector('.eq-add').addEventListener('click', function(){
                 const t = wrap.querySelector('.eq-type').value;
-                const text = (wrap.querySelector('.eq-text').value||'').trim();
-                if(!text) return;
+                // Create a brand new blank question object (independent)
                 let obj = null;
                 if(t==='multiple_choice'){
-                    const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
-                    if(opts.length<2) return;
-                    const checked = wrap.querySelector('.eq-correct:checked');
-                    if(!checked){
-                        openCorrectAnswerModal(wrap, ()=> wrap.querySelector('.eq-add').click());
-                        return;
-                    }
-                    const ans = parseInt(checked.value,10);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
                 }else if(t==='identification'){
-                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
-                    obj = { type:'identification', text, answer: ans };
+                    obj = { type:'identification', text:'', answer: '' };
                 }else if(t==='true_false'){
-                    const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
-                    obj = { type:'true_false', text, answer: ans };
+                    obj = { type:'true_false', text:'', answer: null };
+                } else {
+                    obj = { type:String(t||'multiple_choice'), text:'' };
                 }
                 const listEl = wrap.querySelector('.exam-q-list');
                 const idx2 = listEl.children.length + 1;
@@ -2709,15 +3055,19 @@
                     + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
                 node.dataset.payload = JSON.stringify(obj);
                 listEl.appendChild(node);
+                addExamInputGroupFor(obj.type);
+                // Reset builder to blank
                 wrap.querySelector('.eq-text').value='';
                 wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
                 wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 wrap.querySelector('.eq-id-answer').value='';
-                wrap.querySelector('.eq-tf-answer').value='true';
+                const tfSel2 = wrap.querySelector('.eq-tf-answer'); if(tfSel2){ tfSel2.value=''; }
                 syncExamJSON();
-                setActiveExamIndex(listEl.children.length);
+                updateExamNavigator.call(wrap);
+                // Focus editor on the newly added blank question
+                setActiveExamIndex(Math.max(0, listEl.children.length - 1));
             });
-            renderChoices(); syncBuilderBoxes(); syncExamJSON();
+            renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap);
             if(prefill){
                 try{
                     wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
@@ -2731,6 +3081,14 @@
                             + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
                         node.dataset.payload = JSON.stringify(q);
                         listEl.appendChild(node);
+                        addExamInputGroupFor(q.type||'multiple_choice');
+                        updateExamInputGroup(i2, {
+                            type: q.type||'multiple_choice',
+                            text: q.text||q.title||'',
+                            choices: q.choices||q.options||['','','',''],
+                            answer_index: typeof q.answer_index==='number'?q.answer_index:null,
+                            answer: q.answer
+                        });
                     });
                     syncExamJSON();
                     setActiveExamIndex(0);
@@ -2779,6 +3137,18 @@
             const item = btn.closest('.q-item');
             const idx = Array.from(listEl.children).indexOf(item);
             item.remove();
+            const box = wrap.querySelector('.exam-form-inputs');
+            if(box){
+                const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                if(groups[idx]) groups[idx].remove();
+                const left = Array.from(box.querySelectorAll('.exam-input-group'));
+                left.forEach((g,i)=>{
+                    g.dataset.index = String(i);
+                    Array.from(g.querySelectorAll('input[name]')).forEach(inp=>{
+                        inp.name = inp.name.replace(/questions\[\d+\]/, 'questions['+i+']');
+                    });
+                });
+            }
             Array.from(listEl.children).forEach((n,i)=>{
                 const t = n.querySelector('.qi-title');
                 if(t){ const payload = JSON.parse(n.dataset.payload||'{}'); t.textContent = (i+1)+'. '+(payload.text||''); }
@@ -2796,6 +3166,18 @@
             if(items.length===0) return;
             const target = items[Math.min(active, items.length-1)];
             target.remove();
+            const box = wrap.querySelector('.exam-form-inputs');
+            if(box){
+                const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                if(groups[Math.min(active, items.length-1)]) groups[Math.min(active, items.length-1)].remove();
+                const left = Array.from(box.querySelectorAll('.exam-input-group'));
+                left.forEach((g,i)=>{
+                    g.dataset.index = String(i);
+                    Array.from(g.querySelectorAll('input[name]')).forEach(inp=>{
+                        inp.name = inp.name.replace(/questions\[\d+\]/, 'questions['+i+']');
+                    });
+                });
+            }
             Array.from(listEl.children).forEach((n,i)=>{
                 const t = n.querySelector('.qi-title');
                 if(t){ const payload = JSON.parse(n.dataset.payload||'{}'); t.textContent = (i+1)+'. '+(payload.text||''); }
@@ -2807,7 +3189,9 @@
         function updateExamNavigator(){
             const wrap = this.classList?.contains('exam-wrapper') ? this : document.querySelector('.exam-wrapper'); 
             const nav = wrap.querySelector('.exam-nav');
+            if(!nav) { return; }
             const track = nav.querySelector('.nav-track');
+            if(!track){ return; }
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             track.innerHTML = '';
             const count = items.length + 1;
@@ -2826,6 +3210,10 @@
         }
         function getActiveExamIndex(wrap){
             const track = wrap.querySelector('.nav-track');
+            if(!track){
+                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+                return Math.max(0, items.length - 1);
+            }
             const blocks = Array.from(track.children);
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
@@ -2833,19 +3221,44 @@
         function setActiveExamIndex(i){
             const wrap = document.querySelector('.exam-wrapper') || document;
             const nav = wrap.querySelector('.exam-nav');
-            const track = nav.querySelector('.nav-track');
-            const blocks = Array.from(track.children);
+            const track = nav ? nav.querySelector('.nav-track') : null;
+            const blocks = track ? Array.from(track.children) : [];
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             if(items.length===0) return;
             const clamped = Math.max(0, Math.min(items.length, i));
-            const prev = nav.querySelector('.nav-prev');
-            const next = nav.querySelector('.nav-next');
-            prev.disabled = clamped<=0;
-            next.disabled = clamped>=items.length;
-            prev.style.opacity = prev.disabled ? '.45' : '1';
-            next.style.opacity = next.disabled ? '.45' : '1';
-            prev.style.cursor = prev.disabled ? 'default' : 'pointer';
-            next.style.cursor = next.disabled ? 'default' : 'pointer';
+            function ensureBuilderEnabled(w){
+                try{
+                    w.querySelectorAll('textarea, input[type="text"], select').forEach(el=>{
+                        el.removeAttribute('disabled');
+                        el.removeAttribute('readonly');
+                        el.style.pointerEvents = 'auto';
+                    });
+                }catch(_){}
+            }
+            if(nav && track){
+                const prev = nav.querySelector('.nav-prev');
+                const next = nav.querySelector('.nav-next');
+                if(prev && next){
+                    prev.disabled = clamped<=0;
+                    next.disabled = clamped>=items.length;
+                    prev.style.opacity = prev.disabled ? '.45' : '1';
+                    next.style.opacity = next.disabled ? '.45' : '1';
+                    prev.style.cursor = prev.disabled ? 'default' : 'pointer';
+                    next.style.cursor = next.disabled ? 'default' : 'pointer';
+                }
+                blocks.forEach((b,bi)=>{
+                    b.classList.toggle('active', bi===clamped);
+                    if(bi===clamped){
+                        b.style.background = '#10b981';
+                        b.style.borderColor = '#10b981';
+                        b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
+                    }else{
+                        b.style.background = '#3b82f6';
+                        b.style.borderColor = '#60a5fa';
+                        b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
+                    }
+                });
+            }
             const delBtn = wrap.querySelector('.eq-del');
             if(delBtn){
                 const viewingExisting = clamped < items.length;
@@ -2853,23 +3266,64 @@
                 delBtn.style.opacity = viewingExisting ? '1' : '.45';
                 delBtn.style.cursor = viewingExisting ? 'pointer' : 'default';
             }
-            blocks.forEach((b,bi)=>{
-                b.classList.toggle('active', bi===clamped);
-                if(bi===clamped){
-                    b.style.background = '#10b981';
-                    b.style.borderColor = '#10b981';
-                    b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
-                }else{
-                    b.style.background = '#3b82f6';
-                    b.style.borderColor = '#60a5fa';
-                    b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
-                }
-            });
             if(clamped < items.length){
                 populateBuilderFromItem(wrap, clamped);
             } else {
-                clearBuilder(wrap);
+                const tSel = wrap.querySelector('.eq-type');
+                const tVal = tSel ? tSel.value : 'multiple_choice';
+                let obj = null;
+                if(tVal==='multiple_choice'){
+                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
+                }else if(tVal==='identification'){
+                    obj = { type:'identification', text:'', answer: '' };
+                }else if(tVal==='true_false'){
+                    obj = { type:'true_false', text:'', answer: null };
+                } else {
+                    obj = { type:String(tVal||'multiple_choice'), text:'' };
+                }
+                const listEl = wrap.querySelector('.exam-q-list');
+                const node = document.createElement('div');
+                node.className = 'q-item';
+                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(items.length+1)+'. '+obj.text+'</div>'
+                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                node.dataset.payload = JSON.stringify(obj);
+                listEl.appendChild(node);
+                const box = wrap.querySelector('.exam-form-inputs');
+                if(box){
+                    const addGroup = document.createElement('div');
+                    addGroup.className = 'exam-input-group';
+                    addGroup.dataset.index = String(items.length);
+                    let html = '';
+                    html += '<input type="hidden" name="questions['+items.length+'][type]" value="'+obj.type+'">';
+                    html += '<input type="text" name="questions['+items.length+'][question]" value="">';
+                    if(obj.type==='multiple_choice'){
+                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
+                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
+                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
+                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
+                        html += '<input type="hidden" name="questions['+items.length+'][correct_answer]" value="">';
+                    }
+                    if(obj.type==='identification'){
+                        html += '<input type="text" name="questions['+items.length+'][answer]" value="">';
+                    }
+                    if(obj.type==='true_false'){
+                        html += '<input type="text" name="questions['+items.length+'][answer]" value="">';
+                    }
+                    addGroup.innerHTML = html;
+                    box.appendChild(addGroup);
+                }
+                updateExamNavigator.call(wrap);
+                recalcExamJSON(wrap);
+                const newIdx = items.length; 
+                setActiveExamIndex(newIdx);
+                ensureBuilderEnabled(wrap);
+                const txt2 = wrap.querySelector('.eq-text'); if(txt2){ setTimeout(()=> txt2.focus(), 0); }
+                return;
             }
+            // Focus builder textarea for immediate typing
+            const txt = wrap.querySelector('.eq-text');
+            ensureBuilderEnabled(wrap);
+            if(txt){ setTimeout(()=> txt.focus(), 0); }
         }
         function recalcExamJSON(wrap){
             const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
@@ -2967,13 +3421,14 @@
                 if(t==='multiple_choice'){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
                     const checked = wrap.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    const ans = checked ? parseInt(checked.value,10) : null;
                     obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     obj = { type:'identification', text, answer: ans };
                 }else if(t==='true_false'){
-                    const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
+                    const val = wrap.querySelector('.eq-tf-answer').value;
+                    const ans = val === '' ? null : (val === 'true');
                     obj = { type:'true_false', text, answer: ans };
                 }
                 const node = items[idx];
@@ -2981,6 +3436,38 @@
                 const title = node.querySelector('.qi-title');
                 if(title){ title.textContent = (idx+1)+'. '+(obj.text||''); }
                 recalcExamJSON(wrap);
+                const box = wrap.querySelector('.exam-form-inputs');
+                if(box){ 
+                    (function(){
+                        const groups = Array.from(box.querySelectorAll('.exam-input-group'));
+                        if(groups[idx]){
+                            const iGroup = groups[idx];
+                            const base = 'questions['+idx+']';
+                            const q = iGroup.querySelector('input[name="'+base+'[question]"]');
+                            if(q) q.value = obj.text||'';
+                            const tI = iGroup.querySelector('input[name="'+base+'[type]"]');
+                            if(tI) tI.value = obj.type||'multiple_choice';
+                            if(obj.type==='multiple_choice'){
+                                const opts = iGroup.querySelectorAll('input[name="'+base+'[options][]"]');
+                                const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
+                                opts.forEach((o,i)=>{ o.value = arr[i]||''; });
+                                const ca = iGroup.querySelector('input[name="'+base+'[correct_answer]"]');
+                                if(ca) ca.value = (obj.answer_index==null||isNaN(obj.answer_index))?'':String(obj.answer_index);
+                            }else{
+                                const opts = iGroup.querySelectorAll('input[name="'+base+'[options][]"]');
+                                opts.forEach(o=>{ o.value=''; });
+                                const ca = iGroup.querySelector('input[name="'+base+'[correct_answer]"]');
+                                if(ca) ca.value='';
+                                const ans = iGroup.querySelector('input[name="'+base+'[answer]"]');
+                                if(ans){ 
+                                    if(obj.type==='identification'){ ans.value = obj.answer||''; }
+                                    else if(obj.type==='true_false'){ ans.value = obj.answer==null?'':(obj.answer===true?'true':'false'); }
+                                    else { ans.value=''; }
+                                }
+                            }
+                        }
+                    })();
+                }
             }, { passive:true });
             document.addEventListener('change', function(e){
                 const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
@@ -3155,3 +3642,4 @@
     </script>
 </body>
 </html>
+ 
