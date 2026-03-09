@@ -146,12 +146,14 @@
             <h3>Course</h3>
             <div class="body">
                 @php
-                    $trainersCount = $course->users ? $course->users->where('role','trainer')->count() : 0;
+                    $trainersCount = $course->users
+                        ? $course->users->filter(fn($u)=>in_array($u->role, ['coach','trainer']))->count()
+                        : 0;
                     $pendingTraineesCount = $course->users
-                        ? $course->users->filter(fn($u)=>$u->role==='trainee' && optional($u->pivot)->status==='pending')->count()
+                        ? $course->users->filter(fn($u)=>in_array($u->role, ['trainee','participant']) && optional($u->pivot)->status==='pending')->count()
                         : 0;
                     $enrolledTraineesCount = $course->users
-                        ? $course->users->filter(fn($u)=>$u->role==='trainee' && optional($u->pivot)->status==='active')->count()
+                        ? $course->users->filter(fn($u)=>in_array($u->role, ['trainee','participant']) && optional($u->pivot)->status==='active')->count()
                         : 0;
                 @endphp
                 <div style="font-weight:700;color:#002C76;font-size:1.1rem;">{{ $course->name }}</div>
@@ -203,7 +205,7 @@
                 <h3><i class="fas fa-list"></i> Coaches Summary</h3>
                 <div class="body">
                     @if(isset($assignedTrainers) && $assignedTrainers->count())
-                        @php $assignedIds = $course->users->where('role','trainer')->pluck('id')->toArray(); @endphp
+                        @php $assignedIds = $course->users->whereIn('role',['coach','trainer'])->pluck('id')->toArray(); @endphp
                         <div class="summary-controls">
                             <div class="search" style="flex:1"><i class="fas fa-search"></i><input id="trainer_summary_search" type="text" placeholder="Search coach or course"></div>
                             <select id="trainer_summary_scope" aria-label="Scope">
@@ -264,7 +266,7 @@
                 <h3><i class="fas fa-user-tie"></i> Coaches</h3>
                 <div class="body">
                     @php
-                        $currentTrainers = $course->users->where('role','trainer')->pluck('id')->toArray();
+                        $currentTrainers = $course->users->whereIn('role',['coach','trainer'])->pluck('id')->toArray();
                         $availableTrainers = $potentialTrainers->filter(fn($u)=>!in_array($u->id, $currentTrainers));
                     @endphp
                     <div class="dual">

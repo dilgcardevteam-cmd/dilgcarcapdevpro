@@ -957,7 +957,7 @@ class CourseController extends Controller
         $trainersToDetach = array_diff($currentTrainerIds, $newTrainerIds);
 
         if (!empty($trainersToAttach)) {
-            $course->users()->attach($trainersToAttach);
+            $course->users()->attach($trainersToAttach, ['status' => 'active']);
             
             // Notify new coaches
             foreach ($trainersToAttach as $trainerId) {
@@ -973,6 +973,13 @@ class CourseController extends Controller
         }
         if (!empty($trainersToDetach)) {
             $course->users()->detach($trainersToDetach);
+        }
+        $trainersToUpdate = array_intersect($newTrainerIds, $currentTrainerIds);
+        foreach ($trainersToUpdate as $id) {
+            $pivot = $course->users()->where('user_id', $id)->first()->pivot;
+            if (($pivot->status ?? null) !== 'active') {
+                $course->users()->updateExistingPivot($id, ['status' => 'active']);
+            }
         }
 
         // 2. Sync Trainees
@@ -1043,7 +1050,7 @@ class CourseController extends Controller
         // Handle Coach
         if ($request->filled('trainer_id')) {
             if (!$course->users()->where('user_id', $request->trainer_id)->exists()) {
-                $course->users()->attach($request->trainer_id);
+                $course->users()->attach($request->trainer_id, ['status' => 'active']);
                 $count++;
 
                 // Notify Coach

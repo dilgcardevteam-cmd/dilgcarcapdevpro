@@ -1604,8 +1604,12 @@
                         <div class="course-grid">
                             @foreach($courses as $course)
                                 @php
-                                    $trainerCount = $course->users ? $course->users->where('role','trainer')->count() : 0;
-                                    $traineeCount = $course->users ? $course->users->where('role','trainee')->count() : 0;
+                                    $trainerCount = $course->users
+                                        ? $course->users->filter(fn($u)=>in_array($u->role, ['coach','trainer']) && (optional($u->pivot)->status ?? 'active') === 'active')->count()
+                                        : 0;
+                                    $traineeCount = $course->users
+                                        ? $course->users->filter(fn($u)=>in_array($u->role, ['participant','trainee']) && optional($u->pivot)->status === 'active')->count()
+                                        : 0;
                                 @endphp
                                 <div class="course-card">
                                     @php
