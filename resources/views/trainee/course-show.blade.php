@@ -121,9 +121,21 @@
         }
         body{color:#0f172a;background:var(--bg)}
         .app-header{display:none}
-        .topbar{padding:10px 20px;min-height:60px;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 6px 16px rgba(15,23,42,.08);position:sticky;top:0;z-index:30}
-        .layout{height:100vh;grid-template-columns:250px 1fr}
-        .content{padding-top:8px}
+        .topbar{padding:10px 20px;min-height:56px;background:#ffffff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:30}
+        .hero{
+            background:linear-gradient(90deg,#0f3b8f 0%, #2563eb 100%);
+            color:#fff;
+            padding:18px 20px;
+            display:flex;align-items:center;justify-content:space-between;
+            box-shadow:0 10px 24px rgba(15,23,42,.12);
+        }
+        .hero-left{display:flex;align-items:center;gap:12px}
+        .hero-icon{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
+        .hero-title{font-weight:800;font-size:1.35rem;letter-spacing:-0.015em}
+        .hero-sub{opacity:.9;font-size:.95rem}
+        .hero-chip{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.3);padding:6px 10px;border-radius:999px;font-weight:700}
+        .layout{height:calc(100vh - 56px - 80px);grid-template-columns:280px 1fr}
+        .content{padding-top:12px}
         .sidebar{
             background:#002C76;
             border-right:1px solid rgba(255,255,255,.12);
@@ -154,15 +166,16 @@
         .search{padding:10px 16px 6px;display:flex;justify-content:center}
         .search input{
             width:92%;
-            padding:9px 12px;
+            padding:10px 14px;
             border-radius:12px;
             border:1px solid rgba(255,255,255,.35);
             box-shadow:inset 0 1px 1px rgba(0,0,0,.04);
+            background:#ffffff;
         }
         .outline{padding:6px 12px 16px}
         .module{
             border-radius:12px;
-            box-shadow:0 6px 12px rgba(15,23,42,.1);
+            box-shadow:0 8px 18px rgba(15,23,42,.12);
             margin:10px 6px;
             border:1px solid #dbe2ee;
             overflow:hidden;
@@ -170,19 +183,22 @@
         .module-header{
             background:#ffffff;
             border-radius:12px 12px 0 0;
-            padding:12px 14px;
+            padding:14px 16px;
+            transition:background .15s ease;
         }
+        .module:hover .module-header{background:#f8fbff}
         .module-title{font-weight:800;color:#0f172a}
         .module-kpi{color:var(--muted)}
         .module-bar{background:#e6eefc}
         .module-bar > span{background:linear-gradient(90deg,#1d4ed8,#2563eb)}
-        .topic{background:#f1f5f9}
-        .topic.active{background:#dbeafe}
+        .topic{background:#f9fafb; transition:background .15s ease;}
+        .topic:hover{background:#f3f6fb}
+        .topic.active{background:#e8f0ff}
         .sub-item{border-radius:12px}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
         .pane{
             border-radius:16px;
-            box-shadow:0 12px 24px rgba(15,23,42,.12);
+            box-shadow:0 14px 30px rgba(15,23,42,.14);
             border:1px solid #e6edf5;
         }
         .field{
@@ -194,10 +210,7 @@
             box-shadow:0 10px 20px rgba(37,99,235,.2);
         }
         .topbar > div:nth-child(2){
-            font-weight:800;
-            font-size:1.6rem;
-            color:var(--blue-700);
-            letter-spacing:-.01em;
+            display:none;
         }
         #videoWrap video{border-radius:14px;box-shadow:var(--shadow-sm)}
         .back-btn{
@@ -234,8 +247,17 @@
         <div>
             <a class="back-btn" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
         </div>
-        <div style="font-weight:700; font-size:1.60rem; color:var(--blue)">{{ $course->name }}</div>
         <div></div>
+    </div>
+    <div class="hero">
+        <div class="hero-left">
+            <div class="hero-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div>
+                <div class="hero-title">{{ $course->name }}</div>
+                <div class="hero-sub">View-only mode • Browse modules and topics</div>
+            </div>
+        </div>
+        <div class="hero-chip">Course Preview</div>
     </div>
     <div class="layout">
         <aside class="sidebar">
