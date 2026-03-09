@@ -757,6 +757,27 @@ class DashboardController extends Controller
             unset($validated['password']);
         }
 
+        // Normalize location by office grouping (match Edit User rules)
+        $roleName = (string) ($user->role ?? '');
+        $centralRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+        $regionalRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+        $provincialRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+        $isCentral = in_array($roleName, $centralRoles, true) || ($validated['region'] ?? '') === 'DILG Central Office';
+        $isRegional = in_array($roleName, $regionalRoles, true) || ($validated['region'] ?? '') === 'DILG Regional Office';
+        $isProvincial = in_array($roleName, $provincialRoles, true) || ($validated['region'] ?? '') === 'DILG Provincial Office';
+
+        if ($isCentral) {
+            $validated['region'] = 'DILG Central Office';
+            $validated['barangay'] = null;
+        } elseif ($isRegional) {
+            $validated['province'] = null;
+            $validated['city'] = null;
+            $validated['barangay'] = null;
+        } elseif ($isProvincial) {
+            $validated['city'] = null;
+            $validated['barangay'] = null;
+        }
+
         $user->fill($validated);
         if (!$user->profile_completed) {
             $user->profile_completed = true;

@@ -5775,48 +5775,111 @@
                 opt.dataset.code = 'DILG';
                 regionSelect.appendChild(opt);
                 // Adjust labels for DILG mode
-                const provLabel = regionSelect.closest('.profile-page-fields')?.querySelector('label.profile-field-label:nth-of-type(2)');
-                if (provLabel) { provLabel.childNodes[provLabel.childNodes.length-1].textContent = 'Office'; }
+                const regionLabelEl = regionSelect.closest('.form-group')?.querySelector('.profile-field-label');
+                if (regionLabelEl) {
+                    regionLabelEl.childNodes[regionLabelEl.childNodes.length-1].textContent = 'Office Level';
+                }
+                const provLabelEl = provinceSelect.closest('.form-group')?.querySelector('.profile-field-label');
+                if (provLabelEl) {
+                    provLabelEl.childNodes[provLabelEl.childNodes.length-1].textContent = IS_OFFICE(myRole, 'central') ? 'Office Type' : 'Office';
+                }
                 // Office Type and Office selection for Central Office
                 resetSelect(provinceSelect, IS_OFFICE(myRole, 'central') ? 'Select Office Type' : 'Select Office');
                 if (IS_OFFICE(myRole, 'central')) {
-                    ['Bureaus','Services'].forEach(lbl => {
+                    ['Bureau','Services'].forEach(lbl => {
                         const o = document.createElement('option');
                         o.value = lbl;
                         o.textContent = lbl;
                         provinceSelect.appendChild(o);
                     });
-                    provinceSelect.addEventListener('change', function(){
-                        const cat = this.value;
-                        resetSelect(citySelect, cat === 'Bureaus' ? 'Select Bureaus' : 'Select Services');
-                        const list = cat === 'Bureaus' ? BUREAUS : SERVICES;
-                        let matched = false;
-                        list.forEach(item => {
-                            const o = document.createElement('option');
-                            o.value = item;
-                            o.textContent = item;
-                            if (selectedProvince && selectedProvince === item) { o.selected = true; matched = true; }
-                            citySelect.appendChild(o);
-                        });
-                        if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
-                        citySelect.disabled = false;
-                        // Barangay hidden in central office mode
+                    function setProfileUnitLabel(cat){
+                        const group = citySelect.closest('.form-group');
+                        if (group) {
+                            const lab = group.querySelector('.profile-field-label');
+                            if (lab) { lab.childNodes[lab.childNodes.length-1].textContent = cat === 'Bureau' ? 'Bureau' : 'Service'; }
+                        }
+                    }
+                    async function loadProfileCentralUnits(cat, selectedUnit=null){
+                        setProfileUnitLabel(cat);
+                        resetSelect(citySelect, cat === 'Bureau' ? 'Select Bureau' : 'Select Service');
+                        const url = cat === 'Bureau' ? `{{ url('/dilg/central/bureaus') }}` : `{{ url('/dilg/central/services') }}`;
+                        let matched=false;
+                        try{
+                            const res = await fetch(url);
+                            if(!res.ok) throw new Error('Failed to fetch');
+                            const data = await res.json();
+                            (data || []).forEach(item=>{
+                                const name = item.name || item.title || item.label || item.unit || item;
+                                if(!name) return;
+                                const o=document.createElement('option'); o.value=name; o.textContent=name;
+                                if (selectedUnit && selectedUnit === name) { o.selected=true; matched=true; }
+                                citySelect.appendChild(o);
+                            });
+                        }catch(e){
+                            const fallback = cat === 'Bureau' ? BUREAUS : SERVICES;
+                            fallback.forEach(item=>{
+                                const o=document.createElement('option'); o.value=item; o.textContent=item;
+                                if (selectedUnit && selectedUnit === item) { o.selected=true; matched=true; }
+                                citySelect.appendChild(o);
+                            });
+                        }
+                        // Hide Barangay for central
                         const barangayGroup = document.getElementById('profile_barangay')?.closest('.form-group');
                         if (barangayGroup) barangayGroup.style.display = 'none';
+                        syncProfileLocationSelectState();
+                    }
+                    provinceSelect.addEventListener('change', function(){
+                        const cat = this.value;
+                        loadProfileCentralUnits(cat, selectedProvince || null);
                     });
-                    // Preselect type by checking existing province value
-                    if (selectedProvince) {
-                        const isB = BUREAUS.includes(selectedProvince);
-                        provinceSelect.value = isB ? 'Bureaus' : 'Services';
-                        provinceSelect.dispatchEvent(new Event('change'));
+                    if (selectedProvince || selectedCity) {
+                        const p = String(selectedProvince || '').toLowerCase();
+                        const guess = (p.startsWith('bureau') || p === 'bureaus') ? 'Bureau' : 'Services';
+                        provinceSelect.value = guess;
+                        loadProfileCentralUnits(guess, selectedCity || null);
                     }
                 } else if (IS_OFFICE(myRole, 'regional')) {
-                    // Only Region (Level) editable; hide others
-                    const groups = [provinceSelect, citySelect, barangaySelect].map(s => s.closest('.form-group'));
-                    groups.forEach(g => { if (g) g.style.display = 'none'; });
+                    // Two controls: Office Level (regionSelect) and Region (reuse provinceSelect)
+                    const toHide = [citySelect, barangaySelect].map(s => s.closest('.form-group'));
+                    toHide.forEach(g => { if (g) g.style.display = 'none'; });
+                    const provLabelEl2 = provinceSelect.closest('.form-group')?.querySelector('.profile-field-label');
+                    if (provLabelEl2) {
+                        provLabelEl2.childNodes[provLabelEl2.childNodes.length-1].textContent = 'Region';
+                    }
+                    // Ensure names do not collide: use office_level for the level field, region for the second select
+                    regionSelect.setAttribute('name','office_level');
+                    provinceSelect.setAttribute('name','region');
+                    resetSelect(provinceSelect, 'Select Region');
+                    fetch(`{{ url('/psgc/regions') }}`)
+                        .then(r=>r.json())
+                        .then(data=>{
+                            data.sort((a,b)=>a.name.localeCompare(b.name));
+                            let matched=false;
+                            data.forEach(reg=>{
+                                const o=document.createElement('option');
+                                o.value = reg.name;
+                                o.dataset.code = reg.code;
+                                o.textContent = reg.name;
+                                if (selectedRegion && selectedRegion === reg.name) { o.selected=true; matched=true; }
+                                provinceSelect.appendChild(o);
+                            });
+                            if (selectedRegion && !matched) addFallbackOption(provinceSelect, selectedRegion);
+                            syncProfileLocationSelectState();
+                        })
+                        .catch(()=>{
+                            if (selectedRegion) addFallbackOption(provinceSelect, selectedRegion);
+                            syncProfileLocationSelectState();
+                        });
                 } else if (IS_OFFICE(myRole, 'provincial')) {
                     // Only Office/Province editable — aggregate provinces across all regions
                     resetSelect(provinceSelect, 'Select Office');
+                    if (regionLabelEl) {
+                        regionLabelEl.childNodes[regionLabelEl.childNodes.length-1].textContent = 'Office Level';
+                    }
+                    const provLabelEl3 = provinceSelect.closest('.form-group')?.querySelector('.profile-field-label');
+                    if (provLabelEl3) {
+                        provLabelEl3.childNodes[provLabelEl3.childNodes.length-1].textContent = 'Office';
+                    }
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
                         let items = [];
                         for (const reg of regions) {
