@@ -428,10 +428,16 @@ class CourseController extends Controller
 
     public function traineeShow(Course $course)
     {
+        \Illuminate\Support\Facades\Log::info('traineeShow: loading course users', ['course_id' => $course->id]);
         if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
             return redirect()->route('trainer.courses.enter', $course);
         }
         $course->load(['users', 'materials', 'assessments']);
+        \Illuminate\Support\Facades\Log::info('traineeShow: loaded users', [
+            'course_id' => $course->id,
+            'user_count' => $course->users->count(),
+            'roles' => $course->users->pluck('role')->all(),
+        ]);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -486,6 +492,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
+        // Build participants lists for view
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
+            return in_array($u->role ?? '', $coachRoles, true);
+        })->values();
+        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
+            return in_array($u->role ?? '', $participantRoles, true);
+        })->values();
+        \Illuminate\Support\Facades\Log::info('traineeShow: participants resolved', [
+            'course_id' => $course->id,
+            'coaches' => $coaches->pluck('id')->all(),
+            'classmates' => $classmates->pluck('id')->all(),
+        ]);
         if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
             return view('roparticipant.course-landing', [
                 'course' => $course,
@@ -493,6 +513,8 @@ class CourseController extends Controller
                 'announcements' => $announcements,
                 'discussions' => $discussions,
                 'completion' => $completion,
+                'coaches' => $coaches,
+                'classmates' => $classmates,
             ]);
         }
         return view('trainee.course-landing', [
@@ -501,6 +523,8 @@ class CourseController extends Controller
             'announcements' => $announcements,
             'discussions' => $discussions,
             'completion' => $completion,
+            'coaches' => $coaches,
+            'classmates' => $classmates,
         ]);
     }
     
@@ -515,7 +539,13 @@ class CourseController extends Controller
     }
     public function trainerLanding(Course $course)
     {
+        \Illuminate\Support\Facades\Log::info('trainerLanding: loading course users', ['course_id' => $course->id]);
         $course->load(['users', 'materials', 'assessments']);
+        \Illuminate\Support\Facades\Log::info('trainerLanding: loaded users', [
+            'course_id' => $course->id,
+            'user_count' => $course->users->count(),
+            'roles' => $course->users->pluck('role')->all(),
+        ]);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -563,6 +593,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
+        // Build participants lists for trainer landing as well
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
+            return in_array($u->role ?? '', $coachRoles, true);
+        })->values();
+        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
+            return in_array($u->role ?? '', $participantRoles, true);
+        })->values();
+        \Illuminate\Support\Facades\Log::info('trainerLanding: participants resolved', [
+            'course_id' => $course->id,
+            'coaches' => $coaches->pluck('id')->all(),
+            'classmates' => $classmates->pluck('id')->all(),
+        ]);
         return view('trainee.course-landing', [
             'course' => $course,
             'status' => 'active',
@@ -570,6 +614,8 @@ class CourseController extends Controller
             'discussions' => $discussions,
             'asTrainer' => true,
             'completion' => $completion,
+            'coaches' => $coaches,
+            'classmates' => $classmates,
         ]);
     }
     public function traineeOutline(Course $course)

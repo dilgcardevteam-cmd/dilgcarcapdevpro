@@ -93,10 +93,28 @@
         .mc .mc-option.submitted-wrong::before{content:'✕';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #ef4444}
         .mc .mc-radio{width:20px;height:20px;border:2px solid #9ca3af;border-radius:999px;display:inline-block;background:#fff;flex:0 0 auto}
         .mc .mc-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #06b6d4, 0 0 0 2px #fff}
+        /* True/False options styled like MC */
+        .tf .tf-option{display:flex;align-items:center;gap:12px;padding:16px 18px;margin:10px 0;border:1px solid #e5e7eb;border-radius:14px;background:#f3f4f6;cursor:pointer;transition:all .15s ease}
+        .tf .tf-option:hover{background:#eef2ff}
+        .tf .tf-option.selected{background:#2563eb;color:#fff;border-color:#1d4ed8;box-shadow:inset -12px -12px 0 0 rgba(255,255,255,0.15)}
+        .tf .mc-radio{width:20px;height:20px;border:2px solid #9ca3af;border-radius:999px;display:inline-block;background:#fff;flex:0 0 auto}
+        .tf .tf-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #2563eb, 0 0 0 2px #fff}
+        .tf .tf-option.submitted-correct{position:relative}
+        .tf .tf-option.submitted-correct::before{content:'✓';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#10b981;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #10b981}
+        .tf .tf-option.submitted-wrong{position:relative;border-color:#ef4444;background:#fee2e2;color:#b91c1c}
+        .tf .tf-option.submitted-wrong::before{content:'✕';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #ef4444}
         .mc-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
         .btn-green{flex:1;min-width:160px;background:var(--b);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-weight:700;cursor:pointer}
         .btn-green:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}
         .mc-feedback{margin-top:8px;font-weight:700}
+        .btn-blue{
+            background:linear-gradient(90deg,#0f3b8f 0%, #2563eb 100%);
+            color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;
+            box-shadow:0 10px 20px rgba(37,99,235,.22);
+            transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .btn-blue:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(37,99,235,.28); filter:brightness(1.03); }
+        .btn-blue:disabled{ background:#e5e7eb;color:#9ca3af;cursor:not-allowed; box-shadow:none; }
         .view-only .module-bar,
         .view-only .module-kpi,
         .view-only .done-toggle,
@@ -229,6 +247,31 @@
         .btn-green{
             box-shadow:0 10px 20px rgba(37,99,235,.2);
         }
+        /* Pro input styling for Identification/Essay */
+        .q-input{
+            width:100%;
+            border:1px solid #dbe4f3;
+            border-radius:14px;
+            padding:12px 14px;
+            background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%);
+            box-shadow:inset 0 1px 2px rgba(15,23,42,.04), 0 8px 18px rgba(15,23,42,.08);
+            color:#0f172a;
+            transition:border-color .15s ease, box-shadow .2s ease, background .2s ease;
+        }
+        .q-input::placeholder{ color:#94a3b8; }
+        .q-input:focus{
+            outline:none;
+            border-color:#60a5fa;
+            box-shadow:0 0 0 3px rgba(96,165,250,.25), inset 0 1px 2px rgba(15,23,42,.06), 0 12px 24px rgba(15,23,42,.12);
+            background:#fff;
+        }
+        .field.question[data-kind="id"] .mc-actions,
+        .field.question[data-kind="essay"] .mc-actions{
+            margin-top:12px;
+            display:flex;
+            gap:10px;
+            justify-content:flex-end;
+        }
         .topbar > div:nth-child(2){
             display:none;
         }
@@ -262,8 +305,20 @@
             <a href="{{ $backUrl }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
         </div>
     </header>
-    
-    <div class="layout">
+    @php
+        $role = auth()->user()->role ?? null;
+        $IS_COACH = in_array($role, ['trainer','coach'], true);
+    @endphp
+    @if($IS_COACH)
+    <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px">
+        <div style="font-weight:800;color:#0f172a">Classroom</div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+            <button id="tabModules" class="btn-blue" type="button">Modules</button>
+            <button id="tabResponses" class="btn-blue" type="button" style="background:#1e293b">Responses</button>
+        </div>
+    </div>
+    @endif
+    <div class="layout" id="modulesPane" style="{{ $IS_COACH ? '' : '' }}">
         <aside class="sidebar">
             <h3>
                 <span style="display:inline-flex;align-items:center;gap:12px"><i class="fas fa-list-ul"></i> Course Outline</span>
@@ -302,7 +357,86 @@
             @endif
         </main>
     </div>
+    @if($IS_COACH)
+    <div id="responsesPane" style="display:none;padding:14px">
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08)">
+            <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <select id="respUserSelect" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px;min-width:280px"></select>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <button id="respPrev" class="round-btn" type="button" aria-label="Prev"><i class="fas fa-chevron-left"></i></button>
+                    <div><span id="respIndex">1</span> of <span id="respTotal">0</span></div>
+                    <button id="respNext" class="round-btn" type="button" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div id="respBody" style="margin-top:12px">
+                <div class="muted">Select a participant to view responses.</div>
+            </div>
+        </div>
+    </div>
+    @endif
+<!-- Incomplete gate modal -->
+<div id="gateOverlay" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:3000">
+  <div style="width:min(520px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 14px 30px rgba(0,0,0,.18);overflow:hidden">
+    <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-weight:800">Incomplete</div>
+    <div style="padding:14px 16px">
+      <div>Please answer all questions and submit your reflection before marking this subtopic done.</div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end">
+      <button id="gateClose" class="btn-blue">OK</button>
+    </div>
+  </div>
+</div>
     <script>
+    (function(){
+        const isCoach = {{ $IS_COACH ? 'true' : 'false' }};
+        if(isCoach){
+            const tabM = document.getElementById('tabModules');
+            const tabR = document.getElementById('tabResponses');
+            const paneM = document.getElementById('modulesPane');
+            const paneR = document.getElementById('responsesPane');
+            function showTab(which){
+                if(which==='modules'){ paneM.style.display='grid'; paneR.style.display='none'; }
+                else { paneM.style.display='none'; paneR.style.display='block'; }
+            }
+            if(tabM){ tabM.onclick = ()=> showTab('modules'); }
+            if(tabR){ tabR.onclick = ()=> showTab('responses'); }
+            showTab('modules');
+            // Populate participants
+            const sel = document.getElementById('respUserSelect');
+            const users = @json($course->users ?? []);
+            const trainees = users.filter(u=> (u.role||'')==='trainee');
+            if(sel){
+                sel.innerHTML = trainees.map(t=> `<option value="${t.id}">${t.email || t.name || ('User #'+t.id)}</option>`).join('') || '<option>(No participants)</option>';
+            }
+            let idx=1, total=trainees.length;
+            const iEl=document.getElementById('respIndex'), tEl=document.getElementById('respTotal');
+            if(iEl) iEl.textContent = String(idx);
+            if(tEl) tEl.textContent = String(total);
+            function move(d){
+                if(total<=0) return;
+                idx = Math.max(1, Math.min(total, idx + d));
+                if(iEl) iEl.textContent = String(idx);
+                if(sel){ sel.selectedIndex = idx-1; }
+                renderResp();
+            }
+            const prev=document.getElementById('respPrev'), next=document.getElementById('respNext');
+            if(prev) prev.onclick = ()=> move(-1);
+            if(next) next.onclick = ()=> move(1);
+            if(sel) sel.onchange = ()=> { idx = (sel.selectedIndex+1); renderResp(); };
+            function renderResp(){
+                const body=document.getElementById('respBody');
+                const user = trainees[idx-1];
+                if(!user){ body.innerHTML = '<div class="muted">No participant selected.</div>'; return; }
+                body.innerHTML = `
+                    <div style="font-weight:800;color:#0f172a;margin-bottom:8px">Responses for ${user.email || user.name || ('User #'+user.id)}</div>
+                    <div class="muted">Coming soon: individual answers per assessment and reflection.</div>
+                `;
+            }
+            renderResp();
+        }
+    })();
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
         const USER_ROLE = "{{ auth()->user()->role ?? '' }}";
@@ -588,23 +722,86 @@
                     const answer = (Number.isInteger(q.answer_index) ? q.answer_index : '');
                     const fbC = q.feedback_correct || '';
                     const fbI = q.feedback_incorrect || '';
-                    const opts=(q.options||[]).map((o,idx)=>`<div class="mc-option" data-idx="${idx}"><span class="mc-radio"></span><span class="mc-label">${o}</span></div>`).join('');
+                    const opts=(q.options||[]).map((o,idx)=>{
+                        const isAns = (IS_TRAINER && Number.isInteger(answer) && idx===answer);
+                        const chip = isAns ? '<span class="chip">Answer</span>' : '';
+                        return `<div class="mc-option${isAns?' trainer-answer':''}" data-idx="${idx}"><span class="mc-radio"></span><span class="mc-label">${o}</span> ${chip}</div>`;
+                    }).join('');
                     if(viewOnly){
                         return `<div class="field question" data-kind="mc">
                             <div class="q-title">${q.title||'Question'}</div>
                             <div class="mc" data-answer="${answer}">${opts}</div>
                         </div>`;
                     } else {
-                        return `<div class="field question" data-kind="mc">
-                            <div class="q-title">${q.title||'Question'}</div>
-                            <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
-                            <div class="mc-actions">
-                                <button class="btn-green" data-act="submit" disabled>Submit</button>
-                                <button class="btn-green" data-act="feedback" style="display:none">Show feedback</button>
-                                <button class="btn-green" data-act="reset">Reset</button>
-                            </div>
-                            <div class="mc-feedback" style="display:none;"></div>
-                        </div>`;
+                        const kind = (q.type||'multiple_choice');
+                        if(kind==='multiple_choice'){
+                            return `<div class="field question" data-kind="mc">
+                                <div class="q-title">${q.title||'Question'}</div>
+                                <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
+                                <div class="mc-actions">
+                                    <button class="btn-green" data-act="submit" disabled>Submit</button>
+                                    <button class="btn-green" data-act="feedback" style="display:none">Show feedback</button>
+                                    <button class="btn-green" data-act="reset" style="display:none">Reset</button>
+                                </div>
+                                <div class="mc-feedback" style="display:none;"></div>
+                            </div>`;
+                        } else if(kind==='identification'){
+                            const idAnswers = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
+                            if(IS_TRAINER){
+                                const list = idAnswers.length ? idAnswers.map(a=>`<span class="chip">Answer</span> ${a}`).join('<br>') : '<div class="muted">No answer provided</div>';
+                                return `<div class="field question" data-kind="id">
+                                    <div class="q-title">${q.title||'Identification'}</div>
+                                    <div>${list}</div>
+                                </div>`;
+                            } else {
+                                const dataAns = String(JSON.stringify(idAnswers)).replace(/"/g,'&quot;');
+                                return `<div class="field question" data-kind="id">
+                                    <div class="q-title">${q.title||'Identification'}</div>
+                                    <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
+                                    <div class="mc-actions" style="margin-top:8px">
+                                        <button class="btn-green" data-act="submit" disabled>Submit</button>
+                                        <button class="btn-green" data-act="reset" style="display:none">Reset</button>
+                                        <button class="btn-green" data-act="edit" style="display:none">Edit Answer</button>
+                                    </div>
+                                    <div class="mc-feedback" style="display:none;"></div>
+                                </div>`;
+                            }
+                        } else if(kind==='essay'){
+                            if(IS_TRAINER){
+                                const essayAns = q.answer || q.expected_answer || '';
+                                const rubric = q.rubric || '';
+                                return `<div class="field question" data-kind="essay">
+                                    <div class="q-title">${q.title||'Essay'}</div>
+                                    ${essayAns ? `<div style="margin-bottom:6px"><span class="chip">Answer</span> ${essayAns}</div>` : '<div class="muted" style="margin-bottom:6px">No answer provided</div>'}
+                                    ${rubric ? `<div><span class="chip">Rubric</span> ${rubric}</div>` : ''}
+                                </div>`;
+                            } else {
+                                return `<div class="field question" data-kind="essay">
+                                    <div class="q-title">${q.title||'Essay'}</div>
+                                    <textarea class="q-input input" rows="4" placeholder="Write your response"></textarea>
+                                    <div class="mc-actions" style="margin-top:8px">
+                                        <button class="btn-green" data-act="submit" disabled>Submit</button>
+                                        <button class="btn-green" data-act="edit" style="display:none">Edit Answer</button>
+                                    </div>
+                                    <div class="mc-feedback" style="display:none;"></div>
+                                </div>`;
+                            }
+                        } else if(kind==='true_false'){
+                            const tfAns = (q.answer===false) ? 'false' : 'true';
+                            return `<div class="field question" data-kind="tf">
+                                <div class="q-title">${q.title||'True or False'}</div>
+                                <div class="tf" data-answer="${tfAns}">
+                                    <div class="tf-option${IS_TRAINER && tfAns==='true' ? ' trainer-answer' : ''}" data-val="true"><span class="mc-radio"></span><span class="mc-label">True</span>${IS_TRAINER && tfAns==='true' ? ' <span class="chip">Answer</span>' : ''}</div>
+                                    <div class="tf-option${IS_TRAINER && tfAns==='false' ? ' trainer-answer' : ''}" data-val="false"><span class="mc-radio"></span><span class="mc-label">False</span>${IS_TRAINER && tfAns==='false' ? ' <span class="chip">Answer</span>' : ''}</div>
+                                </div>
+                                <div class="mc-actions" style="margin-top:8px">
+                                    <button class="btn-green" data-act="submit" disabled>Submit</button>
+                                    <button class="btn-green" data-act="reset" style="display:none">Reset</button>
+                                </div>
+                            </div>`;
+                        } else {
+                            return `<div class="field question"><div class="q-title">${q.title||'Question'}</div></div>`;
+                        }
                     }
                 } else if(f.type==='reflection'){
                     const header = 'What did you learn?';
@@ -618,7 +815,7 @@
                             <div style="font-weight:700;margin-bottom:6px">${header}</div>
                             <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
                             <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
-                                <button type="button" class="btn-blue" data-act="submit-ref" style="background:#0f3b8f;color:#fff;border:none;border-radius:12px;padding:8px 12px">Submit</button>
+                                <button type="button" class="btn-blue" data-act="submit-ref" style="background:#0f3b8f;color:#fff;border:none;border-radius:12px;padding:8px 12px">Done</button>
                             </div>
                             <div class="reflect-summary" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px"></div>
                         </div>`;
@@ -627,6 +824,22 @@
                     return `<div class="field">${JSON.stringify(f)}</div>`;
                 }
             }).join('');
+            // Ensure a reflection block is always present at the end of a subtopic (editable view)
+            if(!viewOnly){
+                const hasRef = Array.isArray(fields) && fields.some(f => f && f.type === 'reflection');
+                if(!hasRef){
+                    const key = `${mi}_${ti}_${si ?? 0}`;
+                    container.innerHTML += `
+                        <div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="${si ?? 0}">
+                            <div style="font-weight:700;margin-bottom:6px">What did you learn?</div>
+                            <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
+                            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                                <button type="button" class="btn-blue" data-act="submit-ref" style="background:#0f3b8f;color:#fff;border:none;border-radius:12px;padding:8px 12px">Done</button>
+                            </div>
+                            <div class="reflect-summary" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px"></div>
+                        </div>`;
+                }
+            }
             if(!viewOnly){
                 container.querySelectorAll('.reflection-inline').forEach(block=>{
                     const bMi = parseInt(block.getAttribute('data-mi'),10);
@@ -643,6 +856,15 @@
                     }
                     if(submitBtn){
                         submitBtn.onclick = async ()=>{
+                            const containerEl = document.getElementById('contentBody');
+                            const ready = areAllQuestionsSubmitted(containerEl);
+                            const hasText = !!(input && input.value && input.value.trim());
+                            if(!ready || !hasText){
+                                var ov=document.getElementById('gateOverlay');
+                                if(ov){ ov.style.display='flex'; }
+                                if(!hasText){ input.focus(); }
+                                return;
+                            }
                             if(!input.value.trim()){ input.focus(); return; }
                             const questions = [{id:'learned', text:'What did you learn?'}];
                             const answers = { learned: input.value||'' };
@@ -670,13 +892,13 @@
                                         <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="retry" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Retry</button></div>`;
                                     input.disabled = true;
                                     submitBtn.disabled = true;
-                                    submitBtn.textContent = 'Submitted';
+                                    submitBtn.textContent = 'Done';
                                     const retryBtn = summary.querySelector('[data-act="retry"]');
                                     if(retryBtn){
                                         retryBtn.onclick = ()=>{
                                             input.disabled = false;
                                             submitBtn.disabled = false;
-                                            submitBtn.textContent = 'Submit';
+                                            submitBtn.textContent = 'Done';
                                             summary.style.display='none';
                                             input.focus();
                                             // Roll back progress until resubmitted
@@ -696,6 +918,10 @@
             // Initialize MC interactions
             if(!viewOnly){
                 container.querySelectorAll('.field.question[data-kind="mc"]').forEach(initMultipleChoice);
+                container.querySelectorAll('.field.question[data-kind="id"]').forEach(initIdentification);
+                container.querySelectorAll('.field.question[data-kind="essay"]').forEach(initEssay);
+                container.querySelectorAll('.field.question[data-kind="tf"]').forEach(initTrueFalse);
+                updateReflectionGate(container);
             }
         }
         async function loadReflectionMap(){
@@ -804,7 +1030,10 @@
                 }else{
                     submitBtn.style.display='inline-block';
                     feedbackBtn.style.display='none';
+                    if(resetBtn) resetBtn.style.display='none';
                 }
+                const cont = document.getElementById('contentBody');
+                if(cont) updateReflectionGate(cont);
             };
             setSubmitted(false);
             mc.querySelectorAll('.mc-option').forEach(opt=>{
@@ -825,9 +1054,13 @@
                     if(answer !== null && !Number.isNaN(answer)){
                         if(idx === answer){
                             sel.classList.add('submitted-correct');
+                            if(resetBtn) resetBtn.style.display='none';
                         } else {
                             sel.classList.add('submitted-wrong');
+                            if(resetBtn) resetBtn.style.display='inline-block';
                         }
+                    } else {
+                        if(resetBtn) resetBtn.style.display='none';
                     }
                 });
             }
@@ -838,6 +1071,7 @@
                     submitBtn.disabled = true;
                     setSubmitted(false);
                     mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
+                    if(resetBtn) resetBtn.style.display='none';
                 });
             }
             if(feedbackBtn){
@@ -860,6 +1094,181 @@
                 });
             }
             /* removed correct answer reveal */
+        }
+        function initIdentification(block){
+            const input = block.querySelector('.q-input');
+            const submitBtn = block.querySelector('[data-act="submit"]');
+            const resetBtn = block.querySelector('[data-act="reset"]');
+            const editBtn = block.querySelector('[data-act="edit"]');
+            const feedback = block.querySelector('.mc-feedback');
+            let answers = [];
+            try{ answers = JSON.parse(input?.dataset?.answers || '[]'); }catch(e){ answers = []; }
+            const setSubmitted = (val)=>{
+                block.dataset.submitted = val ? '1' : '0';
+                if(val){ submitBtn.disabled = true; if(input) input.disabled = true; }
+                else { submitBtn.disabled = !input.value.trim(); if(input) input.disabled = false; }
+                const cont = document.getElementById('contentBody');
+                if(cont) updateReflectionGate(cont);
+            };
+            setSubmitted(false);
+            if(input){
+                input.addEventListener('input', ()=>{ if(block.dataset.submitted!=='1'){ submitBtn.disabled = !input.value.trim(); const cont = document.getElementById('contentBody'); if(cont) updateReflectionGate(cont); } });
+            }
+            if(submitBtn){
+                submitBtn.addEventListener('click', ()=>{ 
+                    const val = (input.value||'').trim();
+                    if(!val) return; 
+                    setSubmitted(true);
+                    if(answers && answers.length){
+                        const correct = answers.some(a => String(a||'').trim().toLowerCase() === val.toLowerCase());
+                        if(feedback){
+                            feedback.textContent = correct ? 'Correct!' : 'Incorrect.';
+                            feedback.style.display = 'block';
+                        }
+                        if(resetBtn){ resetBtn.style.display = correct ? 'none' : 'inline-block'; }
+                        if(editBtn){ editBtn.style.display = 'inline-block'; }
+                    }
+                });
+            }
+            if(resetBtn){
+                resetBtn.addEventListener('click', ()=>{ 
+                    input.value=''; 
+                    if(feedback){ feedback.style.display='none'; feedback.textContent=''; }
+                    resetBtn.style.display='none';
+                    if(editBtn){ editBtn.style.display='none'; }
+                    setSubmitted(false); 
+                    input.focus(); 
+                });
+            }
+            if(editBtn){
+                editBtn.addEventListener('click', ()=>{
+                    block.dataset.submitted = '0';
+                    if(input){ input.disabled = false; input.focus(); }
+                    if(submitBtn){ submitBtn.disabled = !input.value.trim(); }
+                    if(feedback){ feedback.style.display='none'; }
+                    if(resetBtn){ resetBtn.style.display='none'; }
+                    const cont = document.getElementById('contentBody');
+                    if(cont) updateReflectionGate(cont);
+                });
+            }
+        }
+        function initEssay(block){
+            const input = block.querySelector('.q-input');
+            const submitBtn = block.querySelector('[data-act="submit"]');
+            const resetBtn = block.querySelector('[data-act="reset"]');
+            const editBtn = block.querySelector('[data-act="edit"]');
+            const feedback = block.querySelector('.mc-feedback');
+            const setSubmitted = (val)=>{
+                block.dataset.submitted = val ? '1' : '0';
+                if(val){ submitBtn.disabled = true; if(input) input.disabled = true; }
+                else { submitBtn.disabled = !input.value.trim(); if(input) input.disabled = false; }
+                const cont = document.getElementById('contentBody');
+                if(cont) updateReflectionGate(cont);
+            };
+            setSubmitted(false);
+            if(input){
+                input.addEventListener('input', ()=>{ if(block.dataset.submitted!=='1'){ submitBtn.disabled = !input.value.trim(); const cont = document.getElementById('contentBody'); if(cont) updateReflectionGate(cont); } });
+            }
+            if(submitBtn){
+                submitBtn.addEventListener('click', ()=>{ 
+                    if(!input.value.trim()) return; 
+                    setSubmitted(true); 
+                    if(feedback){ 
+                        feedback.textContent = 'Submitted. Please wait for the coach to check.'; 
+                        feedback.style.display='block'; 
+                    }
+                    if(editBtn){ editBtn.style.display='inline-block'; }
+                });
+            }
+            if(resetBtn){
+                resetBtn.addEventListener('click', ()=>{ input.value=''; setSubmitted(false); input.focus(); });
+            }
+            if(editBtn){
+                editBtn.addEventListener('click', ()=>{
+                    block.dataset.submitted = '0';
+                    if(input){ input.disabled = false; input.focus(); }
+                    if(submitBtn){ submitBtn.disabled = !input.value.trim(); }
+                    if(feedback){ feedback.style.display='none'; }
+                    const cont = document.getElementById('contentBody');
+                    if(cont) updateReflectionGate(cont);
+                });
+            }
+        }
+        function initTrueFalse(block){
+            const tf = block.querySelector('.tf');
+            const submitBtn = block.querySelector('[data-act="submit"]');
+            const resetBtn = block.querySelector('[data-act="reset"]');
+            const setSubmitted = (val)=>{
+                block.dataset.submitted = val ? '1' : '0';
+                if(val){ submitBtn.disabled = true; }
+                else { submitBtn.disabled = tf.querySelector('.tf-option.selected') ? false : true; }
+                const cont = document.getElementById('contentBody');
+                if(cont) updateReflectionGate(cont);
+            };
+            setSubmitted(false);
+            tf.querySelectorAll('.tf-option').forEach(opt=>{
+                opt.addEventListener('click', ()=>{
+                    if(block.dataset.submitted==='1') return;
+                    tf.querySelectorAll('.tf-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    submitBtn.disabled = false;
+                    const cont = document.getElementById('contentBody');
+                    if(cont) updateReflectionGate(cont);
+                });
+            });
+            if(submitBtn){
+                submitBtn.addEventListener('click', ()=>{ 
+                    const sel = tf.querySelector('.tf-option.selected');
+                    if(!sel) return;
+                    setSubmitted(true);
+                    const selected = sel.getAttribute('data-val');
+                    const ans = tf.getAttribute('data-answer');
+                    tf.querySelectorAll('.tf-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
+                    if(ans){
+                        if(selected === ans){
+                            sel.classList.add('submitted-correct');
+                            if(resetBtn) resetBtn.style.display='none';
+                        } else {
+                            sel.classList.add('submitted-wrong');
+                            if(resetBtn) resetBtn.style.display='inline-block';
+                        }
+                    } else {
+                        if(resetBtn) resetBtn.style.display='none';
+                    }
+                });
+            }
+            if(resetBtn){
+                resetBtn.addEventListener('click', ()=>{
+                    tf.querySelectorAll('.tf-option').forEach(o=>o.classList.remove('selected'));
+                    submitBtn.disabled = true;
+                    setSubmitted(false);
+                    if(resetBtn) resetBtn.style.display='none';
+                });
+            }
+        }
+        function areAllQuestionsSubmitted(container){
+            const blocks = Array.from(container.querySelectorAll('.field.question'));
+            return blocks.every(b=>{
+                const kind = b.getAttribute('data-kind');
+                if(kind==='mc'){
+                    const mc = b.querySelector('.mc');
+                    return !!mc && mc.dataset.submitted==='1';
+                } else {
+                    return b.dataset.submitted==='1';
+                }
+            });
+        }
+        function updateReflectionGate(container){
+            const ready = areAllQuestionsSubmitted(container);
+            container.querySelectorAll('.reflection-inline').forEach(ref=>{
+                const btn = ref.querySelector('[data-act="submit-ref"]');
+                const input = ref.querySelector('.reflect-input');
+                const hasText = !!(input && input.value && input.value.trim());
+                if(btn){ btn.disabled = !(ready && hasText); }
+                if(input){
+                    input.addEventListener('input', ()=>{ if(btn){ btn.disabled = !(areAllQuestionsSubmitted(container) && !!input.value.trim()); } });
+                }
+            });
         }
         // Auto-refresh module lock statuses every 15s
         (function(){
@@ -890,6 +1299,12 @@
                     .catch(()=>{});
             }
             setInterval(tick, 15000);
+        })();
+        (function(){
+            var close=document.getElementById('gateClose');
+            var ov=document.getElementById('gateOverlay');
+            if(close){ close.addEventListener('click', function(e){ e.preventDefault(); if(ov){ ov.style.display='none'; } }); }
+            document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ if(ov){ ov.style.display='none'; } } });
         })();
         renderVideo();
         if(!viewOnly){ loadReflectionMap(); }
