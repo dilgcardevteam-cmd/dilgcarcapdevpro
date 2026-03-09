@@ -3527,7 +3527,7 @@
                                 <div id="psgcDrop" class="drop-zone">
                                     <div style="text-align:center">
                                         <div style="font-weight:800;color:#0b3b8f">Drop file here or click to select</div>
-                                        <div style="color:#64748b;margin-top:4px">Accepted: .csv, .xlsx</div>
+                                        <div style="color:#64748b;margin-top:4px">Accepted: .csv</div>
                                     </div>
                                 </div>
                                 <form id="psgcImportForm" method="POST" enctype="multipart/form-data" action="{{ route('admin.settings.location.import') }}" style="margin-top:12px">
@@ -3544,12 +3544,6 @@
                                                     <option value="replace_all">Replace All</option>
                                                 </select>
                                             </div>
-                                            <div class="cta-row">
-                                            <select id="psgcMode" name="mode" class="input-pro" style="flex:1">
-                                                <option value="insert_only">Insert Only</option>
-                                                <option value="insert_update" selected>Insert + Update</option>
-                                                <option value="replace_all">Replace All</option>
-                                            </select>
                                             <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
@@ -3664,17 +3658,11 @@
                                             +breakdownCard('fas fa-city','Cities/Municipalities',cities)
                                             +breakdownCard('fas fa-home','Barangays',brgys)
                                             +'</div></div>';
-                                        var steps=['File uploaded','CSV validated','Regions processed','Provinces processed','Cities processed','Barangays processed','Database commit completed'];
-                                        var timelineItems=steps.map(function(s){ return '<div style=\"display:flex;align-items:center;gap:10px\"><i class=\"fas fa-check-circle\" style=\"color:#16a34a\"></i><span style=\"font-weight:700;color:#334155\">'+s+'</span></div>'; }).join('');
-                                        var timeline='<div style=\"margin-top:12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:12px\">'
-                                            +'<div style=\"font-weight:800;color:#0B2C74;margin-bottom:8px\">Import Activity Log</div>'
-                                            +'<div style=\"display:grid;gap:8px\">'+timelineItems+'</div>'
-                                            +'</div>';
                                         var actions='<div style=\"margin-top:12px;display:flex;align-items:center;gap:10px\">'
                                             +'<a href=\"{{ route('psgc.regions') }}\" target=\"_blank\" class=\"btn btn-primary\" style=\"display:inline-flex;align-items:center;gap:8px\"><i class=\"fas fa-eye\"></i> View Imported Data</a>'
                                             +'<button type=\"button\" id=\"psgcImportAgainBtn\" class=\"btn\" style=\"display:inline-flex;align-items:center;gap:8px\"><i class=\"fas fa-file-upload\"></i> Import Another File</button>'
                                             +'</div>';
-                                        rs.innerHTML='<div style=\"width:100%;display:flex;flex-direction:column;gap:10px\">'+banner+gridStats+breakdown+timeline+actions+'</div>';
+                                        rs.innerHTML='<div style=\"width:100%;display:flex;flex-direction:column;gap:10px\">'+banner+gridStats+breakdown+actions+'</div>';
                                         var again=document.getElementById('psgcImportAgainBtn');
                                         if(again){
                                             again.addEventListener('click', function(){
@@ -5008,6 +4996,27 @@
                                 </select>
                             </div>
                         </div>
+
+                    <div class="form-group">
+                        <label>Permissions</label>
+                        <div class="field-with-icon">
+                            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7h16M4 12h16M4 17h10"></path>
+                            </svg>
+                            <select id="view_permissions" name="permissions[]" multiple disabled style="height:42px">
+                                @if(isset($permissions) && $permissions->count())
+                                    @foreach($permissions as $perm)
+                                        <option value="{{ $perm->id }}">{{ $perm->name }}</option>
+                                    @endforeach
+                                @else
+                                    @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
+                                    @foreach($fallbackPerms as $p)
+                                        <option value="{{ $p }}">{{ $p }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
 
                         <div class="form-group">
                             <label>Status</label>
@@ -6799,6 +6808,7 @@
             document.getElementById('view_role').value = user.role;
             document.getElementById('view_status').value = user.status;
             document.getElementById('view_password').value = ''; // Reset password field
+            setPermissionsForRole(user.role || '');
 
             const initial = document.getElementById('modalUserInitial');
             if (initial) {
@@ -6843,6 +6853,7 @@
                     const curCity = document.getElementById('view_city')?.value || '';
                     const curBarangay = document.getElementById('view_barangay')?.value || '';
                     initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
+                    setPermissionsForRole(this.value || '');
                 });
             }
         }
@@ -6866,6 +6877,8 @@
             // Enable inputs
             const inputs = document.querySelectorAll('#viewUserForm input, #viewUserForm select');
             inputs.forEach(input => input.disabled = false);
+            const permSel = document.getElementById('view_permissions');
+            if (permSel) permSel.disabled = !CAN_MANAGE_ACCESS;
              
             // Buttons
             document.getElementById('btnEdit').style.display = 'none';
@@ -6881,6 +6894,8 @@
             // Disable inputs
             const inputs = document.querySelectorAll('#viewUserForm input, #viewUserForm select');
             inputs.forEach(input => input.disabled = true);
+            const permSel = document.getElementById('view_permissions');
+            if (permSel) permSel.disabled = true;
 
             const passwordInput = document.getElementById('view_password');
             const eyeIcon = document.getElementById('eyeIcon');
@@ -6939,6 +6954,26 @@
         });
 
         const courseCreateEmbeddedUrl = @json(route('admin.courses.create', ['embedded' => 1]));
+
+        const ROLE_ID_BY_NAME = @json(isset($roles) ? $roles->pluck('id','name') : []);
+        const ROLE_PERMS = @json(isset($rolePermissions) ? $rolePermissions : []);
+        const PERM_LOOKUP = @json(isset($permissions) ? $permissions->pluck('name','id') : []);
+        const CAN_MANAGE_ACCESS = {{ (auth()->check() && auth()->user()->role === 'super_admin') ? 'true' : 'false' }};
+
+        function setPermissionsForRole(roleName) {
+            const sel = document.getElementById('view_permissions');
+            if (!sel) return;
+            const rid = ROLE_ID_BY_NAME && roleName ? ROLE_ID_BY_NAME[roleName] : null;
+            const ids = (rid && ROLE_PERMS && ROLE_PERMS[rid]) ? ROLE_PERMS[rid].map(String) : [];
+            Array.from(sel.options).forEach(opt => {
+                opt.selected = ids.includes(String(opt.value));
+            });
+        }
+
+        (function initPermissionsSelect() {
+            const sel = document.getElementById('view_permissions');
+            if (!sel) return;
+        })();
 
         function ensureCourseCreateFrameLoaded() {
             const frame = document.getElementById('courseCreateFrame');
