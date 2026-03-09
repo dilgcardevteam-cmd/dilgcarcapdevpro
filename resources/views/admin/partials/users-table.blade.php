@@ -16,9 +16,12 @@
             <tbody>
                 @forelse($users as $user)
                     @php
-                        $location = trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
-                        $roleMap = isset($roleDisplay) && is_array($roleDisplay) ? $roleDisplay : [];
                         $rawRole = $user->role;
+                        $isRegionalOffice = in_array($rawRole, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
+                        $location = $isRegionalOffice
+                            ? trim($user->region ?? '')
+                            : trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
+                        $roleMap = isset($roleDisplay) && is_array($roleDisplay) ? $roleDisplay : [];
                         $knownRoles = [
                             'super_admin','admin','registrar',
                             'training_manager','coach','trainer','trainee','participant',

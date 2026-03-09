@@ -3682,7 +3682,7 @@
                         var bkp=document.getElementById('settingsBackup');
                         if(loc) loc.style.display='none';
                         if(bkp) bkp.style.display='none';
-                        document.getElementById('settingsHome').style.display='block';
+                            document.getElementById('settingsHome').style.display='block';
                     }
                     (function(){
                         var form=document.getElementById('psgcImportForm');
@@ -5054,7 +5054,14 @@
                 @csrf
                 @method('PUT')
 
-                <div class="profile-section">
+                <div class="modal-tabs" role="tablist" style="display:flex;gap:8px;border-bottom:1px solid #e5e7eb;margin:8px 0 14px;">
+                    <button type="button" class="modal-tab active" data-target="section-core" aria-selected="true" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid var(--primary-blue);color:var(--primary-blue);font-weight:700;border-radius:8px 8px 0 0;">Core Profile</button>
+                    <button type="button" class="modal-tab" data-target="section-access" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Roles & Permissions</button>
+                    <button type="button" class="modal-tab" data-target="section-location" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Location Details</button>
+                    <button type="button" class="modal-tab" data-target="section-security" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Security</button>
+                </div>
+
+                <div id="section-core" class="profile-section" style="display:block;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="12" cy="7" r="4"></circle>
@@ -5086,6 +5093,30 @@
                         </div>
 
                         <div class="form-group">
+                            <label>Status</label>
+                            <div class="field-with-icon">
+                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+                                </svg>
+                                <select id="view_status" name="status" required disabled>
+                                    <option value="active">Active</option>
+                                    <option value="freeze">Blocked</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section-access" class="profile-section" style="display:none;">
+                    <p class="profile-section-title">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        Roles & Permissions
+                    </p>
+                    <div class="profile-edit-grid">
+                        <div class="form-group">
                             <label>Role</label>
                             <div class="field-with-icon">
                                 <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -5107,45 +5138,30 @@
                                 </select>
                             </div>
                         </div>
-
-                    <div class="form-group">
-                        <label>Permissions</label>
-                        <div class="field-with-icon">
-                            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 7h16M4 12h16M4 17h10"></path>
-                            </svg>
-                            <select id="view_permissions" name="permissions[]" multiple disabled style="height:42px">
-                                @if(isset($permissions) && $permissions->count())
-                                    @foreach($permissions as $perm)
-                                        <option value="{{ $perm->id }}">{{ $perm->name }}</option>
-                                    @endforeach
-                                @else
-                                    @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
-                                    @foreach($fallbackPerms as $p)
-                                        <option value="{{ $p }}">{{ $p }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                        </div>
-                    </div>
-
                         <div class="form-group">
-                            <label>Status</label>
+                            <label>Permissions</label>
                             <div class="field-with-icon">
                                 <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+                                    <path d="M4 7h16M4 12h16M4 17h10"></path>
                                 </svg>
-                                <select id="view_status" name="status" required disabled>
-                                    <option value="active">Active</option>
-                                    <option value="freeze">Blocked</option>
-                                    <option value="pending">Pending</option>
+                                <select id="view_permissions" name="permissions[]" multiple disabled style="height:42px">
+                                    @if(isset($permissions) && $permissions->count())
+                                        @foreach($permissions as $perm)
+                                            <option value="{{ $perm->id }}">{{ $perm->name }}</option>
+                                        @endforeach
+                                    @else
+                                        @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
+                                        @foreach($fallbackPerms as $p)
+                                            <option value="{{ $p }}">{{ $p }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="profile-section">
+                <div id="section-location" class="profile-section" style="display:none;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
@@ -5154,6 +5170,20 @@
                         Location Details
                     </p>
                     <div class="profile-location-grid">
+                        <div class="form-group">
+                            <label>Office Level</label>
+                            <div class="field-with-icon">
+                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                                </svg>
+                                <select id="view_office_level" name="office_level" disabled>
+                                    <option value="">Select Office Level</option>
+                                    <option value="DILG Central Office">DILG Central Office</option>
+                                    <option value="DILG Regional Office">DILG Regional Office</option>
+                                    <option value="DILG Provincial Office">DILG Provincial Office</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label>Region</label>
                             <div class="field-with-icon">
@@ -5205,7 +5235,7 @@
                     </div>
                 </div>
 
-                <div class="profile-section">
+                <div id="section-security" class="profile-section" style="display:none;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
@@ -5932,8 +5962,22 @@
                 'Internal Audit Service','Legal Service','Planning Service','Policy and Performance Monitoring Service','Local Government Capability Development Division'
             ];
             const currentRole = document.getElementById('view_role')?.value || '';
-            const IS_OFFICE = (role, group) => OFFICE_ROLES[group].includes(role);
-            const isDILGMode = IS_OFFICE(currentRole, 'central') || IS_OFFICE(currentRole, 'regional') || IS_OFFICE(currentRole, 'provincial');
+            const officeSelect = document.getElementById('view_office_level');
+            let forced = window.FORCED_OFFICE_GROUP || null;
+            if (!forced && officeSelect && officeSelect.value) {
+                forced = officeSelect.value === 'DILG Central Office' ? 'central' : (officeSelect.value === 'DILG Regional Office' ? 'regional' : (officeSelect.value === 'DILG Provincial Office' ? 'provincial' : null));
+            }
+            if (!forced && selectedRegion) {
+                forced = selectedRegion === 'DILG Central Office' ? 'central' : (selectedRegion === 'DILG Regional Office' ? 'regional' : (selectedRegion === 'DILG Provincial Office' ? 'provincial' : null));
+            }
+            if (!forced) {
+                if (OFFICE_ROLES.central.includes(currentRole)) forced = 'central';
+                else if (OFFICE_ROLES.regional.includes(currentRole)) forced = 'regional';
+                else if (OFFICE_ROLES.provincial.includes(currentRole)) forced = 'provincial';
+            }
+            window.FORCED_OFFICE_GROUP = forced || null;
+            const IS_OFFICE = (_, group) => window.FORCED_OFFICE_GROUP === group;
+            const isDILGMode = ['central','regional','provincial'].includes(window.FORCED_OFFICE_GROUP || '');
 
             function loadBarangays(cityCode, selectedBarangayValue = null) {
                 resetSelect(barangaySelect, 'Select Barangay');
@@ -6099,46 +6143,114 @@
             resetSelect(citySelect, 'Select City/Municipality');
             resetSelect(barangaySelect, 'Select Barangay');
             syncViewLocationSelectState();
+            const regionGroup = regionSelect.closest('.form-group');
+            const provinceGroup = provinceSelect.closest('.form-group');
+            const cityGroup = citySelect.closest('.form-group');
+            const barangayGroup = barangaySelect.closest('.form-group');
+            if (regionGroup) regionGroup.style.display = '';
+            if (provinceGroup) provinceGroup.style.display = '';
+            if (cityGroup) cityGroup.style.display = '';
+            if (barangayGroup) barangayGroup.style.display = '';
 
             if (isDILGMode) {
                 const regionLabel = IS_OFFICE(currentRole, 'central') ? 'DILG Central Office' : (IS_OFFICE(currentRole, 'regional') ? 'DILG Regional Office' : 'DILG Provincial Office');
-                resetSelect(regionSelect, 'Select Level');
-                const opt = document.createElement('option');
-                opt.value = regionLabel;
-                opt.textContent = regionLabel;
-                opt.selected = true;
-                opt.dataset.code = 'DILG';
-                regionSelect.appendChild(opt);
-                const provLabelNode = regionSelect.closest('.profile-location-grid')?.querySelector('.form-group:nth-of-type(2) label');
+                if (officeSelect) { officeSelect.value = regionLabel; }
+                const provLabelNode = provinceSelect.closest('.form-group')?.querySelector('label');
                 if (provLabelNode) { provLabelNode.textContent = IS_OFFICE(currentRole, 'central') ? 'Office Type' : 'Office'; }
                 if (IS_OFFICE(currentRole, 'central')) {
+                    if (regionGroup) regionGroup.style.display = 'none';
                     resetSelect(provinceSelect, 'Select Office Type');
-                    ['Bureaus','Services'].forEach(lbl => {
-                        const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o);
-                    });
+                    ['Bureau','Services'].forEach(lbl => { const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o); });
+                    function setUnitLabel(cat){
+                        const group = citySelect.closest('.form-group');
+                        if (group) {
+                            const lab = group.querySelector('label');
+                            if (lab) lab.textContent = cat === 'Bureau' ? 'Bureau' : 'Service';
+                        }
+                    }
+                    async function loadCentralUnits(cat, selectedUnit=null){
+                        setUnitLabel(cat);
+                        resetSelect(citySelect, cat === 'Bureau' ? 'Select Bureau' : 'Select Service');
+                        const url = cat === 'Bureau' ? `{{ url('/dilg/central/bureaus') }}` : `{{ url('/dilg/central/services') }}`;
+                        let matched=false;
+                        try{
+                            const res = await fetch(url);
+                            if(!res.ok) throw new Error('Failed to fetch');
+                            const data = await res.json();
+                            (data || []).forEach(item=>{
+                                const name = item.name || item.title || item.label || item.unit || item;
+                                if(!name) return;
+                                const o=document.createElement('option'); o.value=name; o.textContent=name;
+                                if (selectedUnit && selectedUnit === name) { o.selected=true; matched=true; }
+                                citySelect.appendChild(o);
+                            });
+                        }catch(e){
+                            const fallback = cat === 'Bureau' ? BUREAUS : SERVICES;
+                            fallback.forEach(item=>{
+                                const o=document.createElement('option'); o.value=item; o.textContent=item;
+                                if (selectedUnit && selectedUnit === item) { o.selected=true; matched=true; }
+                                citySelect.appendChild(o);
+                            });
+                        }
+                        if (selectedUnit && !matched) addFallbackOption(citySelect, selectedUnit);
+                        const barangayGroup = barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
+                        syncViewLocationSelectState();
+                    }
                     provinceSelect.addEventListener('change', function(){
                         const cat = this.value;
-                        resetSelect(citySelect, cat === 'Bureaus' ? 'Select Bureaus' : 'Select Services');
-                        const list = cat === 'Bureaus' ? BUREAUS : SERVICES;
-                        let matched=false;
-                        list.forEach(item=>{
-                            const o=document.createElement('option'); o.value=item; o.textContent=item;
-                            if (selectedProvince && selectedProvince === item) { o.selected=true; matched=true; }
-                            citySelect.appendChild(o);
-                        });
-                        if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
-                        citySelect.disabled = false;
-                        const barangayGroup = barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
+                        loadCentralUnits(cat, selectedProvince || null);
+                        syncViewLocationSelectState();
                     });
-                    if (selectedProvince) {
-                        const isB = BUREAUS.includes(selectedProvince);
-                        provinceSelect.value = isB ? 'Bureaus' : 'Services';
-                        provinceSelect.dispatchEvent(new Event('change'));
+                    if (selectedProvince || selectedCity) {
+                        const p = String(selectedProvince || '').toLowerCase();
+                        const guess = (p.startsWith('bureau') || p === 'bureaus') ? 'Bureau' : 'Services';
+                        provinceSelect.value = guess;
+                        loadCentralUnits(guess, selectedCity || null);
                     }
+                    regionSelect.required = false;
+                    provinceSelect.required = true;
+                    citySelect.required = true;
+                    barangaySelect.required = false;
                 } else if (IS_OFFICE(currentRole, 'regional')) {
+                    // Show only Region; load full region list from DB (signup source)
+                    if (regionGroup) regionGroup.style.display = '';
                     const groups = [provinceSelect, citySelect, barangaySelect].map(s => s.closest('.form-group'));
                     groups.forEach(g => { if (g) g.style.display = 'none'; });
+                    resetSelect(regionSelect, 'Select Region');
+                    fetch(`{{ url('/psgc/regions') }}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            data.sort((a,b)=>a.name.localeCompare(b.name));
+                            let matched=false;
+                            data.forEach(reg=>{
+                                const o=document.createElement('option');
+                                o.value = reg.name;
+                                o.dataset.code = reg.code;
+                                o.textContent = reg.name;
+                                if (selectedRegion && selectedRegion === reg.name) { o.selected=true; matched=true; }
+                                regionSelect.appendChild(o);
+                            });
+                            if (selectedRegion && !matched) addFallbackOption(regionSelect, selectedRegion);
+                            syncViewLocationSelectState();
+                        })
+                        .catch(()=>{
+                            if (selectedRegion) addFallbackOption(regionSelect, selectedRegion);
+                            syncViewLocationSelectState();
+                        });
+                    regionSelect.required = true;
+                    provinceSelect.required = false;
+                    citySelect.required = false;
+                    barangaySelect.required = false;
                 } else if (IS_OFFICE(currentRole, 'provincial')) {
+                    if (regionGroup) regionGroup.style.display = 'none';
+                    // Keep Region hidden; render only Office (Province Offices)
+                    resetSelect(regionSelect, 'Select Level');
+                    const opt = document.createElement('option');
+                    opt.value = regionLabel;
+                    opt.textContent = regionLabel;
+                    opt.selected = true;
+                    opt.dataset.code = 'DILG';
+                    regionSelect.appendChild(opt);
                     resetSelect(provinceSelect, 'Select Office');
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
                         let items = [];
@@ -6160,9 +6272,17 @@
                             provinceSelect.appendChild(o);
                         });
                         if (selectedProvince && !matched) addFallbackOption(provinceSelect, selectedProvince);
-                    }).catch(()=>{ if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince); });
+                        syncViewLocationSelectState();
+                    }).catch(()=>{
+                        if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+                        syncViewLocationSelectState();
+                    });
                     const groups = [citySelect, barangaySelect].map(s => s.closest('.form-group'));
                     groups.forEach(g => { if (g) g.style.display = 'none'; });
+                    regionSelect.required = false;
+                    provinceSelect.required = true;
+                    citySelect.required = false;
+                    barangaySelect.required = false;
                 }
                 syncViewLocationSelectState();
                 return;
@@ -6948,6 +7068,30 @@
 
             // Reset UI to View Mode
             disableEditMode();
+            (function setInitialOfficeLevel(){
+                const lvl = document.getElementById('view_office_level');
+                let guess = null;
+                if (user && user.region) {
+                    if (user.region === 'DILG Central Office') guess = 'DILG Central Office';
+                    else if (user.region === 'DILG Regional Office') guess = 'DILG Regional Office';
+                    else if (user.region === 'DILG Provincial Office') guess = 'DILG Provincial Office';
+                }
+                if (!guess) {
+                    const role = user.role || '';
+                    const central = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                    const regional = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                    const provincial = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                    if (central.includes(role)) guess = 'DILG Central Office';
+                    else if (regional.includes(role)) guess = 'DILG Regional Office';
+                    else if (provincial.includes(role)) guess = 'DILG Provincial Office';
+                }
+                if (lvl && guess) {
+                    lvl.value = guess;
+                    window.FORCED_OFFICE_GROUP = guess === 'DILG Central Office' ? 'central' : (guess === 'DILG Regional Office' ? 'regional' : (guess === 'DILG Provincial Office' ? 'provincial' : null));
+                } else {
+                    window.FORCED_OFFICE_GROUP = null;
+                }
+            })();
             initViewLocationDropdowns(
                 user.region || '',
                 user.province || '',
@@ -6967,6 +7111,21 @@
                     setPermissionsForRole(this.value || '');
                 });
             }
+            const officeSel = document.getElementById('view_office_level');
+            if (officeSel) {
+                officeSel.addEventListener('change', function(){
+                    window.FORCED_OFFICE_GROUP = this.value === 'DILG Central Office' ? 'central' : (this.value === 'DILG Regional Office' ? 'regional' : (this.value === 'DILG Provincial Office' ? 'provincial' : null));
+                    const curRegion = document.getElementById('view_region')?.value || '';
+                    const curProvince = document.getElementById('view_province')?.value || '';
+                    const curCity = document.getElementById('view_city')?.value || '';
+                    const curBarangay = document.getElementById('view_barangay')?.value || '';
+                    initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
+                });
+            }
+            (function resetTabsToCore(){
+                const trigger = document.querySelector('.modal-tab[data-target="section-core"]');
+                if (trigger) trigger.click();
+            })();
         }
 
         function closeViewModal() {
@@ -7062,6 +7221,26 @@
                 showProfile();
                 alert('Please complete your profile to continue.');
             }
+
+            const tabs = document.querySelectorAll('.modal-tab');
+            const sections = ['section-core','section-access','section-location','section-security'];
+            tabs.forEach(btn => {
+                btn.addEventListener('click', function(){
+                    const target = this.getAttribute('data-target');
+                    document.querySelectorAll('.modal-tab').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.color = '#64748b';
+                        b.style.borderBottomColor = 'transparent';
+                    });
+                    this.classList.add('active');
+                    this.style.color = 'var(--primary-blue)';
+                    this.style.borderBottomColor = 'var(--primary-blue)';
+                    sections.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = (id === target) ? 'block' : 'none';
+                    });
+                });
+            });
         });
 
         const courseCreateEmbeddedUrl = @json(route('admin.courses.create', ['embedded' => 1]));

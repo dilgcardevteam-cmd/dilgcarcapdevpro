@@ -438,6 +438,74 @@ class DashboardController extends Controller
         }
     }
 
+    // DILG Central Office: Bureaus list
+    public function centralBureausJson()
+    {
+        try {
+            if (\Schema::hasTable('bureaus')) {
+                $rows = \DB::table('bureaus')
+                    ->selectRaw("COALESCE(name, bureau_name) as name")
+                    ->orderBy('name')
+                    ->get();
+                return response()->json($rows);
+            }
+            if (\Schema::hasTable('central_bureaus')) {
+                $rows = \DB::table('central_bureaus')
+                    ->selectRaw("COALESCE(name, bureau_name) as name")
+                    ->orderBy('name')
+                    ->get();
+                return response()->json($rows);
+            }
+        } catch (\Throwable $e) {
+            // continue to fallback
+        }
+        $fallback = [
+            ['name' => 'Bureau of Local Government Development (BLGD)'],
+            ['name' => 'Bureau of Local Government Supervision (BLGS)'],
+            ['name' => 'Bureau of Fire Protection (BFP)'],
+            ['name' => 'Bureau of Jail Management and Penology (BJMP)'],
+            ['name' => 'National Police Commission (NAPOLCOM)'],
+            ['name' => 'Philippine National Police (PNP)'],
+            ['name' => 'National Barangay Operations Office (NBOO)'],
+            ['name' => 'Office of Project Development Services (OPDS)'],
+            ['name' => 'Public Affairs and Communication Service (PACS)'],
+        ];
+        return response()->json($fallback);
+    }
+
+    // DILG Central Office: Services list
+    public function centralServicesJson()
+    {
+        try {
+            if (\Schema::hasTable('services')) {
+                $rows = \DB::table('services')
+                    ->selectRaw("COALESCE(name, service_name) as name")
+                    ->orderBy('name')
+                    ->get();
+                return response()->json($rows);
+            }
+            if (\Schema::hasTable('central_services')) {
+                $rows = \DB::table('central_services')
+                    ->selectRaw("COALESCE(name, service_name) as name")
+                    ->orderBy('name')
+                    ->get();
+                return response()->json($rows);
+            }
+        } catch (\Throwable $e) {
+            // continue to fallback
+        }
+        $fallback = [
+            ['name' => 'Administrative Service'],
+            ['name' => 'Financial and Management Service'],
+            ['name' => 'Information Systems and Technology Management Service'],
+            ['name' => 'Internal Audit Service'],
+            ['name' => 'Legal Service'],
+            ['name' => 'Planning Service'],
+            ['name' => 'Policy and Performance Monitoring Service'],
+            ['name' => 'Local Government Capability Development Division'],
+        ];
+        return response()->json($fallback);
+    }
     public function updateUser(Request $request, User $user)
     {
         $actor = Auth::user();
@@ -469,6 +537,32 @@ class DashboardController extends Controller
             $validated['password'] = bcrypt($request->password);
         } else {
             unset($validated['password']);
+        }
+
+        // Normalize location fields based on Office Level or Role group
+        $officeLevel = (string) $request->input('office_level', '');
+        $roleName = (string) $request->input('role', $user->role ?? '');
+        $centralRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+        $regionalRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+        $provincialRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+        $isCentral = in_array($roleName, $centralRoles, true) || $officeLevel === 'DILG Central Office';
+        $isRegional = in_array($roleName, $regionalRoles, true) || $officeLevel === 'DILG Regional Office';
+        $isProvincial = in_array($roleName, $provincialRoles, true) || $officeLevel === 'DILG Provincial Office';
+
+        if ($isCentral) {
+            // Enforce Central coding: region fixed label; province = Office Type; city = Unit/Service
+            $validated['region'] = 'DILG Central Office';
+            // province and city already mapped from UI, keep as-is if provided
+            $validated['barangay'] = null;
+        } elseif ($isRegional) {
+            // Enforce Regional coding: region = selected region; clear others
+            $validated['province'] = null;
+            $validated['city'] = null;
+            $validated['barangay'] = null;
+        } elseif ($isProvincial) {
+            // Keep province as selected "X Office"; clear city/barangay
+            $validated['city'] = null;
+            $validated['barangay'] = null;
         }
 
         // Check for status change to active

@@ -69,6 +69,12 @@ Route::get('/stats/monthly-growth', [DashboardController::class, 'monthlyGrowth'
 Route::get('/admin/courses/create', [CourseController::class, 'create'])->middleware(['auth'])->name('admin.courses.create');
 Route::get('/admin/courses/{course}/edit', [CourseController::class, 'edit'])->middleware(['auth'])->name('admin.courses.edit');
 // Place pending BEFORE the dynamic {course} route to avoid shadowing
+
+// DILG Central Office data endpoints (bureaus and services)
+Route::middleware('auth')->group(function(){
+    Route::get('/dilg/central/bureaus', [DashboardController::class, 'centralBureausJson'])->name('dilg.central.bureaus');
+    Route::get('/dilg/central/services', [DashboardController::class, 'centralServicesJson'])->name('dilg.central.services');
+});
 Route::get('/admin/courses/pending', [CourseController::class, 'pending'])->middleware(['auth'])->name('admin.courses.pending');
 Route::resource('courses', CourseController::class)->only(['store', 'update', 'destroy'])->middleware(['auth']);
 Route::get('/admin/courses/{course}', [CourseController::class, 'adminShow'])->middleware(['auth'])->name('admin.courses.show');
