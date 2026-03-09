@@ -2642,10 +2642,12 @@
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
                 </li>
-                <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
-                    <div class="menu-icon"><i class="fas fa-cogs"></i></div>
-                    <span class="menu-text">System Settings</span>
-                </li>
+                @if(Auth::check() && Auth::user()->role === 'super_admin')
+                    <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
+                        <div class="menu-icon"><i class="fas fa-cogs"></i></div>
+                        <span class="menu-text">System Settings</span>
+                    </li>
+                @endif
             </ul>
         </aside>
 
@@ -3457,6 +3459,7 @@
             })();
             </script>
 
+            @if(Auth::check() && Auth::user()->role === 'super_admin')
             <section id="system-settings" class="content-section {{ request('tab') == 'system-settings' ? 'active' : '' }}">
                 <style>
                     .settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -3692,6 +3695,7 @@
                     })();
                 </script>
             </section>
+            @endif
 
             <section id="help-support" class="content-section {{ request('tab') == 'help-support' ? 'active' : '' }}">
                 <style>
