@@ -134,13 +134,18 @@
         .hero-title{font-weight:800;font-size:1.35rem;letter-spacing:-0.015em}
         .hero-sub{opacity:.9;font-size:.95rem}
         .hero-chip{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.3);padding:6px 10px;border-radius:999px;font-weight:700}
-        .layout{height:calc(100vh - 56px - 80px);grid-template-columns:280px 1fr}
+        .layout{height:100vh;grid-template-columns:320px 1fr;gap:0;padding:0}
         .content{padding-top:12px}
         .sidebar{
             background:#002C76;
             border-right:1px solid rgba(255,255,255,.12);
             padding-top:0;
-            
+            border-radius:0;
+            box-shadow:none;
+            overflow:visible;
+            position:sticky;
+            top:0;
+            height:100vh;
         }
         .sidebar::before{
             content:'';
@@ -157,12 +162,15 @@
             letter-spacing:.01em;
             display:flex;
             align-items:center;
+            justify-content:space-between;
             gap:12px;
             color:#fff;
             border-bottom:1px solid rgba(255,255,255,.12);
             border-left:4px solid var(--green);
             background:rgba(255,255,255,.08);
         }
+        .back-slim{width:28px;height:28px;border-radius:999px;border:1px solid rgba(255,255,255,.35);display:inline-flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.08)}
+        .back-slim:hover{background:rgba(255,255,255,.18)}
         .search{padding:10px 16px 6px;display:flex;justify-content:center}
         .search input{
             width:92%;
@@ -182,19 +190,31 @@
         }
         .module-header{
             background:#ffffff;
-            border-radius:12px 12px 0 0;
-            padding:14px 16px;
-            transition:background .15s ease;
+            border-radius:12px;
+            padding:12px 14px;
+            transition:background .15s ease, box-shadow .15s ease;
+            display:flex;align-items:center;justify-content:space-between;gap:12px
         }
         .module:hover .module-header{background:#f8fbff}
         .module-title{font-weight:800;color:#0f172a}
-        .module-kpi{color:var(--muted)}
-        .module-bar{background:#e6eefc}
-        .module-bar > span{background:linear-gradient(90deg,#1d4ed8,#2563eb)}
+        .module-kpi{color:#0f3b8f;font-weight:800;margin-left:6px}
+        .mod-badges{display:flex;align-items:center;gap:8px}
+        .progress-mini{width:130px;height:6px;border-radius:999px;background:#e6eefc;overflow:hidden;border:1px solid #e0e7ff}
+        .progress-mini > span{display:block;height:100%;background:linear-gradient(90deg,#1d4ed8,#2563eb)}
+        .lock-ico{color:#64748b;margin-right:6px}
+        .module.locked .module-title{color:#0f172a}
+        .module.locked .progress-mini{background:#e5e7eb;border-color:#e5e7eb}
+        .module.locked .progress-mini > span{background:#9ca3af}
+        .toggle-icon{border:none;background:transparent;color:#0f3b8f;cursor:pointer}
+        .toggle-icon i{transition:transform .15s ease}
         .topic{background:#f9fafb; transition:background .15s ease;}
         .topic:hover{background:#f3f6fb}
         .topic.active{background:#e8f0ff}
-        .sub-item{border-radius:12px}
+        .topic .title{display:flex;align-items:center;gap:8px}
+        .topic .title::before{content:'◯';color:#9ca3af;font-size:.8rem}
+        .topic.active .title::before{content:'▸';color:#0f3b8f}
+        .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
+        .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
         .pane{
             border-radius:16px;
@@ -243,25 +263,12 @@
         </div>
     </header>
     
-    <div class="topbar">
-        <div>
-            <a class="back-btn" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
-        </div>
-        <div></div>
-    </div>
-    <div class="hero">
-        <div class="hero-left">
-            <div class="hero-icon"><i class="fas fa-graduation-cap"></i></div>
-            <div>
-                <div class="hero-title">{{ $course->name }}</div>
-                <div class="hero-sub">View-only mode • Browse modules and topics</div>
-            </div>
-        </div>
-        <div class="hero-chip">Course Preview</div>
-    </div>
     <div class="layout">
         <aside class="sidebar">
-            <h3><i class="fas fa-list-ul"></i> Course Outline</h3>
+            <h3>
+                <span style="display:inline-flex;align-items:center;gap:12px"><i class="fas fa-list-ul"></i> Course Outline</span>
+                <a class="back-slim" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
+            </h3>
             <div class="search"><input id="outlineSearch" type="text" placeholder="Search course outline"></div>
             <div id="outline" class="outline"></div>
         </aside>
@@ -298,6 +305,8 @@
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
+        const USER_ROLE = "{{ auth()->user()->role ?? '' }}";
+        const IS_TRAINER = (USER_ROLE==='trainer' || USER_ROLE==='coach');
         // Ensure modules is an array (some DBs return JSON as string)
         if (typeof course.modules === 'string') {
             try { course.modules = JSON.parse(course.modules || '[]') || []; } catch(e){ course.modules = []; }
@@ -307,6 +316,7 @@
         const viewOnly = @json($viewOnly ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
+        const ENFORCE_LOCKS_ALL = !!viewOnly;
 
         function isVideo(path){ return /\.(mp4|webm|ogg)$/i.test(path||''); }
         function renderVideo(){
@@ -320,6 +330,22 @@
                     wrap.innerHTML = `<video controls style="width:100%;max-height:360px;border-radius:8px"><source src="${url}"></video>`;
                 }
             }
+        }
+        function showLockedContent(mi){
+            const m = (course.modules||[])[mi]||{};
+            const title = `${mi+1}. ${m.title||'Locked Module'}`;
+            const body = `
+                <div class="lock" style="background:#e6eef7;border:2px dashed #bcd2ea;border-radius:12px;color:#223;display:flex;align-items:center;justify-content:center;min-height:360px;">
+                    <div style="text-align:center;max-width:520px;padding:18px">
+                        <div style="font-size:3rem;margin-bottom:10px;color:#ef4444;"><i class="fas fa-lock"></i></div>
+                        <div style="font-weight:800;font-size:1.25rem;margin-bottom:6px;">Locked Content</div>
+                        <div style="color:#445;">The content of this page is not visible because this module is currently locked. Your trainer can unlock this when it’s time to work on it.</div>
+                    </div>
+                </div>`;
+            const titleEl = document.getElementById('contentTitle');
+            const bodyEl = document.getElementById('contentBody');
+            if(titleEl) titleEl.textContent = title;
+            if(bodyEl) bodyEl.innerHTML = body;
         }
         async function renderOutline(){
             const el=document.getElementById('outline');
@@ -336,16 +362,21 @@
                 const mod = document.createElement('div');
                 mod.className='module';
                 const st = (m && m.status) ? m.status : 'unlocked';
-                const icon = (st==='locked') ? '<i class="fas fa-lock" style="color:#64748b"></i> ' : '';
+                const isLocked = st==='locked';
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
-                        <div class="module-title"><span>${icon}Module ${mi+1}: ${m.title||'Untitled'}</span><span class="module-kpi" id="kpi_${mi}"></span></div>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}Module ${mi+1}: ${m.title||'Untitled'}</span></div>
+                        <div class="mod-badges">
+                            <div class="progress-mini"><span id="bar_${mi}"></span></div>
+                            <span class="module-kpi" id="kpi_${mi}"></span>
+                            <button class="toggle-icon" aria-label="Toggle module"><i class="fas fa-chevron-down"></i></button>
+                        </div>
                     </div>
-                    <div class="module-bar"><span id="bar_${mi}"></span></div>
                     <div class="topics"></div>
                 `;
+                if(isLocked){ mod.classList.add('locked'); }
                 const topicsCt = mod.querySelector('.topics');
+                const lockedForUser = (st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
                 (m.topics||[]).forEach((t,ti)=>{
                     const tEl = document.createElement('div');
                     tEl.className='topic';
@@ -379,6 +410,11 @@
                         });
                     }
                     head.addEventListener('click', (e)=>{
+                        if (lockedForUser) { 
+                            showLockedContent(mi);
+                            e.stopPropagation(); 
+                            return; 
+                        }
                         document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
                         tEl.classList.add('active');
                         openTopic(mi,ti);
@@ -387,6 +423,11 @@
                     if(!viewOnly){
                         tEl.querySelectorAll('.sub-item').forEach(n=>{
                             n.addEventListener('click',(e)=>{
+                                if (lockedForUser) { 
+                                    showLockedContent(mi);
+                                    e.stopPropagation(); 
+                                    return; 
+                                }
                                 const si = parseInt(n.getAttribute('data-si'),10);
                                 document.querySelectorAll('.sub-item').forEach(x=>x.classList.remove('active'));
                                 n.classList.add('active');
@@ -400,17 +441,18 @@
                     topicsCt.appendChild(tEl);
                 });
                 mod.querySelector('.module-header').addEventListener('click',()=>{
-                    // For trainees: block locked modules
-                    var role = "{{ auth()->user()->role ?? '' }}";
-                    var isTrainer = (role==='trainer' || role==='coach');
                     const currentStatus = (mods[mi] && mods[mi].status) ? mods[mi].status : 'unlocked';
-                    if(!isTrainer && currentStatus==='locked'){
-                        alert('This module is locked by the trainer.');
+                    const locked = (currentStatus==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
+                    if(locked){
+                        const open = topicsCt.style.display==='block';
+                        topicsCt.style.display = open?'none':'block';
+                        const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
+                        showLockedContent(mi);
                         return;
                     }
                     const open = topicsCt.style.display==='block';
                     topicsCt.style.display = open?'none':'block';
-                    mod.querySelector('.module-header i').style.transform = open?'rotate(0deg)':'rotate(180deg)';
+                    const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
                 });
                 el.appendChild(mod);
                 // initialize progress
@@ -489,11 +531,10 @@
                 return;
             }
             // Respect module lock for trainees
-            var role = "{{ auth()->user()->role ?? '' }}";
-            var isTrainer = (role==='trainer' || role==='coach');
+            const isTrainer = IS_TRAINER;
             const currentStatus = ((course.modules||[])[mi] && (course.modules||[])[mi].status) ? (course.modules||[])[mi].status : 'unlocked';
-            if(!isTrainer && currentStatus==='locked'){
-                document.getElementById('contentBody').innerHTML = `<div class="lock"><div><div style="font-size:3rem;text-align:center;margin-bottom:8px;"><i class="fas fa-lock"></i></div><div style="text-align:center;color:#334;">This module is locked by the trainer.</div><div style="text-align:center;color:#556;max-width:420px;margin:8px auto 0;">Please wait until the trainer unlocks this module.</div></div></div>`;
+            if(((ENFORCE_LOCKS_ALL || !isTrainer) && currentStatus==='locked')){
+                showLockedContent(mi);
                 return;
             }
             const subs = Array.isArray(t.subtopics) ? t.subtopics : null;
@@ -525,6 +566,14 @@
             const section = document.getElementById(`sub_${mi}_${ti}_${si}`);
             if(section){ section.scrollIntoView({behavior:'smooth', block:'start'}); }
         }
+        function sanitizeContent(html){
+            try{
+                let s = String(html||'');
+                s = s.replace(/<(img|source|iframe)[^>]+(src|href)=["']blob:[^"']+["'][^>]*>/gi,'');
+                s = s.replace(/(src|href)=["']blob:[^"']+["']/gi,'$1="#"');
+                return s;
+            }catch(e){ return html||''; }
+        }
         function renderFieldsInto(container, fields, mi, ti, si=null){
             if(!fields || !fields.length){
                 container.innerHTML = `<div class="field" style="background:#f8fafc;">No fields added.</div>`;
@@ -532,7 +581,8 @@
             }
             container.innerHTML = fields.map((f,i)=>{
                 if(f.type==='text'){
-                    return `<div class="field">${f.html||''}</div>`;
+                    const safe = sanitizeContent(f.html||'');
+                    return `<div class="field">${safe}</div>`;
                 } else if(f.type==='question' && f.question){
                     const q=f.question; 
                     const answer = (Number.isInteger(q.answer_index) ? q.answer_index : '');

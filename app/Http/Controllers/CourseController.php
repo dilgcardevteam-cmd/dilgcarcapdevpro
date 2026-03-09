@@ -837,10 +837,50 @@ class CourseController extends Controller
             ->with('success_course', 'Course archived successfully.');
     }
 
-    public function restore($id)
+    public function restore(Request $request, $id)
     {
         $course = Course::onlyTrashed()->findOrFail($id);
         $course->restore();
+
+        // Activate coach/trainer pivot so they can enter class after admin approval
+        try {
+            $coachIds = $course->users()
+                ->whereIn('role', ['coach','trainer'])
+                ->pluck('users.id')
+                ->toArray();
+            foreach ($coachIds as $uid) {
+                $course->users()->updateExistingPivot($uid, ['status' => 'active']);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to activate coach/trainer pivot on restore', [
+                'course_id' => $course->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($request->boolean('embedded')) {
+            session()->flash('success_course', 'Course unarchived successfully.');
+            $target = route('dashboard', ['tab' => 'course-management']);
+            $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            return response(
+                "<!doctype html><html><body><script>
+                    try {
+                        if (window.top && window.top !== window) {
+                            if (typeof window.top.closeViewCourseModal === 'function') {
+                                window.top.closeViewCourseModal();
+                            }
+                            window.top.location.href = {$encodedTarget};
+                        } else {
+                            window.location.href = {$encodedTarget};
+                        }
+                    } catch (e) {
+                        window.location.href = {$encodedTarget};
+                    }
+                </script></body></html>",
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
+        }
 
         return redirect()->route('dashboard', ['tab' => 'course-management'])
             ->with('success_course', 'Course unarchived successfully.');

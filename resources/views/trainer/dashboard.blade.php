@@ -1365,13 +1365,7 @@
                                     <span>
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    @if($myStatus==='pending')
-                                        <span class="status-chip status-pending"><i class="fas fa-clock"></i> Pending Approval</span>
-                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();" style="pointer-events:none;opacity:.6">Enter Class</a>
-                                    @else
-                                        <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
-                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
-                                    @endif
+                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
                         </div>
@@ -1397,10 +1391,10 @@
                 <div class="course-grid">
                     @forelse($myCourses as $course)
                         @php
-                            $mePivotUser = $course->users->firstWhere('id', Auth::id());
-                            $myStatus = $mePivotUser ? ($mePivotUser->pivot->status ?? 'active') : 'active';
+                            // For coaches/trainers, once course is approved (unarchived), treat as active
+                            $myStatus = 'active';
                         @endphp
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" @if($myStatus==='active') onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}" @endif>
+                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1440,11 +1434,7 @@
                                     <span style="font-size: 0.8rem; color: #777;">
                                         <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
                                     </span>
-                                    @if($myStatus==='pending')
-                                        <span style="background:#fff3cd;color:#856404;border:1px solid #ffeeba; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; display: inline-block;">Pending Approval</span>
-                                    @else
-                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
-                                    @endif
+                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
                         </div>
