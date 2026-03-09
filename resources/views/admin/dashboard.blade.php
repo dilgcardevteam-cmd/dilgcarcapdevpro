@@ -3488,6 +3488,16 @@
                             </div>
                             <div class="setting-sub">Import regions and provinces to keep address data authoritative.</div>
                         </div>
+                        <div class="setting-card" onclick="openSetting('backup')">
+                            <div class="setting-head">
+                                <div class="setting-icon"><i class="fas fa-database"></i></div>
+                                <div>
+                                    <div class="setting-title">System Backup & Restore</div>
+                                    <div class="setting-sub">Create, download, and restore backups</div>
+                                </div>
+                            </div>
+                            <div class="setting-sub">Safeguard your data with on-demand backups and secure restore.</div>
+                        </div>
                     </div>
                 </div>
                 <div id="settingsLocation" style="display:none">
@@ -3548,6 +3558,7 @@
                                                 </select>
                                             </div>
                                             <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
+                                            <a href="{{ route('admin.settings.location.export') }}" class="btn" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-download"></i> Export</a>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
                                     </div>
@@ -3566,15 +3577,111 @@
                         </div>
                     </div>
                 </div>
+                <div id="settingsBackup" style="display:none">
+                    <div class="import-wrap">
+                        <div class="import-card">
+                            <div class="import-hero">
+                                <div class="hero-left">
+                                    <div class="hero-icon"><i class="fas fa-server"></i></div>
+                                    <div>
+                                        <div class="hero-title">System Backup & Restore</div>
+                                        <div class="hero-sub">Create backups, download archives, and restore when needed</div>
+                                    </div>
+                                </div>
+                                <button class="btn-pill" onclick="backSettingsHome()"><i class="fas fa-arrow-left"></i> Back</button>
+                            </div>
+                            <div class="import-body">
+                                <div class="cta-row" style="justify-content:flex-end">
+                                    <form method="POST" action="{{ route('admin.settings.backup.create') }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-blue" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-file-archive"></i> Create Backup</button>
+                                    </form>
+                                </div>
+                                <div style="margin-top:12px">
+                                    <table class="backup-table" style="width:100%;border-collapse:separate;border-spacing:0">
+                                        <thead>
+                                            <tr>
+                                                <th>Backup File</th>
+                                                <th>Date Created</th>
+                                                <th>File Size</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $backupDir = storage_path('app/backups');
+                                                $backupFiles = [];
+                                                if (is_dir($backupDir)) {
+                                                    foreach (scandir($backupDir) as $f) {
+                                                        if ($f === '.' || $f === '..') continue;
+                                                        $p = $backupDir.DIRECTORY_SEPARATOR.$f;
+                                                        if (is_file($p)) {
+                                                            $backupFiles[] = ['name'=>$f,'mtime'=>filemtime($p),'size'=>filesize($p)];
+                                                        }
+                                                    }
+                                                    usort($backupFiles, function($a,$b){ return $b['mtime'] <=> $a['mtime']; });
+                                                }
+                                            @endphp
+                                            @forelse($backupFiles as $bk)
+                                                <tr>
+                                                    <td>{{ $bk['name'] }}</td>
+                                                    <td>{{ \Carbon\Carbon::createFromTimestamp($bk['mtime'])->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
+                                                    <td>{{ number_format($bk['size']/1024/1024, 2) }} MB</td>
+                                                    <td>
+                                                        <div class="backup-actions" style="display:flex;gap:8px">
+                                                            <a class="btn" href="{{ route('admin.settings.backup.download', ['file' => $bk['name']]) }}"><i class="fas fa-download"></i> Download</a>
+                                                            <form method="POST" action="{{ route('admin.settings.backup.delete', ['file' => $bk['name']]) }}" onsubmit="return confirm('Delete this backup?')">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn danger"><i class="fas fa-trash"></i> Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr><td colspan="4" style="color:#64748b; text-align:center; padding:30px 0;">No backups found.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="margin-top:16px">
+                                    <form method="POST" action="{{ route('admin.settings.backup.restore') }}" enctype="multipart/form-data" onsubmit="return confirm('Restoring will replace the current database. Continue?')">
+                                        @csrf
+                                        <div style="display:flex;align-items:center;gap:10px">
+                                            <input type="file" name="backup_file" accept=".zip,.sql" required>
+                                            <input type="hidden" name="confirm" value="yes">
+                                            <button type="submit" class="btn" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-upload"></i> Restore Backup</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="import-side">
+                            <div class="side-head"><i class="fas fa-info-circle"></i> Backup Notes</div>
+                            <ul class="side-list">
+                                <li>Backups are stored under storage/app/backups.</li>
+                                <li>Format: .zip containing CSV dumps per database table.</li>
+                                <li>Restore only accepts .zip archives created by this system.</li>
+                                <li>Restoring replaces current data. Confirm before proceeding.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <script>
                     function openSetting(key){
                         if(key==='location'){
                             document.getElementById('settingsHome').style.display='none';
                             document.getElementById('settingsLocation').style.display='block';
+                        } else if (key==='backup'){
+                            document.getElementById('settingsHome').style.display='none';
+                            document.getElementById('settingsBackup').style.display='block';
                         }
                     }
                     function backSettingsHome(){
-                        document.getElementById('settingsLocation').style.display='none';
+                        var loc=document.getElementById('settingsLocation');
+                        var bkp=document.getElementById('settingsBackup');
+                        if(loc) loc.style.display='none';
+                        if(bkp) bkp.style.display='none';
                         document.getElementById('settingsHome').style.display='block';
                     }
                     (function(){

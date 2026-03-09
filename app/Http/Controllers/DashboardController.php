@@ -1136,6 +1136,174 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function exportLocationMaster(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+        $filename = 'location_master_' . now()->format('Y_m_d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        $callback = function () {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Region','Province','City / Municipality','Barangay','PSGC Code']);
+            $rows = \DB::table('barangays as b')
+                ->join('cities as c', 'b.city_id', '=', 'c.id')
+                ->join('provinces as p', 'c.province_id', '=', 'p.id')
+                ->join('regions as r', 'p.region_id', '=', 'r.id')
+                ->selectRaw('r.region_name as region, p.province_name as province, c.city_name as city, b.barangay_name as barangay, COALESCE(b.barangay_code, c.city_code) as psgc_code')
+                ->orderBy('r.region_name')->orderBy('p.province_name')->orderBy('c.city_name')->orderBy('b.barangay_name')
+                ->cursor();
+            foreach ($rows as $row) {
+                fputcsv($out, [$row->region, $row->province, $row->city, $row->barangay, $row->psgc_code]);
+            }
+            fclose($out);
+        };
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function createBackup(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+        @set_time_limit(600);
+        $dir = storage_path('app/backups');
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+        $file = 'backup_' . now()->format('Y_m_d_His') . '.zip';
+        $zipPath = $dir . DIRECTORY_SEPARATOR . $file;
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
+            return redirect()->back()->with('error_settings', 'Failed to initialize backup archive.');
+        }
+        $dbName = \DB::getDatabaseName();
+        $tables = array_map(function($r){ return $r->TABLE_NAME; }, \DB::select('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ?', [$dbName]));
+        foreach ($tables as $table) {
+            try {
+                $cols = array_map(function($c){ return $c->Field; }, \DB::select('SHOW COLUMNS FROM `'.$table.'`'));
+                $csv = fopen('php://temp', 'w+');
+                fputcsv($csv, $cols);
+                $chunkSize = 1000;
+                $offset = 0;
+                while (true) {
+                    $rows = \DB::table($table)->offset($offset)->limit($chunkSize)->get();
+                    if ($rows->isEmpty()) break;
+                    foreach ($rows as $row) {
+                        $line = [];
+                        foreach ($cols as $c) {
+                            $line[] = isset($row->$c) ? $row->$c : null;
+                        }
+                        fputcsv($csv, $line);
+                    }
+                    $offset += $chunkSize;
+                }
+                rewind($csv);
+                $content = stream_get_contents($csv);
+                fclose($csv);
+                $zip->addFromString($table.'.csv', $content);
+            } catch (\Throwable $e) {
+                // skip table on error, continue backup
+            }
+        }
+        $zip->close();
+        return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', 'Backup created: '.$file);
+    }
+
+    public function downloadBackup(string $file)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+        $safe = basename($file);
+        $path = storage_path('app/backups/'.$safe);
+        if (!is_file($path)) {
+            abort(404);
+        }
+        return response()->download($path);
+    }
+
+    public function deleteBackup(string $file)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+        $safe = basename($file);
+        $path = storage_path('app/backups/'.$safe);
+        if (is_file($path)) {
+            @unlink($path);
+        }
+        return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', 'Backup deleted.');
+    }
+
+    public function restoreBackup(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+        @set_time_limit(600);
+        $request->validate([
+            'backup_file' => 'required|file',
+            'confirm' => 'required|in:yes',
+        ]);
+        $file = $request->file('backup_file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext === 'zip') {
+            $zip = new \ZipArchive();
+            if ($zip->open($file->getRealPath()) !== true) {
+                return redirect()->back()->with('error_settings', 'Failed to open backup zip.');
+            }
+            \DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            try {
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $name = $zip->getNameIndex($i);
+                    if (!preg_match('/\.csv$/i', $name)) continue;
+                    $table = basename($name, '.csv');
+                    $csvContent = $zip->getFromIndex($i);
+                    $fh = fopen('php://temp', 'r+');
+                    fwrite($fh, $csvContent);
+                    rewind($fh);
+                    $header = fgetcsv($fh);
+                    if (!$header || !is_array($header)) { fclose($fh); continue; }
+                    // truncate table
+                    try { \DB::table($table)->truncate(); } catch (\Throwable $e) {}
+                    $rows = [];
+                    $batch = 0;
+                    while (($r = fgetcsv($fh)) !== false) {
+                        $row = [];
+                        foreach ($header as $idx => $col) {
+                            $row[$col] = $r[$idx] ?? null;
+                        }
+                        $rows[] = $row;
+                        if (count($rows) >= 1000) {
+                            \DB::table($table)->insert($rows);
+                            $rows = [];
+                        }
+                    }
+                    if (!empty($rows)) {
+                        \DB::table($table)->insert($rows);
+                    }
+                    fclose($fh);
+                }
+                \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            } catch (\Throwable $e) {
+                \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                return redirect()->back()->with('error_settings', 'Restore failed: '.$e->getMessage());
+            }
+            $zip->close();
+            return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', 'Restore completed successfully.');
+        } else {
+            return redirect()->back()->with('error_settings', 'Unsupported backup format. Upload a .zip file created by this system.');
+        }
+    }
     public function regionsJson()
     {
         $rows = \DB::table('regions')->orderBy('region_name')->get(['region_code as code','region_name as name']);
