@@ -442,5 +442,10 @@
                 });
             }
         }
+        // Ensure no items are pre-selected on load for all lists
+        ['available_trainers','selected_trainers','available_trainees','selected_trainees'].forEach(function(id){
+            var el=document.getElementById(id);
+            if(el){ el.querySelectorAll('.item input[type=checkbox]').forEach(function(cb){ cb.checked=false; }); }
+        });
     </script>
 </div>
