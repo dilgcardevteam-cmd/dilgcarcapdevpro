@@ -1658,7 +1658,8 @@
                         <span style="color:#6b7280">Recent</span>
                     </div>
                     @php
-                        $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
+                        $actor = Auth::user();
+                        $actorName = ($actor && in_array($actor->role,['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'])) ? $actor->name : 'Training Manager';
                         $logs = collect();
                         $recent = isset($notifications) ? $notifications->take(20) : collect();
                         foreach($recent as $n){
@@ -1668,25 +1669,51 @@
                                 'time' => $n->created_at,
                             ]);
                         }
-                        $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        // Branch role sets
+                        $levelRoles = [];
+                        $coachLevelRoles = [];
+                        $participantLevelRoles = [];
+                        if($actor){
+                            if ($actor->role === 'central_office_training_manager') {
+                                $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                                $coachLevelRoles = ['central_office_coach'];
+                                $participantLevelRoles = ['central_office_participants'];
+                            } elseif ($actor->role === 'regional_office_training_manager') {
+                                $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                                $coachLevelRoles = ['regional_office_coach'];
+                                $participantLevelRoles = ['regional_office_participants'];
+                            } elseif ($actor->role === 'provincial_office_training_manager') {
+                                $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                                $coachLevelRoles = ['provincial_office_coach'];
+                                $participantLevelRoles = ['provincial_office_participants'];
+                            } else {
+                                $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                                $coachLevelRoles = ['coach','trainer'];
+                                $participantLevelRoles = ['participant','trainee'];
+                            }
+                        }
+                        // Approved/Updated users limited to branch
+                        $approvedUsers = \App\Models\User::whereIn('role',$levelRoles)->where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
                         foreach($approvedUsers as $u){ $logs->push(['title'=>'Approved User','desc'=>$actorName.' approved '.$u->name,'time'=>$u->updated_at]); }
-                        $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        $updatedUsers = \App\Models\User::whereIn('role',$levelRoles)->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
                         foreach($updatedUsers as $u){
                             $logs->push(['title'=>'Edited Status','desc'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'time'=>$u->updated_at]);
                             $logs->push(['title'=>'Edited Role','desc'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'time'=>$u->updated_at]);
                         }
+                        // Coach assignments limited to branch
                         $coachAssignments = \DB::table('course_user')
                             ->join('courses','course_user.course_id','=','courses.id')
                             ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['coach','trainer'])
+                            ->whereIn('users.role',$coachLevelRoles)
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
                             ->take(10)->get();
                         foreach($coachAssignments as $r){ $logs->push(['title'=>'Assigned Coach','desc'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        // Enrollments limited to branch
                         $enrollments = \DB::table('course_user')
                             ->join('courses','course_user.course_id','=','courses.id')
                             ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['participant','trainee'])
+                            ->whereIn('users.role',$participantLevelRoles)
                             ->where('course_user.status','active')
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
