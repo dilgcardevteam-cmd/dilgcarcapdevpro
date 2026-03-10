@@ -1271,17 +1271,21 @@
             </div>
             <div id="panePeople" class="card" role="tabpanel" aria-labelledby="tabBtnPeople" style="display:none">
                 @php
-                    $trainers = $course->users->where('role','trainer');
-                    $classmates = $course->users->where('role','trainee');
+                    // Prefer controller-provided lists for robust role coverage
+                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                    $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+                    $trainers = isset($coaches) ? collect($coaches) : $course->users->whereIn('role', $coachRoles);
+                    $classmates = isset($classmates) ? collect($classmates) : $course->users->whereIn('role', $participantRoles);
                 @endphp
                 <div class="people">
                     <div>
                         <div style="font-weight:800;margin-bottom:8px;">Coaches</div>
                         <ul>
+                            @php $meId = auth()->id(); @endphp
                             @forelse($trainers as $t)
                                 <li style="padding:0;border:none;background:transparent;margin:0;">
-                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($t->name), @json($t->email), 'Coach')">
-                                        <i class="fas fa-user-tie" style="color:#0f3b8f;"></i> {{ $t->name }}
+                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($t->name), @json($t->email), 'Coach')" @if($meId && $t->id===$meId) style="background:#eef2ff;border:1px solid #cbd5e1" @endif>
+                                        <i class="fas fa-user-tie" style="color:#0f3b8f;"></i> {{ $t->name }} @if($meId && $t->id===$meId) <span class="chip">You</span> @endif
                                     </button>
                                 </li>
                             @empty
@@ -1294,8 +1298,8 @@
                         <ul>
                             @forelse($classmates as $s)
                                 <li style="padding:0;border:none;background:transparent;margin:0;">
-                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($s->name), @json($s->email), 'Classmate')">
-                                        <i class="fas fa-user" style="color:#0f3b8f;"></i> {{ $s->name }}
+                                    <button type="button" class="participant-item-btn" onclick="openParticipantView(@json($s->name), @json($s->email), 'Classmate')" @if($meId && $s->id===$meId) style="background:#eef2ff;border:1px solid #cbd5e1" @endif>
+                                        <i class="fas fa-user" style="color:#0f3b8f;"></i> {{ $s->name }} @if($meId && $s->id===$meId) <span class="chip">You</span> @endif
                                     </button>
                                 </li>
                             @empty

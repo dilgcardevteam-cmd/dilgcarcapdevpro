@@ -2795,17 +2795,7 @@
                                     </div>
                                 </div>
                                 <div id="ph-map-total" style="margin-top:8px;text-align:center;color:#cbd5e1;font-size:.85rem;font-weight:700"></div>
-                                <div id="ph-growth" style="margin-top:18px;background:#eaf2ff;border:1px solid #cfe0ff;border-radius:12px;padding:14px">
-                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#0b3b8f">
-                                        <div style="font-weight:800">Monthly Growth</div>
-                                        <div style="display:flex;align-items:center;gap:12px;font-size:.85rem;color:#334155;font-weight:700">
-                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#3b82f6"></span> User Registrations</span>
-                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#22c55e"></span> Course Completions</span>
-                                            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:999px;background:#eab308"></span> Certificates Issued</span>
-                                        </div>
-                                    </div>
-                                    <div id="ph-growth-line" style="width:100%;height:200px"></div>
-                                </div>
+                                
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(12,20,60,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;box-shadow:0 20px 40px rgba(2,6,23,.6);pointer-events:none;color:#e5e7eb;min-width:220px;"></div>
                             <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
@@ -2874,7 +2864,6 @@
                                 }
                               };
                               var regionAnalyticsUrl = '{{ route('stats.region.analytics') }}';
-                              var monthlyGrowthUrl = '{{ route('stats.monthly.growth') }}';
                               var modeSel = document.getElementById('ph-map-mode');
                               var mode = (modeSel && modeSel.value) || 'region';
                               
@@ -3108,10 +3097,7 @@
                                   var p3 = fetch(regionAnalyticsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
                                     .then(function(res){ return res.ok ? res.json() : null; })
                                     .then(function(data){ window.__analytics = (data && data.analytics) ? data.analytics : {}; });
-                                  var p4 = fetch(monthlyGrowthUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
-                                    .then(function(res){ return res.ok ? res.json() : null; })
-                                    .then(function(data){ window.__growth = data || {}; drawGrowth(); });
-                                  Promise.all([p1,p2,p3,p4]).then(function(){ load(urls[mode].geo.slice()); })
+                                  Promise.all([p1,p2,p3]).then(function(){ load(urls[mode].geo.slice()); })
                                     .catch(function(){ load(urls[mode].geo.slice()); });
                                 }catch(e){
                                   window.__counts = {};
@@ -3142,28 +3128,7 @@
                                     // Re-render or re-center logic if needed
                                 }, 250);
                               });
-                              function drawGrowth(){
-                                var el=document.getElementById('ph-growth-line');
-                                if(!el || !window.__growth){return;}
-                                el.innerHTML='';
-                                var months= (window.__growth.months || []);
-                                var reg= (window.__growth.registrations || []);
-                                var comp= (window.__growth.completions || []);
-                                var cert= (window.__growth.certificates || []);
-                                var w= el.clientWidth || 600, h= 200, m= {top:10,right:20,bottom:28,left:36};
-                                var svg2=d3.select('#ph-growth-line').append('svg').attr('width','100%').attr('height',h).attr('viewBox','0 0 '+w+' '+h);
-                                var iw=w-m.left-m.right, ih=h-m.top-m.bottom;
-                                var g2=svg2.append('g').attr('transform','translate('+m.left+','+m.top+')');
-                                var x=d3.scalePoint().domain(months).range([0,iw]).padding(0.5);
-                                var maxY=d3.max([d3.max(reg)||0,d3.max(comp)||0,d3.max(cert)||0])||0;
-                                var y=d3.scaleLinear().domain([0,maxY]).nice().range([ih,0]);
-                                    g2.append('g').attr('transform','translate(0,'+ih+')').call(d3.axisBottom(x).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-size','10px');
-                                    g2.append('g').call(d3.axisLeft(y).ticks(4).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-size','10px');
-                                var lineF=function(arr){ return d3.line().x(function(d,i){ return x(months[i]); }).y(function(d){ return y(d); }).curve(d3.curveMonotoneX)(arr); };
-                                g2.append('path').attr('d', lineF(reg)).attr('fill','none').attr('stroke','#3b82f6').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(59,130,246,.5))');
-                                g2.append('path').attr('d', lineF(comp)).attr('fill','none').attr('stroke','#22c55e').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(34,197,94,.5))');
-                                g2.append('path').attr('d', lineF(cert)).attr('fill','none').attr('stroke','#eab308').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(234,179,8,.5))');
-                              }
+                              
                             })();
                             </script>
                         </div>
@@ -3558,7 +3523,7 @@
                                                 </select>
                                             </div>
                                             <button id="psgcImportBtn" type="submit" class="btn btn-blue" disabled>Import</button>
-                                            <a href="{{ route('admin.settings.location.export') }}" class="btn" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-download"></i> Export</a>
+                                            <a href="{{ url('/admin/system-settings/location/export') }}" class="btn" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-download"></i> Export</a>
                                             <span id="psgcStatus" style="color:#64748b"></span>
                                         </div>
                                     </div>
@@ -3592,7 +3557,7 @@
                             </div>
                             <div class="import-body">
                                 <div class="cta-row" style="justify-content:flex-end">
-                                    <form method="POST" action="{{ route('admin.settings.backup.create') }}">
+                                    <form method="POST" action="{{ url('/admin/system-settings/backup/create') }}">
                                         @csrf
                                         <button type="submit" class="btn btn-blue" style="display:inline-flex;align-items:center;gap:8px"><i class="fas fa-file-archive"></i> Create Backup</button>
                                     </form>
@@ -3629,8 +3594,8 @@
                                                     <td>{{ number_format($bk['size']/1024/1024, 2) }} MB</td>
                                                     <td>
                                                         <div class="backup-actions" style="display:flex;gap:8px">
-                                                            <a class="btn" href="{{ route('admin.settings.backup.download', ['file' => $bk['name']]) }}"><i class="fas fa-download"></i> Download</a>
-                                                            <form method="POST" action="{{ route('admin.settings.backup.delete', ['file' => $bk['name']]) }}" onsubmit="return confirm('Delete this backup?')">
+                                                            <a class="btn" href="{{ url('/admin/system-settings/backup/download/'.$bk['name']) }}"><i class="fas fa-download"></i> Download</a>
+                                                            <form method="POST" action="{{ url('/admin/system-settings/backup/delete/'.$bk['name']) }}" onsubmit="return confirm('Delete this backup?')">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn danger"><i class="fas fa-trash"></i> Delete</button>
@@ -3645,7 +3610,7 @@
                                     </table>
                                 </div>
                                 <div style="margin-top:16px">
-                                    <form method="POST" action="{{ route('admin.settings.backup.restore') }}" enctype="multipart/form-data" onsubmit="return confirm('Restoring will replace the current database. Continue?')">
+                                    <form method="POST" action="{{ url('/admin/system-settings/backup/restore') }}" enctype="multipart/form-data" onsubmit="return confirm('Restoring will replace the current database. Continue?')">
                                         @csrf
                                         <div style="display:flex;align-items:center;gap:10px">
                                             <input type="file" name="backup_file" accept=".zip,.sql" required>
@@ -4124,7 +4089,14 @@
                 @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
                     <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                        <span class="muted">Assign system feature access per role</span>
+                        <div style="display:flex;align-items:center;gap:10px;flex:1">
+                            <span class="muted">Assign system feature access per role</span>
+                            <div style="position:relative;max-width:360px;flex:1">
+                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#64748b"></i>
+                                <input id="accessRoleSearch" type="text" placeholder="Search roles…" 
+                                       style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff">
+                            </div>
+                        </div>
                         @if($canAccess)
                             <button type="button" onclick="openAddRoleModal()" class="btn-update" style="background:#002C76;color:#fff;border-color:#002C76;display:inline-flex;align-items:center;gap:8px; border-radius:8px">
                                 <i class="fas fa-plus"></i> Add Role
@@ -4250,6 +4222,17 @@
                         (function(){
                             var section = document.getElementById('access-management');
                             if(!section){ return; }
+                            var search = document.getElementById('accessRoleSearch');
+                            if(search){
+                                search.addEventListener('input', function(){
+                                    var q = (this.value || '').toLowerCase().trim();
+                                    var items = section.querySelectorAll('.accordion-item');
+                                    items.forEach(function(it){
+                                        var name = (it.querySelector('.accordion-header span')?.textContent || '').toLowerCase();
+                                        it.style.display = q ? (name.indexOf(q) !== -1 ? '' : 'none') : '';
+                                    });
+                                });
+                            }
                             var headers = section.querySelectorAll('.accordion-header');
                             headers.forEach(function(h){
                                 h.addEventListener('click', function(){

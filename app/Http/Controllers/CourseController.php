@@ -428,10 +428,16 @@ class CourseController extends Controller
 
     public function traineeShow(Course $course)
     {
+        \Illuminate\Support\Facades\Log::info('traineeShow: loading course users', ['course_id' => $course->id]);
         if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
             return redirect()->route('trainer.courses.enter', $course);
         }
         $course->load(['users', 'materials', 'assessments']);
+        \Illuminate\Support\Facades\Log::info('traineeShow: loaded users', [
+            'course_id' => $course->id,
+            'user_count' => $course->users->count(),
+            'roles' => $course->users->pluck('role')->all(),
+        ]);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -486,6 +492,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
+        // Build participants lists for view
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
+            return in_array($u->role ?? '', $coachRoles, true);
+        })->values();
+        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
+            return in_array($u->role ?? '', $participantRoles, true);
+        })->values();
+        \Illuminate\Support\Facades\Log::info('traineeShow: participants resolved', [
+            'course_id' => $course->id,
+            'coaches' => $coaches->pluck('id')->all(),
+            'classmates' => $classmates->pluck('id')->all(),
+        ]);
         if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
             return view('roparticipant.course-landing', [
                 'course' => $course,
@@ -493,6 +513,8 @@ class CourseController extends Controller
                 'announcements' => $announcements,
                 'discussions' => $discussions,
                 'completion' => $completion,
+                'coaches' => $coaches,
+                'classmates' => $classmates,
             ]);
         }
         return view('trainee.course-landing', [
@@ -501,6 +523,8 @@ class CourseController extends Controller
             'announcements' => $announcements,
             'discussions' => $discussions,
             'completion' => $completion,
+            'coaches' => $coaches,
+            'classmates' => $classmates,
         ]);
     }
     
@@ -515,7 +539,13 @@ class CourseController extends Controller
     }
     public function trainerLanding(Course $course)
     {
+        \Illuminate\Support\Facades\Log::info('trainerLanding: loading course users', ['course_id' => $course->id]);
         $course->load(['users', 'materials', 'assessments']);
+        \Illuminate\Support\Facades\Log::info('trainerLanding: loaded users', [
+            'course_id' => $course->id,
+            'user_count' => $course->users->count(),
+            'roles' => $course->users->pluck('role')->all(),
+        ]);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -563,6 +593,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
+        // Build participants lists for trainer landing as well
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
+            return in_array($u->role ?? '', $coachRoles, true);
+        })->values();
+        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
+            return in_array($u->role ?? '', $participantRoles, true);
+        })->values();
+        \Illuminate\Support\Facades\Log::info('trainerLanding: participants resolved', [
+            'course_id' => $course->id,
+            'coaches' => $coaches->pluck('id')->all(),
+            'classmates' => $classmates->pluck('id')->all(),
+        ]);
         return view('trainee.course-landing', [
             'course' => $course,
             'status' => 'active',
@@ -570,6 +614,8 @@ class CourseController extends Controller
             'discussions' => $discussions,
             'asTrainer' => true,
             'completion' => $completion,
+            'coaches' => $coaches,
+            'classmates' => $classmates,
         ]);
     }
     public function traineeOutline(Course $course)
@@ -815,6 +861,92 @@ class CourseController extends Controller
         }
         if (!is_array($mods)) $mods = [];
         return response()->json(['ok' => true, 'modules' => $mods]);
+    }
+    public function saveExamAjax(Request $request, \App\Models\Course $course)
+    {
+        $this->authorize('update', $course);
+        $examJson = $request->input('exam_json');
+        if (!is_string($examJson)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid payload'], 422);
+        }
+        try {
+            $e = json_decode($examJson, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Throwable $th) {
+            return response()->json(['ok' => false, 'error' => 'Invalid JSON'], 422);
+        }
+        $title = trim((string) ($e['title'] ?? ''));
+        $description = (string) ($e['description'] ?? '');
+        $timer = (int) ($e['timer_minutes'] ?? 0);
+        $qs = is_array($e['questions'] ?? []) ? $e['questions'] : [];
+        // Validation per requirements
+        if ($title === '') {
+            return response()->json(['ok' => false, 'error' => 'Exam title is required'], 422);
+        }
+        $errors = [];
+        $norm = [];
+        foreach ($qs as $i => $q) {
+            $type = $q['type'] ?? '';
+            $text = isset($q['text']) ? trim((string) $q['text']) : '';
+            if ($text === '') {
+                $errors[] = "Question #".($i+1)." text is required";
+                continue;
+            }
+            if ($type === 'identification') {
+                $ans = isset($q['answer']) ? trim((string) $q['answer']) : '';
+                if ($ans === '') {
+                    $errors[] = "Question #".($i+1)." answer is required for Identification";
+                    continue;
+                }
+                $norm[] = ['type'=>'identification','text'=>$text,'answer'=>$ans];
+            } elseif ($type === 'multiple_choice') {
+                $choices = $q['choices'] ?? ($q['options'] ?? []);
+                $choices = array_values(array_filter(array_map('strval', (array) $choices), fn($v)=>trim($v)!==''));
+                $ai = isset($q['answer_index']) ? (int)$q['answer_index'] : -1;
+                if (count($choices) < 2) {
+                    $errors[] = "Question #".($i+1)." must have at least two choices";
+                    continue;
+                }
+                if ($ai < 0 || $ai >= count($choices)) {
+                    $errors[] = "Question #".($i+1)." must specify a valid correct choice";
+                    continue;
+                }
+                $norm[] = ['type'=>'multiple_choice','text'=>$text,'choices'=>$choices,'answer_index'=>$ai];
+            } elseif ($type === 'true_false') {
+                $ans = isset($q['answer']) ? (bool)$q['answer'] : null;
+                if (!is_bool($ans)) { $ans = ($q['answer']==='true'); }
+                $norm[] = ['type'=>'true_false','text'=>$text,'answer'=>$ans===true];
+            } else {
+                // Skip unsupported types
+            }
+        }
+        if (!empty($errors)) {
+            return response()->json(['ok'=>false,'error'=>implode('; ', $errors)], 422);
+        }
+        // Transaction to avoid partial updates
+        \Illuminate\Support\Facades\DB::transaction(function() use ($course, $title, $description, $timer, $norm) {
+            $mods = $course->modules;
+            if (is_string($mods)) {
+                try { $mods = json_decode($mods, true); } catch (\Throwable $th) { $mods = []; }
+            }
+            if (!is_array($mods)) $mods = [];
+            // Remove previous course-level exam (module with exam and no topics)
+            $mods = array_values(array_filter($mods, function($m){
+                return !(isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics']));
+            }));
+            $mods[] = [
+                'title' => 'Course Exam',
+                'topics' => [],
+                'exam' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'timer_minutes' => $timer,
+                    'questions' => $norm,
+                ],
+            ];
+            $course->modules = $mods;
+            $course->save();
+        });
+        return response()->json(['ok' => true, 'version' => optional($course->fresh()->updated_at)->toISOString()]);
     }
 
     /**
