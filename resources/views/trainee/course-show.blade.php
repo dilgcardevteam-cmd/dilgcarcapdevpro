@@ -204,12 +204,16 @@
         .search{padding:10px 16px 6px;display:flex;justify-content:center}
         .search input{
             width:92%;
-            padding:10px 14px;
+            padding:12px 16px;
             border-radius:12px;
-            border:1px solid rgba(255,255,255,.35);
-            box-shadow:inset 0 1px 1px rgba(0,0,0,.04);
+            border:1px solid #cfe0ff;
+            outline:none;
             background:#ffffff;
+            color:#0f172a;
+            transition:border-color .15s ease, box-shadow .15s ease;
         }
+        .search input::placeholder{color:#94a3b8}
+        .search input:focus{border-color:#84b8ff; box-shadow:0 0 0 4px rgba(37,99,235,.12)}
         .outline{padding:6px 12px 16px}
         .module{
             border-radius:12px;
@@ -329,9 +333,7 @@
         $role = auth()->user()->role ?? null;
         $IS_COACH = in_array($role, ['trainer','coach'], true);
     @endphp
-    <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px">
-        <div style="font-weight:800;color:#0f172a">Classroom</div>
-    </div>
+    <!-- removed classroom subheader -->
     <div class="layout" id="modulesPane" style="{{ $IS_COACH ? '' : '' }}">
         <aside class="sidebar">
             <h3>
@@ -773,7 +775,7 @@
                             <button id="examStart" class="btn-blue" style="padding:12px 28px;border-radius:16px;box-shadow:0 10px 24px rgba(37,99,235,.22)">Start</button>
                         </div>
                     </div>`;
-                const bodyWrap = `<div id="examBody" style="display:none">${html}${IS_TRAINER ? '' : `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="examReset" class="btn-ghost" style="display:none">Reset Exam</button><button id="examSubmitAll" class="btn-blue">Submit Exam</button></div>`}</div>`;
+                const bodyWrap = `<div id="examBody" style="display:none">${html}${IS_TRAINER ? '' : `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="examSubmitAll" class="btn-blue">Submit Exam</button></div>`}</div>`;
                 const confirmOverlay = IS_TRAINER ? '' : `
                 <div id="examConfirm" style="position:fixed;inset:0;background:rgba(2,6,23,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:4000">
                   <div style="width:min(560px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 30px 60px rgba(2,6,23,.28);overflow:hidden">
@@ -898,13 +900,12 @@
                     inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
                 });
                 const submitAll = bodyEl.querySelector('#examSubmitAll');
-                const resetBtn = bodyEl.querySelector('#examReset');
+                const resetBtn = null;
                 let timerIv = null;
                 function handleSubmit(){
                     saveAnswers();
                     const {correct,total,pct} = computeGrade();
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
-                    if(resetBtn){ resetBtn.style.display = 'inline-flex'; }
                     try{ localStorage.setItem(keyBase+'_submitted','1'); }catch(e){}
                     setFrozen(true);
                     // stop timer and mark as submitted
@@ -917,22 +918,28 @@
                         const statusTxt = passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.');
                         const statusColor = passed===null ? '#334155' : (passed ? '#059669' : '#b91c1c');
                         resultBox.style.display='block';
-                        resultBox.style.background = '#fff';
+                        resultBox.style.background = '#ffffff';
                         resultBox.style.border = '1px solid #e5e7eb';
-                        resultBox.style.boxShadow = '0 24px 48px rgba(2,6,23,.06)';
+                        resultBox.style.boxShadow = '0 16px 32px rgba(2,6,23,.08)';
                         resultBox.style.borderRadius = '16px';
+                        resultBox.style.width = '100%';
+                        resultBox.style.maxWidth = '720px';
+                        resultBox.style.margin = '0 auto';
                         resultBox.innerHTML = `
                           <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px">
-                            <svg viewBox="0 0 100 60" width="320" height="180" style="display:block">
+                            <svg viewBox="0 0 100 60" width="100%" height="auto" style="display:block;max-width:420px">
                               <path d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"></path>
                               <path id="examGaugePath" d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="${passed===false ? '#ef4444' : '#002C76'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"></path>
                               <text x="50" y="45" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a">${pct}%</text>
                             </svg>
                             <div style="font-weight:800;color:#0f172a">You have scored <span>${pct}%</span>.</div>
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
-                            <div style="color:#334155">Select Reset to retake the exam. You can also review your answers.</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${correct}/${total} correct</span>
+                              ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
+                            </div>
+                            <div style="color:#334155;margin-top:6px">You can review your answers below.</div>
                             <div style="display:flex;gap:10px;margin-top:6px">
-                              <button id="examReset2" class="btn-ghost" style="padding:10px 16px;border-radius:12px">Reset</button>
                               <button id="examReview" class="btn-blue" style="padding:10px 16px;border-radius:12px">Review Assessment</button>
                             </div>
                           </div>`;
@@ -944,13 +951,7 @@
                             gauge.setAttribute('stroke-dashoffset', String((1-frac)*L));
                         }
                         if(bodyBox){ bodyBox.style.display='none'; }
-                        const r2 = document.getElementById('examReset2');
-                        if(r2){
-                          r2.onclick = ()=>{
-                            if(typeof resetBtn?.onclick === 'function'){ resetBtn.onclick(); }
-                            else { location.reload(); }
-                          };
-                        }
+                        // No reset action; only allow review
                         const rv = document.getElementById('examReview');
                         if(rv){
                           rv.onclick = ()=>{

@@ -40,13 +40,13 @@
         .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
         .sidebar-toggle{background:none;border:none;color:#fff;padding:15px;cursor:pointer;text-align:right;font-size:1.2rem}
         .nav-menu{list-style:none;padding:0;margin:0;flex:1}
-        .nav-item{border-bottom:1px solid rgba(255,255,255,.1)}
-        .nav-link{display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,.85);text-decoration:none;transition:all .3s;cursor:pointer}
-        .nav-link:hover,.nav-link.active{background-color:rgba(255,255,255,.1);color:#fff;border-left:4px solid var(--primary-green)}
+        .nav-item{border-bottom:none}
+        .nav-link{display:flex;align-items:center;padding:12px 20px;color:rgba(255,255,255,.9);text-decoration:none;transition:background-color .2s ease,color .2s ease;cursor:pointer}
+        .nav-link:hover,.nav-link.active{background-color:rgba(255,255,255,.12);color:#fff}
         .nav-icon{width:25px;font-size:1.1rem;text-align:center;margin-right:15px}
         .nav-text{display:inline}
         .sidebar.collapsed .nav-text{display:none}
-        .sidebar.collapsed .nav-link{justify-content:center;padding:15px}
+        .sidebar.collapsed .nav-link{justify-content:center;padding:12px 0}
         .sidebar.collapsed .nav-icon{margin-right:0}
         .main-content{flex:1;padding:24px;overflow-y:auto;background:linear-gradient(180deg,#f7f9fc 0%,#f2f5fa 100%)}
         .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
@@ -57,7 +57,7 @@
         .app-side{position:fixed;left:0;top:var(--app-header-h);bottom:0;width:var(--app-sidebar-w);background:#002C76;color:#fff;z-index:25;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.12)}
         .app-side .app-side-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
         .app-side .app-initial{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.25);font-weight:800}
-        .app-side a{color:rgba(255,255,255,.9);text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+        .app-side a{color:rgba(255,255,255,.9);text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:none}
         .app-side a:hover{background:rgba(255,255,255,.08)}
         .app-side.collapsed .app-side-header div:nth-child(2){display:none}
         .app-side.collapsed a span{display:none}
@@ -89,6 +89,14 @@
         .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
         @media (max-width: 900px){ .split{grid-template-columns:1fr} }
         .container-box{background:#fff;border:1px solid #dde5f1;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
+        /* Outline CTA redesign */
+        .outline-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid #dbe2ee;border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.06)}
+        .outline-cta .cta-left{display:flex;align-items:center;gap:14px}
+        .outline-cta .cta-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#eef3ff 0%, #e6edff 100%);border:1px solid #cfe0ff;color:#0f3b8f}
+        .outline-cta .cta-title{font-weight:900;color:#0f172a;letter-spacing:-.01em}
+        .outline-cta .cta-desc{color:#64748b;margin-top:2px}
+        .btn-cta{display:inline-flex;align-items:center;gap:8px;background:#0f3b8f;color:#fff;text-decoration:none;border:none;border-radius:12px;padding:12px 18px;font-weight:800;box-shadow:0 10px 24px rgba(15,23,42,.12);cursor:pointer}
+        .btn-cta:hover{background:#0b2c74}
         .section-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:800;color:#0f3b8f}
         .ann-actions{display:flex;align-items:center;gap:12px;margin-bottom:10px}
         .chip-action{background:#e8f0ff;color:#0f3b8f;border:1px solid #cfe0ff;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
@@ -838,10 +846,10 @@
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <div class="header-title" style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">
+            <div class="header-title" style="padding:12px 20px;display:flex;align-items:center;justify-content:center">
                 <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
             </div>
-            <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
+            <div style="padding:8px 20px;display:flex;align-items:center;gap:12px;">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -1089,22 +1097,22 @@
             </div>
             <div id="paneClasswork" class="card" role="tabpanel" aria-labelledby="tabBtnClasswork" style="display:none">
                 <!-- Container 1: Course Outline -->
-                <div class="container-box" style="margin-bottom:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                        <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-list-ul"></i></div>
-                            <div>Course Outline</div>
+                <div class="outline-cta" style="margin-bottom:12px;">
+                    <div class="cta-left">
+                        <div class="cta-icon"><i class="fas fa-list-ul"></i></div>
+                        <div>
+                            <div class="cta-title">Course Outline</div>
+                            <div class="cta-desc">Browse modules, topics, and activities in the outline view.</div>
                         </div>
-                        @php
-                            $role = \Illuminate\Support\Facades\Auth::user()->role ?? null;
-                            $coachCtx = !empty($asTrainer) || in_array($role, ['trainer','coach'], true);
-                            $outlineUrl = $coachCtx
-                                ? route('trainer.courses.view', $course)
-                                : route('trainee.courses.outline', $course);
-                        @endphp
-                        <a href="{{ $outlineUrl }}" class="btn btn-blue"><i class="fas fa-list"></i> Course Outline</a>
                     </div>
-                    <div class="muted">Browse modules, topics, and activities in the course outline view.</div>
+                    @php
+                        $role = \Illuminate\Support\Facades\Auth::user()->role ?? null;
+                        $coachCtx = !empty($asTrainer) || in_array($role, ['trainer','coach'], true);
+                        $outlineUrl = $coachCtx
+                            ? route('trainer.courses.view', $course)
+                            : route('trainee.courses.outline', $course);
+                    @endphp
+                    <a href="{{ $outlineUrl }}" class="btn-cta" aria-label="Open Course Outline"><i class="fas fa-list"></i> Course Outline</a>
                 </div>
 
                 <!-- Container 2: Materials and Assessments -->

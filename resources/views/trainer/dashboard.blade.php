@@ -525,7 +525,7 @@
             align-items: center;
             padding-top: 12px;
             gap: 8px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
         .course-footer span{
             display:inline-flex;
@@ -539,6 +539,7 @@
             font-weight:600;
             font-size:.75rem;
             letter-spacing: 0.02em;
+            white-space: nowrap;
         }
 
         .btn-view {
@@ -1365,15 +1366,6 @@
                                     <span>
                                         <i class="fas fa-users"></i>
                                         @php
-                                            $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
-                                            $studentsCount = $course->users
-                                                ? $course->users->filter(function($u) use ($participantRoles){
-                                                    return in_array($u->role, $participantRoles) && in_array(optional($u->pivot)->status ?? 'active', ['active','pending']);
-                                                })->count()
-                                                : 0;
-                                        @endphp
-                                        {{ $studentsCount }} Students
-                                    </span>
                                             $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
                                             $studentsCount = $course->users
                                                 ? $course->users->filter(function($u) use ($participantRoles){
