@@ -106,11 +106,9 @@
         .content-section.active { display: block; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .section-title { font-size: 1.5rem; color: var(--primary-blue); font-weight: 700; margin: 0; }
-        .course-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
-        @media (min-width: 640px) { .course-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (min-width: 900px) { .course-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (min-width: 1200px){ .course-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        @media (min-width: 1400px){ .course-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+        .course-grid{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:24px;align-items:stretch}
+        @media (max-width:1100px){.course-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media (max-width:700px){.course-grid{grid-template-columns:1fr;}}
         .course-card { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; border: 1px solid #eef2f7; }
         .course-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
         .course-card[role="button"], .course-card[role="link"] { cursor: pointer; }
@@ -121,9 +119,10 @@
         .course-content { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .course-title { font-size: 1rem; font-weight: 800; color: var(--primary-blue); margin: 0; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .course-desc { color: #6b7280; font-size: 0.85rem; line-height: 1.4; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .course-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 6px; }
-        .btn-view { padding: 8px 12px; background-color: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-size: 0.85rem; transition: background 0.2s; border: none; cursor: pointer; }
-        .btn-view:hover { background-color: #001f54; }
+        .course-footer{margin-top:auto;display:flex;justify-content:center;align-items:center;padding-top:12px;gap:10px;flex-wrap:wrap}
+        .btn-view{display:inline-flex;align-items:center;justify-content:center;padding:10px 20px;background-color:var(--primary-blue);color:#fff;text-decoration:none;border-radius:999px;font-size:.9rem;transition:all .2s ease;border:none;cursor:pointer;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);font-weight:700;white-space:nowrap;min-width:120px;max-width:100%;text-align:center}
+        .btn-view:hover{background-color:#001f54;transform:translateY(-1px);box-shadow:0 10px 18px rgba(0,44,118,.22)}
+        @media (max-width:480px){.course-footer .btn-view{width:100%}}
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center; }
         .modal-container { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -437,9 +436,7 @@
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
-                                    <span style="font-size: 0.8rem; color: #777;">
-                                        <i class="fas fa-check-circle" style="color: var(--primary-green);"></i> Enrolled
-                                    </span>
+                                    <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
                                     <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
                             </div>
