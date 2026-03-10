@@ -71,7 +71,7 @@
         .page{max-width:1220px;margin:22px auto 42px;padding:0 18px}
         .hero{background:#fff;border:1px solid #dbe2ee;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.08)}
         .hero-top{position:relative;height:230px;background:#e9eef9;display:flex;align-items:center;justify-content:center}
-        .hero-top img{width:100%;height:100%;object-fit:cover;cursor:pointer}
+        .hero-top img{width:100%;height:100%;object-fit:cover}
         .hero-edit{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
         .hero-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:12px;padding:8px 12px;font-weight:800;cursor:pointer;background:#0f3b8f;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16)}
         .hero-btn.ghost{background:#fff;color:#0f3b8f;border:1px solid #cfe0ff}
@@ -924,13 +924,7 @@
                     @if ($hero)
                         <img id="courseHeroImage" src="{{ $hero }}" alt="Course banner" title="Click to preview">
                     @endif
-                    @if(!empty($asTrainer))
-                    <div class="hero-edit">
-                        <button class="hero-btn ghost" onclick="openImagePreview()"><i class="fas fa-eye"></i> Preview</button>
-                        <button class="hero-btn" onclick="openCropperExisting()"><i class="fas fa-crop"></i> Crop Image</button>
-                        <input id="heroFileInput" class="file-input" type="file" accept="image/*" onchange="openCropperFromFile(this)">
-                    </div>
-                    @endif
+                    {{-- image preview & crop controls removed --}}
                 </div>
                 <div class="hero-body">
                     @if (!empty($course->subject_area))
