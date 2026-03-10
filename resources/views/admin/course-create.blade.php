@@ -269,7 +269,7 @@
                         <div id="modulesContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
                             <button type="button" class="btn btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(13,110,253,0.3);" title="Add Module" onclick="dmAddModule()" aria-label="Add Module"><i class="fas fa-plus"></i></button>
-                            <button type="button" class="btn btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(13,110,253,0.3);" title="Add Course Exam" onclick="dmAddExam()" aria-label="Add Course Exam"><i class="fas fa-file-circle-question"></i></button>
+                            <button type="button" class="btn btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(13,110,253,0.3);" title="Add Module Exam" onclick="dmAddExam()" aria-label="Add Module Exam"><i class="fas fa-file-circle-question"></i></button>
                         </div>
                         <div id="modulesError" class="error-text" style="display:none;"></div>
                     </div>
@@ -2819,7 +2819,7 @@
             wrap.className = 'exam-wrapper';
             wrap.innerHTML = `
                 <div class="exam-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-                    <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Course Exam</div>
+                    <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Module Exam</div>
                     <div style="display:flex;align-items:center;gap:6px">
                         <button type="button" class="chevron-btn" onclick="toggleExamChevron(this)" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>
                         <button type="button" class="delete-btn" title="Delete exam" onclick="this.closest('.exam-wrapper').remove(); reindexModules();"><i class="fas fa-trash-alt"></i></button>
@@ -2831,7 +2831,7 @@
                         <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
                     </div>
                     <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Course Exam</div>
+                        <div style="font-weight:800;color:#0B2C74">Module Exam</div>
                         <label style="display:flex;align-items:center;gap:8px">
                             <span style="font-weight:700;color:#111827">Timer (minutes)</span>
                             <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">

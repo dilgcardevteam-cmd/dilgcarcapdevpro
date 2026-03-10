@@ -237,7 +237,7 @@ class CourseController extends Controller
                 } else {
                     // No modules at all: create a dedicated Course Exam module
                     $modules[] = [
-                        'title' => 'Course Exam',
+                        'title' => 'Module Exam',
                         'topics' => [],
                         'exam' => $examArr,
                     ];
@@ -427,7 +427,7 @@ class CourseController extends Controller
                     // If an exam already exists inside a module, don't create another
                 } else {
                     $modules[] = [
-                        'title' => 'Course Exam',
+                        'title' => 'Module Exam',
                         'topics' => [],
                         'exam' => $examArr,
                     ];
@@ -1142,9 +1142,9 @@ class CourseController extends Controller
                     }
                 }
             } else {
-                // No modules: create dedicated Course Exam module
+                // No modules: create dedicated Module Exam
                 $mods[] = [
-                    'title' => 'Course Exam',
+                    'title' => 'Module Exam',
                     'topics' => [],
                     'exam' => $examArr,
                 ];

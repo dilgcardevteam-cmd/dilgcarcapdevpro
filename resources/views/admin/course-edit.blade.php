@@ -2246,7 +2246,7 @@
             wrap.className = 'exam-wrapper';
             wrap.innerHTML = `
                 <div class="exam-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">
-                    <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Course Exam</div>
+                    <div style="font-weight:800;color:#0B2C74;display:flex;align-items:center;gap:8px;"><i class="fas fa-file-circle-question"></i> Module Exam</div>
                     <div style="display:flex;align-items:center;gap:6px">
                         <button type="button" class="chevron-btn" onclick="toggleExamChevron(this)" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>
                         <button type="button" class="delete-btn" title="Delete exam" onclick="this.closest('.exam-wrapper').remove(); reindexModules();"><i class="fas fa-trash-alt"></i></button>
@@ -2258,7 +2258,7 @@
                         <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
                     </div>
                     <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Course Exam</div>
+                        <div style="font-weight:800;color:#0B2C74">Module Exam</div>
                         <label style="display:flex;align-items:center;gap:8px">
                             <span style="font-weight:700;color:#111827">Timer (minutes)</span>
                             <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
