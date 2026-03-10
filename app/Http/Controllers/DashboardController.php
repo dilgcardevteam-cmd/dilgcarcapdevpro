@@ -222,12 +222,11 @@ class DashboardController extends Controller
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
-                $totalCourses = Course::whereHas('users', function($q) use ($managedRoles) {
-                        $q->whereIn('role', $managedRoles);
-                    })->count();
-                $courses = Course::whereHas('users', function($q) use ($managedRoles) {
-                        $q->whereIn('role', $managedRoles);
-                    })->with('users')->get();
+                // Registrar manages coach/trainer and participant roles
+                $managedRoles = array_values(array_unique(array_merge($coachRoles, $participantRoles)));
+                // Show all courses to registrar (including those without assigned users yet)
+                $totalCourses = Course::count();
+                $courses = Course::with('users')->orderBy('created_at','desc')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($coachRoles,$participantRoles))->where('status', 'active')->get();
                 
                 // Fetch Notifications

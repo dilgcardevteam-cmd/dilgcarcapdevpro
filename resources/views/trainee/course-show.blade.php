@@ -405,7 +405,7 @@
         const viewOnly = @json($viewOnly ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
-        const ENFORCE_LOCKS_ALL = !!viewOnly;
+        const ENFORCE_LOCKS_ALL = !!viewOnly && !IS_TRAINER;
 
         function isVideo(path){ return /\.(mp4|webm|ogg)$/i.test(path||''); }
         function renderVideo(){
@@ -958,6 +958,27 @@
                             resultBox.style.display='none';
                             if(bodyBox){ bodyBox.style.display=''; }
                             revealAnswers();
+                            // Create/show Back button for review mode
+                            let topBar = document.getElementById('reviewTopBar');
+                            if(!topBar && bodyBox){
+                                topBar = document.createElement('div');
+                                topBar.id = 'reviewTopBar';
+                                topBar.style.cssText = 'position:sticky;top:0;z-index:60;display:none;padding:8px 0;margin-bottom:8px;background:linear-gradient(180deg,#f8fbff 0%, #ffffff 100%);border-bottom:1px solid #e5e7eb';
+                                topBar.innerHTML = '<button id="reviewBackBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800;display:inline-flex;align-items:center;gap:8px"><i class="fas fa-arrow-left"></i> Back</button>';
+                                bodyBox.prepend(topBar);
+                            }
+                            if(topBar){ 
+                                topBar.style.display='block'; 
+                                const backBtn = topBar.querySelector('#reviewBackBtn');
+                                if(backBtn){
+                                    backBtn.onclick = ()=>{
+                                        if(resultBox){ resultBox.style.display='block'; }
+                                        if(bodyBox){ bodyBox.style.display='none'; }
+                                        topBar.style.display='none';
+                                        try{ resultBox.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){}
+                                    };
+                                }
+                            }
                           };
                         }
                       }
@@ -1158,6 +1179,9 @@
                     tick();
                     timerIv = setInterval(tick, 1000);
                 }
+            } else {
+                const bodyBox = document.getElementById('examBody');
+                if(bodyBox){ bodyBox.style.display=''; }
             }
         }
         function openSubtopic(mi,ti,si){
