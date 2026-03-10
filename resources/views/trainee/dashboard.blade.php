@@ -1042,7 +1042,7 @@
         <div class="main-content">
             
             <!-- Dashboard Home Section -->
-            <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
+            <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section']) ? '' : 'active' }}">
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
@@ -1184,7 +1184,7 @@
             </div>
 
             <!-- Classroom Section -->
-            <div id="classroom" class="content-section">
+            <div id="classroom" class="content-section {{ request('tab') == 'classroom' ? 'active' : '' }}">
                 
                 <div class="hero-metrics" style="margin-top:-2px;margin-bottom:20px">
                     <div class="hero-metric">
@@ -1270,7 +1270,7 @@
             </div>
 
             <!-- Calendar Section -->
-            <div id="calendar" class="content-section">
+            <div id="calendar" class="content-section {{ request('tab') == 'calendar' ? 'active' : '' }}">
                 
                 <!-- Visual Calendar -->
                 <div class="calendar-container">
@@ -1335,7 +1335,7 @@
             </div>
 
             <!-- Announcements Section -->
-            <div id="announcements" class="content-section">
+            <div id="announcements" class="content-section {{ request('tab') == 'announcements' ? 'active' : '' }}">
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
                     @if($announcements->isEmpty())
                         <div class="empty-state">
@@ -1506,17 +1506,20 @@
                                     @endphp
                                     <div class="form-group">
                                         <label>{{ $labelRegion }}</label>
-                                        <select id="profile_region" name="{{ ($isCentral || $isRegional || $isProvincial) ? 'office_level' : 'region' }}" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                        <select id="profile_region" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
                                             <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>{{ $isCentral || $isRegional || $isProvincial ? 'Select Level' : 'Select Region' }}</option>
                                             @if($profileRegion)
                                                 <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group" @if(!$isRegional) style="display:none" @endif>
+                                    <div class="form-group" id="group_profile_region_actual" @if(!$isRegional) style="display:none" @endif>
                                         <label>Region</label>
-                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $isRegional ? (old('region', Auth::user()->region ?? '')) : '' }}" disabled>
-                                            <option value="" disabled selected>Select Region</option>
+                                        <select id="profile_region_actual" @if($isRegional) name="region" @endif class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                            @if($profileRegion)
+                                                <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                            @endif
                                         </select>
                                     </div>
                                     <div class="form-group" @if($isRegional) style="display:none" @endif>
@@ -1996,10 +1999,10 @@
             regionSelect.dataset.initialized = 'true';
 
             const selectedRegion = regionSelect.dataset.selected || '';
-            const selectedRegionActual = regionActualSelect?.dataset?.selected || '';
-            const selectedProvince = provinceSelect.dataset.selected || '';
-            const selectedCity = citySelect.dataset.selected || '';
-            const selectedBarangay = barangaySelect.dataset.selected || '';
+            const selectedRegionActual = regionActualSelect ? (regionActualSelect.dataset.selected || '') : '';
+            const selectedProvince = provinceSelect ? (provinceSelect.dataset.selected || '') : '';
+            const selectedCity = citySelect ? (citySelect.dataset.selected || '') : '';
+            const selectedBarangay = barangaySelect ? (barangaySelect.dataset.selected || '') : '';
             const myRole = '{{ Auth::user()->role }}';
             const OFFICE_ROLES = {
                 central: ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'],
@@ -2104,10 +2107,12 @@
                         if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
                     });
             }
-            regionSelect.addEventListener('change', function(){
-                const code = this.options[this.selectedIndex]?.dataset?.code || '';
-                loadProvincesByRegion(code);
-            });
+            if (regionSelect) {
+                regionSelect.addEventListener('change', function(){
+                    const code = this.options[this.selectedIndex]?.dataset?.code || '';
+                    loadProvincesByRegion(code);
+                });
+            }
             provinceSelect.addEventListener('change', function(){
                 const code = this.options[this.selectedIndex]?.dataset?.code || '';
                 const isRegion = this.options[this.selectedIndex]?.dataset?.isRegion === 'true';
@@ -2152,32 +2157,30 @@
                         provinceSelect.dispatchEvent(new Event('change'));
                     }
                 } else if (IS_OFFICE(myRole,'regional')) {
-                    const regActualGroup = regionActualSelect?.closest('.form-group');
-                    if (regActualGroup) regActualGroup.style.display = '';
                     [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
                     if (regionActualSelect) {
-                        const makeOption = (val, code, matchVal) => {
-                            const o=document.createElement('option');
-                            o.value = val; o.textContent = val; o.dataset.code = code || '';
-                            if (matchVal && matchVal === val) { o.selected = true; }
-                            regionActualSelect.appendChild(o);
-                        };
-                        regionActualSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
+                        const g = document.getElementById('group_profile_region_actual'); if (g) g.style.display = '';
+                        // Name swap: submit the actual region, keep level unsubmitted
+                        try { regionSelect.setAttribute('name',''); } catch(e){}
+                        regionActualSelect.setAttribute('name','region');
+                        // Populate regions
                         fetch(`{{ url('/psgc/regions') }}`)
                             .then(r=>r.json())
                             .then(data=>{
+                                resetSelect(regionActualSelect,'Select Region');
                                 data.sort((a,b)=>a.name.localeCompare(b.name));
                                 let matched=false;
-                                data.forEach(rg=>{
-                                    const o=document.createElement('option');
-                                    o.value = rg.name; o.textContent = rg.name; o.dataset.code = rg.code;
-                                    if (selectedRegionActual && selectedRegionActual === rg.name) { o.selected=true; matched=true; }
+                                data.forEach(reg=>{
+                                    const o=document.createElement('option'); o.value=reg.name; o.textContent=reg.name; o.dataset.code=reg.code;
+                                    if ((selectedRegionActual||selectedRegion) && (selectedRegionActual===reg.name || selectedRegion===reg.name)) { o.selected = true; matched = true; }
                                     regionActualSelect.appendChild(o);
                                 });
-                                if (selectedRegionActual && !matched) makeOption(selectedRegionActual, '', selectedRegionActual);
+                                if (!matched && (selectedRegionActual||selectedRegion)) {
+                                    addFallbackOption(regionActualSelect, selectedRegionActual||selectedRegion);
+                                }
                             })
                             .catch(()=>{
-                                if (selectedRegionActual) makeOption(selectedRegionActual, '', selectedRegionActual);
+                                if (selectedRegionActual||selectedRegion) addFallbackOption(regionActualSelect, selectedRegionActual||selectedRegion);
                             });
                     }
                 } else if (IS_OFFICE(myRole,'provincial')) {

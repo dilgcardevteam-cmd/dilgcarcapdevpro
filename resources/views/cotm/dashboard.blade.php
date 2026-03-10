@@ -733,10 +733,6 @@
                                         <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Email Address</label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input" style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
                                     </div>
-                                    <div class="form-group" style="display:none">
-                                        <label style="display:none">Job Title</label>
-                                        <input type="hidden" name="job_title" value="">
-                                    </div>
                                 </div>
                             </div>
                             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 6px 14px rgba(15,23,42,.06)">
