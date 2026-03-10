@@ -1042,7 +1042,7 @@
         <div class="main-content">
             
             <!-- Dashboard Home Section -->
-            <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
+            <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section']) ? '' : 'active' }}">
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
@@ -1184,7 +1184,7 @@
             </div>
 
             <!-- Classroom Section -->
-            <div id="classroom" class="content-section">
+            <div id="classroom" class="content-section {{ request('tab') == 'classroom' ? 'active' : '' }}">
                 
                 <div class="hero-metrics" style="margin-top:-2px;margin-bottom:20px">
                     <div class="hero-metric">
@@ -1270,7 +1270,7 @@
             </div>
 
             <!-- Calendar Section -->
-            <div id="calendar" class="content-section">
+            <div id="calendar" class="content-section {{ request('tab') == 'calendar' ? 'active' : '' }}">
                 
                 <!-- Visual Calendar -->
                 <div class="calendar-container">
@@ -1335,7 +1335,7 @@
             </div>
 
             <!-- Announcements Section -->
-            <div id="announcements" class="content-section">
+            <div id="announcements" class="content-section {{ request('tab') == 'announcements' ? 'active' : '' }}">
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
                     @if($announcements->isEmpty())
                         <div class="empty-state">
