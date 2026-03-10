@@ -1331,9 +1331,7 @@
                                         @php
                                             $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
                                             $studentsCount = $course->users
-                                                ? $course->users->filter(function($u) use ($participantRoles){
-                                                    return in_array($u->role, $participantRoles) && in_array(optional($u->pivot)->status ?? 'active', ['active','pending']);
-                                                })->count()
+                                                ? $course->users->filter(fn($u)=>in_array($u->role, $participantRoles))->count()
                                                 : 0;
                                         @endphp
                                         {{ $studentsCount }} Students
@@ -1404,8 +1402,14 @@
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 <div class="course-footer">
+                                    @php
+                                        $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                        $studentsCount = $course->users
+                                            ? $course->users->filter(fn($u)=>in_array($u->role, $participantRoles))->count()
+                                            : 0;
+                                    @endphp
                                     <span style="font-size: 0.8rem; color: #777;">
-                                        <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
+                                        <i class="fas fa-users"></i> {{ $studentsCount }} Students
                                     </span>
                                     <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>
