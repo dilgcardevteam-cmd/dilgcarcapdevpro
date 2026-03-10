@@ -1078,7 +1078,7 @@
                 <button type="button" class="discussion-close" onclick="document.getElementById('discussionModal').style.display='none'">×</button>
                 <div class="discussion-modal-sub">Post a text, image, or link discussion for the class.</div>
             </div>
-            <form id="discussionForm" action="{{ route('discussions.store', $course) }}" method="POST" enctype="multipart/form-data" onsubmit="return submitDiscussion(event)">
+            <form id="discussionForm" action="{{ route('courses.discussions.store', $course) }}" method="POST" enctype="multipart/form-data" onsubmit="return submitDiscussion(event)">
                 @csrf
                 <div class="discussion-modal-body">
                     <label class="discussion-label" for="discussionTitle">Title</label>
