@@ -969,6 +969,74 @@ class CourseController extends Controller
         return response()->json(['ok' => true, 'modules' => $out]);
     }
 
+    /**
+     * Receive trainee Module Exam submission (no DB migration; store to local disk).
+     */
+    public function submitModuleExam(\Illuminate\Http\Request $request, \App\Models\Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
+        $data = $request->validate([
+            'mi' => 'required|integer|min:0',
+            'correct' => 'required|integer|min:0',
+            'total' => 'required|integer|min:0',
+            'pct' => 'required|integer|min:0|max:100',
+            'answers' => 'nullable|array',
+            'duration_ms' => 'nullable|integer|min:0',
+        ]);
+        $payload = [
+            'course_id' => $course->id,
+            'user_id' => $user->id,
+            'module_index' => $data['mi'],
+            'correct' => $data['correct'],
+            'total' => $data['total'],
+            'pct' => $data['pct'],
+            'answers' => $data['answers'] ?? [],
+            'duration_ms' => $data['duration_ms'] ?? null,
+            'submitted_at' => now()->toIso8601String(),
+        ];
+        $dir = storage_path('app/exam_submissions/course_'.$course->id);
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$data['mi'].'_u_'.$user->id.'.json';
+        file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT));
+        return response()->json(['ok'=>true]);
+    }
+
+    /**
+     * Return list of Module Exam submissions for a module index.
+     */
+    public function moduleExamResults(\Illuminate\Http\Request $request, \App\Models\Course $course)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
+        }
+        $mi = (int)$request->query('mi', -1);
+        if ($mi < 0) return response()->json(['ok'=>false,'error'=>'Missing module index'], 422);
+        $dir = storage_path('app/exam_submissions/course_'.$course->id);
+        $items = [];
+        if (is_dir($dir)) {
+            foreach (glob($dir.DIRECTORY_SEPARATOR.'mi_'.$mi.'_u_*.json') as $p) {
+                $j = json_decode(@file_get_contents($p), true) ?: [];
+                if (!empty($j['user_id'])) {
+                    $u = \App\Models\User::find($j['user_id']);
+                    $items[] = [
+                        'user_id' => $j['user_id'],
+                        'name' => $u?->name ?? 'User '.$j['user_id'],
+                        'email' => $u?->email ?? null,
+                        'pct' => (int)($j['pct'] ?? 0),
+                        'correct' => (int)($j['correct'] ?? 0),
+                        'total' => (int)($j['total'] ?? 0),
+                        'submitted_at' => $j['submitted_at'] ?? null,
+                    ];
+                }
+            }
+        }
+        // Sort latest first
+        usort($items, fn($a,$b)=>strcmp($b['submitted_at']??'', $a['submitted_at']??''));
+        return response()->json(['ok'=>true,'items'=>$items]);
+    }
+
     public function modulesJson(\App\Models\Course $course)
     {
         $mods = $course->modules;

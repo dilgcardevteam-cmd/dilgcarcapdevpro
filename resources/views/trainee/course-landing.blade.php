@@ -1478,7 +1478,7 @@
                 canvas.toBlob(function(blob){
                     const fd = new FormData();
                     fd.append('image', blob, 'course.jpg');
-                    fetch("{{ route('trainer.courses.image', $course) }}", {
+                    fetch("{{ url('/trainer/courses/'.$course->id.'/image') }}", {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrfToken },
                         body: fd

@@ -742,12 +742,15 @@
             const timerMins = parseInt(ex.timer_minutes||0,10) || 0;
             const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;
             const attemptLim = (ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null;
+            // Optional trainer-only Results button
+            const resultsBtn = IS_TRAINER ? '<button id="examResultsBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">View Results</button>' : '';
             const header = `
                 <div class="subheader">
                     <span>${esc(m.title||'Module')}: ${esc(ex.title||'Module Exam')}</span>
                     <div style="display:flex;align-items:center;gap:8px">
                         <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#002C76"></i> ${qs.length} question${qs.length===1?'':'s'}</span>
                         ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#002C76"></i> <span id="examTimer"></span></span>` : ``}
+                        ${resultsBtn}
                     </div>
                 </div>`;
             if(bodyEl){
@@ -905,6 +908,17 @@
                 function handleSubmit(){
                     saveAnswers();
                     const {correct,total,pct} = computeGrade();
+                    // Persist trainee result to server
+                    if(!IS_TRAINER){
+                        try{
+                            const answersStr = localStorage.getItem(keyBase+'_answers')||'[]';
+                            fetch("{{ url('/courses/'.$course->id.'/module-exam/submit') }}", {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+                                body: JSON.stringify({mi: mi, correct: correct, total: total, pct: pct, answers: JSON.parse(answersStr), duration_ms: 0})
+                            }).catch(()=>{});
+                        }catch(_){}
+                    }
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
                     try{ localStorage.setItem(keyBase+'_submitted','1'); }catch(e){}
                     setFrozen(true);
@@ -1182,6 +1196,37 @@
             } else {
                 const bodyBox = document.getElementById('examBody');
                 if(bodyBox){ bodyBox.style.display=''; }
+                // Wire trainer results button
+                const btn = document.getElementById('examResultsBtn');
+                if(btn){
+                    btn.addEventListener('click', ()=>{
+                        let wrap = document.getElementById('examResultsWrap');
+                        if(!wrap){
+                            wrap = document.createElement('div');
+                            wrap.id = 'examResultsWrap';
+                            wrap.style.cssText='margin:12px 0;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc';
+                            bodyEl.prepend(wrap);
+                        }
+                        wrap.innerHTML = '<div class="muted">Loading results…</div>';
+                        fetch("{{ url('/courses/'.$course->id.'/module-exam/results') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
+                            .then(r=>r.json()).then(j=>{
+                                if(!j || !j.ok || !Array.isArray(j.items) || j.items.length===0){
+                                    wrap.innerHTML = '<div class="muted">No submissions yet.</div>'; return;
+                                }
+                                const rows = j.items.map(it=>`<tr>
+                                  <td>${esc(it.name||'')}</td>
+                                  <td>${esc(it.email||'')}</td>
+                                  <td style="text-align:right;font-weight:800">${it.pct}%</td>
+                                  <td>${esc((it.correct||0)+'/'+(it.total||0))}</td>
+                                  <td>${esc((it.submitted_at||'').replace('T',' ').replace('Z',''))}</td>
+                                </tr>`).join('');
+                                wrap.innerHTML = '<div style="font-weight:800;margin-bottom:6px">Module Exam Results</div>'
+                                  + '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse">'
+                                  + '<thead><tr style="text-align:left;border-bottom:1px solid #e5e7eb"><th>Name</th><th>Email</th><th>Score</th><th>Items</th><th>Submitted</th></tr></thead>'
+                                  + '<tbody>'+rows+'</tbody></table></div>';
+                            }).catch(()=>{ wrap.innerHTML = '<div class="muted">Failed to load results.</div>'; });
+                    });
+                }
             }
         }
         function openSubtopic(mi,ti,si){

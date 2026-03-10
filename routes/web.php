@@ -93,6 +93,9 @@ Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLandin
 Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth'])->name('trainer.courses.view');
 // Trainer: update course banner image only
 Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth'])->name('trainer.courses.image');
+// Module Exam submissions and results
+Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
+Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 // Admin System Settings
 Route::post('/admin/system-settings/location/import', [DashboardController::class, 'importLocationMaster'])->middleware(['auth'])->name('admin.settings.location.import');
 Route::get('/admin/system-settings/location/export', [DashboardController::class, 'exportLocationMaster'])->middleware(['auth'])->name('admin.settings.location.export');
