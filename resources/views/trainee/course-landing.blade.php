@@ -921,6 +921,7 @@
                         @endif
                     </div>
                     <div class="split">
+                        @if(empty($asTrainer))
                         <div class="container-box">
                             @php $completion = $completion ?? 0; @endphp
                             <div class="section-head" style="color:var(--text);font-weight:700;">
@@ -935,6 +936,7 @@
                             </div>
                             <div id="moduleProgressList" style="margin-top:10px"></div>
                         </div>
+                        @endif
                         <div class="container-box">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                                 <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
