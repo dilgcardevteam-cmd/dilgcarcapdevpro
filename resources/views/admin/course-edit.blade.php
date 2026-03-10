@@ -173,7 +173,7 @@
             </div>
             <div class="tabs" role="tablist">
                 <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
-                <button id="tabBtn2" class="tab" role="tab" aria-controls="tab2" aria-selected="false" tabindex="-1">Modules Management</button>
+                <button id="tabBtn2" class="tab" role="tab" aria-controls="tab2" aria-selected="false" tabindex="0">Modules Management</button>
             </div>
             @if($errors->update_course->any())
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
@@ -476,7 +476,47 @@
                 const qTextarea = row.querySelector('textarea[name$="[fields_json]"]') || row.querySelector('textarea');
                 titleInput.name = `modules[${moduleIndex}][topics][${idx}][title]`;
                 if(qTextarea){ qTextarea.name = `modules[${moduleIndex}][topics][${idx}][fields_json]`; }
+                // Reindex subtopics within this topic, if any
+                const subs = Array.from(row.querySelectorAll(':scope .subtopic-row'));
+                subs.forEach((sub, si)=>{
+                    const idxBadge = sub.querySelector('.subtopic-idx');
+                    if(idxBadge) idxBadge.textContent = `${moduleIndex+1}.${idx+1}.${si+1}a`;
+                    const sTitle = sub.querySelector('.subtopic-title');
+                    const ta = sub.querySelector('textarea[name$="[fields_json]"]');
+                    if(sTitle) sTitle.name = `modules[${moduleIndex}][topics][${idx}][subtopics][${si}][title]`;
+                    if(ta) ta.name = `modules[${moduleIndex}][topics][${idx}][subtopics][${si}][fields_json]`;
+                });
             });
+        }
+        function addSubtopicRow(topicRow){
+            if(!topicRow) return;
+            const wrapper = topicRow.closest('.module-wrapper');
+            const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
+            const topicsContainer = wrapper.querySelector('.topics');
+            const topicIndex = Array.from(topicsContainer.children).indexOf(topicRow);
+            const si = topicRow.querySelectorAll(':scope .subtopic-row').length;
+            const sub = document.createElement('div');
+            sub.className = 'subtopic-row';
+            sub.style.margin = '8px 0 0 32px';
+            sub.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                        <span class="subtopic-idx" style="color:#64748b;width:60px;">${moduleIndex+1}.${topicIndex+1}.${si+1}a</span>
+                        <input type="text" class="subtopic-title" name="modules[${moduleIndex}][topics][${topicIndex}][subtopics][${si}][title]" placeholder="Subtopic title" maxlength="80" style="flex:1;">
+                    </div>
+                </div>
+                <div class="fields-panel" style="margin-left:68px;margin-top:6px">
+                    <div class="field-list"></div>
+                    <textarea name="modules[${moduleIndex}][topics][${topicIndex}][subtopics][${si}][fields_json]" style="display:none"></textarea>
+                </div>
+                <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)" style="margin-left:68px"><i class="fas fa-plus"></i></button>
+            `;
+            // Insert after topic's last child
+            topicRow.appendChild(sub);
+            // Reindex after insertion
+            reindexTopics(topicsContainer);
+            updateProgress();
+            return sub;
         }
         function removeModule(btn, event){
             event.stopPropagation();
@@ -930,7 +970,7 @@
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
                         </label>
-                        <label class="q-col" style="display:block">
+                        <label class="q-col" style="display:block;padding-left:16px">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
                                 <option value="multiple_choice">Multiple Choice</option>
@@ -997,7 +1037,6 @@
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
         }
-        }
         function addQuestionFieldAfter(btn){
             const current = btn.closest('.field-block');
             const panel = current.closest('.fields-panel');
@@ -1012,7 +1051,7 @@
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
                         </label>
-                        <label class="q-col" style="display:block">
+                        <label class="q-col" style="display:block;padding-left:16px">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
                                 <option value="multiple_choice">Multiple Choice</option>
@@ -1583,10 +1622,13 @@
             createModule();
         }
         function bindTabs(){
-            document.getElementById('tabBtn1').addEventListener('click', ()=> switchTo(1));
-            document.getElementById('tabBtn2').addEventListener('click', ()=> switchTo(2));
+            const b1 = document.getElementById('tabBtn1');
+            const b2 = document.getElementById('tabBtn2');
+            b1 && b1.addEventListener('click', ()=> switchTo(1));
+            b2 && b2.addEventListener('click', ()=> switchTo(2));
             document.getElementById('backToDetails').addEventListener('click', ()=> switchTo(1));
-            document.getElementById('nextToModules').addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } });
+            const nxt = document.getElementById('nextToModules');
+            nxt && nxt.addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } else { switchTo(1); } });
             ['name','description','subject_area','image'].forEach(id=>{
                 const el = document.getElementById(id);
                 el && el.addEventListener('input', updateProgress);
@@ -1597,6 +1639,8 @@
                 if(!validateDetails() || !validateModules()){ e.preventDefault(); switchTo(!validateDetails()?1:2); }
             });
         }
+        // In case scripts load late in embedded iframe, ensure binding after load
+        window.addEventListener('load', function(){ try{ bindTabs(); }catch(e){} });
         function draftKey(){ return 'draft_course_edit_{{ $course->id }}'; }
         function saveDraft(){
             const form = document.getElementById('courseForm');
@@ -1650,6 +1694,14 @@
             initDynamicMenu();
             const existing = {!! json_encode($course->modules ?? [], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!};
             populateExistingModules(existing);
+            // Ensure the Modules Management tab is active with a default layout similar to create view
+            try{ switchTo(2); }catch(e){}
+            try{ ensureDefaultModule(); }catch(e){}
+            // Ensure a Course Exam wrapper exists for editing even if not previously created
+            const container = document.getElementById('modulesContainer');
+            if(container && !container.querySelector('.exam-wrapper')){
+                try{ createCourseExam(null); }catch(e){}
+            }
         });
         let DM_STATE = { el: null, currentAnchor: null, menuTrigger: null, hovering: false, hoverTimer: null, raf: null, lastPos: {x: -1, y: -1} };
         function initDynamicMenu(){
@@ -1979,9 +2031,9 @@
                             <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                                 <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
-                                    <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
+                                    <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;" required></textarea>
                                 </label>
-                                <label class="q-col" style="display:block">
+                                <label class="q-col" style="display:block;padding-left:16px">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                                     <select class="eq-type">
                                         <option value="multiple_choice">Multiple Choice</option>
@@ -1993,7 +2045,7 @@
                             <div class="eq-choices" style="margin-top:8px"></div>
                             <div class="eq-id" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Answer</label>
-                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px" required>
                             </div>
                             <div class="eq-tf" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Answer</label>
@@ -2033,6 +2085,11 @@
                 host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
                 host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                // Toggle required attributes to match type
+                const qText = host.querySelector('.eq-text');
+                const idAns = host.querySelector('.eq-id-answer');
+                if(qText){ qText.required = true; }
+                if(idAns){ idAns.required = (t==='identification'); }
                 if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
             }
             function syncExamJSON(){
@@ -2050,16 +2107,18 @@
             host.querySelector('.eq-add').addEventListener('click', function(){
                 const t = host.querySelector('.eq-type').value;
                 const text = (host.querySelector('.eq-text').value||'').trim();
-                if(!text) return;
+                if(!text){ alert('Please enter a question.'); return; }
                 let obj = null;
                 if(t==='multiple_choice'){
                     const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
-                    if(opts.length<2) return;
+                    if(opts.length<2){ alert('Please add at least two choices.'); return; }
                     const checked = host.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : 0;
+                    if(!checked){ alert('Please mark the correct choice.'); return; }
+                    const ans = parseInt(checked.value,10);
                     obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
                 }else if(t==='identification'){
                     const ans = (host.querySelector('.eq-id-answer').value||'').trim();
+                    if(!ans){ alert('Please enter the answer for Identification.'); return; }
                     obj = { type:'identification', text, answer: ans };
                 }else if(t==='true_false'){
                     const ans = host.querySelector('.eq-tf-answer').value === 'true';
@@ -2069,6 +2128,7 @@
                 const idx = listEl.children.length + 1;
                 const node = document.createElement('div');
                 node.className = 'q-item';
+                node.setAttribute('data-question-index', String(idx-1));
                 node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. '+obj.text+'</div>'
                     + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>'
                     + '<button type="button" class="btn btn-small" style="background:#dc3545;margin-top:6px" onclick="removeExamItem(this)">Delete</button>';
@@ -2219,6 +2279,7 @@
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
+                                <button type="button" class="btn btn-small eq-save" style="background:#002C76;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-save" style="margin-right:6px"></i> Save</button>
                             </div>
                         </div>
                     </div>
@@ -2309,12 +2370,13 @@
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
-            updateExamNavigator.call(wrap);
+                const val = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
+                wrap.querySelector('.exam-json').value = val;
+                try{ localStorage.setItem('exam_draft_edit_{{ $course->id }}', val); }catch(e){}
             }
-            wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
-            wrap.addEventListener('input', syncExamJSON);
-            wrap.addEventListener('change', syncExamJSON);
+            wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); scheduleAutoSave(wrap); });
+            wrap.addEventListener('input', ()=>{ syncExamJSON(); scheduleAutoSave(wrap); });
+            wrap.addEventListener('change', ()=>{ syncExamJSON(); scheduleAutoSave(wrap); });
             wrap.querySelector('.eq-add').addEventListener('click', function(){
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
@@ -2351,6 +2413,7 @@
                 wrap.querySelector('.eq-id-answer').value='';
                 wrap.querySelector('.eq-tf-answer').value='true';
                 syncExamJSON();
+                updateExamNavigator.call(wrap);
             });
             renderChoices(); syncBuilderBoxes(); syncExamJSON();
             if(prefill){
@@ -2386,7 +2449,10 @@
                 b.className = 'nav-block';
                 b.textContent = (i+1);
                 b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-                b.addEventListener('click', ()=> setActiveExamIndex(i));
+                b.addEventListener('click', ()=> {
+                    // Existence check: if index equals count-1 it's a new blank slot
+                    setActiveExamIndex(i);
+                });
                 track.appendChild(b);
             }
             nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(getActiveExamIndex(wrap)-1);
@@ -2405,10 +2471,7 @@
             const track = nav.querySelector('.nav-track');
             const blocks = Array.from(track.children);
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
-            if(items.length===0){
-                const builder = wrap.querySelector('.eq-text');
-                if(builder) builder.focus();
-            }
+            // Do not auto-focus builder to avoid focus jumping while typing elsewhere
             const clamped = Math.max(0, Math.min(items.length, i));
             const prev = nav.querySelector('.nav-prev');
             const next = nav.querySelector('.nav-next');
@@ -2440,8 +2503,17 @@
             if(clamped < items.length){
                 populateBuilderFromItem(wrap, clamped);
             } else {
-                const builder = wrap.querySelector('.eq-text');
-                if(builder) builder.focus();
+                // New (empty) slot: clear builder fields to avoid copying previous question
+                const textEl = wrap.querySelector('.eq-text'); if(textEl) textEl.value = '';
+                const idAns = wrap.querySelector('.eq-id-answer'); if(idAns) idAns.value = '';
+                const tfSel = wrap.querySelector('.eq-tf-answer'); if(tfSel) tfSel.value = 'true';
+                const choicesWrap = wrap.querySelector('.eq-choices');
+                if(choicesWrap){
+                    choicesWrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
+                    choicesWrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
+                }
+                showBuilderBoxes(wrap);
+                // keep focus where the user is; no forced focus
             }
         }
         function recalcExamJSON(wrap){
@@ -2489,7 +2561,7 @@
                 wrap.querySelector('.eq-tf-answer').value = payload.answer===false ? 'false' : 'true';
             }
         }
-        function showBuilderBoxes(wrap){
+            function showBuilderBoxes(wrap){
             const t = wrap.querySelector('.eq-type').value;
             const boxChoices = wrap.querySelector('.eq-choices');
             const boxId = wrap.querySelector('.eq-id');
@@ -2520,6 +2592,7 @@
             });
         }
         (function bindBuilderLiveUpdate(){
+            window.__EXAM_DIRTY = new Set();
             document.addEventListener('input', function(e){
                 const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
                 const idx = getActiveExamIndex(wrap);
@@ -2545,16 +2618,60 @@
                 const title = node.querySelector('.qi-title');
                 if(title){ title.textContent = (idx+1)+'. '+(obj.text||''); }
                 recalcExamJSON(wrap);
+                scheduleAutoSave(wrap);
+                try{ window.__EXAM_DIRTY.add(idx); }catch(_){}
             }, { passive:true });
             document.addEventListener('change', function(e){
                 const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
-                const idx = getActiveExamIndex(wrap);
-                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
-                if(idx >= items.length) return;
-                const ev = new Event('input', { bubbles:true });
-                wrap.dispatchEvent(ev);
+                recalcExamJSON(wrap);
+                scheduleAutoSave(wrap);
+                try{ const idx = getActiveExamIndex(wrap); window.__EXAM_DIRTY.add(idx); }catch(_){}
             }, { passive:true });
         })();
+        // Debounced auto-save (5s after typing) and explicit Save button
+        function scheduleAutoSave(wrap){
+            if(!wrap) return;
+            clearTimeout(wrap.__saveTimer);
+            wrap.__saveTimer = setTimeout(()=> doAjaxSaveExam(wrap), 5000);
+        }
+        function doAjaxSaveExam(wrap){
+            try{
+                recalcExamJSON(wrap);
+                const hidden = wrap.querySelector('.exam-json');
+                if(!hidden) return;
+                const payload = hidden.value || '';
+                fetch('{{ url('/courses/'.$course->id.'/exam') }}', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json','X-CSRF-TOKEN': '{{ csrf_token() }}','Accept':'application/json'},
+                    body: JSON.stringify({ exam_json: payload, dirty: Array.from(window.__EXAM_DIRTY||[]) })
+                }).then(()=>{
+                    const nav = wrap.querySelector('.exam-nav');
+                    if(nav && !nav.querySelector('.save-chip')){
+                        const chip = document.createElement('span');
+                        chip.className='save-chip';
+                        chip.textContent='Saved';
+                        chip.style.cssText='margin-left:8px;color:#059669;font-weight:700';
+                        nav.appendChild(chip);
+                        setTimeout(()=>{ chip.remove(); }, 1800);
+                    }
+                    window.__EXAM_DIRTY && window.__EXAM_DIRTY.clear();
+                }).catch(()=>{
+                    // silent fail
+                });
+            }catch(_){}
+        }
+        document.addEventListener('click', function(e){
+            const btn = e.target.closest('.eq-save'); if(!btn) return;
+            const wrap = btn.closest('.exam-wrapper'); if(!wrap) return;
+            e.preventDefault();
+            doAjaxSaveExam(wrap);
+        });
+        // 30-second periodic auto-save for modified questions
+        setInterval(function(){
+            const wrap = document.querySelector('.exam-wrapper');
+            if(!wrap || !window.__EXAM_DIRTY || window.__EXAM_DIRTY.size===0) return;
+            doAjaxSaveExam(wrap);
+        }, 30000);
         function deleteActiveExamQuestion(btn){
             const wrap = btn.closest('.exam-wrapper');
             const listEl = wrap.querySelector('.exam-q-list');
@@ -2653,6 +2770,11 @@
                             node.dataset.payload = JSON.stringify(q);
                             listEl.appendChild(node);
                         });
+                        // Build navigator blocks for existing questions
+                        if(typeof updateExamNavigator === 'function'){
+                            const ctx = host.closest('.exam-wrapper') || wrapper;
+                            try{ updateExamNavigator.call(ctx); }catch(e){}
+                        }
                     }
                 }
                 const topics = Array.isArray(mod.topics) ? mod.topics : [];

@@ -92,13 +92,13 @@
         .mc .mc-option.submitted-wrong{position:relative;border-color:#ef4444;background:#fee2e2;color:#b91c1c}
         .mc .mc-option.submitted-wrong::before{content:'✕';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #ef4444}
         .mc .mc-radio{width:20px;height:20px;border:2px solid #9ca3af;border-radius:999px;display:inline-block;background:#fff;flex:0 0 auto}
-        .mc .mc-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #06b6d4, 0 0 0 2px #fff}
+        .mc .mc-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #002C76, 0 0 0 2px #fff}
         /* True/False options styled like MC */
         .tf .tf-option{display:flex;align-items:center;gap:12px;padding:16px 18px;margin:10px 0;border:1px solid #e5e7eb;border-radius:14px;background:#f3f4f6;cursor:pointer;transition:all .15s ease}
         .tf .tf-option:hover{background:#eef2ff}
         .tf .tf-option.selected{background:#2563eb;color:#fff;border-color:#1d4ed8;box-shadow:inset -12px -12px 0 0 rgba(255,255,255,0.15)}
         .tf .mc-radio{width:20px;height:20px;border:2px solid #9ca3af;border-radius:999px;display:inline-block;background:#fff;flex:0 0 auto}
-        .tf .tf-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #2563eb, 0 0 0 2px #fff}
+        .tf .tf-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #002C76, 0 0 0 2px #fff}
         .tf .tf-option.submitted-correct{position:relative}
         .tf .tf-option.submitted-correct::before{content:'✓';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#10b981;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #10b981}
         .tf .tf-option.submitted-wrong{position:relative;border-color:#ef4444;background:#fee2e2;color:#b91c1c}
@@ -106,15 +106,27 @@
         .mc-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
         .btn-green{flex:1;min-width:160px;background:var(--b);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-weight:700;cursor:pointer}
         .btn-green:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}
+<<<<<<< HEAD
+<<<<<<< HEAD
+        .mc-actions [data-act="feedback"]{background:#fff;color:#0f3b8f;border:1px solid #c7d2fe}
+        .mc-actions [data-act="reset"]{background:#0f3b8f;color:#fff}
+        .mc-feedback{margin-top:8px;font-weight:700;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+=======
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .mc-feedback{margin-top:8px;font-weight:700}
         .btn-blue{
-            background:linear-gradient(90deg,#0f3b8f 0%, #2563eb 100%);
+            background:linear-gradient(90deg,#002C76 0%, #0f3b8f 100%);
             color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;
             box-shadow:0 10px 20px rgba(37,99,235,.22);
             transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
         }
-        .btn-blue:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(37,99,235,.28); filter:brightness(1.03); }
+        .btn-blue:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(0,44,118,.28); filter:brightness(1.03); }
         .btn-blue:disabled{ background:#e5e7eb;color:#9ca3af;cursor:not-allowed; box-shadow:none; }
+<<<<<<< HEAD
+>>>>>>> 784202431884b5fe0713b51cfac0955a87223c63
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .view-only .module-bar,
         .view-only .module-kpi,
         .view-only .done-toggle,
@@ -234,6 +246,14 @@
         .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
         .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
+<<<<<<< HEAD
+        .mc .mc-option{background:#fff;border:1px solid #e6edf5}
+        .mc .mc-option:hover{background:#f5f8ff}
+        .mc .mc-option.selected{background:#eef2ff;border-color:#c7d2fe}
+        .mc-actions{gap:10px}
+        .btn-ghost{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;background:#fff;font-weight:700}
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .pane{
             border-radius:16px;
             box-shadow:0 14px 30px rgba(15,23,42,.14);
@@ -507,6 +527,34 @@
                     }
                     topicsCt.appendChild(tEl);
                 });
+                // Append Module Exam entry if present
+                if (m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
+                    const tEl = document.createElement('div');
+                    tEl.className='topic';
+                    tEl.setAttribute('data-mi',mi);
+                    tEl.setAttribute('data-ti','exam');
+                    const num = `${mi+1}.E`;
+                    const qCount = m.exam.questions.length;
+                    const badge = `<span class="count" style="display:inline-block">${qCount} Qs</span>`;
+                    tEl.innerHTML = `<div class="topic-head">
+                        <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
+                        <span class="title">${num}. Module Exam</span>
+                        ${badge}
+                    </div>`;
+                    const head = tEl.querySelector('.topic-head');
+                    head.addEventListener('click', (e)=>{
+                        if (lockedForUser) { 
+                            showLockedContent(mi);
+                            e.stopPropagation(); 
+                            return; 
+                        }
+                        document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
+                        tEl.classList.add('active');
+                        openExam(mi);
+                        e.stopPropagation();
+                    });
+                    topicsCt.appendChild(tEl);
+                }
                 mod.querySelector('.module-header').addEventListener('click',()=>{
                     const currentStatus = (mods[mi] && mods[mi].status) ? mods[mi].status : 'unlocked';
                     const locked = (currentStatus==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
@@ -628,6 +676,488 @@
             }
             const fields = ('fields' in t) ? t.fields : (t.fields_json ? (typeof t.fields_json==='string'?JSON.parse(t.fields_json):t.fields_json) : []);
             renderFieldsInto(document.getElementById('contentBody'), fields, mi, ti);
+        }
+        function openExam(mi){
+            const m = (course.modules||[])[mi]||{};
+            const ex = m.exam||{};
+            const qs = Array.isArray(ex.questions)? ex.questions : [];
+            const titleEl = document.getElementById('contentTitle');
+            const bodyEl = document.getElementById('contentBody');
+            if(titleEl) titleEl.textContent = `${mi+1}.E Module Exam`;
+            if(!qs.length){
+                if(bodyEl) bodyEl.innerHTML = `<div class="field" style="background:#f8fafc;">No questions added.</div>`;
+                return;
+            }
+            function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+            const html = qs.map((q,qi)=>{
+                const kind = q.type || 'multiple_choice';
+                const showTrainerAnswer = (IS_TRAINER===true);
+                if(kind==='multiple_choice'){
+                    const opts = (q.choices||q.options||[]).map((o,oi)=>{
+                        const isAns = Number.isInteger(q.answer_index) && oi===q.answer_index;
+                        const chip = showTrainerAnswer && isAns ? '<span class="chip">Answer</span>' : '';
+                        return `<div class="mc-option${isAns&&showTrainerAnswer?' trainer-answer':''}" data-idx="${oi}"><span class="mc-radio"></span><span class="mc-label">${esc(o)}</span> ${chip}</div>`;
+                    }).join('');
+                    if(showTrainerAnswer){
+                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div><div class="mc" data-answer="${Number.isInteger(q.answer_index)?q.answer_index:''}">${opts}</div></div>`;
+                    }
+                    return `<div class="field question" data-kind="mc">
+                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div>
+                        <div class="mc" data-answer="${Number.isInteger(q.answer_index)?q.answer_index:''}">${opts}</div>
+                    </div>`;
+                }else if(kind==='identification'){
+                    const ans = q.answer||'';
+                    if(showTrainerAnswer){
+                        const extra = ans ? `<div class="chip">Answer</div> ${esc(ans)}` : '<div class="muted">No answer provided</div>';
+                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>${extra}</div>`;
+                    }
+                    const dataAns = String(JSON.stringify(ans? [ans]:[])).replace(/"/g,'&quot;');
+                    return `<div class="field question" data-kind="id">
+                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>
+                        <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
+                    </div>`;
+                }else if(kind==='true_false'){
+                    const val = (q.answer===true)?'true':(q.answer===false?'false':'');
+                    if(showTrainerAnswer){
+                        const opts = ['True','False'].map(v=>{
+                            const isAns = (v.toLowerCase()===val);
+                            const chip = isAns ? '<span class="chip">Answer</span>' : '';
+                            return `<div class="tf-option${isAns?' trainer-answer':''}"><span class="mc-radio"></span><span>${v}</span> ${chip}</div>`;
+                        }).join('');
+                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'True or False')}</div><div class="tf">${opts}</div></div>`;
+                    }
+                    const opts2 = ['True','False'].map(v=>{
+                        return `<div class="tf-option" data-val="${v.toLowerCase()}"><span class="mc-radio"></span><span>${v}</span></div>`;
+                    }).join('');
+                    return `<div class="field question" data-kind="tf">
+                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'True or False')}</div>
+                        <div class="tf" data-answer="${val}">${opts2}</div>
+                    </div>`;
+                }else{
+                    return `<div class="field"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div><div class="muted">Unsupported question type.</div></div>`;
+                }
+            }).join('');
+            const timerMins = parseInt(ex.timer_minutes||0,10) || 0;
+            const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;
+            const attemptLim = (ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null;
+            const header = `
+                <div class="subheader">
+                    <span>${esc(m.title||'Module')}: ${esc(ex.title||'Module Exam')}</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#002C76"></i> ${qs.length} question${qs.length===1?'':'s'}</span>
+                        ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#002C76"></i> <span id="examTimer"></span></span>` : ``}
+                    </div>
+                </div>`;
+            if(bodyEl){
+                const preface = IS_TRAINER ? '' : `
+                    <div id="examPreface" style="margin:12px 0;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:linear-gradient(180deg,#f8fbff 0%, #f5f7fb 100%);box-shadow:0 10px 22px rgba(15,23,42,.06)">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:36px;height:36px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;border:1px solid #dbeafe"><i class="fas fa-circle-info" style="color:#0f3b8f"></i></div>
+                                <div style="font-weight:900;color:#0f172a;letter-spacing:-.01em">Exam Instructions</div>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#0f3b8f"></i> ${qs.length} item${qs.length===1?'':'s'}</span>
+                                ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#0f3b8f"></i> ${timerMins} min</span>` : `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-infinity" style="margin-right:6px;color:#0f3b8f"></i> No time limit</span>`}
+                                ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check-circle" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
+                                ${attemptLim && attemptLim>0 ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-rotate" style="margin-right:6px;color:#0f3b8f"></i> ${attemptLim} attempt${attemptLim===1?'':'s'}</span>` : ``}
+                            </div>
+                        </div>
+                        <div style="color:#334155;margin:0 0 12px 0">
+                            <ul style="margin:0 0 0 18px;line-height:1.6">
+                                <li>Answer all questions to the best of your knowledge.</li>
+                                <li>Your timer will start when you press Start.</li>
+                            </ul>
+                        </div>
+                        <div style="display:flex;justify-content:center">
+                            <button id="examStart" class="btn-blue" style="padding:12px 28px;border-radius:16px;box-shadow:0 10px 24px rgba(37,99,235,.22)">Start</button>
+                        </div>
+                    </div>`;
+                const bodyWrap = `<div id="examBody" style="display:none">${html}${IS_TRAINER ? '' : `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="examReset" class="btn-ghost" style="display:none">Reset Exam</button><button id="examSubmitAll" class="btn-blue">Submit Exam</button></div>`}</div>`;
+                const confirmOverlay = IS_TRAINER ? '' : `
+                <div id="examConfirm" style="position:fixed;inset:0;background:rgba(2,6,23,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:4000">
+                  <div style="width:min(560px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 30px 60px rgba(2,6,23,.28);overflow:hidden">
+                    <div style="padding:16px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#f5f7ff 0%,#ffffff 100%)">
+                      <div style="display:flex;align-items:center;gap:12px">
+                        <div style="width:40px;height:40px;border-radius:12px;background:#eef2ff;display:flex;align-items:center;justify-content:center;border:1px solid #dbeafe">
+                          <i class="fas fa-clipboard-check" style="color:#0f3b8f"></i>
+                        </div>
+                        <div style="font-weight:900;color:#0f172a;letter-spacing:-.01em">Submit My Assessment</div>
+                      </div>
+                    </div>
+                    <div style="padding:16px 18px">
+                      <div id="examConfirmSummary" style="margin:6px 0 12px;color:#334155;font-weight:700"></div>
+                      <label style="display:flex;align-items:center;gap:10px;margin:10px 0;padding:10px 12px;border:1px solid #dbeafe;border-radius:12px;background:#eef2ff">
+                        <input id="examConfirmChk" type="checkbox"> <span style="font-weight:700;color:#0f172a">I confirm my submission.</span>
+                      </label>
+                    </div>
+                    <div style="padding:14px 18px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;background:#fff">
+                      <button id="examConfirmCancel" class="btn-ghost" style="padding:12px 16px;border-radius:12px">Cancel</button>
+                      <button id="examConfirmGo" class="btn-blue" style="padding:12px 18px;border-radius:12px;min-width:120px" disabled>Submit</button>
+                    </div>
+                  </div>
+                </div>`;
+                bodyEl.innerHTML = header + `<div id="examResult" style="display:none;margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;font-weight:800"></div>` + preface + bodyWrap + confirmOverlay;
+            }
+            if(!IS_TRAINER){
+                const keyBase = `exam_${course.id}_${mi}`;
+                const resultBox = document.getElementById('examResult');
+                const prefaceBox = document.getElementById('examPreface');
+                const bodyBox = document.getElementById('examBody');
+                const closeBtn = document.getElementById('examClose');
+                function saveAnswers(){
+                    const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
+                    const answers = blocks.map(b=>{
+                        const kind = b.getAttribute('data-kind') || 'mc';
+                        if(kind==='mc'){
+                            const sel = b.querySelector('.mc .mc-option.selected');
+                            return sel ? parseInt(sel.getAttribute('data-idx'),10) : null;
+                        }else if(kind==='id'){
+                            const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
+                        }else if(kind==='tf'){
+                            const sel = b.querySelector('.tf .tf-option.selected'); return sel ? sel.getAttribute('data-val') : null;
+                        }
+                        return null;
+                    });
+                    try{ localStorage.setItem(keyBase+'_answers', JSON.stringify(answers)); }catch(e){}
+                }
+                function restoreAnswers(){
+                    let arr = null;
+                    try{ arr = JSON.parse(localStorage.getItem(keyBase+'_answers')||'null'); }catch(e){ arr=null; }
+                    if(!Array.isArray(arr)) return;
+                    const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
+                    blocks.forEach((b,i)=>{
+                        const kind = b.getAttribute('data-kind') || 'mc';
+                        const val = arr[i];
+                        if(kind==='mc'){
+                            if(Number.isInteger(val)){
+                                const opt = b.querySelector(`.mc .mc-option[data-idx="${val}"]`);
+                                if(opt){ opt.classList.add('selected'); }
+                            }
+                        }else if(kind==='id'){
+                            const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
+                        }else if(kind==='tf'){
+                            const opt = b.querySelector(`.tf .tf-option[data-val="${val}"]`); if(opt){ opt.classList.add('selected'); }
+                        }
+                    });
+                }
+                function setFrozen(val){
+                    const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
+                    blocks.forEach(b=>{
+                        if(val){
+                            b.style.pointerEvents='none';
+                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
+                        }else{
+                            b.style.pointerEvents='auto';
+                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=false; }
+                        }
+                    });
+                }
+                function computeGrade(){
+                    const answers = JSON.parse(localStorage.getItem(keyBase+'_answers')||'[]') || [];
+                    let total = qs.length, correct = 0;
+                    for(let i=0;i<qs.length;i++){
+                        const q = qs[i]||{};
+                        const kind = q.type || 'multiple_choice';
+                        const a = answers[i];
+                        if(kind==='multiple_choice'){
+                            if(Number.isInteger(q.answer_index) && Number.isInteger(a) && a===q.answer_index) correct++;
+                        }else if(kind==='true_false'){
+                            const val = q.answer===true?'true':(q.answer===false?'false':'');
+                            if(a && String(a).toLowerCase()===val) correct++;
+                        }else if(kind==='identification'){
+                            const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
+                            const ok = ansList.some(x=> String(x||'').trim().toLowerCase() === String(a||'').trim().toLowerCase());
+                            if(ok) correct++;
+                        }
+                    }
+                    const pct = total ? Math.round((correct/total)*100) : 0;
+                    return {correct,total,pct};
+                }
+                bodyEl.querySelectorAll('.field.question[data-kind="mc"] .mc .mc-option').forEach(opt=>{
+                    opt.addEventListener('click', ()=>{
+                        const wrap = opt.closest('.mc');
+                        const submitted = localStorage.getItem(keyBase+'_submitted')==='1';
+                        if(submitted) return;
+                        wrap.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        saveAnswers();
+                    });
+                });
+                bodyEl.querySelectorAll('.field.question[data-kind="tf"] .tf .tf-option').forEach(opt=>{
+                    opt.addEventListener('click', ()=>{
+                        const tf = opt.parentElement;
+                        const submitted = localStorage.getItem(keyBase+'_submitted')==='1';
+                        if(submitted) return;
+                        tf.querySelectorAll('.tf-option').forEach(o=>o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        saveAnswers();
+                    });
+                });
+                bodyEl.querySelectorAll('.field.question[data-kind="id"] .q-input').forEach(inp=>{
+                    inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
+                });
+                const submitAll = bodyEl.querySelector('#examSubmitAll');
+                const resetBtn = bodyEl.querySelector('#examReset');
+                let timerIv = null;
+                function handleSubmit(){
+                    saveAnswers();
+                    const {correct,total,pct} = computeGrade();
+                    if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
+                    if(resetBtn){ resetBtn.style.display = 'inline-flex'; }
+                    try{ localStorage.setItem(keyBase+'_submitted','1'); }catch(e){}
+                    setFrozen(true);
+                    // stop timer and mark as submitted
+                    const tElDone = document.getElementById('examTimer');
+                    if(timerIv){ clearInterval(timerIv); timerIv = null; }
+                    if(tElDone){ tElDone.textContent = 'Done'; }
+                    // Show centered result panel and hide questions
+                    if(resultBox){
+                        const passed = (typeof passPct === 'number') ? (pct >= passPct) : null;
+                        const statusTxt = passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.');
+                        const statusColor = passed===null ? '#334155' : (passed ? '#059669' : '#b91c1c');
+                        resultBox.style.display='block';
+                        resultBox.style.background = '#fff';
+                        resultBox.style.border = '1px solid #e5e7eb';
+                        resultBox.style.boxShadow = '0 24px 48px rgba(2,6,23,.06)';
+                        resultBox.style.borderRadius = '16px';
+                        resultBox.innerHTML = `
+                          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px">
+                            <svg viewBox="0 0 100 60" width="320" height="180" style="display:block">
+                              <path d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"></path>
+                              <path id="examGaugePath" d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="${passed===false ? '#ef4444' : '#002C76'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"></path>
+                              <text x="50" y="45" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a">${pct}%</text>
+                            </svg>
+                            <div style="font-weight:800;color:#0f172a">You have scored <span>${pct}%</span>.</div>
+                            ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
+                            <div style="color:#334155">Select Reset to retake the exam. You can also review your answers.</div>
+                            <div style="display:flex;gap:10px;margin-top:6px">
+                              <button id="examReset2" class="btn-ghost" style="padding:10px 16px;border-radius:12px">Reset</button>
+                              <button id="examReview" class="btn-blue" style="padding:10px 16px;border-radius:12px">Review Assessment</button>
+                            </div>
+                          </div>`;
+                        const gauge = resultBox.querySelector('#examGaugePath');
+                        if(gauge && gauge.getTotalLength){
+                            const L = gauge.getTotalLength();
+                            const frac = Math.max(0, Math.min(1, pct/100));
+                            gauge.setAttribute('stroke-dasharray', `${L} ${L}`);
+                            gauge.setAttribute('stroke-dashoffset', String((1-frac)*L));
+                        }
+                        if(bodyBox){ bodyBox.style.display='none'; }
+                        const r2 = document.getElementById('examReset2');
+                        if(r2){
+                          r2.onclick = ()=>{
+                            if(typeof resetBtn?.onclick === 'function'){ resetBtn.onclick(); }
+                            else { location.reload(); }
+                          };
+                        }
+                        const rv = document.getElementById('examReview');
+                        if(rv){
+                          rv.onclick = ()=>{
+                            resultBox.style.display='none';
+                            if(bodyBox){ bodyBox.style.display=''; }
+                            revealAnswers();
+                          };
+                        }
+                      }
+                }
+                function revealAnswers(){
+                    // Show correct answers in-body and lock interactions
+                    const blocks = Array.from(bodyBox.querySelectorAll('.field.question'));
+                    let ua = null;
+                    try{ ua = JSON.parse(localStorage.getItem(keyBase+'_answers')||'[]'); }catch(e){ ua = []; }
+                    blocks.forEach((b, i)=>{
+                        const q = qs[i] || {};
+                        const kind = (q.type||'multiple_choice');
+                        b.style.pointerEvents = 'none';
+                        if(kind==='multiple_choice'){
+                            const ans = Number.isInteger(q.answer_index) ? q.answer_index : null;
+                            const mc = b.querySelector('.mc');
+                            if(mc!=null && ans!=null){
+                                const opt = mc.querySelector(`.mc-option[data-idx="${ans}"]`);
+                                if(opt){
+                                    opt.classList.add('trainer-answer');
+                                    if(!opt.querySelector('.chip')){
+                                        const chip=document.createElement('span');
+                                        chip.className='chip';
+                                        chip.textContent='Answer';
+                                        chip.style.marginLeft='6px';
+                                        opt.appendChild(chip);
+                                    }
+                                }
+                                // Mark user's selected answer and correctness
+                                const selIdx = (Array.isArray(ua) && Number.isInteger(ua[i])) ? ua[i] : null;
+                                if(selIdx!==null){
+                                    const selOpt = mc.querySelector(`.mc-option[data-idx="${selIdx}"]`);
+                                    if(selOpt){
+                                        selOpt.classList.add('selected');
+                                        mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
+                                        if(ans!==null && selIdx===ans){ selOpt.classList.add('submitted-correct'); }
+                                        else { selOpt.classList.add('submitted-wrong'); }
+                                    }
+                                }
+                            }
+                        } else if(kind==='true_false'){
+                            const val = q.answer===true ? 'true' : (q.answer===false ? 'false' : '');
+                            const tf = b.querySelector('.tf');
+                            if(tf && val){
+                                const opt = tf.querySelector(`.tf-option[data-val="${val}"]`);
+                                if(opt){
+                                    opt.classList.add('trainer-answer');
+                                    if(!opt.querySelector('.chip')){
+                                        const chip=document.createElement('span');
+                                        chip.className='chip';
+                                        chip.textContent='Answer';
+                                        chip.style.marginLeft='6px';
+                                        opt.appendChild(chip);
+                                    }
+                                }
+                                // Mark user's selected and correctness
+                                const selVal = (Array.isArray(ua) && typeof ua[i]==='string') ? ua[i] : null;
+                                if(selVal){
+                                    const selOpt = tf.querySelector(`.tf-option[data-val="${selVal}"]`);
+                                    if(selOpt){
+                                        selOpt.classList.add('selected');
+                                        tf.querySelectorAll('.tf-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
+                                        if(selVal===val){ selOpt.classList.add('submitted-correct'); }
+                                        else { selOpt.classList.add('submitted-wrong'); }
+                                    }
+                                }
+                            }
+                        } else if(kind==='identification'){
+                            const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
+                            if(ansList.length){
+                                const info = document.createElement('div');
+                                info.className='muted';
+                                info.style.marginTop='8px';
+                                const your = (Array.isArray(ua) && ua[i]) ? String(ua[i]) : '';
+                                let isOk = false;
+                                if(your){
+                                    isOk = ansList.some(a => String(a||'').trim().toLowerCase() === your.trim().toLowerCase());
+                                }
+                                const yourLine = your ? `<div style="margin-top:6px;color:${isOk? '#059669':'#b91c1c'}"><b>Your answer:</b> ${your}</div>` : '';
+                                info.innerHTML = '<span class="chip">Correct:</span> '+ ansList.map(a=>String(a)).join(' / ') + yourLine;
+                                b.appendChild(info);
+                            }
+                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
+                        }
+                    });
+                }
+                if(closeBtn){
+                    closeBtn.onclick = ()=>{
+                        // Back to outline and reset started state (but keep answers)
+                        if(prefaceBox){ prefaceBox.style.display=''; }
+                        if(bodyBox){ bodyBox.style.display='none'; }
+                        if(resultBox){ resultBox.style.display='none'; }
+                        try{
+                            localStorage.removeItem(keyBase+'_started');
+                            localStorage.removeItem(keyBase+'_start');
+                        }catch(e){}
+                        const titleEl = document.getElementById('contentTitle');
+                        const contentEl = document.getElementById('contentBody');
+                        if(titleEl) titleEl.textContent = `${mi+1}.E Module Exam`;
+                        if(contentEl){ contentEl.scrollIntoView({behavior:'smooth', block:'start'}); }
+                    };
+                }
+                function updateConfirmSummary(){
+                    const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
+                    let answered=0;
+                    blocks.forEach(b=>{
+                        const kind=b.getAttribute('data-kind')||'mc';
+                        if(kind==='mc'){
+                            const sel=b.querySelector('.mc .mc-option.selected'); if(sel) answered++;
+                        }else if(kind==='id'){
+                            const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
+                        }else if(kind==='tf'){
+                            const sel=b.querySelector('.tf .tf-option.selected'); if(sel) answered++;
+                        }
+                    });
+                    const total=blocks.length;
+                    const el=document.getElementById('examConfirmSummary');
+                    if(el){ el.innerHTML = `You answered <b>${answered}/${total}</b> items. Submit now?`; }
+                }
+                if(submitAll){
+                    submitAll.onclick = ()=>{
+                        const ov=document.getElementById('examConfirm');
+                        const chk=document.getElementById('examConfirmChk');
+                        const go=document.getElementById('examConfirmGo');
+                        const cancel=document.getElementById('examConfirmCancel');
+                        const close=document.getElementById('examConfirmClose');
+                        if(!ov) { handleSubmit(); return; }
+                        updateConfirmSummary();
+                        ov.style.display='flex';
+                        if(chk && go){ go.disabled = !chk.checked; chk.onchange = ()=>{ go.disabled = !chk.checked; }; }
+                        if(cancel){ cancel.onclick = ()=>{ ov.style.display='none'; }; }
+                        if(close){ close.onclick = ()=>{ ov.style.display='none'; }; }
+                        if(go){ go.onclick = ()=>{ ov.style.display='none'; handleSubmit(); }; }
+                    };
+                }
+                if(resetBtn){
+                    resetBtn.onclick = ()=>{
+                        try{
+                            localStorage.removeItem(keyBase+'_answers');
+                            localStorage.removeItem(keyBase+'_submitted');
+                            localStorage.removeItem(keyBase+'_start');
+                            localStorage.removeItem(keyBase+'_started');
+                        }catch(e){}
+                        location.reload();
+                    };
+                }
+                restoreAnswers();
+                // Start gate
+                function showExamBody(){
+                    if(prefaceBox) prefaceBox.style.display='none';
+                    if(bodyBox) bodyBox.style.display='';
+                }
+                const started = localStorage.getItem(keyBase+'_started')==='1';
+                if(started){ showExamBody(); }
+                const startBtn = document.getElementById('examStart');
+                if(startBtn){
+                    startBtn.onclick = ()=>{
+                        showExamBody();
+                        try{
+                            localStorage.setItem(keyBase+'_started','1');
+                            if(!localStorage.getItem(keyBase+'_start')) localStorage.setItem(keyBase+'_start', String(Date.now()));
+                        }catch(e){}
+                    };
+                }
+                if(localStorage.getItem(keyBase+'_submitted')==='1'){
+                    handleSubmit();
+                }
+                if(timerMins>0){
+                    const tEl = document.getElementById('examTimer');
+                    // If already submitted, don't run timer; mark as Done
+                    if(localStorage.getItem(keyBase+'_submitted')==='1'){
+                        if(tEl){ tEl.textContent = 'Done'; }
+                        timerIv = null;
+                        return;
+                    }
+                    function ensureStart(){
+                        const started = localStorage.getItem(keyBase+'_started')==='1';
+                        let start = 0;
+                        try{ start = parseInt(localStorage.getItem(keyBase+'_start')||'0',10) || 0; }catch(e){ start=0; }
+                        if(started && !start){
+                            start = Date.now();
+                            try{ localStorage.setItem(keyBase+'_start', String(start)); }catch(e){}
+                        }
+                        return {started, start};
+                    }
+                    function tick(){
+                        const st = ensureStart();
+                        const hasBegun = st.started && st.start>0;
+                        const end = st.start + timerMins*60*1000;
+                        const left = hasBegun ? Math.max(0, end - Date.now()) : (timerMins*60*1000);
+                        const m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
+                        if(tEl){ tEl.innerHTML = `${m}m ${s.toString().padStart(2,'0')}s`; }
+                        if(hasBegun && left<=0){
+                            if(localStorage.getItem(keyBase+'_submitted')!=='1'){ handleSubmit(); }
+                            if(timerIv){ clearInterval(timerIv); timerIv=null; }
+                        }
+                    }
+                    tick();
+                    timerIv = setInterval(tick, 1000);
+                }
+            }
         }
         function openSubtopic(mi,ti,si){
             const section = document.getElementById(`sub_${mi}_${ti}_${si}`);

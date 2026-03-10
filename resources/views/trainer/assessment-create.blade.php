@@ -108,7 +108,37 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
         <label class="label">Description</label>
         <textarea class="textarea" name="description" rows="3"></textarea>
       </div>
+      <div class="card" style="margin-top:12px">
+        <div style="font-weight:800;color:#002C76;display:flex;align-items:center;justify-content:space-between">
+          <span>Quiz Settings</span>
+          <span style="color:#64748b;font-weight:600">Configure behavior</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="field">
+            <label class="label">Time Limit (minutes)</label>
+            <input class="input" type="number" min="0" id="setTimeLimit" name="time_limit" placeholder="e.g., 30">
+          </div>
+          <div class="field">
+            <label class="label">Passing Score (%)</label>
+            <input class="input" type="number" min="0" max="100" id="setPassing" name="passing_score" placeholder="e.g., 70">
+          </div>
+          <div class="field">
+            <label class="label">Attempt Limit</label>
+            <input class="input" type="number" min="0" id="setAttempts" name="attempt_limit" placeholder="0 = unlimited">
+          </div>
+        </div>
+        <div class="row">
+          <label class="field" style="flex:0 0 auto;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="setShuffleQ" name="shuffle_questions"> <span class="label">Shuffle Questions</span>
+          </label>
+          <label class="field" style="flex:0 0 auto;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="setShuffleC" name="shuffle_choices"> <span class="label">Shuffle Choices</span>
+          </label>
+        </div>
+      </div>
       <div class="q-list" id="questionsList"></div>
+      <div id="qNav" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0"></div>
+      <div id="qb-form-inputs" style="display:none"></div>
       <div class="card" id="builderCard" style="margin-top:12px">
         <div class="row">
           <div class="field">
@@ -126,10 +156,11 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
           </div>
         </div>
         <div id="choicesBox" style="display:block;margin-top:8px">
-          <div class="choice"><input type="text" class="input" placeholder="Choice A"><input type="radio" name="mcCorrect" value="0"><span>Correct</span></div>
-          <div class="choice"><input type="text" class="input" placeholder="Choice B"><input type="radio" name="mcCorrect" value="1"><span>Correct</span></div>
-          <div class="choice"><input type="text" class="input" placeholder="Choice C"><input type="radio" name="mcCorrect" value="2"><span>Correct</span></div>
-          <div class="choice"><input type="text" class="input" placeholder="Choice D"><input type="radio" name="mcCorrect" value="3"><span>Correct</span></div>
+          <div class="choice"><input type="text" class="input" placeholder="Choice A"><input type="radio" name="mcCorrect" value="0"><span>Correct</span><button type="button" class="btn btn-ghost" data-act="remove-choice" style="padding:6px 8px">X</button></div>
+          <div class="choice"><input type="text" class="input" placeholder="Choice B"><input type="radio" name="mcCorrect" value="1"><span>Correct</span><button type="button" class="btn btn-ghost" data-act="remove-choice" style="padding:6px 8px">X</button></div>
+          <div class="choice"><input type="text" class="input" placeholder="Choice C"><input type="radio" name="mcCorrect" value="2"><span>Correct</span><button type="button" class="btn btn-ghost" data-act="remove-choice" style="padding:6px 8px">X</button></div>
+          <div class="choice"><input type="text" class="input" placeholder="Choice D"><input type="radio" name="mcCorrect" value="3"><span>Correct</span><button type="button" class="btn btn-ghost" data-act="remove-choice" style="padding:6px 8px">X</button></div>
+          <div style="margin-top:8px"><button type="button" class="btn btn-ghost" id="btnAddChoice"><i class="fas fa-plus"></i> Add Choice</button></div>
         </div>
         <div id="tfBox" style="display:none;margin-top:8px">
           <label class="label" style="margin-bottom:6px">Answer</label>
@@ -148,6 +179,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
         <div class="actions" style="justify-content:center">
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none"><i class="fas fa-xmark"></i> Cancel</button>
           <button type="button" class="btn btn-ghost" id="addQuestionBtn"><i class="fas fa-plus"></i> Add Question</button>
+          <button type="button" class="btn btn-ghost" id="previewBtn"><i class="fas fa-eye"></i> Preview Assessment</button>
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:12px">
@@ -223,7 +255,71 @@ function syncQBoxes(){
   document.getElementById('essayBox').style.display= type==='essay'?'block':'none';
 }
 qType.addEventListener('change',syncQBoxes);syncQBoxes();
-var questions=[]; var editingIndex=-1;
+var questions=[]; var editingIndex=-1; var activeIndex=-1;
+function ensureInputsBox(){
+  var box=document.getElementById('qb-form-inputs');
+  if(!box){ box=document.createElement('div'); box.id='qb-form-inputs'; box.style.display='none'; document.getElementById('assessmentForm').appendChild(box); }
+  return box;
+}
+function buildGroup(idx, q){
+  var div=document.createElement('div');
+  div.className='qb-input-group';
+  div.dataset.index=String(idx);
+  var t=(q && q.type)||'multiple_choice';
+  var html='';
+  html+='<input type="hidden" name="questions['+idx+'][type]" value="'+t+'">';
+  html+='<input type="text" name="questions['+idx+'][question]" value="'+((q&&q.text)||'')+'">';
+  if(t==='multiple_choice'){
+    var opts=(q&&q.choices)||['','','',''];
+    html+='<input type="text" name="questions['+idx+'][options][]" value="'+(opts[0]||'')+'">';
+    html+='<input type="text" name="questions['+idx+'][options][]" value="'+(opts[1]||'')+'">';
+    html+='<input type="text" name="questions['+idx+'][options][]" value="'+(opts[2]||'')+'">';
+    html+='<input type="text" name="questions['+idx+'][options][]" value="'+(opts[3]||'')+'">';
+    var ca = (q && typeof q.answer_index==='number') ? String(q.answer_index) : '';
+    html+='<input type="hidden" name="questions['+idx+'][correct_answer]" value="'+ca+'">';
+  }else if(t==='identification'){
+    html+='<input type="text" name="questions['+idx+'][answer]" value="'+((q&&q.answer)||'')+'">';
+  }else if(t==='true_false'){
+    var av = (q && q.answer!=null) ? (q.answer===true?'true':'false') : '';
+    html+='<input type="text" name="questions['+idx+'][answer]" value="'+av+'">';
+  }
+  div.innerHTML=html;
+  return div;
+}
+function syncGroupsFromQuestions(){
+  var box=ensureInputsBox();
+  box.innerHTML='';
+  for(var i=0;i<questions.length;i++){
+    box.appendChild(buildGroup(i, questions[i]));
+  }
+}
+function renderNav(){
+  var nav=document.getElementById('qNav'); if(!nav) return;
+  nav.innerHTML='';
+  var prev=document.createElement('button'); prev.className='btn btn-ghost'; prev.textContent='Previous';
+  prev.onclick=function(){ setActive(Math.max(0, activeIndex-1)); };
+  nav.appendChild(prev);
+  for(var i=0;i<=questions.length;i++){
+    (function(i0){
+      var b=document.createElement('button'); b.className='btn btn-ghost'; b.textContent=(i0+1);
+      b.style.fontWeight = (i0===activeIndex? '800':'700');
+      b.onclick=function(){
+        if(i0<questions.length){ editQuestion(i0); activeIndex=i0; renderNav(); }
+        else { cancelEdit(); activeIndex=i0; renderNav(); var t=document.getElementById('qText'); if(t){ t.focus(); } }
+      };
+      nav.appendChild(b);
+    })(i);
+  }
+  var next=document.createElement('button'); next.className='btn btn-ghost'; next.textContent='Next';
+  next.onclick=function(){ setActive(Math.min(questions.length, activeIndex+1)); };
+  nav.appendChild(next);
+}
+function setActive(i){
+  if(i<questions.length){ editQuestion(i); }
+  else { cancelEdit(); }
+  activeIndex=i;
+  renderNav();
+}
 function renderQuestions(){
   var list=document.getElementById('questionsList');
   list.innerHTML='';
@@ -243,13 +339,15 @@ function renderQuestions(){
       +'</div>';
     div.querySelector('.qi-title').addEventListener('click',function(e){e.preventDefault(); editQuestion(i);});
     div.querySelector('[data-act=\"edit\"]').addEventListener('click',function(e){e.preventDefault(); e.stopPropagation(); editQuestion(i);});
-    div.querySelector('[data-act=\"remove\"]').addEventListener('click',function(e){e.preventDefault(); e.stopPropagation(); questions.splice(i,1); renderQuestions();});
+    div.querySelector('[data-act=\"remove\"]').addEventListener('click',function(e){e.preventDefault(); e.stopPropagation(); questions.splice(i,1); renderQuestions(); syncGroupsFromQuestions();});
     list.appendChild(div);
   });
   document.getElementById('questions_json').value=JSON.stringify(questions);
   var builder=document.getElementById('builderCard');
   if(builder){ builder.scrollIntoView({behavior:'smooth',block:'start'}); }
   var q=document.getElementById('qText'); if(q){ q.focus(); }
+  syncGroupsFromQuestions();
+  renderNav();
 }
 function cancelEdit(){
   editingIndex=-1;
@@ -260,6 +358,7 @@ function cancelEdit(){
   document.querySelectorAll('#choicesBox input[type=radio]').forEach(function(r){r.checked=false});
   document.getElementById('idAnswer').value='';
   document.getElementById('tfAnswer').value='true';
+  renderNav();
 }
 document.getElementById('cancelEditBtn').addEventListener('click', function(e){ e.preventDefault(); cancelEdit(); });
 function editQuestion(i){
@@ -312,6 +411,7 @@ document.getElementById('addQuestionBtn').addEventListener('click',function(){
   editingIndex=-1;
   var btn=document.getElementById('addQuestionBtn'); if(btn){ btn.innerHTML='<i class=\"fas fa-plus\"></i> Add Question'; }
   var c=document.getElementById('cancelEditBtn'); if(c){ c.style.display='none'; }
+  activeIndex = questions.length; renderNav();
 });
 document.getElementById('assessmentForm').addEventListener('submit',function(e){
   document.getElementById('questions_json').value=JSON.stringify(questions);
@@ -322,6 +422,48 @@ document.getElementById('assessmentForm').addEventListener('submit',function(e){
       return false;
     }
   }catch(err){}
+});
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id==='btnAddChoice'){
+    var rows=document.querySelectorAll('#choicesBox .choice');
+    var idx=rows.length;
+    var row=document.createElement('div'); row.className='choice';
+    row.innerHTML='<input type="text" class="input" placeholder="Choice '+String.fromCharCode(65+idx)+'"><input type="radio" name="mcCorrect" value="'+idx+'"><span>Correct</span><button type="button" class="btn btn-ghost" data-act="remove-choice" style="padding:6px 8px">X</button>';
+    var box=document.getElementById('choicesBox');
+    box.insertBefore(row, box.lastElementChild);
+  }
+  if(e.target && e.target.getAttribute('data-act')==='remove-choice'){
+    var row=e.target.closest('.choice'); if(!row) return;
+    var box=document.getElementById('choicesBox');
+    row.remove();
+    var radios=box.querySelectorAll('input[type=radio]');
+    radios.forEach(function(r,i){ r.value=i; });
+  }
+});
+var obsTarget=document.getElementById('questionsList');
+if(obsTarget){
+  new MutationObserver(function(){ renderNav(); }).observe(obsTarget, {childList:true});
+}
+document.getElementById('previewBtn').addEventListener('click', function(){
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.7);z-index:4000;display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;border:1px solid #e5e7eb;max-width:900px;width:92vw;max-height:82vh;overflow:auto;padding:16px';
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:800;color:#0f3b8f">Preview Assessment</div><button class="btn btn-ghost" id="pvClose">Close</button></div>';
+  html+='<div style="display:grid;gap:12px">';
+  questions.forEach(function(q,i){
+    html+='<div class="card"><div style="font-weight:800;color:#0f3b8f">'+(i+1)+'. '+(q.text||'')+'</div>';
+    if(q.type==='multiple_choice'){ (q.choices||[]).forEach(function(c){ html+='<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><input type="radio"> <span>'+(c||'')+'</span></div>'; }); }
+    else if(q.type==='true_false'){ html+='<div style="display:flex;gap:12px;margin-top:6px"><label><input type="radio"> True</label><label><input type="radio"> False</label></div>'; }
+    else if(q.type==='identification'){ html+='<input type="text" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-top:6px">'; }
+    else { html+='<textarea rows="3" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-top:6px"></textarea>'; }
+    html+='</div>';
+  });
+  html+='</div>';
+  box.innerHTML=html;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  box.querySelector('#pvClose').onclick=function(){ overlay.remove(); };
 });
 async function fetchBank(){
   const list=document.getElementById('bankList');
@@ -494,4 +636,3 @@ document.getElementById('tbDelConfirm').onclick = async function(){
 </script>
 </body>
 </html>
-
