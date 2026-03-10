@@ -1747,9 +1747,26 @@
                     const input = t.querySelector('input[type=text]');
                     if(!input.value.trim() || input.value.length > 80){ ok = false; input.style.borderColor = '#dc2626'; } else input.style.borderColor = '#ddd';
                 });
+                // Validate any module-level exams: require title if exam exists
+                const examWrap = m.querySelector('.module-exam, .exam-wrapper');
+                if(examWrap){
+                    const titleInput = examWrap.querySelector('.exam-title');
+                    if(titleInput && !titleInput.value.trim()){
+                        ok = false;
+                        titleInput.style.borderColor = '#dc2626';
+                    } else if(titleInput){
+                        titleInput.style.borderColor = '#e5e7eb';
+                    }
+                }
             });
             const err = document.getElementById('modulesError');
-            if(!ok){ err.style.display='block'; err.textContent='Add at least one module with topic titles (max 80 chars).'; } else { err.style.display='none'; err.textContent=''; }
+            if(!ok){ 
+                err.style.display='block'; 
+                err.textContent='Add at least one module with topic titles (max 80 chars). Ensure exam title is set when adding an exam.'; 
+            } else { 
+                err.style.display='none'; 
+                err.textContent=''; 
+            }
             return ok;
         }
         function isDetailsStepComplete(){
@@ -1829,6 +1846,15 @@
             document.getElementById('courseForm').addEventListener('submit', (e)=>{
                 updateProgress();
                 if(!validateDetails() || !validateModules()){ e.preventDefault(); switchTo(!validateDetails()?1:2); }
+            });
+            // Prevent accidental submit when pressing Enter inside exam builders/inputs
+            const form = document.getElementById('courseForm');
+            form.addEventListener('keydown', function(ev){
+                if(ev.key !== 'Enter') return;
+                const inExam = ev.target.closest('.exam-wrapper') || ev.target.closest('.module-exam') || ev.target.classList.contains('exam-title') || ev.target.classList.contains('exam-desc') || ev.target.classList.contains('exam-duration') || ev.target.classList.contains('eq-text');
+                if(inExam){
+                    ev.preventDefault();
+                }
             });
         }
         function draftKey(){ return 'draft_course_create'; }
@@ -2801,7 +2827,7 @@
                 </div>
                 <div class="q-block">
                     <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px">
-                        <input class="exam-title" type="text" placeholder="Exam title (optional)" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                        <input class="exam-title" type="text" placeholder="Exam title (required)" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                         <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
                     </div>
                     <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
@@ -2943,7 +2969,43 @@
                 });
                 wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
             }
-            wrap.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
+            function resetTypeSpecificFields(){
+                // Clear type-specific inputs so they never carry over from other questions
+                const t = wrap.querySelector('.eq-type').value;
+                // Always clear choices and correct flags
+                const choiceWrap = wrap.querySelector('.eq-choices');
+                if(choiceWrap){
+                    choiceWrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
+                    choiceWrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
+                }
+                // Clear identification and true/false answers
+                const idAns = wrap.querySelector('.eq-id-answer'); if(idAns) idAns.value = '';
+                const tfSel = wrap.querySelector('.eq-tf-answer'); if(tfSel) tfSel.value = '';
+                // Update payload for active item to a blank object of the selected type
+                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+                const idx = getActiveExamIndex(wrap);
+                if(idx < items.length){
+                    const text = (wrap.querySelector('.eq-text').value||'').trim();
+                    let obj = null;
+                    if(t==='multiple_choice'){
+                        obj = { type:'multiple_choice', text, choices:['','','',''], answer_index: null };
+                    }else if(t==='identification'){
+                        obj = { type:'identification', text, answer: '' };
+                    }else if(t==='true_false'){
+                        obj = { type:'true_false', text, answer: null };
+                    } else {
+                        obj = { type:String(t||'multiple_choice'), text };
+                    }
+                    const node = items[idx];
+                    node.dataset.payload = JSON.stringify(obj);
+                    updateExamInputGroup(idx, obj);
+                }
+            }
+            wrap.querySelector('.eq-type').addEventListener('change', ()=>{
+                resetTypeSpecificFields();
+                syncBuilderBoxes();
+                recalcExamJSON(wrap);
+            });
             wrap.addEventListener('input', syncExamJSON);
             wrap.addEventListener('change', syncExamJSON);
             // Allow clicking a question in the list to edit it
@@ -3034,7 +3096,36 @@
                     if(ans) ans.value = (obj.answer==null ? '' : (obj.answer===true?'true':'false'));
                 }
             }
+            function captureBuilderToActive(){
+                const idx = getActiveExamIndex(wrap);
+                const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
+                if(idx >= items.length) return;
+                const t = wrap.querySelector('.eq-type').value;
+                const text = (wrap.querySelector('.eq-text').value||'').trim();
+                let obj = null;
+                if(t==='multiple_choice'){
+                    const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
+                    const checked = wrap.querySelector('.eq-correct:checked');
+                    const ans = checked ? parseInt(checked.value,10) : null;
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                }else if(t==='identification'){
+                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    obj = { type:'identification', text, answer: ans };
+                }else if(t==='true_false'){
+                    const val = wrap.querySelector('.eq-tf-answer').value;
+                    const ans = val === '' ? null : (val === 'true');
+                    obj = { type:'true_false', text, answer: ans };
+                } else {
+                    obj = { type:String(t||'multiple_choice'), text };
+                }
+                const node = items[idx];
+                node.dataset.payload = JSON.stringify(obj);
+                const title = node.querySelector('.qi-title'); if(title){ title.textContent = (idx+1)+'. '+(obj.text||''); }
+                updateExamInputGroup(idx, obj);
+                recalcExamJSON(wrap);
+            }
             wrap.querySelector('.eq-add').addEventListener('click', function(){
+                captureBuilderToActive();
                 const t = wrap.querySelector('.eq-type').value;
                 // Create a brand new blank question object (independent)
                 let obj = null;
@@ -3067,7 +3158,27 @@
                 // Focus editor on the newly added blank question
                 setActiveExamIndex(Math.max(0, listEl.children.length - 1));
             });
-            renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap);
+            function ensureInitialQuestion(){
+                const listEl = wrap.querySelector('.exam-q-list');
+                if(listEl.children.length>0) return;
+                const tSel = wrap.querySelector('.eq-type');
+                const tVal = tSel ? tSel.value : 'multiple_choice';
+                let obj = null;
+                if(tVal==='multiple_choice'){ obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null }; }
+                else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '' }; }
+                else if(tVal==='true_false'){ obj = { type:'true_false', text:'', answer: null }; }
+                else { obj = { type:String(tVal||'multiple_choice'), text:'' }; }
+                const node = document.createElement('div');
+                node.className = 'q-item';
+                node.innerHTML = '<div class="qi-title" style="font-weight:700">1. </div><div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
+                node.dataset.payload = JSON.stringify(obj);
+                listEl.appendChild(node);
+                addExamInputGroupFor(obj.type);
+                updateExamInputGroup(0, obj);
+                updateExamNavigator.call(wrap);
+                setActiveExamIndex(0);
+            }
+            renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap); ensureInitialQuestion();
             if(prefill){
                 try{
                     wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
@@ -3186,7 +3297,7 @@
             recalcExamJSON(wrap);
             setActiveExamIndex(Math.max(0, active-1));
         }
-        function updateExamNavigator(){
+            function updateExamNavigator(){
             const wrap = this.classList?.contains('exam-wrapper') ? this : document.querySelector('.exam-wrapper'); 
             const nav = wrap.querySelector('.exam-nav');
             if(!nav) { return; }
@@ -3194,18 +3305,18 @@
             if(!track){ return; }
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             track.innerHTML = '';
-            const count = items.length + 1;
+            const count = items.length;
             for(let i=0;i<count;i++){
                 const b = document.createElement('button');
+                b.setAttribute('type', 'button');
                 b.className = 'nav-block';
                 b.textContent = (i+1);
                 b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-                if(i === items.length){ b.dataset.placeholder='1'; }
-                b.addEventListener('click', ()=> setActiveExamIndex(i));
+            b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(i); });
                 track.appendChild(b);
             }
-            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(getActiveExamIndex(wrap)-1);
-            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(getActiveExamIndex(wrap)+1);
+            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(Math.max(0, getActiveExamIndex(wrap)-1));
+            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(Math.min(count-1, getActiveExamIndex(wrap)+1));
             setActiveExamIndex(getActiveExamIndex(wrap)); 
         }
         function getActiveExamIndex(wrap){
@@ -3225,7 +3336,7 @@
             const blocks = track ? Array.from(track.children) : [];
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             if(items.length===0) return;
-            const clamped = Math.max(0, Math.min(items.length, i));
+            const clamped = Math.max(0, Math.min(items.length-1, i));
             function ensureBuilderEnabled(w){
                 try{
                     w.querySelectorAll('textarea, input[type="text"], select').forEach(el=>{
@@ -3266,60 +3377,7 @@
                 delBtn.style.opacity = viewingExisting ? '1' : '.45';
                 delBtn.style.cursor = viewingExisting ? 'pointer' : 'default';
             }
-            if(clamped < items.length){
-                populateBuilderFromItem(wrap, clamped);
-            } else {
-                const tSel = wrap.querySelector('.eq-type');
-                const tVal = tSel ? tSel.value : 'multiple_choice';
-                let obj = null;
-                if(tVal==='multiple_choice'){
-                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
-                }else if(tVal==='identification'){
-                    obj = { type:'identification', text:'', answer: '' };
-                }else if(tVal==='true_false'){
-                    obj = { type:'true_false', text:'', answer: null };
-                } else {
-                    obj = { type:String(tVal||'multiple_choice'), text:'' };
-                }
-                const listEl = wrap.querySelector('.exam-q-list');
-                const node = document.createElement('div');
-                node.className = 'q-item';
-                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(items.length+1)+'. '+obj.text+'</div>'
-                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
-                node.dataset.payload = JSON.stringify(obj);
-                listEl.appendChild(node);
-                const box = wrap.querySelector('.exam-form-inputs');
-                if(box){
-                    const addGroup = document.createElement('div');
-                    addGroup.className = 'exam-input-group';
-                    addGroup.dataset.index = String(items.length);
-                    let html = '';
-                    html += '<input type="hidden" name="questions['+items.length+'][type]" value="'+obj.type+'">';
-                    html += '<input type="text" name="questions['+items.length+'][question]" value="">';
-                    if(obj.type==='multiple_choice'){
-                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
-                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
-                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
-                        html += '<input type="text" name="questions['+items.length+'][options][]" value="">';
-                        html += '<input type="hidden" name="questions['+items.length+'][correct_answer]" value="">';
-                    }
-                    if(obj.type==='identification'){
-                        html += '<input type="text" name="questions['+items.length+'][answer]" value="">';
-                    }
-                    if(obj.type==='true_false'){
-                        html += '<input type="text" name="questions['+items.length+'][answer]" value="">';
-                    }
-                    addGroup.innerHTML = html;
-                    box.appendChild(addGroup);
-                }
-                updateExamNavigator.call(wrap);
-                recalcExamJSON(wrap);
-                const newIdx = items.length; 
-                setActiveExamIndex(newIdx);
-                ensureBuilderEnabled(wrap);
-                const txt2 = wrap.querySelector('.eq-text'); if(txt2){ setTimeout(()=> txt2.focus(), 0); }
-                return;
-            }
+            populateBuilderFromItem(wrap, clamped);
             // Focus builder textarea for immediate typing
             const txt = wrap.querySelector('.eq-text');
             ensureBuilderEnabled(wrap);

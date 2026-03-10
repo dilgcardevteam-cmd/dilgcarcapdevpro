@@ -179,6 +179,11 @@ class CourseController extends Controller
             if (isset($module['exam_json'])) {
                 $e = json_decode($module['exam_json'], true);
                 if (is_array($e)) {
+                    if (trim((string)($e['title'] ?? '')) === '') {
+                        return back()
+                            ->withErrors(['create_course' => 'Exam title is required for exams.'], 'create_course')
+                            ->withInput();
+                    }
                     // Optional: strip essay types if present
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                         return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
@@ -204,6 +209,11 @@ class CourseController extends Controller
         if ($cexam) {
             $e = json_decode($cexam, true);
             if (is_array($e)) {
+                if (trim((string)($e['title'] ?? '')) === '') {
+                    return back()
+                        ->withErrors(['create_course' => 'Course exam title is required.'], 'create_course')
+                        ->withInput();
+                }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                     return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                 }));
@@ -211,6 +221,8 @@ class CourseController extends Controller
                     'title' => 'Course Exam',
                     'topics' => [],
                     'exam' => [
+                        'title' => (string) ($e['title'] ?? ''),
+                        'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'questions' => $qs,
                     ],
@@ -341,6 +353,11 @@ class CourseController extends Controller
             if (isset($module['exam_json'])) {
                 $e = json_decode($module['exam_json'], true);
                 if (is_array($e)) {
+                    if (trim((string)($e['title'] ?? '')) === '') {
+                        return back()
+                            ->withErrors(['create_course' => 'Exam title is required for exams.'], 'create_course')
+                            ->withInput();
+                    }
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                         return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                     }));
@@ -365,6 +382,11 @@ class CourseController extends Controller
         if ($cexam) {
             $e = json_decode($cexam, true);
             if (is_array($e)) {
+                if (trim((string)($e['title'] ?? '')) === '') {
+                    return back()
+                        ->withErrors(['create_course' => 'Course exam title is required.'], 'create_course')
+                        ->withInput();
+                }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                     return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                 }));
@@ -376,6 +398,8 @@ class CourseController extends Controller
                     'title' => 'Course Exam',
                     'topics' => [],
                     'exam' => [
+                        'title' => (string) ($e['title'] ?? ''),
+                        'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'questions' => $qs,
                     ],
