@@ -199,7 +199,7 @@ class CourseController extends Controller
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
         }
-        // Append course-level exam as a special tail module if provided
+        // Course-level exam handling: merge into Module 1 when modules exist; otherwise create a special tail module
         $cexam = $request->input('course_exam_json');
         if ($cexam) {
             $e = json_decode($cexam, true);
@@ -207,14 +207,31 @@ class CourseController extends Controller
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                     return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                 }));
-                $modules[] = [
-                    'title' => 'Course Exam',
-                    'topics' => [],
-                    'exam' => [
-                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
-                        'questions' => $qs,
-                    ],
+                $examArr = [
+                    'title' => (string) ($e['title'] ?? ''),
+                    'description' => (string) ($e['description'] ?? ''),
+                    'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                    'questions' => $qs,
                 ];
+                $hasModules = !empty($modules);
+                $hasExamInModules = false;
+                foreach ($modules as $m) {
+                    if (isset($m['exam']) && is_array($m['exam'])) { $hasExamInModules = true; break; }
+                }
+                if ($hasModules) {
+                    if (!$hasExamInModules) {
+                        // Merge into first module to avoid creating "Module 2" for exam
+                        $modules[0]['exam'] = $examArr;
+                    }
+                    // If modules already have an exam, do not append another exam module
+                } else {
+                    // No modules at all: create a dedicated Course Exam module
+                    $modules[] = [
+                        'title' => 'Course Exam',
+                        'topics' => [],
+                        'exam' => $examArr,
+                    ];
+                }
             }
         }
         if (!empty($modules)) {
@@ -360,7 +377,7 @@ class CourseController extends Controller
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
         }
-        // Append/replace course-level exam on update if provided
+        // Course-level exam on update: merge into Module 1 when modules exist; otherwise create/replace special tail module
         $cexam = $request->input('course_exam_json');
         if ($cexam) {
             $e = json_decode($cexam, true);
@@ -368,18 +385,33 @@ class CourseController extends Controller
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                     return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                 }));
-                // Remove previous 'Course Exam' module if exists
+                $examArr = [
+                    'title' => (string) ($e['title'] ?? ''),
+                    'description' => (string) ($e['description'] ?? ''),
+                    'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                    'questions' => $qs,
+                ];
+                // Remove any previous dedicated 'Course Exam' module
                 $modules = array_values(array_filter($modules, function($m){
                     return !(isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics']));
                 }));
-                $modules[] = [
-                    'title' => 'Course Exam',
-                    'topics' => [],
-                    'exam' => [
-                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
-                        'questions' => $qs,
-                    ],
-                ];
+                $hasModules = !empty($modules);
+                $hasExamInModules = false;
+                foreach ($modules as $m) {
+                    if (isset($m['exam']) && is_array($m['exam'])) { $hasExamInModules = true; break; }
+                }
+                if ($hasModules) {
+                    if (!$hasExamInModules) {
+                        $modules[0]['exam'] = $examArr;
+                    }
+                    // If an exam already exists inside a module, don't create another
+                } else {
+                    $modules[] = [
+                        'title' => 'Course Exam',
+                        'topics' => [],
+                        'exam' => $examArr,
+                    ];
+                }
             }
         }
         if (!empty($modules)) {
@@ -531,6 +563,23 @@ class CourseController extends Controller
     public function trainerView(Course $course)
     {
         $course->load(['users', 'materials', 'assessments']);
+        // Normalize modules for display: merge any dedicated exam-only module into previous/first module
+        $mods = $course->modules;
+        if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
+        if (is_array($mods) && !empty($mods)) {
+            foreach ($mods as $i => $m) {
+                if (isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics'])) {
+                    $target = ($i > 0) ? $i-1 : 0;
+                    if (!isset($mods[$target]['exam'])) {
+                        $mods[$target]['exam'] = $m['exam'];
+                    }
+                    unset($mods[$i]);
+                    $mods = array_values($mods);
+                    break;
+                }
+            }
+            $course->modules = $mods;
+        }
         return view('trainee.course-show', [
             'course' => $course,
             'status' => 'active',
@@ -624,6 +673,23 @@ class CourseController extends Controller
             return redirect()->route('trainer.courses.view', $course);
         }
         $course->load(['users', 'materials', 'assessments']);
+        // Normalize modules for display for trainees as well
+        $mods = $course->modules;
+        if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
+        if (is_array($mods) && !empty($mods)) {
+            foreach ($mods as $i => $m) {
+                if (isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics'])) {
+                    $target = ($i > 0) ? $i-1 : 0;
+                    if (!isset($mods[$target]['exam'])) {
+                        $mods[$target]['exam'] = $m['exam'];
+                    }
+                    unset($mods[$i]);
+                    $mods = array_values($mods);
+                    break;
+                }
+            }
+            $course->modules = $mods;
+        }
         $status = null;
         if (auth()->check()) {
             $pivot = $course->users()->where('user_id', auth()->id())->first();
@@ -929,20 +995,42 @@ class CourseController extends Controller
                 try { $mods = json_decode($mods, true); } catch (\Throwable $th) { $mods = []; }
             }
             if (!is_array($mods)) $mods = [];
-            // Remove previous course-level exam (module with exam and no topics)
+            // Remove previous dedicated course-level exam (module with exam and no topics)
             $mods = array_values(array_filter($mods, function($m){
                 return !(isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics']));
             }));
-            $mods[] = [
-                'title' => 'Course Exam',
-                'topics' => [],
-                'exam' => [
-                    'title' => $title,
-                    'description' => $description,
-                    'timer_minutes' => $timer,
-                    'questions' => $norm,
-                ],
+            $examArr = [
+                'title' => $title,
+                'description' => $description,
+                'timer_minutes' => $timer,
+                'questions' => $norm,
             ];
+            $hasModules = !empty($mods);
+            $hasExamInModules = false;
+            foreach ($mods as $m) {
+                if (isset($m['exam']) && is_array($m['exam'])) { $hasExamInModules = true; break; }
+            }
+            if ($hasModules) {
+                if (!$hasExamInModules) {
+                    // Merge exam into first module
+                    $mods[0]['exam'] = $examArr;
+                } else {
+                    // Update the first existing exam we find
+                    foreach ($mods as $idx => $m) {
+                        if (isset($m['exam']) && is_array($m['exam'])) {
+                            $mods[$idx]['exam'] = $examArr;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // No modules: create dedicated Course Exam module
+                $mods[] = [
+                    'title' => 'Course Exam',
+                    'topics' => [],
+                    'exam' => $examArr,
+                ];
+            }
             $course->modules = $mods;
             $course->save();
         });
