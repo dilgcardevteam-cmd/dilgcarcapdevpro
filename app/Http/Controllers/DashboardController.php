@@ -393,7 +393,23 @@ class DashboardController extends Controller
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
                 $query = User::query()->whereIn('role', $managedRoles);
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
-                if ($request->has('roles')) $query->whereIn('role', array_intersect($request->roles, $managedRoles));
+                if ($request->has('roles')) {
+                    $selected = (array) $request->roles;
+                    $expanded = [];
+                    foreach ($selected as $r) {
+                        if (in_array($r, ['coach','trainer'], true)) {
+                            $expanded = array_merge($expanded, $managedCoachRoles);
+                        } elseif (in_array($r, ['participant','trainee'], true)) {
+                            $expanded = array_merge($expanded, $managedParticipantRoles);
+                        } elseif ($r === 'training_manager') {
+                            $expanded = array_merge($expanded, array_values(array_intersect($tmRoles, $managedRoles)));
+                        } else {
+                            $expanded[] = $r;
+                        }
+                    }
+                    $expanded = array_values(array_unique($expanded));
+                    $query->whereIn('role', array_intersect($expanded, $managedRoles));
+                }
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
                 if ($sort === 'oldest') $query->orderBy('created_at', 'asc');
