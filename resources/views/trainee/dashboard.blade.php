@@ -1506,17 +1506,11 @@
                                     @endphp
                                     <div class="form-group">
                                         <label>{{ $labelRegion }}</label>
-                                        <select id="profile_region" name="{{ ($isCentral || $isRegional || $isProvincial) ? 'office_level' : 'region' }}" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                        <select id="profile_region" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
                                             <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>{{ $isCentral || $isRegional || $isProvincial ? 'Select Level' : 'Select Region' }}</option>
                                             @if($profileRegion)
                                                 <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
                                             @endif
-                                        </select>
-                                    </div>
-                                    <div class="form-group" @if(!$isRegional) style="display:none" @endif>
-                                        <label>Region</label>
-                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $isRegional ? (old('region', Auth::user()->region ?? '')) : '' }}" disabled>
-                                            <option value="" disabled selected>Select Region</option>
                                         </select>
                                     </div>
                                     <div class="form-group" @if($isRegional) style="display:none" @endif>
@@ -1987,16 +1981,14 @@
 
         function initProfileLocationDropdowns() {
             const regionSelect = document.getElementById('profile_region');
-            const regionActualSelect = document.getElementById('profile_region_actual');
             const provinceSelect = document.getElementById('profile_province');
             const citySelect = document.getElementById('profile_city');
             const barangaySelect = document.getElementById('profile_barangay');
-            if (!regionSelect) return;
+            if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
             if (regionSelect.dataset.initialized === 'true') return;
             regionSelect.dataset.initialized = 'true';
 
             const selectedRegion = regionSelect.dataset.selected || '';
-            const selectedRegionActual = regionActualSelect?.dataset?.selected || '';
             const selectedProvince = provinceSelect.dataset.selected || '';
             const selectedCity = citySelect.dataset.selected || '';
             const selectedBarangay = barangaySelect.dataset.selected || '';
@@ -2152,34 +2144,7 @@
                         provinceSelect.dispatchEvent(new Event('change'));
                     }
                 } else if (IS_OFFICE(myRole,'regional')) {
-                    const regActualGroup = regionActualSelect?.closest('.form-group');
-                    if (regActualGroup) regActualGroup.style.display = '';
                     [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
-                    if (regionActualSelect) {
-                        const makeOption = (val, code, matchVal) => {
-                            const o=document.createElement('option');
-                            o.value = val; o.textContent = val; o.dataset.code = code || '';
-                            if (matchVal && matchVal === val) { o.selected = true; }
-                            regionActualSelect.appendChild(o);
-                        };
-                        regionActualSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
-                        fetch(`{{ url('/psgc/regions') }}`)
-                            .then(r=>r.json())
-                            .then(data=>{
-                                data.sort((a,b)=>a.name.localeCompare(b.name));
-                                let matched=false;
-                                data.forEach(rg=>{
-                                    const o=document.createElement('option');
-                                    o.value = rg.name; o.textContent = rg.name; o.dataset.code = rg.code;
-                                    if (selectedRegionActual && selectedRegionActual === rg.name) { o.selected=true; matched=true; }
-                                    regionActualSelect.appendChild(o);
-                                });
-                                if (selectedRegionActual && !matched) makeOption(selectedRegionActual, '', selectedRegionActual);
-                            })
-                            .catch(()=>{
-                                if (selectedRegionActual) makeOption(selectedRegionActual, '', selectedRegionActual);
-                            });
-                    }
                 } else if (IS_OFFICE(myRole,'provincial')) {
                     resetSelect(provinceSelect,'Select Office');
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
