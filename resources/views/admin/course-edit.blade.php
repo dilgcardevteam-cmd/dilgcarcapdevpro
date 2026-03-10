@@ -2048,12 +2048,13 @@
                         </div>
                         <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
-                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:end">
                                 <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                                     <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;" required></textarea>
                                 </label>
-                                <label class="q-col" style="display:block;padding-left:16px">
+
+                                <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                                     <select class="eq-type">
                                         <option value="multiple_choice">Multiple Choice</option>
@@ -2271,20 +2272,25 @@
                         </div>
                         <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
-                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
-                                <label class="q-col" style="display:block">
-                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
-                                    <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
-                                </label>
-                                <label class="q-col" style="display:block">
-                                    <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
-                                    <select class="eq-type">
-                                        <option value="multiple_choice">Multiple Choice</option>
-                                        <option value="identification">Identification</option>
-                                        <option value="true_false">True or False</option>
-                                    </select>
-                                </label>
-                            </div>
+                            <!-- FIXED SPACING HERE -->
+                                <div class="q-header" style="display:grid;grid-template-columns:1.6fr 1fr;gap:28px;align-items:end">
+
+                                    <label class="q-col" style="display:block">
+                                        <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
+                                        <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;" required></textarea>
+                                    </label>
+
+                                    <!-- kept your padding-left line so nothing is removed -->
+                                    <label class="q-col" style="display:block;padding-left:16px; align-self:start">
+                                        <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
+                                        <select class="eq-type">
+                                            <option value="multiple_choice">Multiple Choice</option>
+                                            <option value="identification">Identification</option>
+                                            <option value="true_false">True or False</option>
+                                        </select>
+                                    </label>
+
+                                </div>
                             <div class="eq-choices" style="margin-top:8px"></div>
                             <div class="eq-id" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Answer</label>
@@ -2299,7 +2305,6 @@
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
-                                <button type="button" class="btn btn-small eq-save" style="background:#002C76;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-save" style="margin-right:6px"></i> Save</button>
                             </div>
                         </div>
                     </div>
