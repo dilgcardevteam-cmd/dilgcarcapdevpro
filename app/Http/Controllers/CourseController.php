@@ -217,23 +217,11 @@ class CourseController extends Controller
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
                     return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
                 }));
-<<<<<<< HEAD
-                $modules[] = [
-                    'title' => 'Course Exam',
-                    'topics' => [],
-                    'exam' => [
-                        'title' => (string) ($e['title'] ?? ''),
-                        'description' => (string) ($e['description'] ?? ''),
-                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
-                        'questions' => $qs,
-                    ],
-=======
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                     'questions' => $qs,
->>>>>>> 4181bef65b6d1b35c13336f5775de4c03c09e64f
                 ];
                 $hasModules = !empty($modules);
                 $hasExamInModules = false;
@@ -399,7 +387,7 @@ class CourseController extends Controller
             $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
-                'status' => $existing['status'] ?? 'locked',
+                'status' => 'locked',
             ];
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
@@ -427,18 +415,6 @@ class CourseController extends Controller
                 $modules = array_values(array_filter($modules, function($m){
                     return !(isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics']));
                 }));
-<<<<<<< HEAD
-                $modules[] = [
-                    'title' => 'Course Exam',
-                    'topics' => [],
-                    'exam' => [
-                        'title' => (string) ($e['title'] ?? ''),
-                        'description' => (string) ($e['description'] ?? ''),
-                        'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
-                        'questions' => $qs,
-                    ],
-                ];
-=======
                 $hasModules = !empty($modules);
                 $hasExamInModules = false;
                 foreach ($modules as $m) {
@@ -456,7 +432,6 @@ class CourseController extends Controller
                         'exam' => $examArr,
                     ];
                 }
->>>>>>> 4181bef65b6d1b35c13336f5775de4c03c09e64f
             }
         }
         if (!empty($modules)) {
