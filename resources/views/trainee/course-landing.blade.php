@@ -922,7 +922,7 @@
                         }
                     @endphp
                     @if ($hero)
-                        <img id="courseHeroImage" src="{{ $hero }}" alt="Course banner" title="Click to preview">
+                        <img id="courseHeroImage" src="{{ $hero }}" alt="Course banner">
                     @endif
                     {{-- image preview & crop controls removed --}}
                 </div>
@@ -1373,8 +1373,7 @@
                 </div>
             </div>
         </div>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+        {{-- cropper assets removed --}}
         <script>
             let cropper = null;
             function openImagePreview(){
@@ -1487,7 +1486,7 @@
                     }).catch(()=>alert('Upload error'));
                 }, 'image/jpeg', 0.92);
             }
-            document.getElementById('courseHeroImage')?.addEventListener('click', openImagePreview);
+            // image preview/crop disabled
         </script>
     </div>
     <div id="participantViewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="participantViewTitle">
