@@ -1320,14 +1320,16 @@
                 const opt = document.createElement('option');
                 opt.value = regionLabel; opt.textContent = regionLabel; opt.selected = true; opt.dataset.code = 'DILG';
                 regionSelect.appendChild(opt);
+                const regionGroupLabel = regionSelect.closest('.form-group')?.querySelector('label'); if (regionGroupLabel) regionGroupLabel.textContent = 'Office Level';
                 const provGroupLabel = provinceSelect.closest('.form-group')?.querySelector('label'); if (provGroupLabel) provGroupLabel.textContent = IS_OFFICE(myRole,'central') ? 'Office Type' : 'Office';
                 if (IS_OFFICE(myRole, 'central')) {
                     resetSelect(provinceSelect, 'Select Office Type');
-                    ['Bureaus','Services'].forEach(lbl=>{ const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o); });
+                    ['Bureau','Services'].forEach(lbl=>{ const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o); });
                     provinceSelect.addEventListener('change', function(){
                         const cat=this.value;
-                        resetSelect(citySelect, cat==='Bureaus' ? 'Select Bureaus' : 'Select Services');
-                        const list=cat==='Bureaus'?BUREAUS:SERVICES;
+                        const cityLab = citySelect.closest('.form-group')?.querySelector('label'); if (cityLab) cityLab.textContent = (cat==='Bureau'?'Bureau':'Service');
+                        resetSelect(citySelect, cat==='Bureau' ? 'Select Bureau' : 'Select Service');
+                        const list=cat==='Bureau'?BUREAUS:SERVICES;
                         let matched=false;
                         list.forEach(item=>{
                             const o=document.createElement('option'); o.value=item; o.textContent=item;
@@ -1335,18 +1337,26 @@
                             citySelect.appendChild(o);
                         });
                         if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
-                        citySelect.disabled=false;
                         const barangayGroup = barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
                     });
                     if (selectedProvince) {
                         const isB = BUREAUS.includes(selectedProvince);
-                        provinceSelect.value = isB ? 'Bureaus' : 'Services';
+                        provinceSelect.value = isB ? 'Bureau' : 'Services';
                         provinceSelect.dispatchEvent(new Event('change'));
                     }
                 } else if (IS_OFFICE(myRole,'regional')) {
-                    [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
+                    const pLab = provinceSelect.closest('.form-group')?.querySelector('label'); if (pLab) pLab.textContent = 'Region';
+                    [citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
+                    resetSelect(provinceSelect,'Select Region');
+                    fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(data=>{
+                        data.sort((a,b)=>a.name.localeCompare(b.name)); let matched=false;
+                        data.forEach(reg=>{ const o=document.createElement('option'); o.value=reg.name; o.textContent=reg.name; o.dataset.code=reg.code; if (selectedRegion && selectedRegion===reg.name){ o.selected=true; matched=true; } provinceSelect.appendChild(o); });
+                        if (selectedRegion && !matched) addFallbackOption(provinceSelect, selectedRegion);
+                    }).catch(()=>{ if (selectedRegion) addFallbackOption(provinceSelect, selectedRegion); });
                 } else if (IS_OFFICE(myRole,'provincial')) {
                     resetSelect(provinceSelect,'Select Office');
+                    if (regionGroupLabel) regionGroupLabel.textContent = 'Office Level';
+                    if (provGroupLabel) provGroupLabel.textContent = 'Office';
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
                         let items=[]; for (const reg of regions){ try{ const res=await fetch(`{{ url('/psgc/regions') }}/${reg.code}/provinces`); const data=await res.json(); items=items.concat(data.map(p=>({code:p.code,name:p.name}))); }catch(e){} }
                         items.sort((a,b)=>a.name.localeCompare(b.name)); let matched=false;
