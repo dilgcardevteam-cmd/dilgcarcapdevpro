@@ -1513,6 +1513,15 @@
                                             @endif
                                         </select>
                                     </div>
+                                    <div class="form-group" id="group_profile_region_actual" @if(!$isRegional) style="display:none" @endif>
+                                        <label>Region</label>
+                                        <select id="profile_region_actual" @if($isRegional) name="region" @endif class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                            @if($profileRegion)
+                                                <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
                                     <div class="form-group" @if($isRegional) style="display:none" @endif>
                                         <label>{{ $labelProvince }}</label>
                                         <select id="profile_province" name="province" class="profile-input" data-selected="{{ $profileProvince }}" disabled>
@@ -1981,17 +1990,19 @@
 
         function initProfileLocationDropdowns() {
             const regionSelect = document.getElementById('profile_region');
+            const regionActualSelect = document.getElementById('profile_region_actual');
             const provinceSelect = document.getElementById('profile_province');
             const citySelect = document.getElementById('profile_city');
             const barangaySelect = document.getElementById('profile_barangay');
-            if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+            if (!regionSelect) return;
             if (regionSelect.dataset.initialized === 'true') return;
             regionSelect.dataset.initialized = 'true';
 
             const selectedRegion = regionSelect.dataset.selected || '';
-            const selectedProvince = provinceSelect.dataset.selected || '';
-            const selectedCity = citySelect.dataset.selected || '';
-            const selectedBarangay = barangaySelect.dataset.selected || '';
+            const selectedRegionActual = regionActualSelect ? (regionActualSelect.dataset.selected || '') : '';
+            const selectedProvince = provinceSelect ? (provinceSelect.dataset.selected || '') : '';
+            const selectedCity = citySelect ? (citySelect.dataset.selected || '') : '';
+            const selectedBarangay = barangaySelect ? (barangaySelect.dataset.selected || '') : '';
             const myRole = '{{ Auth::user()->role }}';
             const OFFICE_ROLES = {
                 central: ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'],
@@ -2096,10 +2107,12 @@
                         if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
                     });
             }
-            regionSelect.addEventListener('change', function(){
-                const code = this.options[this.selectedIndex]?.dataset?.code || '';
-                loadProvincesByRegion(code);
-            });
+            if (regionSelect) {
+                regionSelect.addEventListener('change', function(){
+                    const code = this.options[this.selectedIndex]?.dataset?.code || '';
+                    loadProvincesByRegion(code);
+                });
+            }
             provinceSelect.addEventListener('change', function(){
                 const code = this.options[this.selectedIndex]?.dataset?.code || '';
                 const isRegion = this.options[this.selectedIndex]?.dataset?.isRegion === 'true';
@@ -2145,6 +2158,31 @@
                     }
                 } else if (IS_OFFICE(myRole,'regional')) {
                     [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
+                    if (regionActualSelect) {
+                        const g = document.getElementById('group_profile_region_actual'); if (g) g.style.display = '';
+                        // Name swap: submit the actual region, keep level unsubmitted
+                        try { regionSelect.setAttribute('name',''); } catch(e){}
+                        regionActualSelect.setAttribute('name','region');
+                        // Populate regions
+                        fetch(`{{ url('/psgc/regions') }}`)
+                            .then(r=>r.json())
+                            .then(data=>{
+                                resetSelect(regionActualSelect,'Select Region');
+                                data.sort((a,b)=>a.name.localeCompare(b.name));
+                                let matched=false;
+                                data.forEach(reg=>{
+                                    const o=document.createElement('option'); o.value=reg.name; o.textContent=reg.name; o.dataset.code=reg.code;
+                                    if ((selectedRegionActual||selectedRegion) && (selectedRegionActual===reg.name || selectedRegion===reg.name)) { o.selected = true; matched = true; }
+                                    regionActualSelect.appendChild(o);
+                                });
+                                if (!matched && (selectedRegionActual||selectedRegion)) {
+                                    addFallbackOption(regionActualSelect, selectedRegionActual||selectedRegion);
+                                }
+                            })
+                            .catch(()=>{
+                                if (selectedRegionActual||selectedRegion) addFallbackOption(regionActualSelect, selectedRegionActual||selectedRegion);
+                            });
+                    }
                 } else if (IS_OFFICE(myRole,'provincial')) {
                     resetSelect(provinceSelect,'Select Office');
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{

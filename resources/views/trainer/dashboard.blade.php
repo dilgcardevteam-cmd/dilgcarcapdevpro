@@ -1733,7 +1733,176 @@
 
             <!-- Profile Section -->
             <div id="profile-section" class="content-section">
-                @include('profile.page')
+                <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="profile-page">
+                        <div class="profile-page-header">
+                            <div>
+                                <h1 class="profile-page-title">My Profile</h1>
+                                <p class="profile-page-subtitle">Keep your account information current and review your access details in one place.</p>
+                            </div>
+                        </div>
+
+                        @if(session('success_profile'))
+                            <div class="profile-page-alert">
+                                <i class="fas fa-circle-check"></i>
+                                <span>{{ session('success_profile') }}</span>
+                            </div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="profile-page-alert error">
+                                <i class="fas fa-circle-exclamation"></i>
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="profile-page-banner">
+                            <div class="profile-page-avatar">
+                                @php
+                                    $avatarSrc = Auth::user()->profile_picture
+                                        ? asset('storage/' . Auth::user()->profile_picture)
+                                        : asset('images/user.png');
+                                @endphp
+                                <img id="profile_preview" src="{{ $avatarSrc }}" alt="Profile picture">
+                            </div>
+                            <div class="profile-page-identity">
+                                <div class="profile-page-name">{{ Auth::user()->name }}</div>
+                                <div class="profile-page-meta">
+                                    <span class="profile-page-chip">{{ strtoupper(Auth::user()->role ?? '') }}</span>
+                                    <span>{{ Auth::user()->email }}</span>
+                                </div>
+                                <div id="profile_upload_container" class="profile-page-upload" style="display:none">
+                                    <input type="hidden" name="profile_picture_cropped" id="profile_picture_cropped">
+                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*" onchange="openCropperFromInput(this)">
+                                    <span class="profile-page-help">PNG or JPEG only, up to 5 MB. Square crop works best.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @php
+                            $myRole = Auth::user()->role ?? '';
+                            $isRegionalOfficeUser = in_array($myRole, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
+                            $profileRegion = old('region', Auth::user()->region);
+                            $profileProvince = old('province', Auth::user()->province);
+                            $profileCity = old('city', Auth::user()->city);
+                            $profileBarangay = old('barangay', Auth::user()->barangay);
+                        @endphp
+                        <div class="profile-page-grid">
+                            <div class="profile-page-panel account-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path></svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Account</span>
+                                        <span class="profile-page-panel-note">Identity and contact details</span>
+                                    </div>
+                                </div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label class="profile-field-label">Full Name</label>
+                                        <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="profile-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="profile-field-label">Email Address</label>
+                                        <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-page-panel location-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Location</span>
+                                        <span class="profile-page-panel-note">Assigned service area details</span>
+                                    </div>
+                                </div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label class="profile-field-label">Region</label>
+                                        <select id="profile_region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                            @if($profileRegion)
+                                                <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="group_profile_region_actual" style="display: {{ $isRegionalOfficeUser ? '' : 'none' }};">
+                                        <label class="profile-field-label">Region</label>
+                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                            @if($profileRegion)
+                                                <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="profile-field-label">Province</label>
+                                        <select id="profile_province" name="province" class="profile-input" data-selected="{{ $profileProvince }}" disabled>
+                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                            @if($profileProvince)
+                                                <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="profile-field-label">City / Municipality</label>
+                                        <select id="profile_city" name="city" class="profile-input" data-selected="{{ $profileCity }}" disabled>
+                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                            @if($profileCity)
+                                                <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="profile-field-label">Barangay</label>
+                                        <select id="profile_barangay" name="barangay" class="profile-input" data-selected="{{ $profileBarangay }}" disabled>
+                                            <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
+                                            @if($profileBarangay)
+                                                <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="password_change_section" class="profile-page-panel profile-page-panel-wide" style="display: none;">
+                                <div class="profile-page-panel-header">Security</div>
+                                <div class="profile-page-fields">
+                                    <div class="form-group">
+                                        <label>New Password</label>
+                                        <input type="password" name="password" class="profile-input" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Confirm Password</label>
+                                        <input type="password" name="password_confirmation" class="profile-input" readonly>
+                                    </div>
+                                </div>
+                                <div class="profile-page-help">Leave blank to keep your current password.</div>
+                            </div>
+
+                            <div class="profile-page-actions">
+                                <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
+                                    <i class="fas fa-pen"></i> Edit Profile
+                                </button>
+                                <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display:none;">
+                                    <i class="fas fa-xmark"></i> Cancel
+                                </button>
+                                <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display:none;">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
 
         </div>
