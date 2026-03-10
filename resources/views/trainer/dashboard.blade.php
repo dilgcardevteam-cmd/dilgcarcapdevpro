@@ -1363,7 +1363,25 @@
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 <div class="course-footer">
                                     <span>
-                                        <i class="fas fa-users"></i> {{ $course->users->where('role', 'trainee')->count() }} Students
+                                        <i class="fas fa-users"></i>
+                                        @php
+                                            $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                            $studentsCount = $course->users
+                                                ? $course->users->filter(function($u) use ($participantRoles){
+                                                    return in_array($u->role, $participantRoles) && in_array(optional($u->pivot)->status ?? 'active', ['active','pending']);
+                                                })->count()
+                                                : 0;
+                                        @endphp
+                                        {{ $studentsCount }} Students
+                                    </span>
+                                            $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                            $studentsCount = $course->users
+                                                ? $course->users->filter(function($u) use ($participantRoles){
+                                                    return in_array($u->role, $participantRoles) && in_array(optional($u->pivot)->status ?? 'active', ['active','pending']);
+                                                })->count()
+                                                : 0;
+                                        @endphp
+                                        {{ $studentsCount }} Students
                                     </span>
                                     <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                 </div>

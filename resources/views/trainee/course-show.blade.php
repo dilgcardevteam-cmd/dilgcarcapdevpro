@@ -329,15 +329,9 @@
         $role = auth()->user()->role ?? null;
         $IS_COACH = in_array($role, ['trainer','coach'], true);
     @endphp
-    @if($IS_COACH)
     <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px">
         <div style="font-weight:800;color:#0f172a">Classroom</div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-            <button id="tabModules" class="btn-blue" type="button">Modules</button>
-            <button id="tabResponses" class="btn-blue" type="button" style="background:#1e293b">Responses</button>
-        </div>
     </div>
-    @endif
     <div class="layout" id="modulesPane" style="{{ $IS_COACH ? '' : '' }}">
         <aside class="sidebar">
             <h3>
@@ -377,25 +371,7 @@
             @endif
         </main>
     </div>
-    @if($IS_COACH)
-    <div id="responsesPane" style="display:none;padding:14px">
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08)">
-            <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;">
-                <div style="display:flex;align-items:center;gap:12px">
-                    <select id="respUserSelect" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px;min-width:280px"></select>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px">
-                    <button id="respPrev" class="round-btn" type="button" aria-label="Prev"><i class="fas fa-chevron-left"></i></button>
-                    <div><span id="respIndex">1</span> of <span id="respTotal">0</span></div>
-                    <button id="respNext" class="round-btn" type="button" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
-            <div id="respBody" style="margin-top:12px">
-                <div class="muted">Select a participant to view responses.</div>
-            </div>
-        </div>
-    </div>
-    @endif
+    <!-- Responses pane removed -->
 <!-- Incomplete gate modal -->
 <div id="gateOverlay" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:3000">
   <div style="width:min(520px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 14px 30px rgba(0,0,0,.18);overflow:hidden">
@@ -410,52 +386,9 @@
 </div>
     <script>
     (function(){
-        const isCoach = {{ $IS_COACH ? 'true' : 'false' }};
-        if(isCoach){
-            const tabM = document.getElementById('tabModules');
-            const tabR = document.getElementById('tabResponses');
-            const paneM = document.getElementById('modulesPane');
-            const paneR = document.getElementById('responsesPane');
-            function showTab(which){
-                if(which==='modules'){ paneM.style.display='grid'; paneR.style.display='none'; }
-                else { paneM.style.display='none'; paneR.style.display='block'; }
-            }
-            if(tabM){ tabM.onclick = ()=> showTab('modules'); }
-            if(tabR){ tabR.onclick = ()=> showTab('responses'); }
-            showTab('modules');
-            // Populate participants
-            const sel = document.getElementById('respUserSelect');
-            const users = @json($course->users ?? []);
-            const trainees = users.filter(u=> (u.role||'')==='trainee');
-            if(sel){
-                sel.innerHTML = trainees.map(t=> `<option value="${t.id}">${t.email || t.name || ('User #'+t.id)}</option>`).join('') || '<option>(No participants)</option>';
-            }
-            let idx=1, total=trainees.length;
-            const iEl=document.getElementById('respIndex'), tEl=document.getElementById('respTotal');
-            if(iEl) iEl.textContent = String(idx);
-            if(tEl) tEl.textContent = String(total);
-            function move(d){
-                if(total<=0) return;
-                idx = Math.max(1, Math.min(total, idx + d));
-                if(iEl) iEl.textContent = String(idx);
-                if(sel){ sel.selectedIndex = idx-1; }
-                renderResp();
-            }
-            const prev=document.getElementById('respPrev'), next=document.getElementById('respNext');
-            if(prev) prev.onclick = ()=> move(-1);
-            if(next) next.onclick = ()=> move(1);
-            if(sel) sel.onchange = ()=> { idx = (sel.selectedIndex+1); renderResp(); };
-            function renderResp(){
-                const body=document.getElementById('respBody');
-                const user = trainees[idx-1];
-                if(!user){ body.innerHTML = '<div class="muted">No participant selected.</div>'; return; }
-                body.innerHTML = `
-                    <div style="font-weight:800;color:#0f172a;margin-bottom:8px">Responses for ${user.email || user.name || ('User #'+user.id)}</div>
-                    <div class="muted">Coming soon: individual answers per assessment and reflection.</div>
-                `;
-            }
-            renderResp();
-        }
+        // Simplified: keep modules pane visible (responses feature removed)
+        const paneM = document.getElementById('modulesPane');
+        if(paneM){ paneM.style.display='grid'; }
     })();
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
