@@ -4814,15 +4814,9 @@
                                         </label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="profile-field-label">
-                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
-                                            </svg>
-                                            Job Title
-                                        </label>
-                                        <input type="text" name="job_title" value="{{ Auth::user()->job_title }}" readonly class="profile-input">
+                                    <div class="form-group" style="display:none">
+                                        <label class="profile-field-label" style="display:none">Job Title</label>
+                                        <input type="hidden" name="job_title" value="">
                                     </div>
                                 </div>
                             </div>

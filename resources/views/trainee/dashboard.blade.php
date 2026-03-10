@@ -1495,43 +1495,65 @@
                                         $profileProvince = old('province', Auth::user()->province ?? '');
                                         $profileCity = old('city', Auth::user()->city ?? '');
                                         $profileBarangay = old('barangay', Auth::user()->barangay ?? '');
+                                        $myRole = Auth::user()->role ?? '';
+                                        $isCentral = in_array($myRole, ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'], true);
+                                        $isRegional = in_array($myRole, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
+                                        $isProvincial = in_array($myRole, ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'], true);
+                                        $labelRegion = ($isCentral || $isRegional || $isProvincial) ? 'Office Level' : 'Region';
+                                        $labelProvince = $isCentral ? 'Office Type' : ($isRegional ? 'Region' : ($isProvincial ? 'Office' : 'Province'));
+                                        $isBureau = is_string($profileProvince) && (stripos($profileProvince,'bureau') !== false);
+                                        $labelCity = $isCentral ? ($isBureau ? 'Bureau' : 'Service') : 'City / Municipality';
                                     @endphp
                                     <div class="form-group">
-                                        <label>Region</label>
-                                        <select id="profile_region" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
-                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                        <label>{{ $labelRegion }}</label>
+                                        <select id="profile_region" name="{{ ($isCentral || $isRegional || $isProvincial) ? 'office_level' : 'region' }}" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>{{ $isCentral || $isRegional || $isProvincial ? 'Select Level' : 'Select Region' }}</option>
                                             @if($profileRegion)
                                                 <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Province</label>
+                                    <div class="form-group" @if(!$isRegional) style="display:none" @endif>
+                                        <label>Region</label>
+                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $isRegional ? (old('region', Auth::user()->region ?? '')) : '' }}" disabled>
+                                            <option value="" disabled selected>Select Region</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" @if($isRegional) style="display:none" @endif>
+                                        <label>{{ $labelProvince }}</label>
                                         <select id="profile_province" name="province" class="profile-input" data-selected="{{ $profileProvince }}" disabled>
-                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>
+                                                @if($isCentral) Select Office Type @elseif($isProvincial) Select Office @elseif($isRegional) Select Region @else Select Province @endif
+                                            </option>
                                             @if($profileProvince)
                                                 <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label>City / Municipality</label>
+                                    <div class="form-group" @if($isRegional || $isProvincial) style="display:none" @endif>
+                                        <label>{{ $labelCity }}</label>
                                         <select id="profile_city" name="city" class="profile-input" data-selected="{{ $profileCity }}" disabled>
-                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>
+                                                @if($isCentral) {{ $isBureau ? 'Select Bureau' : 'Select Service' }} @else Select City/Municipality @endif
+                                            </option>
                                             @if($profileCity)
                                                 <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Barangay</label>
-                                        <select id="profile_barangay" name="barangay" class="profile-input" data-selected="{{ $profileBarangay }}" disabled>
-                                            <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
-                                            @if($profileBarangay)
-                                                <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
-                                            @endif
-                                        </select>
-                                    </div>
+                                    @if(!$isCentral)
+                                        <div class="form-group" @if($isRegional || $isProvincial) style="display:none" @endif>
+                                            <label>Barangay</label>
+                                            <select id="profile_barangay" name="barangay" class="profile-input" data-selected="{{ $profileBarangay }}" disabled>
+                                                <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
+                                                @if($profileBarangay)
+                                                    <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    @else
+                                        <input type="hidden" id="profile_barangay" name="barangay" value="">
+                                    @endif
                                 </div>
                             </div>
 
@@ -1965,14 +1987,16 @@
 
         function initProfileLocationDropdowns() {
             const regionSelect = document.getElementById('profile_region');
+            const regionActualSelect = document.getElementById('profile_region_actual');
             const provinceSelect = document.getElementById('profile_province');
             const citySelect = document.getElementById('profile_city');
             const barangaySelect = document.getElementById('profile_barangay');
-            if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+            if (!regionSelect) return;
             if (regionSelect.dataset.initialized === 'true') return;
             regionSelect.dataset.initialized = 'true';
 
             const selectedRegion = regionSelect.dataset.selected || '';
+            const selectedRegionActual = regionActualSelect?.dataset?.selected || '';
             const selectedProvince = provinceSelect.dataset.selected || '';
             const selectedCity = citySelect.dataset.selected || '';
             const selectedBarangay = barangaySelect.dataset.selected || '';
@@ -2103,12 +2127,13 @@
                 regionSelect.appendChild(opt);
                 const regionGroupLabel = regionSelect.closest('.form-group')?.querySelector('label'); if (regionGroupLabel) regionGroupLabel.textContent = 'Office Level';
                 const provGroupLabel = provinceSelect.closest('.form-group')?.querySelector('label'); if (provGroupLabel) provGroupLabel.textContent = IS_OFFICE(myRole,'central') ? 'Office Type' : 'Office';
+                const cityGroupLabel = citySelect.closest('.form-group')?.querySelector('label');
                 if (IS_OFFICE(myRole, 'central')) {
                     resetSelect(provinceSelect, 'Select Office Type');
                     ['Bureau','Services'].forEach(lbl=>{ const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o); });
                     provinceSelect.addEventListener('change', function(){
                         const cat=this.value;
-                        const cityLabel = citySelect.closest('.form-group')?.querySelector('label'); if (cityLabel) cityLabel.textContent = (cat==='Bureau' ? 'Bureau' : 'Service');
+                        if (cityGroupLabel) cityGroupLabel.textContent = cat==='Bureau' ? 'Bureau' : 'Service';
                         resetSelect(citySelect, cat==='Bureau' ? 'Select Bureau' : 'Select Service');
                         const list=cat==='Bureau'?BUREAUS:SERVICES;
                         let matched=false;
@@ -2118,8 +2143,8 @@
                             citySelect.appendChild(o);
                         });
                         if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
+                        citySelect.disabled=false;
                         const barangayGroup = barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
-                        // keep disabled state consistent with edit mode toggle elsewhere
                     });
                     if (selectedProvince) {
                         const isB = BUREAUS.includes(selectedProvince);
@@ -2127,21 +2152,36 @@
                         provinceSelect.dispatchEvent(new Event('change'));
                     }
                 } else if (IS_OFFICE(myRole,'regional')) {
-                    // Show Region only in second slot
-                    const provLabel = provinceSelect.closest('.form-group')?.querySelector('label'); if (provLabel) provLabel.textContent = 'Region';
-                    [citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
-                    // Load regions into provinceSelect
-                    resetSelect(provinceSelect, 'Select Region');
-                    fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(data=>{
-                        data.sort((a,b)=>a.name.localeCompare(b.name));
-                        let matched=false;
-                        data.forEach(reg=>{ const o=document.createElement('option'); o.value=reg.name; o.textContent=reg.name; o.dataset.code=reg.code; if (selectedRegion && selectedRegion===reg.name){ o.selected=true; matched=true; } provinceSelect.appendChild(o); });
-                        if (selectedRegion && !matched) addFallbackOption(provinceSelect, selectedRegion);
-                    }).catch(()=>{ if (selectedRegion) addFallbackOption(provinceSelect, selectedRegion); });
+                    const regActualGroup = regionActualSelect?.closest('.form-group');
+                    if (regActualGroup) regActualGroup.style.display = '';
+                    [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
+                    if (regionActualSelect) {
+                        const makeOption = (val, code, matchVal) => {
+                            const o=document.createElement('option');
+                            o.value = val; o.textContent = val; o.dataset.code = code || '';
+                            if (matchVal && matchVal === val) { o.selected = true; }
+                            regionActualSelect.appendChild(o);
+                        };
+                        regionActualSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
+                        fetch(`{{ url('/psgc/regions') }}`)
+                            .then(r=>r.json())
+                            .then(data=>{
+                                data.sort((a,b)=>a.name.localeCompare(b.name));
+                                let matched=false;
+                                data.forEach(rg=>{
+                                    const o=document.createElement('option');
+                                    o.value = rg.name; o.textContent = rg.name; o.dataset.code = rg.code;
+                                    if (selectedRegionActual && selectedRegionActual === rg.name) { o.selected=true; matched=true; }
+                                    regionActualSelect.appendChild(o);
+                                });
+                                if (selectedRegionActual && !matched) makeOption(selectedRegionActual, '', selectedRegionActual);
+                            })
+                            .catch(()=>{
+                                if (selectedRegionActual) makeOption(selectedRegionActual, '', selectedRegionActual);
+                            });
+                    }
                 } else if (IS_OFFICE(myRole,'provincial')) {
                     resetSelect(provinceSelect,'Select Office');
-                    if (regionGroupLabel) regionGroupLabel.textContent = 'Office Level';
-                    if (provGroupLabel) provGroupLabel.textContent = 'Office';
                     fetch(`{{ url('/psgc/regions') }}`).then(r=>r.json()).then(async regions=>{
                         let items=[]; for (const reg of regions){ try{ const res=await fetch(`{{ url('/psgc/regions') }}/${reg.code}/provinces`); const data=await res.json(); items=items.concat(data.map(p=>({code:p.code,name:p.name}))); }catch(e){} }
                         items.sort((a,b)=>a.name.localeCompare(b.name)); let matched=false;
