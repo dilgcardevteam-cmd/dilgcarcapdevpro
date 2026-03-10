@@ -6,6 +6,8 @@
     <title>{{ $course->name }} · Class</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="{{ asset('images/ddd-removebg-preview.png') }}">
+    <link rel="preload" as="image" href="{{ asset('images/logo1.png') }}">
     <style>
         :root{
             --brand:#0d6efd;
@@ -18,7 +20,7 @@
         }
         body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans', sans-serif;}
         :root{--primary-blue:#002C76;--primary-green:#7fb73d;--dark-text:#333333;--light-text:#58585b;--bg-color:#f4f6f9;--sidebar-width:250px;--sidebar-collapsed-width:70px;--header-height:80px}
-        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000;position:fixed;top:0;left:var(--sidebar-width);right:0}
+        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;height:var(--header-height);box-sizing:border-box;z-index:1000;position:fixed;top:0;left:var(--sidebar-width);right:0;transition:left .25s ease;will-change:left}
         .header-left{display:flex;align-items:center}
         .header-toggle{background:none;border:none;color:#002C76;font-size:1.3rem;padding:8px 12px;border-radius:6px;cursor:pointer}
         .header-toggle:hover{background:#f0f2f7}
@@ -30,7 +32,10 @@
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
-        .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height))}
+        .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height));transition:margin-left .25s ease;will-change:margin-left}
+        /* Collapse sync: when body has sidebar-collapsed, shift header and container */
+        body.sidebar-collapsed .header{ left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .dashboard-container{ margin-left: var(--sidebar-collapsed-width); }
         .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
         .sidebar.collapsed{width:var(--sidebar-collapsed-width)}
         .sidebar-toggle{background:none;border:none;color:#fff;padding:15px;cursor:pointer;text-align:right;font-size:1.2rem}
@@ -921,6 +926,7 @@
                         @endif
                     </div>
                     <div class="split">
+                        @if(empty($asTrainer))
                         <div class="container-box">
                             @php $completion = $completion ?? 0; @endphp
                             <div class="section-head" style="color:var(--text);font-weight:700;">
@@ -935,6 +941,7 @@
                             </div>
                             <div id="moduleProgressList" style="margin-top:10px"></div>
                         </div>
+                        @endif
                         <div class="container-box">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                                 <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">

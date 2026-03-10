@@ -1305,8 +1305,18 @@ class CourseController extends Controller
         // Attach with pending status
         $course->users()->attach($user->id, ['status' => 'pending']);
 
-        // Notify Registrars
-        $registrars = User::where('role', 'registrar')->get();
+        // Notify Training Managers of same branch only
+        $tmRoles = [];
+        if ($user->role === 'central_office_participants') {
+            $tmRoles = ['central_office_training_manager'];
+        } elseif ($user->role === 'regional_office_participants') {
+            $tmRoles = ['regional_office_training_manager'];
+        } elseif ($user->role === 'provincial_office_participants') {
+            $tmRoles = ['provincial_office_training_manager'];
+        } else {
+            $tmRoles = ['training_manager'];
+        }
+        $registrars = User::whereIn('role', $tmRoles)->get();
         foreach ($registrars as $registrar) {
             Notification::create([
                 'user_id' => $registrar->id,

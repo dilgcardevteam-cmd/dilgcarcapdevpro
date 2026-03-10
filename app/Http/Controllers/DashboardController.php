@@ -371,14 +371,45 @@ class DashboardController extends Controller
                 $unapprovedCount = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
                 $approvedCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $managedParticipantRoles)->where('status', 'pending')->count();
-                $totalCourses = Course::count();
-                $courses = Course::with('users')->get();
+                // Limit visible courses to TM's branch/level
+                $levelRoles = [];
+                if ($user->role === 'central_office_training_manager') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_training_manager') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_training_manager') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } else {
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $totalCourses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->count();
+                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->with('users')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
                 $query = User::query()->whereIn('role', $managedRoles);
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
-                if ($request->has('roles')) $query->whereIn('role', array_intersect($request->roles, $managedRoles));
+                if ($request->has('roles')) {
+                    $selected = (array) $request->roles;
+                    $expanded = [];
+                    foreach ($selected as $r) {
+                        if (in_array($r, ['coach','trainer'], true)) {
+                            $expanded = array_merge($expanded, $managedCoachRoles);
+                        } elseif (in_array($r, ['participant','trainee'], true)) {
+                            $expanded = array_merge($expanded, $managedParticipantRoles);
+                        } elseif ($r === 'training_manager') {
+                            $expanded = array_merge($expanded, array_values(array_intersect($tmRoles, $managedRoles)));
+                        } else {
+                            $expanded[] = $r;
+                        }
+                    }
+                    $expanded = array_values(array_unique($expanded));
+                    $query->whereIn('role', array_intersect($expanded, $managedRoles));
+                }
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
                 if ($sort === 'oldest') $query->orderBy('created_at', 'asc');

@@ -88,9 +88,9 @@
         .mc .mc-option:hover{background:#eef2ff}
         .mc .mc-option.selected{background:#06b6d4;color:#fff;border-color:#0891b2;box-shadow:inset -12px -12px 0 0 rgba(255,255,255,0.15)}
         .mc .mc-option.submitted-correct{position:relative}
-        .mc .mc-option.submitted-correct::before{content:'✓';position:absolute;left:-6px;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 2px #10b981}
-        .mc .mc-option.submitted-wrong{position:relative;border-color:#ef4444;background:#fff;color:#b91c1c}
-        .mc .mc-option.submitted-wrong::before{content:'✕';position:absolute;left:-6px;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 2px #ef4444}
+        .mc .mc-option.submitted-correct::before{content:'✓';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#10b981;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #10b981}
+        .mc .mc-option.submitted-wrong{position:relative;border-color:#ef4444;background:#fee2e2;color:#b91c1c}
+        .mc .mc-option.submitted-wrong::before{content:'✕';position:absolute;left:-10px;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:#fff;color:#ef4444;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 0 4px #ef4444}
         .mc .mc-radio{width:20px;height:20px;border:2px solid #9ca3af;border-radius:999px;display:inline-block;background:#fff;flex:0 0 auto}
         .mc .mc-option.selected .mc-radio{border-color:#fff;background:transparent;box-shadow:inset 0 0 0 6px #002C76, 0 0 0 2px #fff}
         /* True/False options styled like MC */
@@ -107,10 +107,13 @@
         .btn-green{flex:1;min-width:160px;background:var(--b);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-weight:700;cursor:pointer}
         .btn-green:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}
 <<<<<<< HEAD
+<<<<<<< HEAD
         .mc-actions [data-act="feedback"]{background:#fff;color:#0f3b8f;border:1px solid #c7d2fe}
         .mc-actions [data-act="reset"]{background:#0f3b8f;color:#fff}
         .mc-feedback{margin-top:8px;font-weight:700;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
 =======
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .mc-feedback{margin-top:8px;font-weight:700}
         .btn-blue{
             background:linear-gradient(90deg,#002C76 0%, #0f3b8f 100%);
@@ -120,7 +123,10 @@
         }
         .btn-blue:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(0,44,118,.28); filter:brightness(1.03); }
         .btn-blue:disabled{ background:#e5e7eb;color:#9ca3af;cursor:not-allowed; box-shadow:none; }
+<<<<<<< HEAD
 >>>>>>> 784202431884b5fe0713b51cfac0955a87223c63
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .view-only .module-bar,
         .view-only .module-kpi,
         .view-only .done-toggle,
@@ -240,30 +246,26 @@
         .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
         .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
+<<<<<<< HEAD
         .mc .mc-option{background:#fff;border:1px solid #e6edf5}
         .mc .mc-option:hover{background:#f5f8ff}
         .mc .mc-option.selected{background:#eef2ff;border-color:#c7d2fe}
         .mc-actions{gap:10px}
         .btn-ghost{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;background:#fff;font-weight:700}
+=======
+>>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .pane{
             border-radius:16px;
             box-shadow:0 14px 30px rgba(15,23,42,.14);
             border:1px solid #e6edf5;
-            max-width:980px;
-            margin:0 auto;
         }
         .field{
             border-radius:14px;
             box-shadow:0 1px 2px rgba(15,23,42,.04);
         }
-        .field + .field{margin-top:12px}
         .chip{padding:6px 12px;color:#0f3b8f;border:1px solid #dbeafe;background:#eef2ff}
         .btn-green{
             box-shadow:0 10px 20px rgba(37,99,235,.2);
-            background:#0f3b8f;
-            border-radius:12px;
-            border:none;
-            font-weight:800;
         }
         /* Pro input styling for Identification/Essay */
         .q-input{
@@ -327,15 +329,9 @@
         $role = auth()->user()->role ?? null;
         $IS_COACH = in_array($role, ['trainer','coach'], true);
     @endphp
-    @if($IS_COACH)
     <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px">
         <div style="font-weight:800;color:#0f172a">Classroom</div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-            <button id="tabModules" class="btn-blue" type="button">Modules</button>
-            <button id="tabResponses" class="btn-blue" type="button" style="background:#1e293b">Responses</button>
-        </div>
     </div>
-    @endif
     <div class="layout" id="modulesPane" style="{{ $IS_COACH ? '' : '' }}">
         <aside class="sidebar">
             <h3>
@@ -375,25 +371,7 @@
             @endif
         </main>
     </div>
-    @if($IS_COACH)
-    <div id="responsesPane" style="display:none;padding:14px">
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.08)">
-            <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;">
-                <div style="display:flex;align-items:center;gap:12px">
-                    <select id="respUserSelect" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px;min-width:280px"></select>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px">
-                    <button id="respPrev" class="round-btn" type="button" aria-label="Prev"><i class="fas fa-chevron-left"></i></button>
-                    <div><span id="respIndex">1</span> of <span id="respTotal">0</span></div>
-                    <button id="respNext" class="round-btn" type="button" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
-            <div id="respBody" style="margin-top:12px">
-                <div class="muted">Select a participant to view responses.</div>
-            </div>
-        </div>
-    </div>
-    @endif
+    <!-- Responses pane removed -->
 <!-- Incomplete gate modal -->
 <div id="gateOverlay" style="position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:3000">
   <div style="width:min(520px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 14px 30px rgba(0,0,0,.18);overflow:hidden">
@@ -408,52 +386,9 @@
 </div>
     <script>
     (function(){
-        const isCoach = {{ $IS_COACH ? 'true' : 'false' }};
-        if(isCoach){
-            const tabM = document.getElementById('tabModules');
-            const tabR = document.getElementById('tabResponses');
-            const paneM = document.getElementById('modulesPane');
-            const paneR = document.getElementById('responsesPane');
-            function showTab(which){
-                if(which==='modules'){ paneM.style.display='grid'; paneR.style.display='none'; }
-                else { paneM.style.display='none'; paneR.style.display='block'; }
-            }
-            if(tabM){ tabM.onclick = ()=> showTab('modules'); }
-            if(tabR){ tabR.onclick = ()=> showTab('responses'); }
-            showTab('modules');
-            // Populate participants
-            const sel = document.getElementById('respUserSelect');
-            const users = @json($course->users ?? []);
-            const trainees = users.filter(u=> (u.role||'')==='trainee');
-            if(sel){
-                sel.innerHTML = trainees.map(t=> `<option value="${t.id}">${t.email || t.name || ('User #'+t.id)}</option>`).join('') || '<option>(No participants)</option>';
-            }
-            let idx=1, total=trainees.length;
-            const iEl=document.getElementById('respIndex'), tEl=document.getElementById('respTotal');
-            if(iEl) iEl.textContent = String(idx);
-            if(tEl) tEl.textContent = String(total);
-            function move(d){
-                if(total<=0) return;
-                idx = Math.max(1, Math.min(total, idx + d));
-                if(iEl) iEl.textContent = String(idx);
-                if(sel){ sel.selectedIndex = idx-1; }
-                renderResp();
-            }
-            const prev=document.getElementById('respPrev'), next=document.getElementById('respNext');
-            if(prev) prev.onclick = ()=> move(-1);
-            if(next) next.onclick = ()=> move(1);
-            if(sel) sel.onchange = ()=> { idx = (sel.selectedIndex+1); renderResp(); };
-            function renderResp(){
-                const body=document.getElementById('respBody');
-                const user = trainees[idx-1];
-                if(!user){ body.innerHTML = '<div class="muted">No participant selected.</div>'; return; }
-                body.innerHTML = `
-                    <div style="font-weight:800;color:#0f172a;margin-bottom:8px">Responses for ${user.email || user.name || ('User #'+user.id)}</div>
-                    <div class="muted">Coming soon: individual answers per assessment and reflection.</div>
-                `;
-            }
-            renderResp();
-        }
+        // Simplified: keep modules pane visible (responses feature removed)
+        const paneM = document.getElementById('modulesPane');
+        if(paneM){ paneM.style.display='grid'; }
     })();
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
