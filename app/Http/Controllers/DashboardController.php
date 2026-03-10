@@ -371,8 +371,23 @@ class DashboardController extends Controller
                 $unapprovedCount = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
                 $approvedCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $managedParticipantRoles)->where('status', 'pending')->count();
-                $totalCourses = Course::count();
-                $courses = Course::with('users')->get();
+                // Limit visible courses to TM's branch/level
+                $levelRoles = [];
+                if ($user->role === 'central_office_training_manager') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_training_manager') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_training_manager') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } else {
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $totalCourses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->count();
+                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->with('users')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
