@@ -750,7 +750,6 @@ class CourseController extends Controller
     public function participants(Course $course)
     {
         $course->load('users');
-        $currentCourseTraineeIds = $course->users()->whereIn('role', ['participant','trainee'])->pluck('users.id')->toArray();
         $actor = auth()->user();
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
@@ -771,6 +770,7 @@ class CourseController extends Controller
         }
         $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
         $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
+        $currentCourseTraineeIds = $course->users()->whereIn('role', $managedParticipantRoles)->pluck('users.id')->toArray();
         $potentialTrainers = User::whereIn('role', $managedCoachRoles)
             ->where('status', 'active')
             ->get();

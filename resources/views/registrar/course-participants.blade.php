@@ -148,15 +148,11 @@
             <h3>Course</h3>
             <div class="body">
                 @php
-                    $trainersCount = $course->users
-                        ? $course->users->filter(fn($u)=>in_array($u->role, ['coach','trainer']))->count()
-                        : 0;
-                    $pendingTraineesCount = $course->users
-                        ? $course->users->filter(fn($u)=>in_array($u->role, ['trainee','participant']) && optional($u->pivot)->status==='pending')->count()
-                        : 0;
-                    $enrolledTraineesCount = $course->users
-                        ? $course->users->filter(fn($u)=>in_array($u->role, ['trainee','participant']) && optional($u->pivot)->status==='active')->count()
-                        : 0;
+                    $coachRolesAll = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                    $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+                    $trainersCount = $course->users ? $course->users->filter(fn($u)=>in_array($u->role, $coachRolesAll))->count() : 0;
+                    $pendingTraineesCount = $course->users ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status==='pending')->count() : 0;
+                    $enrolledTraineesCount = $course->users ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status==='active')->count() : 0;
                 @endphp
                 <div style="font-weight:700;color:#002C76;font-size:1.1rem;">{{ $course->name }}</div>
                 <div class="meta">
@@ -325,8 +321,9 @@
                 <h3><i class="fas fa-list"></i> Participants Summary</h3>
                 <div class="body">
                     @php 
+                        $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
                         $courseTrainees = $course->users
-                            ->whereIn('role',['participant','trainee'])
+                            ->whereIn('role',$participantRolesAll)
                             ->filter(fn($u)=> in_array(optional($u->pivot)->status, ['pending','active']));
                     @endphp
                     @if($courseTrainees->count())
@@ -363,8 +360,9 @@
                 <h3><i class="fas fa-user-graduate"></i> Trainees</h3>
                 <div class="body">
                     @php
-                        $currentActiveIds = $course->users->whereIn('role',['participant','trainee'])->filter(fn($u)=>$u->pivot && $u->pivot->status==='active')->pluck('id')->toArray();
-                        $allCourseTraineeIds = $course->users->whereIn('role',['participant','trainee'])->pluck('id')->toArray();
+                        $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+                        $currentActiveIds = $course->users->whereIn('role',$participantRolesAll)->filter(fn($u)=>$u->pivot && $u->pivot->status==='active')->pluck('id')->toArray();
+                        $allCourseTraineeIds = $course->users->whereIn('role',$participantRolesAll)->pluck('id')->toArray();
                         $available = $potentialTrainees->filter(fn($u)=>!in_array($u->id, $currentActiveIds));
                     @endphp
                         <div class="dual">
@@ -523,6 +521,11 @@
     document.getElementById('filter_selected_trainers').addEventListener('input',()=>applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr'));
     document.getElementById('available_trainers').addEventListener('change',syncAllCounts);
     document.getElementById('selected_trainers').addEventListener('change',syncAllCounts);
+    // Ensure no items are pre-selected on load for all lists
+    ['available_trainers','selected_trainers','available_trainees','selected_trainees'].forEach(function(id){
+        var el=document.getElementById(id);
+        if(el){ el.querySelectorAll('.item input[type=checkbox]').forEach(function(cb){ cb.checked=false; }); }
+    });
     applyFilterGeneric('filter_available','available_trainees','avail_total_count');
     applyFilterGeneric('filter_selected','selected_trainees','sel_total_count');
     applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr');
