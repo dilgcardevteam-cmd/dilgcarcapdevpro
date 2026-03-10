@@ -1658,7 +1658,8 @@
                         <span style="color:#6b7280">Recent</span>
                     </div>
                     @php
-                        $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
+                        $actor = Auth::user();
+                        $actorName = ($actor && in_array($actor->role,['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'])) ? $actor->name : 'Training Manager';
                         $logs = collect();
                         $recent = isset($notifications) ? $notifications->take(20) : collect();
                         foreach($recent as $n){
@@ -1668,25 +1669,51 @@
                                 'time' => $n->created_at,
                             ]);
                         }
-                        $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        // Branch role sets
+                        $levelRoles = [];
+                        $coachLevelRoles = [];
+                        $participantLevelRoles = [];
+                        if($actor){
+                            if ($actor->role === 'central_office_training_manager') {
+                                $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                                $coachLevelRoles = ['central_office_coach'];
+                                $participantLevelRoles = ['central_office_participants'];
+                            } elseif ($actor->role === 'regional_office_training_manager') {
+                                $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                                $coachLevelRoles = ['regional_office_coach'];
+                                $participantLevelRoles = ['regional_office_participants'];
+                            } elseif ($actor->role === 'provincial_office_training_manager') {
+                                $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                                $coachLevelRoles = ['provincial_office_coach'];
+                                $participantLevelRoles = ['provincial_office_participants'];
+                            } else {
+                                $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                                $coachLevelRoles = ['coach','trainer'];
+                                $participantLevelRoles = ['participant','trainee'];
+                            }
+                        }
+                        // Approved/Updated users limited to branch
+                        $approvedUsers = \App\Models\User::whereIn('role',$levelRoles)->where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
                         foreach($approvedUsers as $u){ $logs->push(['title'=>'Approved User','desc'=>$actorName.' approved '.$u->name,'time'=>$u->updated_at]); }
-                        $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
+                        $updatedUsers = \App\Models\User::whereIn('role',$levelRoles)->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
                         foreach($updatedUsers as $u){
                             $logs->push(['title'=>'Edited Status','desc'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'time'=>$u->updated_at]);
                             $logs->push(['title'=>'Edited Role','desc'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'time'=>$u->updated_at]);
                         }
+                        // Coach assignments limited to branch
                         $coachAssignments = \DB::table('course_user')
                             ->join('courses','course_user.course_id','=','courses.id')
                             ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['coach','trainer'])
+                            ->whereIn('users.role',$coachLevelRoles)
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
                             ->take(10)->get();
                         foreach($coachAssignments as $r){ $logs->push(['title'=>'Assigned Coach','desc'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        // Enrollments limited to branch
                         $enrollments = \DB::table('course_user')
                             ->join('courses','course_user.course_id','=','courses.id')
                             ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['participant','trainee'])
+                            ->whereIn('users.role',$participantLevelRoles)
                             ->where('course_user.status','active')
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
@@ -1768,9 +1795,9 @@
                                         <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Email Address</label>
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" readonly class="profile-input" style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
                                     </div>
-                                    <div class="form-group">
-                                        <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Job Title</label>
-                                        <input type="text" name="job_title" value="{{ Auth::user()->job_title }}" readonly class="profile-input" style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
+                                    <div class="form-group" style="display:none">
+                                        <label style="display:none">Job Title</label>
+                                        <input type="hidden" name="job_title" value="">
                                     </div>
                                 </div>
                             </div>
@@ -1782,14 +1809,29 @@
                                         $profileProvince = old('province', Auth::user()->province);
                                         $profileCity = old('city', Auth::user()->city);
                                         $profileBarangay = old('barangay', Auth::user()->barangay);
+                                        $myRole = Auth::user()->role ?? '';
+                                        $centralRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                                        $regionalRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                                        $provincialRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                                        $isCentral = in_array($myRole, $centralRoles, true);
+                                        $isRegional = in_array($myRole, $regionalRoles, true);
+                                        $isProvincial = in_array($myRole, $provincialRoles, true);
                                     @endphp
                                     <div class="form-group">
-                                        <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Region</label>
-                                        <select id="profile_region" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
-                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                        <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">{{ ($isCentral || $isRegional || $isProvincial) ? 'Office Level' : 'Region' }}</label>
+                                        <select id="profile_region" name="{{ ($isCentral || $isRegional || $isProvincial) ? 'office_level' : 'region' }}" class="profile-input" data-selected="{{ $profileRegion }}" disabled style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>
+                                                {{ ($isCentral || $isRegional || $isProvincial) ? 'Select Level' : 'Select Region' }}
+                                            </option>
                                             @if($profileRegion)
                                                 <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
                                             @endif
+                                        </select>
+                                    </div>
+                                    <div class="form-group" @if(!$isRegional) style="display:none" @endif>
+                                        <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Region</label>
+                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $isRegional ? (old('region', Auth::user()->region ?? '')) : '' }}" disabled style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;background:#f8fafc">
+                                            <option value="" disabled selected>Select Region</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -2414,12 +2456,14 @@
     // Initialize PSGC location dropdowns for profile
     (function initRegistrarProfilePSGC(){
         const regionSelect = document.getElementById('profile_region');
+        const regionActualSelect = document.getElementById('profile_region_actual');
         const provinceSelect = document.getElementById('profile_province');
         const citySelect = document.getElementById('profile_city');
         const barangaySelect = document.getElementById('profile_barangay');
         if (!regionSelect || regionSelect.dataset.initialized === 'true') return;
         regionSelect.dataset.initialized = 'true';
         const selectedRegion = regionSelect.dataset.selected || '';
+        const selectedRegionActual = regionActualSelect?.dataset?.selected || '';
         const selectedProvince = provinceSelect?.dataset?.selected || '';
         const selectedCity = citySelect?.dataset?.selected || '';
         const selectedBarangay = barangaySelect?.dataset?.selected || '';
@@ -2456,7 +2500,36 @@
                     return;
                 }
                 if (IS_OFFICE(myRole,'regional')){
+                    const regActualGroup = regionActualSelect?.closest('.form-group');
+                    if (regActualGroup) regActualGroup.style.display = '';
                     [provinceSelect, citySelect, barangaySelect].forEach(s=>{ const g=s.closest('.form-group'); if (g) g.style.display='none'; });
+                    if (regionActualSelect) {
+                        regionActualSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
+                        fetch(`{{ url('/psgc/regions') }}`)
+                            .then(r=>r.json())
+                            .then(data=>{
+                                data.sort((a,b)=>a.name.localeCompare(b.name));
+                                let matched=false;
+                                data.forEach(reg=>{
+                                    const o=document.createElement('option');
+                                    o.value = reg.name; o.textContent = reg.name; o.dataset.code = reg.code;
+                                    if (selectedRegionActual && selectedRegionActual === reg.name) { o.selected=true; matched=true; }
+                                    regionActualSelect.appendChild(o);
+                                });
+                                if (selectedRegionActual && !matched) {
+                                    const o=document.createElement('option');
+                                    o.value = selectedRegionActual; o.textContent = selectedRegionActual; o.selected = true;
+                                    regionActualSelect.appendChild(o);
+                                }
+                            })
+                            .catch(()=>{
+                                if (selectedRegionActual) {
+                                    const o=document.createElement('option');
+                                    o.value = selectedRegionActual; o.textContent = selectedRegionActual; o.selected = true;
+                                    regionActualSelect.appendChild(o);
+                                }
+                            });
+                    }
                     return;
                 }
                 if (IS_OFFICE(myRole,'provincial')){

@@ -665,20 +665,40 @@ class CourseController extends Controller
     {
         $course->load('users');
         $currentCourseTraineeIds = $course->users()->whereIn('role', ['participant','trainee'])->pluck('users.id')->toArray();
-        $potentialTrainers = User::whereIn('role', ['coach','trainer'])
+        $actor = auth()->user();
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $managedRoles = [];
+        if ($actor) {
+            if ($actor->role === 'central_office_training_manager') {
+                $managedRoles = ['central_office_coach','central_office_participants'];
+            } elseif ($actor->role === 'regional_office_training_manager') {
+                $managedRoles = ['regional_office_coach','regional_office_participants'];
+            } elseif ($actor->role === 'provincial_office_training_manager') {
+                $managedRoles = ['provincial_office_coach','provincial_office_participants'];
+            } else {
+                $managedRoles = ['coach','trainer','participant','trainee'];
+            }
+        } else {
+            $managedRoles = ['coach','trainer','participant','trainee'];
+        }
+        $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
+        $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
+        $potentialTrainers = User::whereIn('role', $managedCoachRoles)
             ->where('status', 'active')
             ->get();
         // Only trainees already enrolled (pivot exists) for this course
-        $potentialTrainees = User::whereIn('role', ['participant','trainee'])
+        $potentialTrainees = User::whereIn('role', $managedParticipantRoles)
             ->whereIn('id', $currentCourseTraineeIds)
             ->get();
         // For summary, show ALL active trainers with their courses (not only assigned)
-        $assignedTrainers = User::whereIn('role', ['coach','trainer'])
+        $assignedTrainers = User::whereIn('role', $managedCoachRoles)
             ->where('status', 'active')
             ->with('courses')
             ->get();
         // Trainees summary mirroring trainers summary
-        $assignedTrainees = User::whereIn('role', ['participant','trainee'])
+        $assignedTrainees = User::whereIn('role', $managedParticipantRoles)
             ->whereIn('id', $currentCourseTraineeIds)
             ->with('courses')
             ->get();
@@ -1074,6 +1094,25 @@ class CourseController extends Controller
             'trainee_ids' => 'nullable|array',
             'trainee_ids.*' => 'exists:users,id',
         ]);
+        $actor = auth()->user();
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $managedRoles = [];
+        if ($actor) {
+            if ($actor->role === 'central_office_training_manager') {
+                $managedRoles = ['central_office_coach','central_office_participants'];
+            } elseif ($actor->role === 'regional_office_training_manager') {
+                $managedRoles = ['regional_office_coach','regional_office_participants'];
+            } elseif ($actor->role === 'provincial_office_training_manager') {
+                $managedRoles = ['provincial_office_coach','provincial_office_participants'];
+            } else {
+                $managedRoles = ['coach','trainer','participant','trainee'];
+            }
+        } else {
+            $managedRoles = ['coach','trainer','participant','trainee'];
+        }
+        $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
+        $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
 
         // 1. Sync Trainers
         // Get current trainers associated with the course
@@ -1083,7 +1122,7 @@ class CourseController extends Controller
             return in_array($user->role, ['coach','trainer']);
         })->pluck('id')->toArray();
         
-        $newTrainerIds = $request->trainer_ids ?? [];
+        $newTrainerIds = $request->trainer_ids ? User::whereIn('id', $request->trainer_ids)->whereIn('role', $managedCoachRoles)->pluck('id')->toArray() : [];
 
         $trainersToAttach = array_diff($newTrainerIds, $currentTrainerIds);
         $trainersToDetach = array_diff($currentTrainerIds, $newTrainerIds);
@@ -1115,11 +1154,11 @@ class CourseController extends Controller
         }
 
         // 2. Sync Trainees
-        $currentTraineeIds = $course->users()->get()->filter(function($user) {
-            return in_array($user->role, ['participant','trainee']);
+        $currentTraineeIds = $course->users()->get()->filter(function($user) use ($managedParticipantRoles) {
+            return in_array($user->role, $managedParticipantRoles);
         })->pluck('id')->toArray();
         
-        $newTraineeIds = $request->trainee_ids ?? [];
+        $newTraineeIds = $request->trainee_ids ? User::whereIn('id', $request->trainee_ids)->whereIn('role', $managedParticipantRoles)->pluck('id')->toArray() : [];
 
         $traineesToAttach = array_diff($newTraineeIds, $currentTraineeIds);
         $traineesToDetach = array_diff($currentTraineeIds, $newTraineeIds);
@@ -1176,18 +1215,38 @@ class CourseController extends Controller
             'trainee_ids' => 'nullable|array',
             'trainee_ids.*' => 'exists:users,id',
         ]);
+        $actor = auth()->user();
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $managedRoles = [];
+        if ($actor) {
+            if ($actor->role === 'central_office_training_manager') {
+                $managedRoles = ['central_office_coach','central_office_participants'];
+            } elseif ($actor->role === 'regional_office_training_manager') {
+                $managedRoles = ['regional_office_coach','regional_office_participants'];
+            } elseif ($actor->role === 'provincial_office_training_manager') {
+                $managedRoles = ['provincial_office_coach','provincial_office_participants'];
+            } else {
+                $managedRoles = ['coach','trainer','participant','trainee'];
+            }
+        } else {
+            $managedRoles = ['coach','trainer','participant','trainee'];
+        }
+        $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
+        $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
 
         $count = 0;
 
         // Handle Coach
         if ($request->filled('trainer_id')) {
-            if (!$course->users()->where('user_id', $request->trainer_id)->exists()) {
-                $course->users()->attach($request->trainer_id, ['status' => 'active']);
+            $coachId = User::where('id', $request->trainer_id)->whereIn('role', $managedCoachRoles)->value('id');
+            if ($coachId && !$course->users()->where('user_id', $coachId)->exists()) {
+                $course->users()->attach($coachId, ['status' => 'active']);
                 $count++;
 
                 // Notify Coach
                 Notification::create([
-                    'user_id' => $request->trainer_id,
+                    'user_id' => $coachId,
                     'title' => 'Course Assignment',
                     'message' => "You have been assigned as a coach for the course: {$course->name}.",
                     'type' => 'course_assignment',
@@ -1199,9 +1258,10 @@ class CourseController extends Controller
 
         // Handle Trainees
         if ($request->filled('trainee_ids')) {
-            foreach ($request->trainee_ids as $id) {
+            $validTrainees = User::whereIn('id', $request->trainee_ids)->whereIn('role', $managedParticipantRoles)->pluck('id')->toArray();
+            foreach ($validTrainees as $id) {
                 if (!$course->users()->where('user_id', $id)->exists()) {
-                    $course->users()->attach($id);
+                    $course->users()->attach($id, ['status' => 'active']);
                     $count++;
 
                     // Notify Trainee
@@ -1245,8 +1305,18 @@ class CourseController extends Controller
         // Attach with pending status
         $course->users()->attach($user->id, ['status' => 'pending']);
 
-        // Notify Registrars
-        $registrars = User::where('role', 'registrar')->get();
+        // Notify Training Managers of same branch only
+        $tmRoles = [];
+        if ($user->role === 'central_office_participants') {
+            $tmRoles = ['central_office_training_manager'];
+        } elseif ($user->role === 'regional_office_participants') {
+            $tmRoles = ['regional_office_training_manager'];
+        } elseif ($user->role === 'provincial_office_participants') {
+            $tmRoles = ['provincial_office_training_manager'];
+        } else {
+            $tmRoles = ['training_manager'];
+        }
+        $registrars = User::whereIn('role', $tmRoles)->get();
         foreach ($registrars as $registrar) {
             Notification::create([
                 'user_id' => $registrar->id,

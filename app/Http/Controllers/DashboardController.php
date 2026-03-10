@@ -95,11 +95,39 @@ class DashboardController extends Controller
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
 
                 $userCount = User::whereIn('role', $managedRoles)->count();
-                $courseCount = Course::count(); // Counts only active
-                $courses = Course::orderBy('created_at', 'desc')->get();
-                $archivedCourses = Course::onlyTrashed()->get();
+                // Only show courses that belong to the same branch/level
+                $levelRoles = [];
+                if ($user->role === 'central_office_admin') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_admin') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_admin') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } elseif ($user->role === 'super_admin') {
+                    // Super admin can see all levels
+                    $levelRoles = [
+                        'admin','super_admin','training_manager','coach','trainer','participant','trainee',
+                        'central_office_admin','central_office_training_manager','central_office_coach','central_office_participants',
+                        'regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants',
+                        'provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants',
+                    ];
+                } else { // default/original admin
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $courseCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->count();
+                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->orderBy('created_at', 'desc')->get();
+                $archivedCourses = Course::onlyTrashed()
+                    ->whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->get();
                 $certifications = Certification::all();
-                $recentCourses = Course::latest()->take(5)->get();
+                $recentCourses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->latest()->take(5)->get();
                 $pendingCourses = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q) use ($managedCoachRoles) {
                         $q->whereIn('role', $managedCoachRoles);
@@ -194,8 +222,12 @@ class DashboardController extends Controller
                 $unapprovedCount = User::where('status', 'pending')->count();
                 $approvedCount = User::where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
-                $totalCourses = Course::count();
-                $courses = Course::with('users')->get();
+                $totalCourses = Course::whereHas('users', function($q) use ($managedRoles) {
+                        $q->whereIn('role', $managedRoles);
+                    })->count();
+                $courses = Course::whereHas('users', function($q) use ($managedRoles) {
+                        $q->whereIn('role', $managedRoles);
+                    })->with('users')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($coachRoles,$participantRoles))->where('status', 'active')->get();
                 
                 // Fetch Notifications
@@ -289,9 +321,22 @@ class DashboardController extends Controller
                 $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
                 // Available courses (exclude already joined or pending)
                 $excludedIds = array_map('intval', array_keys($courseStatuses));
-                $availableCoursesQuery = Course::with(['users' => function($q) {
-                    $q->where('role', 'trainer');
-                }]);
+                // Limit course visibility to same-level roles (admin/tm/coach/participant)
+                $levelRoles = [];
+                if ($user->role === 'central_office_coach') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_coach') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_coach') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } else {
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $availableCoursesQuery = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->with(['users' => function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    }]);
                 if (!empty($excludedIds)) {
                     $availableCoursesQuery = $availableCoursesQuery->whereNotIn('id', $excludedIds);
                 }
@@ -326,14 +371,45 @@ class DashboardController extends Controller
                 $unapprovedCount = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
                 $approvedCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $managedParticipantRoles)->where('status', 'pending')->count();
-                $totalCourses = Course::count();
-                $courses = Course::with('users')->get();
+                // Limit visible courses to TM's branch/level
+                $levelRoles = [];
+                if ($user->role === 'central_office_training_manager') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_training_manager') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_training_manager') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } else {
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $totalCourses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->count();
+                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->with('users')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
                 $query = User::query()->whereIn('role', $managedRoles);
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
-                if ($request->has('roles')) $query->whereIn('role', array_intersect($request->roles, $managedRoles));
+                if ($request->has('roles')) {
+                    $selected = (array) $request->roles;
+                    $expanded = [];
+                    foreach ($selected as $r) {
+                        if (in_array($r, ['coach','trainer'], true)) {
+                            $expanded = array_merge($expanded, $managedCoachRoles);
+                        } elseif (in_array($r, ['participant','trainee'], true)) {
+                            $expanded = array_merge($expanded, $managedParticipantRoles);
+                        } elseif ($r === 'training_manager') {
+                            $expanded = array_merge($expanded, array_values(array_intersect($tmRoles, $managedRoles)));
+                        } else {
+                            $expanded[] = $r;
+                        }
+                    }
+                    $expanded = array_values(array_unique($expanded));
+                    $query->whereIn('role', array_intersect($expanded, $managedRoles));
+                }
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
                 if ($sort === 'oldest') $query->orderBy('created_at', 'asc');
@@ -391,11 +467,21 @@ class DashboardController extends Controller
                 // Determine course statuses for current user
                 $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
 
-                // Get available courses (exclude those already joined or pending)
+                // Get available courses limited strictly to the participant's branch
                 $excludedIds = array_map('intval', array_keys($courseStatuses));
-                $availableCourses = Course::with(['users' => function($q) use ($myCoachRoles) {
-                        $q->whereIn('role', $myCoachRoles);
-                    }]);
+                $levelRoles = [];
+                if ($user->role === 'central_office_participants') {
+                    $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                } elseif ($user->role === 'regional_office_participants') {
+                    $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_participants') {
+                    $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                } else {
+                    $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+                }
+                $availableCourses = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    });
                 if (!empty($excludedIds)) {
                     $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
                 }
