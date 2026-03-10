@@ -71,7 +71,25 @@
         .page{max-width:1220px;margin:22px auto 42px;padding:0 18px}
         .hero{background:#fff;border:1px solid #dbe2ee;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.08)}
         .hero-top{position:relative;height:230px;background:#e9eef9;display:flex;align-items:center;justify-content:center}
-        .hero-top img{width:100%;height:100%;object-fit:cover}
+        .hero-top img{width:100%;height:100%;object-fit:cover;cursor:pointer}
+        .hero-edit{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+        .hero-btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:12px;padding:8px 12px;font-weight:800;cursor:pointer;background:#0f3b8f;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16)}
+        .hero-btn.ghost{background:#fff;color:#0f3b8f;border:1px solid #cfe0ff}
+        .hero-btn:hover{filter:brightness(1.05)}
+        .img-modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;z-index:70}
+        .img-modal .wrap{width:92%;max-width:980px;background:#fff;border:1px solid #dbe4ef;border-radius:16px;box-shadow:0 22px 48px rgba(15,23,42,.25);overflow:hidden}
+        .img-modal .head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+        .img-modal .body{padding:12px;display:grid;grid-template-columns:2fr 1fr;gap:12px}
+        .img-modal .foot{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid #e5e7eb;background:#f8fafc}
+        .img-canvas{max-width:100%;max-height:60vh}
+        .file-input{display:none}
+        .preview-wrap{display:flex;flex-direction:column;gap:10px}
+        .preview-label{font-weight:800;color:#0f3b8f}
+        .ratio-bar{display:flex;flex-wrap:wrap;gap:8px}
+        .ratio-btn{padding:8px 12px;border-radius:10px;border:1px solid #cfe0ff;background:#fff;color:#0f3b8f;font-weight:800;cursor:pointer}
+        .ratio-btn.active{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+        .img-preview{position:relative;width:100%;aspect-ratio:16/9;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#f1f5f9}
+        .img-preview::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.08) 0%,rgba(15,23,42,.35) 100%);pointer-events:none}
         .hero-top::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.08) 0%,rgba(15,23,42,.35) 100%);pointer-events:none}
         .chip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#0f3b8f;border:1px solid #dbeafe;border-radius:999px;padding:6px 10px;font-weight:700}
         .hero-body{padding:20px 22px}
@@ -207,6 +225,7 @@
     <script>
         var currentEditCard = null;
         var isTrainer = {!! json_encode(!empty($asTrainer)) !!};
+        var csrfToken = "{{ csrf_token() }}";
         function toggleSidebar(){
             var s=document.getElementById('sidebar');
             if(s){ s.classList.toggle('collapsed'); }
@@ -903,7 +922,14 @@
                         }
                     @endphp
                     @if ($hero)
-                        <img src="{{ $hero }}" alt="Course banner">
+                        <img id="courseHeroImage" src="{{ $hero }}" alt="Course banner" title="Click to preview">
+                    @endif
+                    @if(!empty($asTrainer))
+                    <div class="hero-edit">
+                        <button class="hero-btn ghost" onclick="openImagePreview()"><i class="fas fa-eye"></i> Preview</button>
+                        <button class="hero-btn" onclick="openCropperExisting()"><i class="fas fa-crop"></i> Crop Image</button>
+                        <input id="heroFileInput" class="file-input" type="file" accept="image/*" onchange="openCropperFromFile(this)">
+                    </div>
                     @endif
                 </div>
                 <div class="hero-body">
@@ -1325,6 +1351,150 @@
                 </div>
             </div>
         </div>
+        <!-- Image Preview / Crop Modal -->
+        <div id="imageModal" class="img-modal" role="dialog" aria-modal="true" aria-labelledby="imgModalTitle">
+            <div class="wrap">
+                <div class="head">
+                    <div id="imgModalTitle" class="section-head" style="margin:0">Course Image</div>
+                    <button class="round-btn" onclick="closeImageModal()" aria-label="Close">×</button>
+                </div>
+                <div class="body" id="imgModalBody">
+                    <img id="previewImage" class="img-canvas" alt="Preview" />
+                    <div class="preview-wrap">
+                        <div class="preview-label">Display Preview</div>
+                        <div class="ratio-bar">
+                            <button class="ratio-btn active" data-ratio="1.7777777778" onclick="setAspect(this)">16:9</button>
+                            <button class="ratio-btn" data-ratio="1" onclick="setAspect(this)">1:1</button>
+                            <button class="ratio-btn" data-ratio="1.3333333333" onclick="setAspect(this)">4:3</button>
+                            <button class="ratio-btn" data-ratio="free" onclick="setAspect(this)">Free</button>
+                        </div>
+                        <div class="img-preview" id="livePreview"></div>
+                    </div>
+                </div>
+                <div class="foot">
+                    <button class="back" onclick="closeImageModal()"><i class="fas fa-arrow-left"></i> Back</button>
+                    <div id="imgActions" style="display:none;gap:8px">
+                        <button class="btn btn-blue" onclick="uploadCropped()">Save Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+        <script>
+            let cropper = null;
+            function openImagePreview(){
+                const img = document.getElementById('courseHeroImage');
+                const p = document.getElementById('previewImage');
+                p.src = img?.src || '';
+                document.getElementById('imgModalTitle').textContent = 'Course Image';
+                document.getElementById('imgActions').style.display = 'none';
+                document.getElementById('imageModal').style.display = 'flex';
+            }
+            function openCropperExisting(){
+                const img = document.getElementById('courseHeroImage');
+                const p = document.getElementById('previewImage');
+                p.src = img?.src || '';
+                document.getElementById('imgModalTitle').textContent = 'Crop Image';
+                document.getElementById('imageModal').style.display = 'flex';
+                document.getElementById('imgActions').style.display = 'flex';
+                setTimeout(()=>{
+                    if(cropper){ cropper.destroy(); }
+                    cropper = new Cropper(p, {
+                        aspectRatio: 16/9,
+                        viewMode: 1,
+                        background: false,
+                        autoCropArea: 1,
+                        guides: true,
+                        center: true,
+                        highlight: true,
+                        preview: '#livePreview',
+                        movable: true,
+                        zoomable: true,
+                        responsive: true
+                    });
+                    activateRatioBtn(document.querySelector('.ratio-btn[data-ratio="1.7777777778"]'));
+                }, 50);
+            }
+            function openCropperFromFile(input){
+                const file = input.files && input.files[0];
+                if(!file) return;
+                const url = URL.createObjectURL(file);
+                const p = document.getElementById('previewImage');
+                p.onload = () => { URL.revokeObjectURL(url); };
+                p.src = url;
+                document.getElementById('imgModalTitle').textContent = 'Crop Image';
+                document.getElementById('imageModal').style.display = 'flex';
+                document.getElementById('imgActions').style.display = 'flex';
+                setTimeout(()=>{
+                    if(cropper){ cropper.destroy(); }
+                    cropper = new Cropper(p, {
+                        aspectRatio: 16/9,
+                        viewMode: 1,
+                        background: false,
+                        autoCropArea: 1,
+                        guides: true,
+                        center: true,
+                        highlight: true,
+                        preview: '#livePreview',
+                        movable: true,
+                        zoomable: true,
+                        responsive: true
+                    });
+                    activateRatioBtn(document.querySelector('.ratio-btn[data-ratio="1.7777777778"]'));
+                }, 50);
+            }
+            function closeImageModal(){
+                document.getElementById('imageModal').style.display = 'none';
+                if(cropper){ cropper.destroy(); cropper = null; }
+                const input = document.getElementById('heroFileInput');
+                if (input) input.value = '';
+            }
+            function setAspect(btn){
+                if(!cropper) return;
+                const val = btn.getAttribute('data-ratio');
+                if(val === 'free'){ cropper.setAspectRatio(NaN); }
+                else { cropper.setAspectRatio(parseFloat(val)); }
+                activateRatioBtn(btn);
+                const lp = document.getElementById('livePreview');
+                if (val === 'free'){ lp.style.aspectRatio = 'auto'; }
+                else { lp.style.aspectRatio = parseFloat(val); }
+            }
+            function activateRatioBtn(btn){
+                document.querySelectorAll('.ratio-btn').forEach(b=>b.classList.remove('active'));
+                if(btn) btn.classList.add('active');
+            }
+            function uploadCropped(){
+                if(!cropper) return;
+                const ratioBtn = document.querySelector('.ratio-btn.active');
+                let w = 1600, h = 900;
+                if(ratioBtn){
+                    const r = ratioBtn.getAttribute('data-ratio');
+                    if(r === '1'){ w = 1200; h = 1200; }
+                    else if(r === '1.3333333333'){ w = 1600; h = 1200; }
+                    else if(r === 'free'){ w = undefined; h = undefined; }
+                }
+                const canvas = cropper.getCroppedCanvas(w && h ? {width:w,height:h} : {});
+                canvas.toBlob(function(blob){
+                    const fd = new FormData();
+                    fd.append('image', blob, 'course.jpg');
+                    fetch("{{ route('trainer.courses.image', $course) }}", {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        body: fd
+                    }).then(r => r.json()).then(res=>{
+                        if(res && res.ok){
+                            const hero = document.getElementById('courseHeroImage');
+                            if(hero){ hero.src = res.url; }
+                            closeImageModal();
+                        } else {
+                            alert('Upload failed');
+                        }
+                    }).catch(()=>alert('Upload error'));
+                }, 'image/jpeg', 0.92);
+            }
+            document.getElementById('courseHeroImage')?.addEventListener('click', openImagePreview);
+        </script>
     </div>
     <div id="participantViewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="participantViewTitle">
         <div class="participant-view-modal">

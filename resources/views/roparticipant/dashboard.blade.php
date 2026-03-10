@@ -556,12 +556,7 @@
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-                                @php
-                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
-                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                                @endphp
-                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+                                @php /* removed creator/teacher meta in Classroom view for cleaner cards */ @endphp
                                 <div class="course-footer">
                                     @if($st === 'pending')
                                         <span class="status-chip status-pending"><i class="fas fa-clock"></i> Pending Approval</span>

@@ -820,6 +820,36 @@ class CourseController extends Controller
             ->with('success_course', 'Course updated successfully.');
     }
 
+    /**
+     * Trainer-only endpoint to update course banner image.
+     * Accepts a single 'image' file (already client-cropped).
+     * Returns JSON with the new image URL for immediate UI update.
+     */
+    public function trainerUpdateImage(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+        ]);
+        try {
+            if ($course->image_path) {
+                Storage::disk('public')->delete($course->image_path);
+            }
+            Storage::disk('public')->makeDirectory('course_images');
+            $path = $request->file('image')->store('course_images', 'public');
+            $course->update(['image_path' => $path]);
+            $ver = optional($course->updated_at)->timestamp ?? time();
+            $url = asset('storage/' . $path) . '?v=' . $ver;
+            return response()->json(['ok' => true, 'url' => $url]);
+        } catch (\Throwable $e) {
+            \Log::error('trainerUpdateImage failed', ['course' => $course->id, 'error' => $e->getMessage()]);
+            return response()->json(['error' => 'Upload failed'], 500);
+        }
+    }
+
     public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)
     {
         $role = auth()->user()->role ?? null;
