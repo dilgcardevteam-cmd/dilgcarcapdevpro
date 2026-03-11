@@ -4517,7 +4517,8 @@
                     .cert-tabs .tab-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0b3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 12px;font-weight:800}
                     .cert-tabs .tab-btn.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
                     .cert-layout{display:grid;grid-template-columns:1.2fr .9fr;gap:18px}
-                    .cert-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:16px}
+
+                   .cert-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:16px}
                     #certification-management .pro-input{
                         width:100%;
                         padding:10px;
@@ -4552,6 +4553,12 @@
                     .menu.open{display:block}
                     .menu a,.menu form button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;padding:10px 12px;color:#111827;text-decoration:none;font-weight:700}
                     .menu a:hover,.menu form button:hover{background:#f8fafc}
+                    .flash-alert{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px;border-radius:10px;padding:10px 12px;font-weight:700}
+                    .flash-success{border:1px solid #bbf7d0;background:#ecfdf3;color:#166534}
+                    .flash-error{border:1px solid #f5c2c7;background:#fff5f5;color:#842029}
+                    .flash-close{border:none;background:transparent;font-size:1.2rem;line-height:1;cursor:pointer;color:inherit;padding:4px 8px;border-radius:6px}
+                    .flash-close:hover{background:rgba(0,0,0,.06)}
+                    .flash-hide{opacity:0;transition:opacity .25s ease}
                     .sticky-preview{position:sticky;top:80px}
                     .cert-img-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:1200}
                     .cert-img-modal .box{max-width:92vw;max-height:90vh;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 22px 48px rgba(2,6,23,.35)}
@@ -4568,10 +4575,16 @@
                         <button id="certTabCertify" class="tab-btn" onclick="switchCertTab('certify')" aria-controls="certPaneCertify" aria-selected="false"><i class="fas fa-award"></i> Certify</button>
                     </div>
                     @if(session('success_certification'))
-                        <div style="margin:12px;border:1px solid #bbf7d0;background:#ecfdf3;color:#166534;padding:12px;border-radius:10px;font-weight:700">{{ session('success_certification') }}</div>
+                        <div class="flash-alert flash-success" data-auto-dismiss="true">
+                            <span>{{ session('success_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
                     @endif
                     @if(session('error_certification'))
-                        <div style="margin:12px;border:1px solid #f5c2c7;background:#fff5f5;color:#842029;padding:12px;border-radius:10px;font-weight:700">{{ session('error_certification') }}</div>
+                        <div class="flash-alert flash-error" data-auto-dismiss="true">
+                            <span>{{ session('error_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
                     @endif
                     <div id="certPaneCreate" style="display:block;padding:16px">
                         <form action="{{ route('certifications.store') }}" method="POST" enctype="multipart/form-data" id="certCreateForm">
@@ -6865,6 +6878,18 @@
             if(target.closest('.kebab') || target.closest('.menu')) return;
             document.querySelectorAll('.menu.open').forEach(function(m){ m.classList.remove('open'); });
         });
+
+        // Auto-dismiss flash alerts after minimum 10 seconds with manual close support
+        (function(){
+            var alerts=document.querySelectorAll('.flash-alert[data-auto-dismiss]');
+            alerts.forEach(function(a){
+                setTimeout(function(){
+                    if(!a) return;
+                    a.classList.add('flash-hide');
+                    setTimeout(function(){ a && a.remove(); }, 250);
+                }, 10000);
+            });
+        })();
 
         // Filter Logic
         function addFilter(value) {

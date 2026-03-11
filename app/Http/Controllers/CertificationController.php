@@ -205,9 +205,12 @@ class CertificationController extends Controller
     public function coursePage(Course $course)
     {
         $certifications = Certification::all();
-        $trainers = $course->users()->where('role','trainer')->get();
+        // Align roles with system-wide definitions (coaches and participant variants)
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $trainers = $course->users()->whereIn('role', $coachRoles)->get();
         $trainees = $course->users()
-            ->where('role','trainee')
+            ->whereIn('role', $participantRoles)
             ->wherePivot('status','active')
             ->get();
         // compute total subtopics
@@ -260,8 +263,9 @@ class CertificationController extends Controller
         if ($ids->isEmpty()) {
             return back()->with('error_certification', 'No users selected.');
         }
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
         $enrolled = $course->users()
-            ->where('role','trainee')
+            ->whereIn('role', $participantRoles)
             ->wherePivot('status','active')
             ->whereIn('users.id', $ids)
             ->get(['users.id']);
@@ -348,8 +352,9 @@ class CertificationController extends Controller
     public function statusForCourse(Request $request, Course $course)
     {
         $certId = (int) $request->query('certification_id');
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
         $trainees = $course->users()
-            ->where('role','trainee')
+            ->whereIn('role', $participantRoles)
             ->wherePivot('status','active')
             ->get(['users.id','users.name','users.email','users.account_id']);
         $q = \Illuminate\Support\Facades\DB::table('certification_user')

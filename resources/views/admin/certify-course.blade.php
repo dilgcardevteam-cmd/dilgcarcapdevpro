@@ -117,6 +117,55 @@
             </div>
         </div>
 
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
+            <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="font-weight:800;color:#0f3b8f">Choose Certificate Template</div>
+                <div style="color:#64748b;font-weight:700">Select one to use for this certification</div>
+            </div>
+            <div style="padding:12px 16px">
+                @if(($certifications ?? collect())->isEmpty())
+                    <div style="color:#6b7280">No certificates available. Create one under Certificates → Create Certificate.</div>
+                @else
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+                        @foreach($certifications as $idx => $c)
+                            @php
+                                $ext = strtolower(pathinfo($c->file_path ?? '', PATHINFO_EXTENSION));
+                                $isImg = in_array($ext, ['png','jpg','jpeg']);
+                            @endphp
+                            <label style="display:block;border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
+                                <input type="radio" name="certification_id" form="bulkCertForm" value="{{ $c->id }}" {{ $idx===0 ? 'checked' : '' }} style="position:absolute;opacity:0;pointer-events:none">
+                                <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                                    @if($isImg)
+                                        <img src="{{ Storage::url($c->file_path) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
+                                    @else
+                                        <div style="text-align:center;color:#0f3b8f;font-weight:800">
+                                            <i class="fas fa-file-{{ $ext==='pdf'?'pdf':'alt' }}" style="font-size:2rem"></i><div>{{ strtoupper($ext) }}</div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                                    <div style="font-weight:800;color:#002C76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $c->name }}">{{ $c->name }}</div>
+                                    <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 8px;font-weight:800;font-size:.75rem">{{ $c->category ?? '—' }}</span>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    <script>
+                        // highlight selected card
+                        document.querySelectorAll('input[name="certification_id"][form="bulkCertForm"]').forEach(function(r){
+                            r.addEventListener('change', function(){
+                                document.querySelectorAll('input[name="certification_id"][form="bulkCertForm"]').forEach(function(x){
+                                    var card = x.closest('label'); if(card){ card.style.borderColor = x.checked ? '#0f3b8f' : '#e5e7eb'; }
+                                });
+                            });
+                            // apply initial style
+                            var card = r.closest('label'); if(card){ card.style.borderColor = r.checked ? '#0f3b8f' : '#e5e7eb'; }
+                        });
+                    </script>
+                @endif
+            </div>
+        </div>
+
         <form method="POST" action="{{ route('admin.certifications.course.certify', $course) }}" id="bulkCertForm" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
             @csrf
             <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
