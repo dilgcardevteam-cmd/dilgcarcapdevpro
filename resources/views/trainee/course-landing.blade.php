@@ -1719,26 +1719,16 @@
                     if(detail){ detail.textContent = total ? '('+done+'/'+total+' subtopics)' : ''; }
                     if(list && Array.isArray(j.modules)){
                         list.innerHTML = j.modules.map(function(m){
-                            var idx = (typeof m.index==='number' ? m.index+1 : '');
-                            var title = m.title || ('Module '+idx);
-                            var p = Math.max(0, Math.min(100, m.percent || 0));
+                            var title = m.title || ('Module '+(m.index+1));
+                            var p = m.percent || 0;
                             var d = m.done || 0;
                             var t = m.total || 0;
-                            return ''+
-                            '<div style="margin:8px 0;border-radius:12px;overflow:hidden;box-shadow:0 6px 16px rgba(2,6,23,.06);border:1px solid #e5e7eb">'+
-                              '<div style="background:#0f3b8f;color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:flex-start">'+
-                                '<div style="font-weight:900">'+(idx ? ('Module '+idx+': ') : 'Module: ')+title+'</div>'+
-                              '</div>'+
-                              '<div style="background:#fff;padding:10px 12px">'+
-                                '<div style="height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;position:relative">'+
-                                  '<div style="height:100%;width:'+p+'%;background:#22c55e;border-radius:999px"></div>'+
-                                '</div>'+
-                                '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;color:#0f3b8f;font-weight:800">'+
-                                  '<div style="font-size:.85rem;color:#6b7280">'+d+'/'+t+' subtopics</div>'+
-                                  '<div>'+p+'%</div>'+
-                                '</div>'+
-                              '</div>'+
-                            '</div>';
+                            return '<div style="display:flex;align-items:center;gap:10px;margin:6px 0">'+
+                                   '<div style="flex:1;font-weight:700;color:#0f3b8f">'+title+'</div>'+
+                                   '<div style="width:48px;text-align:right;font-weight:700;color:#0f3b8f">'+p+'%</div>'+
+                                   '<div style="flex:2">'+
+                                   '<div class="muted" style="font-size:.8rem;margin-top:2px">'+d+'/'+t+'</div>'+
+                                   '</div></div>';
                         }).join('');
                     }
                 }).catch(function(){});
