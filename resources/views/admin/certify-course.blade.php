@@ -117,54 +117,33 @@
             </div>
         </div>
 
+        {{-- Inline certificate grid removed in favor of modal-based selection --}}
+
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
             <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px">
-                <div style="font-weight:800;color:#0f3b8f">Choose Certificate Template</div>
-                <div style="color:#64748b;font-weight:700">Select one to use for this certification</div>
+                <div style="font-weight:800;color:#0f3b8f">Certificate Template</div>
+                <button type="button" onclick="openCertSelectModal()" style="display:inline-flex;align-items:center;gap:8px;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">
+                    <i class="fas fa-list"></i> Select Certificate
+                </button>
             </div>
-            <div style="padding:12px 16px">
-                @if(($certifications ?? collect())->isEmpty())
-                    <div style="color:#6b7280">No certificates available. Create one under Certificates → Create Certificate.</div>
-                @else
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
-                        @foreach($certifications as $idx => $c)
-                            @php
-                                $ext = strtolower(pathinfo($c->file_path ?? '', PATHINFO_EXTENSION));
-                                $isImg = in_array($ext, ['png','jpg','jpeg']);
-                            @endphp
-                            <label style="display:block;border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
-                                <input type="radio" name="certification_id" form="bulkCertForm" value="{{ $c->id }}" {{ $idx===0 ? 'checked' : '' }} style="position:absolute;opacity:0;pointer-events:none">
-                                <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">
-                                    @if($isImg)
-                                        <img src="{{ Storage::url($c->file_path) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
-                                    @else
-                                        <div style="text-align:center;color:#0f3b8f;font-weight:800">
-                                            <i class="fas fa-file-{{ $ext==='pdf'?'pdf':'alt' }}" style="font-size:2rem"></i><div>{{ strtoupper($ext) }}</div>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-                                    <div style="font-weight:800;color:#002C76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $c->name }}">{{ $c->name }}</div>
-                                    <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 8px;font-weight:800;font-size:.75rem">{{ $c->category ?? '—' }}</span>
-                                </div>
-                            </label>
-                        @endforeach
+            <div style="padding:16px;display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">
+                <div style="flex:0 1 520px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:10px;position:relative;min-height:120px">
+                    <div id="certSelectedPlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b7280">Select a certificate to preview</div>
+                    <img id="certSelectedPreview" alt="Selected Certificate Preview" style="display:none;width:100%;height:auto;border-radius:8px">
+                </div>
+                <div style="flex:1;min-width:280px;display:flex;align-items:stretch;justify-content:center;align-self:stretch">
+                    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:18px 20px;text-align:center;max-width:520px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%">
+                        <div id="certSelectedName" style="font-weight:900;color:#0f3b8f;font-size:1.35rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No certificate selected yet</div>
+                        <div id="certSelectedTypeWrap" style="margin-top:10px">
+                            <span id="certSelectedType" style="display:none;align-self:center;background:#eef2ff;color:#0f3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 14px;font-weight:800;font-size:1rem">—</span>
+                        </div>
+                        <div id="certSelectedNoPreview" style="display:none;margin-top:10px;color:#6b7280">Preview not available for this file type.</div>
                     </div>
-                    <script>
-                        // highlight selected card
-                        document.querySelectorAll('input[name="certification_id"][form="bulkCertForm"]').forEach(function(r){
-                            r.addEventListener('change', function(){
-                                document.querySelectorAll('input[name="certification_id"][form="bulkCertForm"]').forEach(function(x){
-                                    var card = x.closest('label'); if(card){ card.style.borderColor = x.checked ? '#0f3b8f' : '#e5e7eb'; }
-                                });
-                            });
-                            // apply initial style
-                            var card = r.closest('label'); if(card){ card.style.borderColor = r.checked ? '#0f3b8f' : '#e5e7eb'; }
-                        });
-                    </script>
-                @endif
+                </div>
             </div>
         </div>
+
+        <input type="hidden" id="selectedCertId" name="certification_id" form="bulkCertForm" value="">
 
         <form method="POST" action="{{ route('admin.certifications.course.certify', $course) }}" id="bulkCertForm" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
             @csrf
@@ -229,6 +208,46 @@
                         <tr><td colspan="7" style="padding:12px;color:#6b7280">Loading already-certified users for this course…</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+        <div id="selectCertModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:4000;align-items:center;justify-content:center">
+            <div style="background:#fff;border-radius:14px;max-width:960px;width:92%;max-height:90vh;overflow:auto;box-shadow:0 16px 40px rgba(0,0,0,.2)">
+                <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+                    <div style="font-weight:800;color:#0f3b8f">Select Certificate</div>
+                    <button type="button" onclick="closeCertSelectModal()" style="border:none;background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">×</button>
+                </div>
+                <div style="padding:14px">
+                    @if(($certifications ?? collect())->isEmpty())
+                        <div style="color:#6b7280">No certificates available. Create one under Certificates → Create Certificate.</div>
+                    @else
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+                            @foreach($certifications as $c)
+                                @php
+                                    $ext = strtolower(pathinfo($c->file_path ?? '', PATHINFO_EXTENSION));
+                                    $isImg = in_array($ext, ['png','jpg','jpeg']);
+                                @endphp
+                                <div onclick="chooseCert({{ $c->id }}, '{{ addslashes($c->name) }}', '{{ addslashes($c->category ?? '—') }}')" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
+                                    <div style="height:140px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                                        @if($isImg)
+                                            <img src="{{ route('certifications.download', ['certification'=>$c->id, 'inline'=>1]) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
+                                        @else
+                                            <div style="text-align:center;color:#0f3b8f;font-weight:800">
+                                                <i class="fas fa-file-{{ $ext==='pdf'?'pdf':'alt' }}" style="font-size:2rem"></i><div>{{ strtoupper($ext) }}</div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                                        <div style="font-weight:800;color:#002C76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $c->name }}">{{ $c->name }}</div>
+                                        <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 8px;font-weight:800;font-size:.75rem">{{ $c->category ?? '—' }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <div style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end">
+                    <button type="button" onclick="closeCertSelectModal()" style="padding:8px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;cursor:pointer">Close</button>
+                </div>
             </div>
         </div>
         <div id="certModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:3000;align-items:center;justify-content:center">
@@ -362,6 +381,33 @@
                 .catch(function(){ alert('Revoke failed'); });
         }
         loadStatus();
+        function openCertSelectModal(){
+            var m=document.getElementById('selectCertModal'); if(m){ m.style.display='flex'; }
+        }
+        function closeCertSelectModal(){
+            var m=document.getElementById('selectCertModal'); if(m){ m.style.display='none'; }
+        }
+        function chooseCert(id, name, category){
+            var hid=document.getElementById('selectedCertId');
+            var nameEl=document.getElementById('certSelectedName');
+            var typeEl=document.getElementById('certSelectedType');
+            if(hid){ hid.value = id; }
+            if(nameEl){ nameEl.textContent = name || 'Certificate'; }
+            if(typeEl){ typeEl.textContent = category || '—'; typeEl.style.display='inline-flex'; }
+            // attempt to show preview image
+            var img=document.getElementById('certSelectedPreview');
+            var ph=document.getElementById('certSelectedPlaceholder');
+            var noPrev=document.getElementById('certSelectedNoPreview');
+            if(img){
+                var tmpl = "{{ route('certifications.download', ['certification' => '__CID__', 'inline' => 1]) }}";
+                var url = tmpl.replace('__CID__', id);
+                if(ph){ ph.style.display='flex'; }
+                img.onerror = function(){ if(noPrev){ noPrev.style.display='block'; } img.style.display='none'; if(ph){ ph.style.display='none'; } };
+                img.onload = function(){ img.style.display='block'; if(noPrev){ noPrev.style.display='none'; } if(ph){ ph.style.display='none'; } };
+                img.src = url;
+            }
+            closeCertSelectModal();
+        }
     </script>
 </body>
 </html>
