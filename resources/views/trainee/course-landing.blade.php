@@ -1140,21 +1140,43 @@
                     $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && ((\Illuminate\Support\Facades\Auth::user()->role ?? null) === 'trainer'));
                 @endphp
                 @if(!empty($asTrainer))
-                <div class="container-box" style="margin-bottom:12px;">
+                <div class="container-box" id="macContainer" style="margin-bottom:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                         <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
                             <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-layer-group"></i></div>
                             <div>Module Access Control</div>
                         </div>
+                        <div>
+                            <button type="button" id="btnProgress" class="btn btn-blue" onclick="showParticipantProgress()" title="View participant progress"><i class="fas fa-table"></i> Participant Progress</button>
+                            <button type="button" id="btnBackToAccess" class="btn" style="display:none;border:1px solid #dbe4ef;background:#fff;color:#0f3b8f" onclick="showAccessControl()"><i class="fas fa-arrow-left"></i> Back</button>
+                        </div>
                     </div>
                     <div id="moduleAccessList" style="display:grid;gap:10px">
                         @foreach(($course->modules ?? []) as $i => $m)
-                        @php $st = $m['status'] ?? 'unlocked'; @endphp
+                        @php 
+                            $st = $m['status'] ?? 'unlocked'; 
+                            $hasExam = isset($m['exam']) && is_array($m['exam']) && isset($m['exam']['questions']) && is_array($m['exam']['questions']) && count($m['exam']['questions']) > 0;
+                            $hasTopics = isset($m['topics']) && is_array($m['topics']) && count($m['topics']) > 0;
+                            $isExamOnly = $hasExam && !$hasTopics;
+                            $baseTitle = trim($m['title'] ?? '');
+                            $examTitle = trim($m['exam']['title'] ?? '');
+                            if ($isExamOnly) {
+                                if ($baseTitle !== '') {
+                                    $displayTitle = $baseTitle;
+                                } elseif ($examTitle !== '') {
+                                    $displayTitle = 'Module Exam: ' . $examTitle . ' Exam';
+                                } else {
+                                    $displayTitle = 'Module Exam';
+                                }
+                            } else {
+                                $displayTitle = 'Module ' . ($i+1) . ': ' . ($baseTitle !== '' ? $baseTitle : 'Untitled');
+                            }
+                        @endphp
                         <div class="forum-card" data-mi="{{ $i }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
                             <div>
                                 <div style="font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px">
                                     @if($st==='locked') <i class="fas fa-lock" style="color:#64748b"></i> @else <i class="fas fa-unlock" style="color:#16a34a"></i> @endif
-                                    Module {{ $i+1 }}: {{ $m['title'] ?? 'Untitled' }}
+                                    {{ $displayTitle }}
                                 </div>
                                 <div class="muted">Status: <span class="mod-status">{{ ucfirst($st) }}</span></div>
                             </div>
@@ -1170,6 +1192,18 @@
                 </div>
                 @endif
                 
+            </div>
+            <div id="participantProgressFull" class="card" style="display:none;padding:0">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e5e7eb;">
+                    <div style="font-weight:800;color:#0f172a">Participant Progress</div>
+                    <button type="button" class="btn" onclick="showAccessControl()" style="border:1px solid #dbe4ef;background:#fff;color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</button>
+                </div>
+                <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e5e7eb">
+                    <table id="progressTable" style="border-collapse:collapse;width:100%;min-width:960px">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
             <div id="paneForum" class="card" role="tabpanel" aria-labelledby="tabBtnForum" style="display:none">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1739,6 +1773,97 @@
                 if(e && e.key === 'course_progress_broadcast'){ refreshProgress(); }
             });
         })();
+    </script>
+    <script>
+        function showParticipantProgress(){
+            const hero = document.querySelector('.hero');
+            const content = document.querySelector('.content');
+            const full = document.getElementById('participantProgressFull');
+            if(hero){ hero.style.display='none'; }
+            if(content){
+                Array.from(content.children).forEach(ch=>{
+                    if(ch.id !== 'participantProgressFull'){ ch.style.display='none'; }
+                });
+            }
+            if(full){ full.style.display='block'; }
+            renderParticipantProgress();
+        }
+        function showAccessControl(){
+            const hero = document.querySelector('.hero');
+            const content = document.querySelector('.content');
+            const full = document.getElementById('participantProgressFull');
+            if(hero){ hero.style.display=''; }
+            if(full){ full.style.display='none'; }
+            // Restore Classwork tab as the visible pane
+            const paneClass = document.getElementById('paneClasswork');
+            if(content){
+                Array.from(content.children).forEach(ch=> ch.style.display='none');
+            }
+            if(paneClass){ paneClass.style.display='block'; }
+        }
+        function gradeCell(v, pass){
+            if(v==null) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--/100</td>`;
+            const pct = parseInt(v,10)||0;
+            let bg='#eef7ee', color='#166534', border='#bbf7d0';
+            if(pass!=null){
+                if(pct>=pass){ bg='#ecfdf5'; color='#065f46'; border='#bbf7d0'; }
+                else{ bg='#fef2f2'; color:'#991b1b'; border='#fecaca'; }
+            }
+            return `<td style="text-align:center;background:${bg};color:${color};border-bottom:1px solid #e5e7eb">${pct}/100</td>`;
+        }
+        async function renderParticipantProgress(){
+            const info = document.getElementById('progressInfo');
+            const thead = document.querySelector('#progressTable thead');
+            const tbody = document.querySelector('#progressTable tbody');
+            if(thead){ thead.innerHTML=''; }
+            if(tbody){ tbody.innerHTML=''; }
+            if(info){ info.textContent='Loading participant progress…'; }
+            try{
+                const r = await fetch("{{ route('trainer.courses.participants-progress', $course) }}", {credentials:'same-origin'});
+                const j = r.ok ? await r.json() : null;
+                if(!j || !j.ok){ if(info) info.textContent='Failed to load.'; return; }
+                const mods = Array.isArray(j.modules)?j.modules:[];
+                const users = Array.isArray(j.users)?j.users:[];
+                const h1 = ['<th style="position:sticky;left:0;background:#fff;z-index:2;text-align:left;padding:10px;border:1px solid #e5e7eb">Participant\'s Name</th>'];
+                const colPlan = [];
+                mods.forEach((m, idx)=>{
+                    const baseTitle = (m && m.title) ? m.title : `Module ${idx+1}`;
+                    if((m?.total_subs||0) > 0){
+                        h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Module ${idx+1}: ${baseTitle}</th>`);
+                        colPlan.push({type:'module', mi: idx});
+                    }
+                    const examTitle = (m && m.exam_title) ? m.exam_title : '';
+                    if(examTitle){
+                        h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Module Exam: ${examTitle}</th>`);
+                        colPlan.push({type:'exam', mi: idx, pass: m?.passing_score ?? null});
+                    }
+                });
+                if(thead){ thead.innerHTML = `<tr>${h1.join('')}</tr>`; }
+                const rows = users.map(u=>{
+                    const first = `<td style="position:sticky;left:0;background:#fff;z-index:1;padding:10px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#0f172a">${u.name||('User '+u.user_id)}</td>`;
+                    const cells = colPlan.map(plan=>{
+                        const s = u.scores?.[plan.mi] || {};
+                        if(plan.type==='module'){
+                            return (mods[plan.mi]?.total_subs||0) > 0 ? gradeCell(s.module_pct, null) : `<td style="text-align:center;background:#f8fafc;color:#64748b">--/100</td>`;
+                        }else{
+                            return gradeCell(s.exam_pct, plan.pass ?? null);
+                        }
+                    }).join('');
+                    return `<tr>${first}${cells}</tr>`;
+                }).join('');
+                if(tbody){
+                    if(users.length === 0){
+                        const span = colPlan.length + 1; // +1 for name column
+                        tbody.innerHTML = `<tr><td colspan="${span}" style="text-align:center;padding:16px;color:#64748b;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;background:#ffffff">No Participants Yet</td></tr>`;
+                    } else {
+                        tbody.innerHTML = rows;
+                    }
+                }
+                if(info){ info.textContent=''; }
+            }catch(e){
+                if(info){ info.textContent='Failed to load.'; }
+            }
+        }
     </script>
 </body>
 </html>

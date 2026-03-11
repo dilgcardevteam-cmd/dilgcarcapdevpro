@@ -96,6 +96,8 @@ Route::post('/trainer/courses/{course}/image', [CourseController::class, 'traine
 // Module Exam submissions and results
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
+// Participants progress (trainer gradebook)
+Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth'])->name('trainer.courses.participants-progress');
 // Admin System Settings
 Route::post('/admin/system-settings/location/import', [DashboardController::class, 'importLocationMaster'])->middleware(['auth'])->name('admin.settings.location.import');
 Route::get('/admin/system-settings/location/export', [DashboardController::class, 'exportLocationMaster'])->middleware(['auth'])->name('admin.settings.location.export');

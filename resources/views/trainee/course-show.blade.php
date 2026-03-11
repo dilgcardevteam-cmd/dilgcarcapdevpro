@@ -332,7 +332,7 @@
         $IS_COACH = in_array($role, ['trainer','coach'], true);
     @endphp
     <!-- removed classroom subheader -->
-    <div class="layout" id="modulesPane" style="{{ $IS_COACH ? '' : '' }}">
+    <div class="layout" id="modulesPane">
         <aside class="sidebar">
             <h3>
                 <span style="display:inline-flex;align-items:center;gap:12px"><i class="fas fa-list-ul"></i> Course Outline</span>

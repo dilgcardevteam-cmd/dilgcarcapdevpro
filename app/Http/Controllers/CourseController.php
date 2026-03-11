@@ -1059,6 +1059,96 @@ class CourseController extends Controller
         return response()->json(['ok'=>true,'items'=>$items]);
     }
 
+    /**
+     * Trainer-only: Aggregated participants' per-module progress and exam scores.
+     */
+    public function participantsProgress(\Illuminate\Http\Request $request, \App\Models\Course $course)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
+        }
+        $mods = is_array($course->modules) ? $course->modules : [];
+        // Normalize modules meta and totals
+        $modulesMeta = [];
+        $totals = [];
+        foreach ($mods as $mi => $m) {
+            $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
+            $totalSubs = 0;
+            foreach ($topics as $t) {
+                $subs = isset($t['subtopics']) && is_array($t['subtopics']) ? $t['subtopics'] : [];
+                $totalSubs += count($subs);
+            }
+            $examTitle = '';
+            $passPct = null;
+            if (isset($m['exam']) && is_array($m['exam'])) {
+                try { $examTitle = (string) ($m['exam']['title'] ?? ''); } catch (\Throwable $e) { $examTitle = ''; }
+                $passRaw = $m['exam']['passing_score'] ?? null;
+                if ($passRaw !== null && $passRaw !== '') {
+                    $passPct = (int) $passRaw;
+                }
+            }
+            $modulesMeta[] = [
+                'index' => $mi,
+                'title' => (string)($m['title'] ?? ('Module '.($mi+1))),
+                'exam_title' => $examTitle,
+                'passing_score' => $passPct,
+                'total_subs' => $totalSubs,
+            ];
+            $totals[$mi] = $totalSubs;
+        }
+        // Participants (active only)
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $participants = $course->users()->whereIn('role', $participantRoles)->wherePivot('status','active')->get();
+        $outUsers = [];
+        // Pre-scan exam submissions directory
+        $examDir = storage_path('app/exam_submissions/course_'.$course->id);
+        $examIndex = [];
+        if (is_dir($examDir)) {
+            foreach (glob($examDir.DIRECTORY_SEPARATOR.'mi_*_u_*.json') as $p) {
+                $j = json_decode(@file_get_contents($p), true) ?: [];
+                $uid = $j['user_id'] ?? null;
+                $mi = $j['module_index'] ?? null;
+                if ($uid !== null && $mi !== null) {
+                    $examIndex[$uid.'_'.$mi] = (int)($j['pct'] ?? 0);
+                }
+            }
+        }
+        foreach ($participants as $u) {
+            $rows = \App\Models\ReflectionResponse::where('user_id', $u->id)
+                ->where('course_id', $course->id)
+                ->get(['module_index','topic_index','sub_index','answers_json']);
+            $doneSetByModule = [];
+            foreach ($rows as $r) {
+                $answers = is_array($r->answers_json) ? $r->answers_json : [];
+                $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
+                    ? trim($answers['learned'])
+                    : '';
+                if ($val !== '') {
+                    $doneSetByModule[$r->module_index] = ($doneSetByModule[$r->module_index] ?? 0) + 1;
+                }
+            }
+            $scores = [];
+            foreach ($mods as $mi => $_) {
+                $total = $totals[$mi] ?? 0;
+                $done = $doneSetByModule[$mi] ?? 0;
+                $modulePct = $total ? (int) round(($done / $total) * 100) : null;
+                $examPct = $examIndex[$u->id.'_'.$mi] ?? null;
+                $scores[] = ['module_pct' => $modulePct, 'exam_pct' => $examPct];
+            }
+            $outUsers[] = [
+                'user_id' => $u->id,
+                'name' => $u->name,
+                'scores' => $scores,
+            ];
+        }
+        return response()->json([
+            'ok' => true,
+            'modules' => $modulesMeta,
+            'users' => $outUsers,
+        ]);
+    }
+
     public function modulesJson(\App\Models\Course $course)
     {
         $mods = $course->modules;
