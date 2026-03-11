@@ -19,18 +19,22 @@ class ReflectionController extends Controller
         $rows = ReflectionResponse::where('user_id', $userId)
             ->where('course_id', $courseId)
             ->get(['module_index','topic_index','sub_index','answers_json']);
-        $map = [];
+        // Aggregate to TOPIC level: consolidate all subtopic reflections under sub_index = -1
+        $agg = [];
         foreach ($rows as $r) {
             $answers = is_array($r->answers_json) ? $r->answers_json : [];
             $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
                 ? trim($answers['learned'])
                 : '';
-            if ($val !== '') {
-                $map["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = [
-                    'submitted' => true,
-                    'learned' => $val,
-                ];
-            }
+            if ($val === '') continue;
+            $topicKey = "{$r->module_index}_{$r->topic_index}_-1";
+            if (!isset($agg[$topicKey])) $agg[$topicKey] = [];
+            $agg[$topicKey][] = $val;
+        }
+        $map = [];
+        foreach ($agg as $k => $list) {
+            // Consolidate with blank line separation
+            $map[$k] = ['submitted' => true, 'learned' => implode("\n\n", array_values(array_unique($list)))];
         }
         return response()->json(['map' => $map]);
     }
@@ -41,7 +45,8 @@ class ReflectionController extends Controller
         $data = $request->validate([
             'module_index' => 'required|integer|min:0',
             'topic_index' => 'required|integer|min:0',
-            'sub_index' => 'nullable|integer|min:0',
+            // Topic-level reflections indicated by sub_index = -1
+            'sub_index' => 'required|integer|min:-1',
             'questions' => 'required|array',
             'answers' => 'required|array',
         ]);
@@ -57,13 +62,16 @@ class ReflectionController extends Controller
             ], 422);
         }
 
+        // Normalize topic-level to a safe stored sub_index (avoid negative on unsigned columns)
+        $si = $data['sub_index'] ?? 0;
+        if ($si < 0) $si = 0;
         $row = ReflectionResponse::updateOrCreate(
             [
                 'user_id' => $userId,
                 'course_id' => $courseId,
                 'module_index' => $data['module_index'],
                 'topic_index' => $data['topic_index'],
-                'sub_index' => $data['sub_index'] ?? null,
+                'sub_index' => $si,
             ],
             [
                 'questions_json' => $data['questions'],
@@ -81,30 +89,27 @@ class ReflectionController extends Controller
         $rows = ReflectionResponse::where('user_id', $userId)
             ->where('course_id', $course->id)
             ->get(['module_index','topic_index','sub_index','answers_json']);
-        $doneSet = [];
+        // Build topic-level done set; legacy subtopic reflections count towards topic
+        $topicDone = [];
         foreach ($rows as $r) {
             $answers = is_array($r->answers_json) ? $r->answers_json : [];
             $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
                 ? trim($answers['learned'])
                 : '';
-            if ($val !== '') {
-                $doneSet["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = true;
-            }
+            if ($val === '') continue;
+            $topicKey = "{$r->module_index}_{$r->topic_index}";
+            $topicDone[$topicKey] = true;
         }
         $overallTotal = 0;
         $overallDone = 0;
         $modules = [];
         foreach ($mods as $mi => $m) {
             $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
-            $mTotal = 0;
+            $mTotal = count($topics);
             $mDone = 0;
-            foreach ($topics as $ti => $t) {
-                $subs = isset($t['subtopics']) && is_array($t['subtopics']) ? $t['subtopics'] : [];
-                $mTotal += count($subs);
-                foreach ($subs as $si => $_) {
-                    if (!empty($doneSet["{$mi}_{$ti}_{$si}"])) {
-                        $mDone++;
-                    }
+            foreach ($topics as $ti => $_t) {
+                if (!empty($topicDone["{$mi}_{$ti}"])) {
+                    $mDone++;
                 }
             }
             $overallTotal += $mTotal;

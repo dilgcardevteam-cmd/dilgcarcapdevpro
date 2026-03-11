@@ -458,6 +458,99 @@
                     const fields = ('fields' in s) ? s.fields : (s.fields_json ? (typeof s.fields_json==='string'?JSON.parse(s.fields_json):s.fields_json) : []);
                     renderFieldsInto(container, fields, mi, ti, si);
                 });
+                // Append a single Topic-level reflection at the end
+                const key = `${mi}_${ti}_-1`;
+                body.insertAdjacentHTML('beforeend', `
+                    <section class="subgroup" id="topic_ref_${mi}_${ti}" data-mi="${mi}" data-ti="${ti}" data-si="-1">
+                        <div class="subheader"><span>${mi+1}.${ti}. Reflection</span></div>
+                        <div class="subfields">
+                            <div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="-1">
+                                <div style="font-weight:700;margin-bottom:6px">What did you learn?</div>
+                                <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                                    <button type="button" class="btn-blue" data-act="submit-ref" style="background:#0f3b8f;color:#fff;border:none;border-radius:12px;padding:8px 12px">Submit</button>
+                                </div>
+                                <div class="reflect-summary" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px"></div>
+                            </div>
+                        </div>
+                    </section>
+                `);
+                // Bind
+                (function(){
+                    const container = document.getElementById('contentBody');
+                    container.querySelectorAll('.reflection-inline').forEach(block=>{
+                        const bMi = parseInt(block.getAttribute('data-mi'),10);
+                        const bTi = parseInt(block.getAttribute('data-ti'),10);
+                        const submitBtn = block.querySelector('[data-act="submit-ref"]');
+                        const input = block.querySelector('.reflect-input');
+                        const summary = block.querySelector('.reflect-summary');
+                        const k = `${bMi}_${bTi}_-1`;
+                        if(hasReflection(bMi,bTi,-1)){
+                            const prev = reflectionMap[k];
+                            if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
+                            if(submitBtn){ submitBtn.textContent='Submitted'; submitBtn.disabled=true; }
+                            if(input){ input.disabled=true; }
+                            if(summary && prev && prev.learned){
+                                summary.style.display='block';
+                                summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
+                                    <div><b>What you learned:</b> ${prev.learned}</div>
+                                    <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
+                                const resetBtn = summary.querySelector('[data-act="reset-ref"]');
+                                if(resetBtn){
+                                    resetBtn.onclick = ()=>{
+                                        input.disabled=false;
+                                        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='Submit'; }
+                                        summary.style.display='none';
+                                        unmarkReflection(bMi,bTi,-1);
+                                        input.focus();
+                                    };
+                                }
+                            }
+                        }
+                        if(submitBtn){
+                            submitBtn.onclick = async ()=>{
+                                if(!input.value.trim()){ input.focus(); return; }
+                                const questions = [{id:'learned', text:'What did you learn?'}];
+                                const answers = { learned: input.value||'' };
+                                try{
+                                    submitBtn.disabled = true;
+                                    const res = await fetch("{{ route('courses.reflect.store', $course) }}", {
+                                        method:'POST',
+                                        headers:{'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json'},
+                                        credentials:'same-origin',
+                                        body: JSON.stringify({ module_index:bMi, topic_index:bTi, sub_index:-1, questions, answers })
+                                    });
+                                    if(res.ok){
+                                        markReflection(bMi,bTi,-1);
+                                        summary.style.display='block';
+                                        summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
+                                            <div><b>What you learned:</b> ${answers.learned?answers.learned:'(none)'}</div>
+                                            <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
+                                        input.disabled=true; submitBtn.disabled=true; submitBtn.textContent='Submitted';
+                                        try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
+                                        const resetBtn = summary.querySelector('[data-act="reset-ref"]');
+                                        if(resetBtn){
+                                            resetBtn.onclick = ()=>{
+                                                input.disabled=false;
+                                                submitBtn.disabled=false; submitBtn.textContent='Submit';
+                                                summary.style.display='none';
+                                                unmarkReflection(bMi,bTi,-1);
+                                                input.focus();
+                                            };
+                                        }
+                                    } else {
+                                        const j = await res.json().catch(()=>null);
+                                        alert(j && j.error ? j.error : 'Submission failed. Please try again.');
+                                        submitBtn.disabled = false;
+                                    }
+                                }catch(e){
+                                    alert('Network error while submitting. Please try again.');
+                                    submitBtn.disabled = false;
+                                }
+                            };
+                        }
+                    });
+                })();
                 const topicEl = document.querySelector(`.topic[data-mi="${mi}"][data-ti="${ti}"]`);
                 if(topicEl) renderDoneStates(mi,ti,topicEl);
                 return;
@@ -507,8 +600,10 @@
                             <div class="muted">${header}</div>
                         </div>`;
                     } else {
-                        const key = `${mi}_${ti}_${si ?? 0}`;
-                        return `<div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="${si ?? 0}">
+                        // Only add when rendering TOPIC-level (no subtopics)
+                        if(si!==null && si!==undefined){ return ''; }
+                        const key = `${mi}_${ti}_-1`;
+                        return `<div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="-1">
                             <div style="font-weight:700;margin-bottom:6px">${header}</div>
                             <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
                             <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">

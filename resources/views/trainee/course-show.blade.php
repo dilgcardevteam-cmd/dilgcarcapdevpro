@@ -604,35 +604,26 @@
             const m = (course.modules||[])[mi]||{};
             const t = (m.topics||[])[ti]||{};
             const subs = Array.isArray(t.subtopics)?t.subtopics:[];
-            let doneCount = 0;
-            topicEl.querySelectorAll('.sub-item').forEach(n=>{
-                const si = parseInt(n.getAttribute('data-si'),10);
-                const isDone = hasReflection(mi,ti,si);
-                if(isDone){ doneCount++; n.classList.add('done'); }
-                else { n.classList.remove('done'); }
-            });
+            // Topic-level reflection is completion criterion
+            const isTopicDone = hasReflection(mi,ti,-1);
+            topicEl.classList.toggle('done', !!isTopicDone);
             const cnt = topicEl.querySelector(`#cnt_${mi}_${ti}`);
-            if(cnt) cnt.textContent = subs.length ? `${doneCount} / ${subs.length}` : '';
+            if(cnt) cnt.textContent = isTopicDone ? 'Done' : 'Pending';
         }
         function updateProgressFor(mi){
             const mod = document.querySelectorAll('.module')[mi];
             if(!mod) return;
             const topics = mod.querySelectorAll('.topic');
-            let total=0, done=0;
+            let total=topics.length, done=0;
             topics.forEach((tEl)=>{
                 const ti = parseInt(tEl.getAttribute('data-ti'),10);
                 renderDoneStates(mi,ti,tEl);
-                const subs = tEl.querySelectorAll('.sub-item');
-                total += subs.length;
-                subs.forEach((sEl)=>{
-                    const si = parseInt(sEl.getAttribute('data-si'),10);
-                    if(hasReflection(mi,ti,si)) done++;
-                });
+                if(hasReflection(mi,ti,-1)) done++;
             });
             const pct = total ? Math.round((done/total)*100) : 0;
             const bar = mod.querySelector(`#bar_${mi}`); if(bar) bar.style.width = pct+'%';
             const kpi = mod.querySelector(`#kpi_${mi}`); if(kpi) kpi.textContent = total ? `${pct}%` : '';
-            if(pct===100){ promptCatchUpReflections(mi); }
+            if(pct===100){ /* no catch-up for topics */ }
         }
         function updateAllProgress(){
             const modules = document.querySelectorAll('.module');
@@ -673,6 +664,128 @@
                     const fields = ('fields' in s) ? s.fields : (s.fields_json ? (typeof s.fields_json==='string'?JSON.parse(s.fields_json):s.fields_json) : []);
                     renderFieldsInto(container, fields, mi, ti, si);
                 });
+                // Append a single Topic-level reflection at the end
+                const key = `${mi}_${ti}_-1`;
+                const reflectionHTML = `
+                    <section class="subgroup" id="topic_ref_${mi}_${ti}" data-mi="${mi}" data-ti="${ti}" data-si="-1">
+                        <div class="subheader"><span>${mi+1}.${ti}. Reflection</span></div>
+                        <div class="subfields">
+                            <div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="-1">
+                                <div style="font-weight:700;margin-bottom:6px">What did you learn?</div>
+                                <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                                    <button type="button" class="btn-blue" data-act="submit-ref" style="background:#0f3b8f;color:#fff;border:none;border-radius:12px;padding:8px 12px">Done</button>
+                                </div>
+                                <div class="reflect-summary" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px"></div>
+                            </div>
+                        </div>
+                    </section>`;
+                body.insertAdjacentHTML('beforeend', reflectionHTML);
+                // Bind reflection behaviors on the topic-level block
+                (function(){
+                    const container = document.getElementById('contentBody');
+                    container.querySelectorAll('.reflection-inline').forEach(block=>{
+                        const bMi = parseInt(block.getAttribute('data-mi'),10);
+                        const bTi = parseInt(block.getAttribute('data-ti'),10);
+                        const bSi = parseInt(block.getAttribute('data-si'),10); // -1
+                        const submitBtn = block.querySelector('[data-act="submit-ref"]');
+                        const input = block.querySelector('.reflect-input');
+                        const summary = block.querySelector('.reflect-summary');
+                        const k = `${bMi}_${bTi}_-1`;
+                        if(hasReflection(bMi,bTi,-1)){
+                            const prev = reflectionMap[k];
+                            if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
+                            if(submitBtn){ submitBtn.textContent='Submitted'; submitBtn.disabled=true; }
+                            if(input){ input.disabled=true; }
+                            if(summary && prev && prev.learned){
+                                summary.style.display='block';
+                                summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div><div><b>What you learned:</b> ${prev.learned}</div>`;
+                            }
+                        }
+                        if(submitBtn){
+                            submitBtn.onclick = async ()=>{
+                                const containerEl = document.getElementById('contentBody');
+                                const ready = areAllQuestionsSubmitted(containerEl);
+                                const hasText = !!(input && input.value && input.value.trim());
+                                if(!ready || !hasText){ var ov=document.getElementById('gateOverlay'); if(ov){ ov.style.display='flex'; } if(!hasText){ input.focus(); } return; }
+                                const questions = [{id:'learned', text:'What did you learn?'}];
+                                const answers = { learned: input.value||'' };
+                                try{
+                                    submitBtn.disabled = true;
+                                    const res = await fetch("{{ route('courses.reflect.store', $course) }}", {
+                                        method:'POST',
+                                        headers:{'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json'},
+                                        credentials:'same-origin',
+                                        body: JSON.stringify({ module_index:bMi, topic_index:bTi, sub_index:-1, questions, answers })
+                                    });
+                                    if(res.ok){
+                                        markReflection(bMi,bTi,-1);
+                                        summary.style.display='block';
+                                        summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted<\/div>
+                                            <div><b>What you learned:<\/b> ${answers.learned?answers.learned:'(none)'}<\/div>
+                                            <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset<\/button><\/div>`;
+                                        input.disabled=true; submitBtn.disabled=true; submitBtn.textContent='Done';
+                                        updateProgressFor(bMi);
+                                        try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
+                                        const resetBtn = summary.querySelector('[data-act="reset-ref"]');
+                                        if(resetBtn){
+                                            resetBtn.onclick = ()=>{
+                                                input.disabled=false;
+                                                submitBtn.disabled=false;
+                                                submitBtn.textContent='Done';
+                                                summary.style.display='none';
+                                                unmarkReflection(bMi,bTi,-1);
+                                                updateProgressFor(bMi);
+                                                input.focus();
+                                            };
+                                        }
+                                    } else {
+                                        const j = await res.json().catch(()=>null);
+                                        alert(j && j.error ? j.error : 'Submission failed. Please try again.');
+                                        submitBtn.disabled = false;
+                                    }
+                                }catch(e){
+                                    alert('Network error while submitting. Please try again.');
+                                    submitBtn.disabled = false;
+                                }
+                            };
+                        }
+                    });
+                    updateReflectionGate(container);
+                })();
+                // Final pass to ensure values are populated from reflectionMap
+                (function(){
+                    const blocks = document.querySelectorAll('#contentBody .reflection-inline');
+                    blocks.forEach(b=>{
+                        const mi2 = parseInt(b.getAttribute('data-mi'),10);
+                        const ti2 = parseInt(b.getAttribute('data-ti'),10);
+                        const key2 = `${mi2}_${ti2}_-1`;
+                        const prev2 = reflectionMap[key2];
+                        const input2 = b.querySelector('.reflect-input');
+                        const btn2 = b.querySelector('[data-act="submit-ref"]');
+                        const sum2 = b.querySelector('.reflect-summary');
+                        if(prev2 && typeof prev2==='object' && prev2.learned){
+                            if(input2){ input2.value = prev2.learned; input2.disabled = true; }
+                            if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; }
+                            if(sum2){
+                                sum2.style.display='block';
+                                sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
+                                    <div><b>What you learned:</b> ${prev2.learned}</div>
+                                    <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
+                                const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
+                                if(resetBtn){
+                                    resetBtn.onclick = ()=>{
+                                        if(input2){ input2.disabled=false; input2.focus(); }
+                                        if(btn2){ btn2.disabled=false; btn2.textContent='Done'; }
+                                        sum2.style.display='none';
+                                        unmarkReflection(mi2,ti2,-1);
+                                        updateProgressFor(mi2);
+                                    };
+                                }
+                            }
+                        }
+                    });
+                })();
                 // After rendering, sync progress visuals in outline
                 const topicEl = document.querySelector(`.topic[data-mi="${mi}"][data-ti="${ti}"]`);
                 if(topicEl) renderDoneStates(mi,ti,topicEl);
@@ -680,6 +793,39 @@
             }
             const fields = ('fields' in t) ? t.fields : (t.fields_json ? (typeof t.fields_json==='string'?JSON.parse(t.fields_json):t.fields_json) : []);
             renderFieldsInto(document.getElementById('contentBody'), fields, mi, ti);
+            // Ensure topic-level reflection populated for topics without subtopics as well
+            (function(){
+                const blocks = document.querySelectorAll('#contentBody .reflection-inline');
+                blocks.forEach(b=>{
+                    const mi2 = parseInt(b.getAttribute('data-mi'),10);
+                    const ti2 = parseInt(b.getAttribute('data-ti'),10);
+                    const key2 = `${mi2}_${ti2}_-1`;
+                    const prev2 = reflectionMap[key2];
+                    const input2 = b.querySelector('.reflect-input');
+                    const btn2 = b.querySelector('[data-act="submit-ref"]');
+                    const sum2 = b.querySelector('.reflect-summary');
+                    if(prev2 && typeof prev2==='object' && prev2.learned){
+                        if(input2){ input2.value = prev2.learned; input2.disabled = true; }
+                        if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; }
+                        if(sum2){
+                            sum2.style.display='block';
+                            sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
+                                <div><b>What you learned:</b> ${prev2.learned}</div>
+                                <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
+                            const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
+                            if(resetBtn){
+                                resetBtn.onclick = ()=>{
+                                    if(input2){ input2.disabled=false; input2.focus(); }
+                                    if(btn2){ btn2.disabled=false; btn2.textContent='Done'; }
+                                    sum2.style.display='none';
+                                    unmarkReflection(mi2,ti2,-1);
+                                    updateProgressFor(mi2);
+                                };
+                            }
+                        }
+                    }
+                });
+            })();
         }
         function openExam(mi){
             const m = (course.modules||[])[mi]||{};
@@ -1360,13 +1506,13 @@
                     return `<div class="field">${JSON.stringify(f)}</div>`;
                 }
             }).join('');
-            // Ensure a reflection block is always present at the end of a subtopic (editable view)
-            if(!viewOnly){
+            // Ensure a reflection block only for TOPIC-level content (no subtopics)
+            if(!viewOnly && (typeof si==='undefined' || si===null)){
                 const hasRef = Array.isArray(fields) && fields.some(f => f && f.type === 'reflection');
                 if(!hasRef){
-                    const key = `${mi}_${ti}_${si ?? 0}`;
+                    const key = `${mi}_${ti}_-1`;
                     container.innerHTML += `
-                        <div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="${si ?? 0}">
+                        <div class="field reflection-inline" data-mi="${mi}" data-ti="${ti}" data-si="-1">
                             <div style="font-weight:700;margin-bottom:6px">What did you learn?</div>
                             <textarea class="reflect-input" data-ref="${key}" rows="4" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px" placeholder="Write your personal reflection here"></textarea>
                             <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
@@ -1384,10 +1530,10 @@
                     const submitBtn = block.querySelector('[data-act="submit-ref"]');
                     const input = block.querySelector('.reflect-input');
                     const summary = block.querySelector('.reflect-summary');
-                    const key = `${bMi}_${bTi}_${bSi}`;
+                    const key = `${bMi}_${bTi}_${(isNaN(bSi)?-1:bSi)}`;
                     // Initialize state if already submitted; prefill text if available
                     if(hasReflection(bMi,bTi,bSi)){
-                        const prev = reflectionMap[key];
+                        const prev = reflectionMap[key] || reflectionMap[`${bMi}_${bTi}_-1`];
                         if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
                         if(submitBtn){ submitBtn.textContent = 'Submitted'; submitBtn.disabled = true; }
                         if(input){ input.disabled = true; }
@@ -1419,7 +1565,7 @@
                                     body: JSON.stringify({
                                         module_index: bMi,
                                         topic_index: bTi,
-                                        sub_index: bSi,
+                                        sub_index: (isNaN(bSi)?-1:bSi),
                                         questions,
                                         answers
                                     })
@@ -1486,20 +1632,7 @@
                 area.scrollIntoView({behavior:'smooth', block:'center'});
             }
         }
-        function promptCatchUpReflections(mi){
-            const m = (course.modules||[])[mi]||{};
-            const topics = Array.isArray(m.topics)?m.topics:[];
-            const queue = [];
-            topics.forEach((t,ti)=>{
-                const subs = Array.isArray(t.subtopics)?t.subtopics:[];
-                subs.forEach((s,si)=>{
-                    if(!hasReflection(mi,ti,si)){
-                        queue.push({mi,ti,si,label:`${mi+1}.${ti}.${si+1}a ${(s.title||'Subtopic')}`});
-                    }
-                });
-            });
-            if(queue.length){ runReflectionQueue(queue); }
-        }
+        function promptCatchUpReflections(mi){ /* deprecated for topic-level reflections */ }
         function runReflectionQueue(items){
             if(!items.length) return;
             const {mi,ti,si,label} = items.shift();
