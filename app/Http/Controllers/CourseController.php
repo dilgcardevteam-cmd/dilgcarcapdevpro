@@ -587,37 +587,70 @@ class CourseController extends Controller
         $mods = $course->modules;
         if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
         if (is_array($mods) && !empty($mods)) {
+            // Build a set of existing exam signatures (avoid duplicates) and only keep exams with questions
+            $examKey = function($exam){
+                try {
+                    $title = (string)($exam['title'] ?? '');
+                    $qs = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+                    return sha1($title.'|'.json_encode(array_map(function($q){
+                        return ['t'=>$q['text'] ?? ($q['title'] ?? ''), 'type'=>$q['type'] ?? ''];
+                    }, $qs)));
+                } catch (\Throwable $e) { return null; }
+            };
+            $existingExamKeys = [];
+            foreach ($mods as $m0) {
+                $qs0 = is_array($m0['exam']['questions'] ?? null) ? $m0['exam']['questions'] : [];
+                if (!empty($qs0) && (!isset($m0['topics']) || empty($m0['topics']))) {
+                    $k = $examKey($m0['exam']);
+                    if ($k) $existingExamKeys[$k] = true;
+                }
+            }
             $out = [];
             foreach ($mods as $m) {
-                $hasTopics = isset($m['topics']) && is_array($m['topics']) && count($m['topics']) > 0;
-                $hasExam = isset($m['exam']) && is_array($m['exam']);
+                $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
+                $hasTopics = count($topics) > 0;
+                $exam = isset($m['exam']) && is_array($m['exam']) ? $m['exam'] : null;
+                $examQs = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+                $hasExamWithQs = !empty($examQs);
+
                 if ($hasTopics) {
+                    // Always include the content module (without exam)
                     $copy = $m;
-                    if ($hasExam) {
-                        unset($copy['exam']);
-                    }
+                    unset($copy['exam']);
                     $out[] = $copy;
-                    if ($hasExam) {
-                        $examTitle = '';
-                        try { $examTitle = (string) ($m['exam']['title'] ?? ''); } catch (\Throwable $e) { $examTitle = ''; }
-                        $computedTitle = $examTitle !== '' ? ('Module Exam: ' . $examTitle . ' Exam') : 'Module Exam';
-                        $out[] = [
-                            'title' => $computedTitle,
-                            'topics' => [],
-                            'exam' => $m['exam'],
-                        ];
+                    // Only append a separate exam module if this exam has questions and not already present
+                    if ($hasExamWithQs) {
+                        $k = $examKey($exam);
+                        if (!$k || !isset($existingExamKeys[$k])) {
+                            $examTitle = (string) ($exam['title'] ?? '');
+                            $computedTitle = $examTitle !== '' ? ('Module Exam: ' . $examTitle . ' Exam') : 'Module Exam';
+                            $out[] = [
+                                'title' => $computedTitle,
+                                'topics' => [],
+                                'exam' => $exam,
+                            ];
+                            if ($k) $existingExamKeys[$k] = true;
+                        }
                     }
                 } else {
-                    // Already an exam-only or empty module – ensure a friendly title if missing
-                    if (isset($m['exam']) && is_array($m['exam'])) {
-                        $examTitle = (string) ($m['exam']['title'] ?? '');
+                    // Exam-only or empty module
+                    if ($hasExamWithQs) {
+                        // Keep real exam modules with questions
                         if (!isset($m['title']) || trim((string)$m['title']) === '') {
+                            $examTitle = (string) ($exam['title'] ?? '');
                             $m['title'] = $examTitle !== '' ? ('Module Exam: ' . $examTitle . ' Exam') : 'Module Exam';
                         }
-                    } elseif (!isset($m['title']) || trim((string)$m['title']) === '') {
-                        $m['title'] = 'Untitled';
+                        $out[] = $m;
+                    } else {
+                        // Drop empty exam modules (no questions)
+                        if (!isset($m['exam'])) {
+                            // Plain empty module with no title -> keep but normalize
+                            if (!isset($m['title']) || trim((string)$m['title']) === '') {
+                                $m['title'] = 'Untitled';
+                            }
+                            $out[] = $m;
+                        }
                     }
-                    $out[] = $m;
                 }
             }
             $course->modules = $out;

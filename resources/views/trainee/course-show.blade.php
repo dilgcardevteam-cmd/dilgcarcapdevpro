@@ -548,8 +548,9 @@
                 el.appendChild(mod);
                 // initialize progress
                 if(!viewOnly){ updateProgressFor(mi); }
-                // Add a separate Module Exam block (like trainer UI) if this module has an exam
-                if (m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
+                // Add a separate Module Exam block only when the exam is embedded within a content module
+                // Skip when this is an exam-only module to avoid duplication
+                if (!isExamOnly && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
                     const modEx = document.createElement('div');
                     modEx.className = 'module';
                     if(isLocked){ modEx.classList.add('locked'); }
