@@ -531,34 +531,6 @@
                     }
                     topicsCt.appendChild(tEl);
                 });
-                // Append Module Exam entry if present
-                if (m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
-                    const tEl = document.createElement('div');
-                    tEl.className='topic';
-                    tEl.setAttribute('data-mi',mi);
-                    tEl.setAttribute('data-ti','exam');
-                    const num = `${mi+1}.E`;
-                    const qCount = m.exam.questions.length;
-                    const badge = `<span class="count" style="display:inline-block">${qCount} Qs</span>`;
-                    tEl.innerHTML = `<div class="topic-head">
-                        <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
-                        <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
-                        ${badge}
-                    </div>`;
-                    const head = tEl.querySelector('.topic-head');
-                    head.addEventListener('click', (e)=>{
-                        if (lockedForUser) { 
-                            showLockedContent(mi);
-                            e.stopPropagation(); 
-                            return; 
-                        }
-                        document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
-                        tEl.classList.add('active');
-                        openExam(mi);
-                        e.stopPropagation();
-                    });
-                    topicsCt.appendChild(tEl);
-                }
                 mod.querySelector('.module-header').addEventListener('click',()=>{
                     const currentStatus = (mods[mi] && mods[mi].status) ? mods[mi].status : 'unlocked';
                     const locked = (currentStatus==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
@@ -576,6 +548,68 @@
                 el.appendChild(mod);
                 // initialize progress
                 if(!viewOnly){ updateProgressFor(mi); }
+                // Add a separate Module Exam block (like trainer UI) if this module has an exam
+                if (m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
+                    const modEx = document.createElement('div');
+                    modEx.className = 'module';
+                    if(isLocked){ modEx.classList.add('locked'); }
+                    const exTitle = m.exam.title ? `Module Exam: ${m.exam.title}` : 'Module Exam';
+                    modEx.innerHTML = `
+                        <div class="module-header" data-mi="${mi}">
+                            <div class="module-left">
+                                <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}${exTitle}</span></div>
+                                <div class="progress-mini"><span id="bar_ex_${mi}"></span></div>
+                            </div>
+                            <div class="mod-badges">
+                                <span class="module-kpi" id="kpi_ex_${mi}"></span>
+                                <button class="toggle-icon" aria-label="Toggle module"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                        </div>
+                        <div class="topics"></div>
+                    `;
+                    const exTopics = modEx.querySelector('.topics');
+                    const exHead = modEx.querySelector('.module-header');
+                    // Create a single exam "topic" row for consistent UX
+                    const tEl = document.createElement('div');
+                    tEl.className='topic';
+                    tEl.setAttribute('data-mi',mi);
+                    tEl.setAttribute('data-ti','exam');
+                    const num = `${mi+1}.E`;
+                    const qCount = m.exam.questions.length;
+                    const badge = `<span class="count" style="display:inline-block">${qCount} Qs</span>`;
+                    tEl.innerHTML = `<div class="topic-head">
+                        <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
+                        <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
+                        ${badge}
+                    </div>`;
+                    const head = tEl.querySelector('.topic-head');
+                    head.addEventListener('click', (e)=>{
+                        if ((st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER)) { 
+                            showLockedContent(mi);
+                            e.stopPropagation(); 
+                            return; 
+                        }
+                        document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
+                        tEl.classList.add('active');
+                        openExam(mi);
+                        e.stopPropagation();
+                    });
+                    exTopics.appendChild(tEl);
+                    exHead.addEventListener('click',()=>{
+                        const locked = (st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
+                        if(locked){
+                            const open = exTopics.style.display==='block';
+                            exTopics.style.display = open?'none':'block';
+                            const chev = modEx.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
+                            showLockedContent(mi);
+                            return;
+                        }
+                        const open = exTopics.style.display==='block';
+                        exTopics.style.display = open?'none':'block';
+                        const chev = modEx.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
+                    });
+                    el.appendChild(modEx);
+                }
             });
             document.getElementById('outlineSearch').addEventListener('input', (e)=>{
                 const q=e.target.value.trim().toLowerCase();
