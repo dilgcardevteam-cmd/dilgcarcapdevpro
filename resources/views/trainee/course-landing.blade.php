@@ -1704,6 +1704,7 @@
             var list = document.getElementById('moduleProgressList');
             if(!ring) return;
             var url = "{{ route('courses.progress.json', $course) }}";
+            var outlineUrl = "{{ route('trainee.courses.outline', $course) }}";
             function refreshProgress(){
                 fetch(url, {credentials:'same-origin'}).then(function(r){
                     if(!r.ok) return null;
@@ -1715,7 +1716,7 @@
                     var total = (j.overall && j.overall.total) || 0;
                     ring.style.setProperty('--deg', (pct*3.6)+'deg');
                     ring.textContent = pct+'%';
-                    if(detail){ detail.textContent = total ? '('+done+'/'+total+' subtopics)' : ''; }
+                    if(detail){ detail.textContent = total ? '('+done+'/'+total+' topics)' : ''; }
                     if(list && Array.isArray(j.modules)){
                         list.innerHTML = j.modules.map(function(m, idx){
                             var isExam = !!m.is_exam;
@@ -1732,16 +1733,19 @@
                                     '<div style="height:100%;width:'+p+'%;background:#22c55e;border-radius:999px"></div>'+
                                   '</div>'+
                                   '<div style="display:flex;align-items:center;justify-content:space-between;color:#0f3b8f;font-weight:800">'+
-                                    '<span style="color:#6b7280;font-weight:700">'+d+'/'+t+' subtopics</span>'+
+                                    '<span style="color:#6b7280;font-weight:700">'+d+'/'+t+' topics</span>'+
                                     '<span>'+p+'%</span>'+
                                   '</div>'+
                                 '</div>';
+                            var href = outlineUrl + '?mi=' + encodeURIComponent(idx);
                             return ''+
-                            '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;margin:10px 0">'+
-                              '<div style="background:#0f3b8f;color:#fff;font-weight:800;padding:12px 14px">'+
-                                header+
-                              '</div>'+ body +
-                            '</div>';
+                            '<a href="'+href+'" style="text-decoration:none;color:inherit;display:block">'+
+                              '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;margin:10px 0">'+
+                                '<div style="background:#0f3b8f;color:#fff;font-weight:800;padding:12px 14px">'+
+                                  header+
+                                '</div>'+ body +
+                              '</div>'+
+                            '</a>';
                         }).join('');
                     }
                 }).catch(function(){});

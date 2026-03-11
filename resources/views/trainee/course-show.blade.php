@@ -2014,13 +2014,35 @@
             document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ if(ov){ ov.style.display='none'; } } });
         })();
         renderVideo();
+        function getQueryParam(n){
+            try{
+                var u = new URLSearchParams(window.location.search);
+                return u.get(n);
+            }catch(e){ return null; }
+        }
         (async function initPage(){
             if(!viewOnly){
                 try{ await loadReflectionMap(); }catch(e){}
             }
             renderOutline();
-            const firstTopic = (course.modules&&course.modules[0]&&course.modules[0].topics&&course.modules[0].topics[0])? [0,0]: null;
-            if(firstTopic){ openTopic(0,0); }
+            let mi = parseInt(getQueryParam('mi')||'0', 10);
+            if(!Number.isFinite(mi) || mi<0) mi = 0;
+            const mods = Array.isArray(course.modules)?course.modules:[];
+            if(mods[mi]){
+                const isExamOnly = !!(mods[mi].exam && Array.isArray(mods[mi].exam.questions) && mods[mi].exam.questions.length) && (!Array.isArray(mods[mi].topics) || mods[mi].topics.length===0);
+                const modEl = document.querySelectorAll('.module')[mi];
+                const topicsCt = modEl ? modEl.querySelector('.topics') : null;
+                if(topicsCt){ topicsCt.style.display='block'; }
+                const chev = modEl ? modEl.querySelector('.toggle-icon i') : null; if(chev){ chev.style.transform='rotate(180deg)'; }
+                if(isExamOnly){
+                    openExam(mi);
+                }else{
+                    openTopic(mi,0);
+                }
+            } else {
+                const firstTopic = (mods[0]&&mods[0].topics&&mods[0].topics[0])? [0,0]: null;
+                if(firstTopic){ openTopic(0,0); }
+            }
         })();
     </script>
 </body>
