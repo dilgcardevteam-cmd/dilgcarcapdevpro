@@ -402,7 +402,7 @@
         const viewOnly = @json($viewOnly ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
-        const ENFORCE_LOCKS_ALL = !!viewOnly && !IS_TRAINER;
+        const ENFORCE_LOCKS_ALL = false;
 
         function isVideo(path){ return /\.(mp4|webm|ogg)$/i.test(path||''); }
         function renderVideo(){
@@ -447,15 +447,15 @@
             mods.forEach((m,mi)=>{
                 const mod = document.createElement('div');
                 mod.className='module';
-                const st = (m && m.status) ? m.status : 'unlocked';
-                const isLocked = st==='locked';
+                const st = 'unlocked';
+                const isLocked = false;
                 const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
                 const baseTitle = m.title || (isExamOnly ? 'Module Exam' : 'Untitled');
                 const titleStr = isExamOnly ? (m.exam && m.exam.title ? `Module Exam: ${m.exam.title}` : baseTitle) : `Module ${mi+1}: ${baseTitle}`;
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
                         <div class="module-left">
-                            <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}${titleStr}</span></div>
+                            <div class="module-title"><span>${titleStr}</span></div>
                             <div class="progress-mini"><span id="bar_${mi}"></span></div>
                         </div>
                         <div class="mod-badges">
@@ -465,9 +465,9 @@
                     </div>
                     <div class="topics"></div>
                 `;
-                if(isLocked){ mod.classList.add('locked'); }
+                // Locks disabled
                 const topicsCt = mod.querySelector('.topics');
-                const lockedForUser = (st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
+                const lockedForUser = false;
                 (m.topics||[]).forEach((t,ti)=>{
                     const tEl = document.createElement('div');
                     tEl.className='topic';
@@ -532,15 +532,7 @@
                     topicsCt.appendChild(tEl);
                 });
                 mod.querySelector('.module-header').addEventListener('click',()=>{
-                    const currentStatus = (mods[mi] && mods[mi].status) ? mods[mi].status : 'unlocked';
-                    const locked = (currentStatus==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
-                    if(locked){
-                        const open = topicsCt.style.display==='block';
-                        topicsCt.style.display = open?'none':'block';
-                        const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
-                        showLockedContent(mi);
-                        return;
-                    }
+                    // Locks disabled
                     const open = topicsCt.style.display==='block';
                     topicsCt.style.display = open?'none':'block';
                     const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
@@ -1991,13 +1983,13 @@
                 if(!Array.isArray(mods)) return;
                 for(let i=0;i<mods.length;i++){
                     if(!course.modules || !course.modules[i]) continue;
-                    course.modules[i].status = mods[i].status || 'unlocked';
+                    course.modules[i].status = 'unlocked';
                     const modEl = document.querySelectorAll('.module')[i];
                     if(modEl){
                         const title = modEl.querySelector('.module-title span');
                         if(title){
                             const hasLock = title.innerHTML.indexOf('fa-lock')>-1;
-                            const shouldLock = (mods[i].status==='locked');
+                            const shouldLock = false;
                             if(shouldLock && !hasLock){
                                 title.innerHTML = '<i class="fas fa-lock" style="color:#64748b"></i> ' + title.innerText.replace(/^(\s*\uF023\s*)?/,'');
                             }else if(!shouldLock && hasLock){

@@ -1148,70 +1148,27 @@
                     $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && ((\Illuminate\Support\Facades\Auth::user()->role ?? null) === 'trainer'));
                 @endphp
                 @if(!empty($asTrainer))
-                <div class="container-box" id="macContainer" style="margin-bottom:12px;">
+                <div class="container-box" id="progressContainer" style="margin-bottom:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                         <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-layer-group"></i></div>
-                            <div>Module Access Control</div>
-                        </div>
-                        <div>
-                            <button type="button" id="btnProgress" class="btn btn-blue" onclick="showParticipantProgress()" title="View participant progress"><i class="fas fa-table"></i> Participant Progress</button>
-                            <button type="button" id="btnBackToAccess" class="btn" style="display:none;border:1px solid #dbe4ef;background:#fff;color:#0f3b8f" onclick="showAccessControl()"><i class="fas fa-arrow-left"></i> Back</button>
+                            <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-table"></i></div>
+                            <div>Participant Progress</div>
                         </div>
                     </div>
-                    <div id="moduleAccessList" style="display:grid;gap:10px">
-                        @foreach(($course->modules ?? []) as $i => $m)
-                        @php 
-                            $st = $m['status'] ?? 'unlocked'; 
-                            $hasExam = isset($m['exam']) && is_array($m['exam']) && isset($m['exam']['questions']) && is_array($m['exam']['questions']) && count($m['exam']['questions']) > 0;
-                            $hasTopics = isset($m['topics']) && is_array($m['topics']) && count($m['topics']) > 0;
-                            $isExamOnly = $hasExam && !$hasTopics;
-                            $baseTitle = trim($m['title'] ?? '');
-                            $examTitle = trim($m['exam']['title'] ?? '');
-                            if ($isExamOnly) {
-                                if ($baseTitle !== '') {
-                                    $displayTitle = $baseTitle;
-                                } elseif ($examTitle !== '') {
-                                    $displayTitle = 'Module Exam: ' . $examTitle . ' Exam';
-                                } else {
-                                    $displayTitle = 'Module Exam';
-                                }
-                            } else {
-                                $displayTitle = 'Module ' . ($i+1) . ': ' . ($baseTitle !== '' ? $baseTitle : 'Untitled');
-                            }
-                        @endphp
-                        <div class="forum-card" data-mi="{{ $i }}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-                            <div>
-                                <div style="font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px">
-                                    @if($st==='locked') <i class="fas fa-lock" style="color:#64748b"></i> @else <i class="fas fa-unlock" style="color:#16a34a"></i> @endif
-                                    {{ $displayTitle }}
-                                </div>
-                                <div class="muted">Status: <span class="mod-status">{{ ucfirst($st) }}</span></div>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-blue mod-toggle" data-mi="{{ $i }}" data-status="{{ $st==='locked'?'unlocked':'locked' }}" onclick="return modToggle(this)"><i class="fas fa-exchange-alt"></i> {{ $st==='locked'?'Unlock':'Lock' }}</button>
-                            </div>
+                    <div id="participantProgressFull" class="card" style="padding:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e5e7eb;">
+                            <div style="font-weight:800;color:#0f172a">Participant Progress</div>
                         </div>
-                        @endforeach
-                        @if(empty($course->modules))
-                            <div class="muted">No modules found.</div>
-                        @endif
+                        <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e5e7eb">
+                            <table id="progressTable" style="border-collapse:collapse;width:100%;min-width:960px">
+                                <thead></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 @endif
                 
-            </div>
-            <div id="participantProgressFull" class="card" style="display:none;padding:0">
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e5e7eb;">
-                    <div style="font-weight:800;color:#0f172a">Participant Progress</div>
-                    <button type="button" class="btn" onclick="showAccessControl()" style="border:1px solid #dbe4ef;background:#fff;color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</button>
-                </div>
-                <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e5e7eb">
-                    <table id="progressTable" style="border-collapse:collapse;width:100%;min-width:960px">
-                        <thead></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
             </div>
             <div id="paneForum" class="card" role="tabpanel" aria-labelledby="tabBtnForum" style="display:none">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1890,6 +1847,11 @@
                 if(info){ info.textContent='Failed to load.'; }
             }
         }
+        document.addEventListener('DOMContentLoaded', function(){
+            if(document.getElementById('progressTable')){
+                renderParticipantProgress();
+            }
+        });
     </script>
 </body>
 </html>
