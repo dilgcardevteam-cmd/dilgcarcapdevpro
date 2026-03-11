@@ -4485,23 +4485,30 @@
                                 $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
                                 $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                             @endphp
-                            <div class="course-card" role="button" tabindex="0" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#fff;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:hidden;cursor:pointer">
-                                <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width:100%;height:150px;object-fit:cover;filter:grayscale(100%)">
-                                <div style="padding:15px">
-                                    <h3 style="margin:0 0 8px;color:#6c757d;font-size:1rem">{{ $course->name }}</h3>
-                                    <p style="color:#6c757d;margin-bottom:12px;font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ $course->description }}</p>
-                                    <div style="display:flex;gap:8px">
-                                        <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" style="flex:1;padding:8px;background:#17a2b8;color:#fff;border:none;border-radius:4px;cursor:pointer;text-align:center">View</button>
-                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Unarchive this course?')" style="flex:1">
+                            <div class="course-card" role="button" tabindex="0" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;position:relative">
+                                <div style="position:relative">
+                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/600x300?text='.urlencode($course->name) }}" alt="{{ $course->name }}" style="width:100%;height:150px;object-fit:cover;filter:grayscale(100%)">
+                                    <span style="position:absolute;left:12px;top:12px;display:inline-block;background:#1f2937;color:#fff;border-radius:999px;padding:4px 10px;font-weight:800;font-size:.75rem;opacity:.9">Archived</span>
+                                    <button type="button" class="kebab" onclick="event.stopPropagation(); toggleCertMenu('arch-{{ $course->id }}')" style="position:absolute;right:12px;top:12px"><i class="fas fa-ellipsis-v"></i></button>
+                                    <div id="menu-arch-{{ $course->id }}" class="menu" style="right:12px;top:46px">
+                                        <a href="#" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }}); toggleCertMenu('arch-{{ $course->id }}'); return false;"><i class="fas fa-eye"></i> View</a>
+                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Unarchive this course?')">
                                             @csrf
-                                            <button type="submit" style="width:100%;padding:8px;background:#28a745;color:#fff;border:none;border-radius:4px;cursor:pointer">Unarchive</button>
+                                            <button type="submit"><i class="fas fa-rotate-left"></i> Unarchive</button>
                                         </form>
-                                        <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Permanently delete this course? This cannot be undone.')" style="flex:1">
+                                        <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Permanently delete this course? This cannot be undone.')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" style="width:100%;padding:8px;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer">Delete</button>
+                                            <button type="submit"><i class="fas fa-trash"></i> Delete</button>
                                         </form>
                                     </div>
+                                </div>
+                                <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                                    <div>
+                                        <div style="font-weight:800;color:#0f3b8f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $course->name }}</div>
+                                        <div style="color:#6b7280;font-size:.88rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:6px">{{ $course->description }}</div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;justify-content:flex-end"><span style="color:#6b7280;font-size:.85rem">Actions •</span></div>
                                 </div>
                             </div>
                         @endforeach

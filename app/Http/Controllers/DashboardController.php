@@ -128,14 +128,23 @@ class DashboardController extends Controller
                 $recentCourses = Course::whereHas('users', function($q) use ($levelRoles) {
                         $q->whereIn('role', $levelRoles);
                     })->latest()->take(5)->get();
+                // Pending should only include courses submitted by coaches/trainers for approval,
+                // not courses archived by admins. We approximate this by requiring coach presence
+                // and excluding any course linked to admin-level users.
                 $pendingCourses = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q) use ($managedCoachRoles) {
                         $q->whereIn('role', $managedCoachRoles);
+                    })
+                    ->whereDoesntHave('users', function($q) use ($adminRoles) {
+                        $q->whereIn('role', $adminRoles);
                     })
                     ->get();
                 $pendingCoursesCount = \App\Models\Course::onlyTrashed()
                     ->whereHas('users', function($q) use ($managedCoachRoles) {
                         $q->whereIn('role', $managedCoachRoles);
+                    })
+                    ->whereDoesntHave('users', function($q) use ($adminRoles) {
+                        $q->whereIn('role', $adminRoles);
                     })
                     ->count();
                 $activeUsersCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
