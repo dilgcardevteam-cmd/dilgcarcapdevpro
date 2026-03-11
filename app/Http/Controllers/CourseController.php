@@ -1149,6 +1149,31 @@ class CourseController extends Controller
         ]);
     }
 
+    /**
+     * Upload an inline content image for course editors.
+     */
+    public function uploadContentImage(\Illuminate\Http\Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['admin','super_admin','trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+        $request->validate([
+            'image' => 'required|image|max:5120', // 5MB
+        ]);
+        try {
+            $path = $request->file('image')->store('course_content', 'public');
+            return response()->json([
+                'ok' => true,
+                'url' => asset('storage/' . $path),
+                'path' => $path,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('uploadContentImage failed', ['err' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'error' => 'Upload failed'], 500);
+        }
+    }
+
     public function modulesJson(\App\Models\Course $course)
     {
         $mods = $course->modules;

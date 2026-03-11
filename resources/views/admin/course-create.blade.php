@@ -808,15 +808,23 @@
             }
             const editor = input.closest('.text-block')?.querySelector('.editor') || input.closest('.materials-panel')?.querySelector('.editor');
             editor.focus();
-            const url = URL.createObjectURL(file);
-            const html = `
+            const fd = new FormData();
+            fd.append('image', file);
+            fetch("{{ route('courses.content-image.upload') }}", {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                body: fd
+            }).then(r=>r.json()).then(res=>{
+                if(!res || !res.ok || !res.url){ alert('Upload failed'); return; }
+                const html = `
                 <figure class="img-std" contenteditable="false" style="width:100%;max-width:100%;margin:6px 0;">
-                    <div style="position:relative;width:100%;aspect-ratio:20/11;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#f8fafc">
-                        <img src="${url}" alt="${file.name}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                    <div style="position:relative;width:100%;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#f8fafc">
+                        <img src="${res.url}" alt="${file.name}" style="width:100%;height:auto;display:block;">
                     </div>
                 </figure><p><br></p>`;
-            document.execCommand('insertHTML', false, html);
-            syncFieldsJSON(editor.closest('.fields-panel'));
+                document.execCommand('insertHTML', false, html);
+                syncFieldsJSON(editor.closest('.fields-panel'));
+            }).catch(()=>alert('Upload error'));
         }
         function openVideoModal(btn){
             window.__videoTargetEditor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
