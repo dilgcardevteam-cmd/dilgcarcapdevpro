@@ -450,8 +450,8 @@
                 const st = (m && m.status) ? m.status : 'unlocked';
                 const isLocked = st==='locked';
                 const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
-                const baseTitle = m.title||'Untitled';
-                const titleStr = isExamOnly ? baseTitle : `Module ${mi+1}: ${baseTitle}`;
+                const baseTitle = m.title || (isExamOnly ? 'Module Exam' : 'Untitled');
+                const titleStr = isExamOnly ? (m.exam && m.exam.title ? `Module Exam: ${m.exam.title}` : baseTitle) : `Module ${mi+1}: ${baseTitle}`;
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
                         <div class="module-left">
@@ -542,7 +542,7 @@
                     const badge = `<span class="count" style="display:inline-block">${qCount} Qs</span>`;
                     tEl.innerHTML = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
-                        <span class="title">${num}. Module Exam</span>
+                        <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
                         ${badge}
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
@@ -725,6 +725,8 @@
                                             <div><b>What you learned:<\/b> ${answers.learned?answers.learned:'(none)'}<\/div>
                                             <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset<\/button><\/div>`;
                                         input.disabled=true; submitBtn.disabled=true; submitBtn.textContent='Done';
+                                        input.style.display='none';
+                                        const actions = submitBtn.parentElement; if(actions){ actions.style.display='none'; }
                                         updateProgressFor(bMi);
                                         try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
                                         const resetBtn = summary.querySelector('[data-act="reset-ref"]');
@@ -734,6 +736,8 @@
                                                 submitBtn.disabled=false;
                                                 submitBtn.textContent='Done';
                                                 summary.style.display='none';
+                                                input.style.display='';
+                                                if(actions){ actions.style.display='flex'; }
                                                 unmarkReflection(bMi,bTi,-1);
                                                 updateProgressFor(bMi);
                                                 input.focus();
@@ -765,8 +769,8 @@
                         const btn2 = b.querySelector('[data-act="submit-ref"]');
                         const sum2 = b.querySelector('.reflect-summary');
                         if(prev2 && typeof prev2==='object' && prev2.learned){
-                            if(input2){ input2.value = prev2.learned; input2.disabled = true; }
-                            if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; }
+                            if(input2){ input2.value = prev2.learned; input2.disabled = true; input2.style.display='none'; }
+                            if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; if(btn2.parentElement){ btn2.parentElement.style.display='none'; } }
                             if(sum2){
                                 sum2.style.display='block';
                                 sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
@@ -775,8 +779,8 @@
                                 const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
                                 if(resetBtn){
                                     resetBtn.onclick = ()=>{
-                                        if(input2){ input2.disabled=false; input2.focus(); }
-                                        if(btn2){ btn2.disabled=false; btn2.textContent='Done'; }
+                                        if(input2){ input2.disabled=false; input2.style.display=''; input2.focus(); }
+                                        if(btn2){ btn2.disabled=false; btn2.textContent='Done'; if(btn2.parentElement){ btn2.parentElement.style.display='flex'; } }
                                         sum2.style.display='none';
                                         unmarkReflection(mi2,ti2,-1);
                                         updateProgressFor(mi2);
@@ -805,8 +809,8 @@
                     const btn2 = b.querySelector('[data-act="submit-ref"]');
                     const sum2 = b.querySelector('.reflect-summary');
                     if(prev2 && typeof prev2==='object' && prev2.learned){
-                        if(input2){ input2.value = prev2.learned; input2.disabled = true; }
-                        if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; }
+                        if(input2){ input2.value = prev2.learned; input2.disabled = true; input2.style.display='none'; }
+                        if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; if(btn2.parentElement){ btn2.parentElement.style.display='none'; } }
                         if(sum2){
                             sum2.style.display='block';
                             sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
@@ -815,8 +819,8 @@
                             const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
                             if(resetBtn){
                                 resetBtn.onclick = ()=>{
-                                    if(input2){ input2.disabled=false; input2.focus(); }
-                                    if(btn2){ btn2.disabled=false; btn2.textContent='Done'; }
+                                    if(input2){ input2.disabled=false; input2.style.display=''; input2.focus(); }
+                                    if(btn2){ btn2.disabled=false; btn2.textContent='Done'; if(btn2.parentElement){ btn2.parentElement.style.display='flex'; } }
                                     sum2.style.display='none';
                                     unmarkReflection(mi2,ti2,-1);
                                     updateProgressFor(mi2);

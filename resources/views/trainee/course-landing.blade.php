@@ -1761,24 +1761,29 @@
                     if(detail){ detail.textContent = total ? '('+done+'/'+total+' subtopics)' : ''; }
                     if(list && Array.isArray(j.modules)){
                         list.innerHTML = j.modules.map(function(m, idx){
-                            var title = m.title || ('Module '+(idx+1));
+                            var isExam = !!m.is_exam;
+                            var header = isExam
+                                ? ('Module Exam: ' + (m.exam_title || m.title || ''))
+                                : ('Module ' + (idx+1) + ': ' + (m.title || ''));
                             var p = Math.max(0, Math.min(100, m.percent || 0));
                             var d = m.done || 0;
                             var t = m.total || 0;
+                            var body = isExam
+                                ? '<div style="padding:12px 14px;color:#0f3b8f;font-weight:800"><span style="color:#6b7280;font-weight:700">Exam</span></div>'
+                                : '<div style="padding:12px 14px">'+
+                                  '<div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:6px 0 10px 0">'+
+                                    '<div style="height:100%;width:'+p+'%;background:#22c55e;border-radius:999px"></div>'+
+                                  '</div>'+
+                                  '<div style="display:flex;align-items:center;justify-content:space-between;color:#0f3b8f;font-weight:800">'+
+                                    '<span style="color:#6b7280;font-weight:700">'+d+'/'+t+' subtopics</span>'+
+                                    '<span>'+p+'%</span>'+
+                                  '</div>'+
+                                '</div>';
                             return ''+
                             '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;margin:10px 0">'+
                               '<div style="background:#0f3b8f;color:#fff;font-weight:800;padding:12px 14px">'+
-                                'Module '+(idx+1)+': '+title+
-                              '</div>'+
-                              '<div style="padding:12px 14px">'+
-                                '<div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:6px 0 10px 0">'+
-                                  '<div style="height:100%;width:'+p+'%;background:#22c55e;border-radius:999px"></div>'+
-                                '</div>'+
-                                '<div style="display:flex;align-items:center;justify-content:space-between;color:#0f3b8f;font-weight:800">'+
-                                  '<span style="color:#6b7280;font-weight:700">'+d+'/'+t+' subtopics</span>'+
-                                  '<span>'+p+'%</span>'+
-                                '</div>'+
-                              '</div>'+
+                                header+
+                              '</div>'+ body +
                             '</div>';
                         }).join('');
                     }

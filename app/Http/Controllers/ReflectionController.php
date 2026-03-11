@@ -114,12 +114,15 @@ class ReflectionController extends Controller
             }
             $overallTotal += $mTotal;
             $overallDone += $mDone;
+            $isExam = isset($m['exam']) && is_array($m['exam']) && !empty($m['exam']['questions']);
             $modules[] = [
                 'index' => $mi,
                 'title' => is_array($m) ? ($m['title'] ?? "Module ".($mi+1)) : "Module ".($mi+1),
                 'done' => $mDone,
                 'total' => $mTotal,
                 'percent' => $mTotal ? round(($mDone/$mTotal)*100) : 0,
+                'is_exam' => $isExam,
+                'exam_title' => $isExam ? (string)($m['exam']['title'] ?? '') : '',
             ];
         }
         $overallPercent = $overallTotal ? round(($overallDone/$overallTotal)*100) : 0;

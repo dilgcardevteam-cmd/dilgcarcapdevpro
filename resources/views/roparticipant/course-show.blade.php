@@ -499,7 +499,7 @@
                                 if(resetBtn){
                                     resetBtn.onclick = ()=>{
                                         input.disabled=false;
-                                        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='Submit'; }
+                                        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='Submit'; if(submitBtn.parentElement){ submitBtn.parentElement.style.display='flex'; } }
                                         summary.style.display='none';
                                         unmarkReflection(bMi,bTi,-1);
                                         input.focus();
@@ -527,12 +527,15 @@
                                             <div><b>What you learned:</b> ${answers.learned?answers.learned:'(none)'}</div>
                                             <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
                                         input.disabled=true; submitBtn.disabled=true; submitBtn.textContent='Submitted';
+                                        input.style.display='none';
+                                        if(submitBtn.parentElement){ submitBtn.parentElement.style.display='none'; }
                                         try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
                                         const resetBtn = summary.querySelector('[data-act="reset-ref"]');
                                         if(resetBtn){
                                             resetBtn.onclick = ()=>{
-                                                input.disabled=false;
+                                                input.disabled=false; input.style.display='';
                                                 submitBtn.disabled=false; submitBtn.textContent='Submit';
+                                                if(submitBtn.parentElement){ submitBtn.parentElement.style.display='flex'; }
                                                 summary.style.display='none';
                                                 unmarkReflection(bMi,bTi,-1);
                                                 input.focus();
