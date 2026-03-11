@@ -155,7 +155,15 @@
         .participant-view-value{color:#0f172a;font-weight:600}
         @media (max-width: 800px){ .people{grid-template-columns: 1fr} }
         .progress-wrap{display:flex;align-items:center;gap:16px}
-        .progress-ring{width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--brand) var(--deg,0deg), #e5e7eb 0);display:flex;align-items:center;justify-content:center;color:#0f3b8f;font-weight:800}
+        .progress-ring{
+            width:72px;height:72px;border-radius:50%;
+            background:
+                radial-gradient(#fff 62%, transparent 63%),
+                conic-gradient(var(--brand) var(--deg,0deg), #e5e7eb 0);
+            display:flex;align-items:center;justify-content:center;
+            color:#0f3b8f;font-weight:900;font-size:1rem;
+            border:1px solid #e5e7eb;box-shadow:0 4px 12px rgba(15,23,42,.06);
+        }
         .progress-bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
         .progress-bar > div{height:100%;background:var(--brand);width:0;border-radius:999px;transition:width .4s ease}
         .discussion{margin-top:16px}
@@ -1752,17 +1760,26 @@
                     ring.textContent = pct+'%';
                     if(detail){ detail.textContent = total ? '('+done+'/'+total+' subtopics)' : ''; }
                     if(list && Array.isArray(j.modules)){
-                        list.innerHTML = j.modules.map(function(m){
-                            var title = m.title || ('Module '+(m.index+1));
-                            var p = m.percent || 0;
+                        list.innerHTML = j.modules.map(function(m, idx){
+                            var title = m.title || ('Module '+(idx+1));
+                            var p = Math.max(0, Math.min(100, m.percent || 0));
                             var d = m.done || 0;
                             var t = m.total || 0;
-                            return '<div style="display:flex;align-items:center;gap:10px;margin:6px 0">'+
-                                   '<div style="flex:1;font-weight:700;color:#0f3b8f">'+title+'</div>'+
-                                   '<div style="width:48px;text-align:right;font-weight:700;color:#0f3b8f">'+p+'%</div>'+
-                                   '<div style="flex:2">'+
-                                   '<div class="muted" style="font-size:.8rem;margin-top:2px">'+d+'/'+t+'</div>'+
-                                   '</div></div>';
+                            return ''+
+                            '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;margin:10px 0">'+
+                              '<div style="background:#0f3b8f;color:#fff;font-weight:800;padding:12px 14px">'+
+                                'Module '+(idx+1)+': '+title+
+                              '</div>'+
+                              '<div style="padding:12px 14px">'+
+                                '<div style="height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:6px 0 10px 0">'+
+                                  '<div style="height:100%;width:'+p+'%;background:#22c55e;border-radius:999px"></div>'+
+                                '</div>'+
+                                '<div style="display:flex;align-items:center;justify-content:space-between;color:#0f3b8f;font-weight:800">'+
+                                  '<span style="color:#6b7280;font-weight:700">'+d+'/'+t+' subtopics</span>'+
+                                  '<span>'+p+'%</span>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>';
                         }).join('');
                     }
                 }).catch(function(){});
