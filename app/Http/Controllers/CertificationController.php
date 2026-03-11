@@ -10,6 +10,7 @@ use App\Models\ReflectionResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -84,22 +85,54 @@ class CertificationController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'nullable|string|in:Core Governance & Administration,Finance & Compliance,Digital Transformation,ICT & Technical Skills,Human Capital & Leadership,Community & Development Planning,Economic & Business Development,Social Governance',
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png,docx|max:10240',
+            'category' => 'required|string|in:Core Governance & Administration,Finance & Compliance,Digital Transformation,ICT & Technical Skills,Human Capital & Leadership,Community & Development Planning,Economic & Business Development,Social Governance',
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:10240',
         ]);
 
-        $path = $request->file('file')->store('certifications', 'public');
+        // Determine template path: uploaded file or standard certificate background
+        if ($request->hasFile('file')) {
+            $path = $request->file('file')->store('certifications', 'public');
+        } else {
+            $bg = $this->certificateBgPath();
+            if (!$bg) {
+                return redirect()->back()->with('error_certification', 'Certificate template is required. Upload a file or ensure the standard template image exists.')->withInput();
+            }
+            // Copy the standard background into public storage so listing links work
+            $ext = pathinfo($bg, PATHINFO_EXTENSION) ?: 'png';
+            $dest = 'certifications/standard_' . uniqid() . '.' . $ext;
+            \Illuminate\Support\Facades\Storage::disk('public')->put($dest, file_get_contents($bg));
+            $path = $dest;
+        }
 
         Certification::create([
-            'name' => $request->name,
-            'category' => $request->category,
+            'name' => $validated['name'],
+            'category' => $validated['category'],
             'file_path' => $path,
             'display_on_landing_page' => false,
         ]);
 
         return redirect()->back()->with('success_certification', 'Certification created successfully.');
+    }
+
+    public function downloadTemplate(Request $request, Certification $certification)
+    {
+        $path = $certification->file_path;
+        if (!Storage::disk('public')->exists($path)) {
+            return back()->with('error_certification', 'Template file not found.');
+        }
+        $content = Storage::disk('public')->get($path);
+        $mime = Storage::disk('public')->mimeType($path) ?: 'application/octet-stream';
+        $ext = pathinfo($path, PATHINFO_EXTENSION) ?: 'bin';
+        $filename = Str::slug($certification->name ?: 'certificate-template') . '.' . $ext;
+        if ($request->query('inline')) {
+            return response($content, 200, ['Content-Type' => $mime]);
+        }
+        return response($content, 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     public function generateFromTemplate(Request $request)
