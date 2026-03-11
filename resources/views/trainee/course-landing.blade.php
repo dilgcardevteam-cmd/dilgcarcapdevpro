@@ -1861,7 +1861,11 @@
                     const cells = colPlan.map(plan=>{
                         const s = u.scores?.[plan.mi] || {};
                         if(plan.type==='module'){
-                            return (mods[plan.mi]?.total_subs||0) > 0 ? gradeCell(s.module_pct, null) : `<td style="text-align:center;background:#f8fafc;color:#64748b">--/100</td>`;
+                            const hasTotal = (mods[plan.mi]?.total_subs||0) > 0;
+                            if(!hasTotal) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--%</td>`;
+                            const pct = (s.module_pct==null) ? null : (parseInt(s.module_pct,10)||0);
+                            if(pct===null) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--%</td>`;
+                            return `<td style="text-align:center;background:#eef7ee;color:#166534;border-bottom:1px solid #e5e7eb">${pct}%</td>`;
                         }else{
                             return gradeCell(s.exam_pct, plan.pass ?? null);
                         }
