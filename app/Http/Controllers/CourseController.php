@@ -583,22 +583,44 @@ class CourseController extends Controller
     public function trainerView(Course $course)
     {
         $course->load(['users', 'materials', 'assessments']);
-        // Normalize modules for display: merge any dedicated exam-only module into previous/first module
+        // Coach view normalization: split embedded exams into a dedicated module that follows the parent module
         $mods = $course->modules;
         if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
         if (is_array($mods) && !empty($mods)) {
-            foreach ($mods as $i => $m) {
-                if (isset($m['exam']) && is_array($m['exam']) && isset($m['topics']) && empty($m['topics'])) {
-                    $target = ($i > 0) ? $i-1 : 0;
-                    if (!isset($mods[$target]['exam'])) {
-                        $mods[$target]['exam'] = $m['exam'];
+            $out = [];
+            foreach ($mods as $m) {
+                $hasTopics = isset($m['topics']) && is_array($m['topics']) && count($m['topics']) > 0;
+                $hasExam = isset($m['exam']) && is_array($m['exam']);
+                if ($hasTopics) {
+                    $copy = $m;
+                    if ($hasExam) {
+                        unset($copy['exam']);
                     }
-                    unset($mods[$i]);
-                    $mods = array_values($mods);
-                    break;
+                    $out[] = $copy;
+                    if ($hasExam) {
+                        $examTitle = '';
+                        try { $examTitle = (string) ($m['exam']['title'] ?? ''); } catch (\Throwable $e) { $examTitle = ''; }
+                        $computedTitle = $examTitle !== '' ? ('Module Exam: ' . $examTitle . ' Exam') : 'Module Exam';
+                        $out[] = [
+                            'title' => $computedTitle,
+                            'topics' => [],
+                            'exam' => $m['exam'],
+                        ];
+                    }
+                } else {
+                    // Already an exam-only or empty module – ensure a friendly title if missing
+                    if (isset($m['exam']) && is_array($m['exam'])) {
+                        $examTitle = (string) ($m['exam']['title'] ?? '');
+                        if (!isset($m['title']) || trim((string)$m['title']) === '') {
+                            $m['title'] = $examTitle !== '' ? ('Module Exam: ' . $examTitle . ' Exam') : 'Module Exam';
+                        }
+                    } elseif (!isset($m['title']) || trim((string)$m['title']) === '') {
+                        $m['title'] = 'Untitled';
+                    }
+                    $out[] = $m;
                 }
             }
-            $course->modules = $mods;
+            $course->modules = $out;
         }
         return view('trainee.course-show', [
             'course' => $course,

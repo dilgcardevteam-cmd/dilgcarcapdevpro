@@ -34,8 +34,6 @@
         .layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 56px);gap:14px;padding:14px}
         .sidebar{border-right:1px solid var(--border);background:var(--blue);display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:0 14px 30px rgba(15,23,42,.14)}
         .sidebar h3{margin:12px 12px 8px;color:#fff;font-size:1rem}
-        .search{padding:10px 12px 12px}
-        .search input{width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:999px;background:#fff;font-weight:700}
         .outline{overflow:auto;padding:8px 8px 16px;scrollbar-width:thin}
         .module{border:1px solid var(--border);border-radius:10px;margin:8px;background:#fff}
         .module-header{display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;background:#f0f6ff;border-radius:10px 10px 0 0}
@@ -196,7 +194,6 @@
             gap:12px;
             color:#fff;
             border-bottom:1px solid rgba(255,255,255,.12);
-            border-left:4px solid var(--green);
             background:rgba(255,255,255,.08);
         }
         .back-slim{width:28px;height:28px;border-radius:999px;border:1px solid rgba(255,255,255,.35);display:inline-flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,.08)}
@@ -233,8 +230,9 @@
         .module-title{font-weight:800;color:#0f172a}
         .module-kpi{color:#0f3b8f;font-weight:800;margin-left:6px}
         .mod-badges{display:flex;align-items:center;gap:8px}
-        .progress-mini{width:130px;height:6px;border-radius:999px;background:#e6eefc;overflow:hidden;border:1px solid #e0e7ff}
-        .progress-mini > span{display:block;height:100%;background:linear-gradient(90deg,#1d4ed8,#2563eb)}
+        .module-left{flex:1;display:flex;flex-direction:column;gap:6px}
+        .progress-mini{width:100%;height:4px;border-radius:999px;background:#e5e7eb;overflow:hidden;border:0}
+        .progress-mini > span{display:block;height:100%;background:#22c55e}
         .lock-ico{color:#64748b;margin-right:6px}
         .module.locked .module-title{color:#0f172a}
         .module.locked .progress-mini{background:#e5e7eb;border-color:#e5e7eb}
@@ -340,7 +338,6 @@
                 <span style="display:inline-flex;align-items:center;gap:12px"><i class="fas fa-list-ul"></i> Course Outline</span>
                 <a class="back-slim" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
             </h3>
-            <div class="search"><input id="outlineSearch" type="text" placeholder="Search course outline"></div>
             <div id="outline" class="outline"></div>
         </aside>
         <main class="content">
@@ -452,11 +449,16 @@
                 mod.className='module';
                 const st = (m && m.status) ? m.status : 'unlocked';
                 const isLocked = st==='locked';
+                const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
+                const baseTitle = m.title||'Untitled';
+                const titleStr = isExamOnly ? baseTitle : `Module ${mi+1}: ${baseTitle}`;
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
-                        <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}Module ${mi+1}: ${m.title||'Untitled'}</span></div>
-                        <div class="mod-badges">
+                        <div class="module-left">
+                            <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}${titleStr}</span></div>
                             <div class="progress-mini"><span id="bar_${mi}"></span></div>
+                        </div>
+                        <div class="mod-badges">
                             <span class="module-kpi" id="kpi_${mi}"></span>
                             <button class="toggle-icon" aria-label="Toggle module"><i class="fas fa-chevron-down"></i></button>
                         </div>
@@ -744,9 +746,10 @@
             const attemptLim = (ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null;
             // Optional trainer-only Results button
             const resultsBtn = IS_TRAINER ? '<button id="examResultsBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">View Results</button>' : '';
+            const titleText = ex.title ? `Module Exam: ${esc(ex.title)}` : 'Module Exam';
             const header = `
                 <div class="subheader">
-                    <span>${esc(m.title||'Module')}: ${esc(ex.title||'Module Exam')}</span>
+                    <span>${titleText}</span>
                     <div style="display:flex;align-items:center;gap:8px">
                         <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#002C76"></i> ${qs.length} question${qs.length===1?'':'s'}</span>
                         ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#002C76"></i> <span id="examTimer"></span></span>` : ``}
