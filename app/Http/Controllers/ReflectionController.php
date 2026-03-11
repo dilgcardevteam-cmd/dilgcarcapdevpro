@@ -26,7 +26,10 @@ class ReflectionController extends Controller
                 ? trim($answers['learned'])
                 : '';
             if ($val !== '') {
-                $map["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = true;
+                $map["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = [
+                    'submitted' => true,
+                    'learned' => $val,
+                ];
             }
         }
         return response()->json(['map' => $map]);

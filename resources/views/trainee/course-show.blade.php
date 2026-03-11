@@ -1385,10 +1385,17 @@
                     const input = block.querySelector('.reflect-input');
                     const summary = block.querySelector('.reflect-summary');
                     const key = `${bMi}_${bTi}_${bSi}`;
-                    // Initialize state if already submitted
+                    // Initialize state if already submitted; prefill text if available
                     if(hasReflection(bMi,bTi,bSi)){
+                        const prev = reflectionMap[key];
+                        if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
                         if(submitBtn){ submitBtn.textContent = 'Submitted'; submitBtn.disabled = true; }
                         if(input){ input.disabled = true; }
+                        if(summary && prev && typeof prev==='object' && prev.learned){
+                            summary.style.display='block';
+                            summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
+                                <div><b>What you learned:</b> ${prev.learned}</div>`;
+                        }
                     }
                     if(submitBtn){
                         submitBtn.onclick = async ()=>{
@@ -1843,10 +1850,14 @@
             document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ if(ov){ ov.style.display='none'; } } });
         })();
         renderVideo();
-        if(!viewOnly){ loadReflectionMap(); }
-        renderOutline();
-        const firstTopic = (course.modules&&course.modules[0]&&course.modules[0].topics&&course.modules[0].topics[0])? [0,0]: null;
-        if(firstTopic){ openTopic(0,0); }
+        (async function initPage(){
+            if(!viewOnly){
+                try{ await loadReflectionMap(); }catch(e){}
+            }
+            renderOutline();
+            const firstTopic = (course.modules&&course.modules[0]&&course.modules[0].topics&&course.modules[0].topics[0])? [0,0]: null;
+            if(firstTopic){ openTopic(0,0); }
+        })();
     </script>
 </body>
 </html>

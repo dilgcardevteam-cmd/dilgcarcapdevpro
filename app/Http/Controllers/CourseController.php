@@ -887,36 +887,67 @@ class CourseController extends Controller
             $topics = [];
             $topicInput = $module['topics'] ?? [];
             foreach ($topicInput as $j => $topic) {
-                $existing = $course->modules[$i]['topics'][$j] ?? [];
-                $fields = null;
-                if (isset($topic['fields_json'])) {
-                    $fields = json_decode($topic['fields_json'], true);
-                } else {
-                    // Backward compatibility
-                    if (isset($topic['questions_json']) || isset($topic['materials_html'])) {
-                        $fields = [];
-                        if (!empty($topic['materials_html'])) {
-                            $fields[] = ['type' => 'text', 'html' => $topic['materials_html']];
+                $existingTopic = $course->modules[$i]['topics'][$j] ?? [];
+                // Support nested subtopics like in store(); preserve existing when not provided
+                if (!empty($topic['subtopics']) && is_array($topic['subtopics'])) {
+                    $subtopics = [];
+                    $existingSubs = isset($existingTopic['subtopics']) && is_array($existingTopic['subtopics']) ? $existingTopic['subtopics'] : [];
+                    foreach ($topic['subtopics'] as $k => $s) {
+                        $sFields = null;
+                        if (isset($s['fields_json'])) {
+                            $sFields = json_decode($s['fields_json'], true);
+                        } else {
+                            $sFields = $existingSubs[$k]['fields'] ?? null;
                         }
-                        if (isset($topic['questions_json'])) {
-                            $qs = json_decode($topic['questions_json'], true) ?: [];
-                            foreach ($qs as $q) {
-                                $fields[] = ['type' => 'question', 'question' => $q];
-                            }
-                        }
-                    } else {
-                        $fields = $existing['fields'] ?? null;
+                        $subtopics[] = [
+                            'title' => $s['title'] ?? ($existingSubs[$k]['title'] ?? ''),
+                            'fields' => $sFields,
+                        ];
                     }
+                    $topics[] = [
+                        'title' => $topic['title'] ?? ($existingTopic['title'] ?? ''),
+                        'subtopics' => $subtopics,
+                    ];
+                } else {
+                    $fields = null;
+                    if (isset($topic['fields_json'])) {
+                        $fields = json_decode($topic['fields_json'], true);
+                    } else {
+                        // Backward compatibility and preservation
+                        if (isset($topic['questions_json']) || isset($topic['materials_html'])) {
+                            $fields = [];
+                            if (!empty($topic['materials_html'])) {
+                                $fields[] = ['type' => 'text', 'html' => $topic['materials_html']];
+                            }
+                            if (isset($topic['questions_json'])) {
+                                $qs = json_decode($topic['questions_json'], true) ?: [];
+                                foreach ($qs as $q) {
+                                    $fields[] = ['type' => 'question', 'question' => $q];
+                                }
+                            }
+                        } else {
+                            $fields = $existingTopic['fields'] ?? null;
+                        }
+                    }
+                    $topics[] = [
+                        'title' => $topic['title'] ?? ($existingTopic['title'] ?? ''),
+                        'fields' => $fields,
+                    ];
                 }
-                $topics[] = [
-                    'title' => $topic['title'] ?? ($existing['title'] ?? ''),
-                    'fields' => $fields,
-                ];
             }
-            $modules[] = [
+            $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
             ];
+            // Preserve module status/exam if already present and not provided
+            $existingModule = $course->modules[$i] ?? [];
+            if (isset($existingModule['status']) && !isset($mArr['status'])) {
+                $mArr['status'] = $existingModule['status'];
+            }
+            if (isset($existingModule['exam']) && is_array($existingModule['exam'])) {
+                $mArr['exam'] = $existingModule['exam'];
+            }
+            $modules[] = $mArr;
         }
         if (!empty($modules)) {
             $validated['modules'] = $modules;

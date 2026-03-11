@@ -205,13 +205,14 @@
                 <button id="tabBtn2" class="tab disabled" role="tab" aria-controls="tab2" aria-selected="false" tabindex="-1">Modules Management</button>
             </div>
             @if($errors->create_course->any())
-                <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
+                <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($errors->create_course->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
+                <script>document.addEventListener('DOMContentLoaded', function(){ try{ if(typeof switchTo==='function') switchTo(2);}catch(e){} });</script>
             @endif
             <form id="courseForm" action="{{ !empty($forTrainer) ? route('trainer.courses.store') : route('courses.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
@@ -1745,15 +1746,16 @@
         }
         function validateModules(){
             let ok = true;
+            const messages = [];
             const modules = Array.from(document.querySelectorAll('.module-wrapper'));
-            if(modules.length === 0){ ok = false; }
+            if(modules.length === 0){ ok = false; messages.push('Add at least one module.'); }
             modules.forEach((m,i)=>{
                 const title = m.querySelector('.module-title-input');
-                if(!title.value.trim() || title.value.length > 80){ ok = false; title.style.borderColor = '#dc2626'; } else title.style.borderColor = '#ddd';
+                if(!title.value.trim() || title.value.length > 80){ ok = false; title.style.borderColor = '#dc2626'; messages.push('Module '+(i+1)+': title is required (max 80).'); } else title.style.borderColor = '#ddd';
                 const topics = Array.from(m.querySelectorAll('.topic-row'));
                 topics.forEach((t)=>{
                     const input = t.querySelector('input[type=text]');
-                    if(!input.value.trim() || input.value.length > 80){ ok = false; input.style.borderColor = '#dc2626'; } else input.style.borderColor = '#ddd';
+                    if(!input.value.trim() || input.value.length > 80){ ok = false; input.style.borderColor = '#dc2626'; messages.push('Module '+(i+1)+': each topic needs a title (max 80).'); } else input.style.borderColor = '#ddd';
                 });
                 // Validate any module-level exams: require title if exam exists
                 const examWrap = m.querySelector('.module-exam, .exam-wrapper');
@@ -1762,6 +1764,7 @@
                     if(titleInput && !titleInput.value.trim()){
                         ok = false;
                         titleInput.style.borderColor = '#dc2626';
+                        messages.push('Module '+(i+1)+': exam title is required.');
                     } else if(titleInput){
                         titleInput.style.borderColor = '#e5e7eb';
                     }
@@ -1769,8 +1772,8 @@
             });
             const err = document.getElementById('modulesError');
             if(!ok){ 
-                err.style.display='block'; 
-                err.textContent='Add at least one module with topic titles (max 80 chars). Ensure exam title is set when adding an exam.'; 
+                err.style.display='block';
+                err.innerHTML = '<ul style="margin:0;padding-left:18px">'+messages.map(m=>'<li>'+m+'</li>').join('')+'</ul>';
             } else { 
                 err.style.display='none'; 
                 err.textContent=''; 

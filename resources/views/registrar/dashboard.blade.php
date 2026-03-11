@@ -122,8 +122,8 @@
         .course-grid{display:grid;gap:18px}
         @media (min-width: 640px) { .course-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (min-width: 900px) { .course-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (min-width: 1200px){ .course-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        @media (min-width: 1400px){ .course-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 1200px){ .course-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 1400px){ .course-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         .course-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.06);transition:transform .2s, box-shadow .2s;display:flex;flex-direction:column;border:1px solid #eef2f7;text-decoration:none;min-height:210px}
         .course-card:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
         .course-image{aspect-ratio:16 / 9;background-color:#eef2f7;background-size:cover;background-position:center;flex-shrink:0}
