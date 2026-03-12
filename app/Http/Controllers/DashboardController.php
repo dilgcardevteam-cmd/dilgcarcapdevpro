@@ -577,6 +577,12 @@ class DashboardController extends Controller
                 'role' => 'required|string|in:' . implode(',', $allowedRoles),
                 'status' => 'required|string|in:active,freeze,pending',
             ]);
+
+            // Auto-generate Account ID if approving for the first time
+            if ($validated['status'] === 'active' && empty($user->account_id)) {
+                $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role);
+            }
+
             $user->update($validated);
             return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'User role/status updated.');
         }
@@ -629,6 +635,10 @@ class DashboardController extends Controller
         // Check for status change to active
         $wasNotActive = $user->status !== 'active';
         $becomingActive = isset($validated['status']) && $validated['status'] === 'active';
+
+        if ($becomingActive && empty($user->account_id)) {
+            $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role);
+        }
 
         $user->update($validated);
 

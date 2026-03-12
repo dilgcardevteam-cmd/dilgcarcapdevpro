@@ -69,32 +69,48 @@ class User extends Authenticatable
 
     protected static function booted()
     {
-        static::creating(function (User $user) {
-            if (empty($user->account_id) && Schema::hasColumn('users', 'account_id')) {
-                $user->account_id = self::generateAccountId();
-            }
-        });
+        // Removed auto-generation on creating as per requirement to generate only after approval
     }
 
-    public static function generateAccountId(): string
+    public static function generateAccountId(string $role): string
     {
-        if (!Schema::hasColumn('users', 'account_id')) {
-            // Fallback format if migration isn't applied yet (won't be saved due to guard above)
-            return now()->format('y') . '-0000-001';
-        }
         $yy = now()->format('y');
-        $latest = self::where('account_id', 'like', $yy . '-%')
-            ->orderBy('account_id', 'desc')
-            ->value('account_id');
+        
+        $roleCodes = [
+            // Normal Users
+            'admin' => 'LOA',
+            'training_manager' => 'LOT',
+            'coach' => 'LOC',
+            'participant' => 'LOP',
+            'trainee' => 'LOP', // Mapping trainee to LOP as per request pattern
+            
+            // DILG Central Office
+            'central_office_admin' => 'COA',
+            'central_office_training_manager' => 'COT',
+            'central_office_coach' => 'COC',
+            'central_office_participants' => 'COP',
+            
+            // DILG Regional Office
+            'regional_office_admin' => 'ROA',
+            'regional_office_training_manager' => 'ROT',
+            'regional_office_coach' => 'ROC',
+            'regional_office_participants' => 'ROP',
+            
+            // DILG Provincial Office
+            'provincial_office_admin' => 'POA',
+            'provincial_office_training_manager' => 'POT',
+            'provincial_office_coach' => 'POC',
+            'provincial_office_participants' => 'POP',
+        ];
 
-        $nextNum = 1;
-        if ($latest && preg_match('/^\d{2}-(\d{4})-(\d{3})$/', $latest, $m)) {
-            $current = intval($m[1] . $m[2]);
-            $nextNum = $current + 1;
-        }
-        $lead4 = str_pad((string) intdiv($nextNum, 1000), 4, '0', STR_PAD_LEFT);
-        $tail3 = str_pad((string) ($nextNum % 1000), 3, '0', STR_PAD_LEFT);
-        return $yy . '-' . $lead4 . '-' . $tail3;
+        $roleCode = $roleCodes[$role] ?? 'UNK';
+        
+        do {
+            $randomNumber = str_pad((string) rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $accountId = "{$yy}-{$randomNumber}-{$roleCode}";
+        } while (self::where('account_id', $accountId)->exists());
+
+        return $accountId;
     }
 
     public function courses()
