@@ -19,11 +19,15 @@ class Course extends Model
         'modules',
         'video_path',
         'is_published',
+        'enrollment_start_at',
+        'enrollment_end_at',
     ];
 
     protected $casts = [
         'modules' => 'array',
         'is_published' => 'boolean',
+        'enrollment_start_at' => 'date',
+        'enrollment_end_at' => 'date',
     ];
 
     public function users()

@@ -1650,14 +1650,10 @@
                                                 <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">
                                                     Unpublished
                                                 </span>
-                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')">
-                                                    @csrf
-                                                    <input type="hidden" name="return_tab" value="trainer-trainee-management">
-                                                    <input type="hidden" name="published" value="1">
-                                                    <button type="submit" class="btn-view" style="background:#10b981;border-color:transparent">
-                                                        <i class="fas fa-bullhorn"></i> Publish Course
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
+                                                    onclick="openPublishModal('{{ route('courses.publish', $course) }}','{{ addslashes($course->name) }}')">
+                                                    <i class="fas fa-bullhorn"></i> Publish Course
+                                                </button>
                                                 <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>
@@ -1668,11 +1664,82 @@
                     @endif
                 </div>
             </section>
+            <!-- Publish Modal -->
+            <div id="publishModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:3000;align-items:center;justify-content:center;">
+                <div id="publishModalCard" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle" style="display:block;width:min(420px,92vw);max-width:420px;background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 20px 44px rgba(2,6,23,.26);overflow:hidden;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e5e7eb">
+                        <div style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0f172a">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#ecfdf5;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-calendar-check"></i></div>
+                            <div id="publishModalTitle">Enrollment Date Deadline</div>
+                        </div>
+                        <button type="button" onclick="closePublishModal()" style="border:none;background:none;color:#64748b;font-size:1.1rem"><i class="fas fa-xmark"></i></button>
+                    </div>
+                    <form id="publishForm" method="POST" action="" style="padding:16px">
+                        @csrf
+                        <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                        <input type="hidden" name="published" value="1">
+                        <div class="muted" id="publishCourseName" style="margin-bottom:10px"></div>
+                        <div class="two-col" style="display:grid;grid-template-columns:1fr;gap:8px">
+                            <div>
+                                <label for="enrollStart" class="section-title" style="margin:0 0 6px"><i></i> Start Date</label>
+                                <input id="enrollStart" name="enrollment_start_at" type="date" class="pro-input" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+                            </div>
+                            <div>
+                                <label for="enrollEnd" class="section-title" style="margin:0 0 6px"></i> End Date</label>
+                                <input id="enrollEnd" name="enrollment_end_at" type="date" class="pro-input" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+                            </div>
+                        </div>
+                        <div id="publishError" class="error-text" style="display:none;color:#b91c1c;margin-top:10px;font-weight:700"></div>
+                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                            <button type="button" class="btn-view" style="background:#e5e7eb;color:#0f172a;border-color:transparent" onclick="closePublishModal()"><i class="fas fa-xmark"></i> Cancel</button>
+                            <button id="publishSubmitBtn" type="submit" class="btn-view" style="background:#0f3b8f;border-color:transparent"><i class="fas fa-bullhorn"></i> Publish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+                function openPublishModal(actionUrl, courseName){
+                    var m=document.getElementById('publishModal');
+                    var f=document.getElementById('publishForm');
+                    var name=document.getElementById('publishCourseName');
+                    var err=document.getElementById('publishError');
+                    if(f){ f.setAttribute('action', actionUrl); }
+                    if(name){ name.textContent = 'Course: '+courseName; }
+                    if(err){ err.style.display='none'; err.textContent=''; }
+                    if(m){ m.style.display='flex'; }
+                }
+                function closePublishModal(){
+                    var m=document.getElementById('publishModal');
+                    if(m){ m.style.display='none'; }
+                }
+                (function(){
+                    var form=document.getElementById('publishForm');
+                    var btn=document.getElementById('publishSubmitBtn');
+                    var err=document.getElementById('publishError');
+                    if(form){
+                        form.addEventListener('submit', function(e){
+                            var s=document.getElementById('enrollStart')?.value;
+                            var t=document.getElementById('enrollEnd')?.value;
+                            if(!s || !t){
+                                e.preventDefault();
+                                if(err){ err.style.display='block'; err.textContent='Please select both Start Date and End Date.'; }
+                                return false;
+                            }
+                            if(new Date(t) < new Date(s)){
+                                e.preventDefault();
+                                if(err){ err.style.display='block'; err.textContent='End Date must be on or after Start Date.'; }
+                                return false;
+                            }
+                            if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Publishing…'; }
+                        });
+                    }
+                })();
+            </script>
             <section id="published-courses" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top:16px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <i class="fas fa-bullhorn" style="color:#059669;"></i>
+                            <i class="fas fa-bullhorn" style="color:#0f3b8f;"></i>
                             <h3 style="margin:0;color:#002C76;">Published Courses</h3>
                         </div>
                         @php 
@@ -1736,7 +1803,6 @@
                                                         <i class="fas fa-eye-slash"></i> Close Course
                                                     </button>
                                                 </form>
-                                                <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>
                                     </div>

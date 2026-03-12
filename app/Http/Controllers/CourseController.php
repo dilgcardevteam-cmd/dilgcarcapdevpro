@@ -814,10 +814,23 @@ class CourseController extends Controller
             abort(403);
         }
         $published = $request->boolean('published');
+        if ($published) {
+            $data = $request->validate([
+                'enrollment_start_at' => 'required|date',
+                'enrollment_end_at' => 'required|date|after_or_equal:enrollment_start_at',
+            ]);
+            $course->enrollment_start_at = $data['enrollment_start_at'];
+            $course->enrollment_end_at = $data['enrollment_end_at'];
+        }
         $course->is_published = $published;
         $course->save();
         if ($request->wantsJson()) {
-            return response()->json(['ok'=>true,'is_published'=>$course->is_published]);
+            return response()->json([
+                'ok'=>true,
+                'is_published'=>$course->is_published,
+                'enrollment_start_at' => $course->enrollment_start_at,
+                'enrollment_end_at' => $course->enrollment_end_at,
+            ]);
         }
         $tab = $request->input('return_tab', 'trainer-trainee-management');
         if ($published) {
