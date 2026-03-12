@@ -79,8 +79,8 @@ Route::get('/admin/courses/pending', [CourseController::class, 'pending'])->midd
 Route::resource('courses', CourseController::class)->only(['store', 'update', 'destroy'])->middleware(['auth']);
 Route::get('/admin/courses/{course}', [CourseController::class, 'adminShow'])->middleware(['auth'])->name('admin.courses.show');
 // Trainer course creation (submit for admin approval)
-Route::get('/trainer/courses/create', [CourseController::class, 'trainerCreate'])->middleware(['auth'])->name('trainer.courses.create');
-Route::post('/trainer/courses', [CourseController::class, 'trainerStore'])->middleware(['auth'])->name('trainer.courses.store');
+Route::get('/trainer/courses/create', [CourseController::class, 'trainerCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.create');
+Route::post('/trainer/courses', [CourseController::class, 'trainerStore'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.store');
 Route::post('/courses/{id}/restore', [CourseController::class, 'restore'])->middleware(['auth'])->name('courses.restore');
 Route::delete('/courses/{id}/force', [CourseController::class, 'forceDelete'])->middleware(['auth'])->name('courses.force-delete');
 // Registrar participants management
@@ -88,16 +88,16 @@ Route::get('/registrar/courses/{course}/participants', [CourseController::class,
 Route::get('/trainee/courses/{course}', [CourseController::class, 'traineeShow'])->middleware(['auth'])->name('trainee.courses.show');
 Route::get('/trainee/courses/{course}/outline', [CourseController::class, 'traineeOutline'])->middleware(['auth'])->name('trainee.courses.outline');
 // Trainer: enter class (landing replicates trainee view with trainer capabilities)
-Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->middleware(['auth'])->name('trainer.courses.enter');
+Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.enter');
 // Trainer view-only course outline page
-Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth'])->name('trainer.courses.view');
+Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
 // Trainer: update course banner image only
-Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth'])->name('trainer.courses.image');
+Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.image');
 // Module Exam submissions and results
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 // Participants progress (trainer gradebook)
-Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth'])->name('trainer.courses.participants-progress');
+Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.participants-progress');
 // Content image upload for editors
 Route::post('/courses/content-image', [CourseController::class, 'uploadContentImage'])->middleware(['auth'])->name('courses.content-image.upload');
 // Admin System Settings
@@ -108,12 +108,12 @@ Route::get('/admin/system-settings/backup/download/{file}', [DashboardController
 Route::delete('/admin/system-settings/backup/delete/{file}', [DashboardController::class, 'deleteBackup'])->middleware(['auth'])->name('admin.settings.backup.delete');
 Route::post('/admin/system-settings/backup/restore', [DashboardController::class, 'restoreBackup'])->middleware(['auth'])->name('admin.settings.backup.restore');
 // Trainer create classwork page
-Route::get('/trainer/courses/{course}/classwork/create', [CourseController::class, 'trainerClassworkCreate'])->middleware(['auth'])->name('trainer.courses.classwork.create');
+Route::get('/trainer/courses/{course}/classwork/create', [CourseController::class, 'trainerClassworkCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.classwork.create');
 // Trainer create material/assessment dedicated pages
-Route::get('/trainer/courses/{course}/materials/create', [CourseController::class, 'trainerMaterialCreate'])->middleware(['auth'])->name('trainer.courses.materials.create');
-Route::get('/trainer/courses/{course}/assessments/create', [CourseController::class, 'trainerAssessmentCreate'])->middleware(['auth'])->name('trainer.courses.assessments.create');
+Route::get('/trainer/courses/{course}/materials/create', [CourseController::class, 'trainerMaterialCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.materials.create');
+Route::get('/trainer/courses/{course}/assessments/create', [CourseController::class, 'trainerAssessmentCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.assessments.create');
 // Trainer module status toggle (lock/unlock)
-Route::post('/trainer/courses/{course}/modules/{index}/status', [CourseController::class, 'setModuleStatus'])->middleware(['auth'])->name('trainer.modules.set-status');
+Route::post('/trainer/courses/{course}/modules/{index}/status', [CourseController::class, 'setModuleStatus'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.modules.set-status');
 // Modules status snapshot (for auto-refresh on outline pages)
 Route::get('/courses/{course}/modules-status', [CourseController::class, 'modulesStatus'])->middleware(['auth'])->name('courses.modules.status');
 // Full modules JSON for fallback rendering
@@ -121,9 +121,9 @@ Route::get('/courses/{course}/modules-json', [CourseController::class, 'modulesJ
 // AJAX save for Course Exam editor
 Route::post('/courses/{course}/exam', [CourseController::class, 'saveExamAjax'])->middleware(['auth'])->name('courses.exam.save');
 // Test bank endpoints
-Route::get('/trainer/test-banks', [TrainerController::class, 'listTestBanks'])->middleware(['auth'])->name('trainer.test-banks.index');
-Route::post('/trainer/test-banks', [TrainerController::class, 'storeTestBank'])->middleware(['auth'])->name('trainer.test-banks.store');
-Route::delete('/trainer/test-banks/{template}', [TrainerController::class, 'destroyTestBank'])->middleware(['auth'])->name('trainer.test-banks.destroy');
+Route::get('/trainer/test-banks', [TrainerController::class, 'listTestBanks'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.test-banks.index');
+Route::post('/trainer/test-banks', [TrainerController::class, 'storeTestBank'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.test-banks.store');
+Route::delete('/trainer/test-banks/{template}', [TrainerController::class, 'destroyTestBank'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.test-banks.destroy');
 
 // Public PSGC-like location endpoints for signup
 Route::get('/psgc/regions', [DashboardController::class, 'regionsJson'])->name('psgc.regions');
@@ -146,19 +146,19 @@ Route::middleware('auth')->group(function(){
 Route::get('/materials/{material}', [TrainerController::class, 'showMaterial'])->middleware(['auth'])->name('materials.show');
 
 // Restore and recovery for assessments
-Route::post('/trainer/assessments/{assessment}/restore', [TrainerController::class, 'restoreAssessment'])->middleware(['auth'])->name('trainer.assessments.restore');
-Route::post('/trainer/assessments/recover-missing', [TrainerController::class, 'recoverMissingAssessments'])->middleware(['auth'])->name('trainer.assessments.recover-missing');
-Route::get('/trainer/assessments/{assessment}', [TrainerController::class, 'showAssessment'])->middleware(['auth'])->name('trainer.assessments.show');
+Route::post('/trainer/assessments/{assessment}/restore', [TrainerController::class, 'restoreAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.restore');
+Route::post('/trainer/assessments/recover-missing', [TrainerController::class, 'recoverMissingAssessments'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.recover-missing');
+Route::get('/trainer/assessments/{assessment}', [TrainerController::class, 'showAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.show');
 // Material management
-Route::put('/trainer/materials/{material}', [TrainerController::class, 'updateMaterial'])->middleware(['auth'])->name('trainer.materials.update');
-Route::delete('/trainer/materials/{material}', [TrainerController::class, 'destroyMaterial'])->middleware(['auth'])->name('trainer.materials.destroy');
-Route::get('/trainer/materials/{material}/edit', [TrainerController::class, 'editMaterial'])->middleware(['auth'])->name('trainer.materials.edit');
+Route::put('/trainer/materials/{material}', [TrainerController::class, 'updateMaterial'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.materials.update');
+Route::delete('/trainer/materials/{material}', [TrainerController::class, 'destroyMaterial'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.materials.destroy');
+Route::get('/trainer/materials/{material}/edit', [TrainerController::class, 'editMaterial'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.materials.edit');
 // Assessment management
-Route::put('/trainer/assessments/{assessment}', [TrainerController::class, 'updateAssessment'])->middleware(['auth'])->name('trainer.assessments.update');
-Route::delete('/trainer/assessments/{assessment}', [TrainerController::class, 'destroyAssessment'])->middleware(['auth'])->name('trainer.assessments.destroy');
-Route::get('/trainer/assessments/{assessment}/edit', [TrainerController::class, 'editAssessment'])->middleware(['auth'])->name('trainer.assessments.edit');
-Route::get('/trainer/courses/{course}/assessments/{assessment}/edit', [TrainerController::class, 'editAssessmentForCourse'])->middleware(['auth'])->name('trainer.courses.assessments.edit');
-Route::get('/trainer/assessments/{assessment}/download', [TrainerController::class, 'downloadAssessment'])->middleware(['auth'])->name('trainer.assessments.download');
+Route::put('/trainer/assessments/{assessment}', [TrainerController::class, 'updateAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.update');
+Route::delete('/trainer/assessments/{assessment}', [TrainerController::class, 'destroyAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.destroy');
+Route::get('/trainer/assessments/{assessment}/edit', [TrainerController::class, 'editAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.edit');
+Route::get('/trainer/courses/{course}/assessments/{assessment}/edit', [TrainerController::class, 'editAssessmentForCourse'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.assessments.edit');
+Route::get('/trainer/assessments/{assessment}/download', [TrainerController::class, 'downloadAssessment'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.assessments.download');
 // Reflections
 Route::get('/courses/{course}/reflections-map', [\App\Http\Controllers\ReflectionController::class, 'map'])->middleware(['auth'])->name('courses.reflections.map');
 Route::post('/courses/{course}/reflect', [\App\Http\Controllers\ReflectionController::class, 'store'])->middleware(['auth'])->name('courses.reflect.store');
@@ -196,12 +196,12 @@ Route::get('/admin/certifications/courses/{course}/download-batch', [\App\Http\C
 
 // Trainer Routes
 Route::middleware(['auth'])->group(function () {
-    Route::post('/trainer/upload-material', [TrainerController::class, 'uploadMaterial'])->name('trainer.upload-material');
-    Route::post('/trainer/create-assessment', [TrainerController::class, 'createAssessment'])->name('trainer.create-assessment');
-    Route::post('/trainer/update-grade', [TrainerController::class, 'updateGrade'])->name('trainer.update-grade');
-    Route::post('/trainer/announcements', [AnnouncementController::class, 'store'])->name('trainer.announcements.store');
-    Route::post('/trainer/calendar-events', [CalendarEventController::class, 'store'])->name('trainer.calendar-events.store');
-    Route::delete('/trainer/calendar-events/{event}', [CalendarEventController::class, 'destroy'])->name('trainer.calendar-events.destroy');
+    Route::post('/trainer/upload-material', [TrainerController::class, 'uploadMaterial'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.upload-material');
+    Route::post('/trainer/create-assessment', [TrainerController::class, 'createAssessment'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.create-assessment');
+    Route::post('/trainer/update-grade', [TrainerController::class, 'updateGrade'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.update-grade');
+    Route::post('/trainer/announcements', [AnnouncementController::class, 'store'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.announcements.store');
+    Route::post('/trainer/calendar-events', [CalendarEventController::class, 'store'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.calendar-events.store');
+    Route::delete('/trainer/calendar-events/{event}', [CalendarEventController::class, 'destroy'])->middleware(\App\Http\Middleware\EnsureProfileCompleted::class)->name('trainer.calendar-events.destroy');
 
     Route::post('/courses/{course}/class-announcements', [ClassAnnouncementController::class, 'store'])->name('courses.class-announcements.store');
     Route::post('/class-announcements/{announcement}/comments', [ClassAnnouncementController::class, 'comment'])->name('class-announcements.comments.store');
