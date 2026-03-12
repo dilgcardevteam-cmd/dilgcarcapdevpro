@@ -18,10 +18,12 @@ class Course extends Model
         'image_path',
         'modules',
         'video_path',
+        'is_published',
     ];
 
     protected $casts = [
         'modules' => 'array',
+        'is_published' => 'boolean',
     ];
 
     public function users()

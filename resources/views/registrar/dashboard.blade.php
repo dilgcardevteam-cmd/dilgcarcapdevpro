@@ -1594,15 +1594,21 @@
                             <i class="fas fa-chalkboard-teacher" style="color:#002C76;"></i>
                             <h3 style="margin:0;color:#002C76;">Courses</h3>
                         </div>
-                        <span style="color:#6b7280;">Total: {{ isset($courses) ? $courses->count() : 0 }}</span>
+                        @php 
+                            $draftCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) 
+                                ? $courses->filter(fn($c)=> !(bool)($c->is_published ?? false))->values()
+                                : collect();
+                        @endphp
+                        <span style="color:#6b7280;">Total: {{ $draftCourses->count() }}</span>
                     </div>
-                    @if(!isset($courses) || $courses->isEmpty())
+                    <a id="courses-section"></a>
+                    @if(!isset($draftCourses) || $draftCourses->isEmpty())
                         <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;">
                             There are no courses found.
                         </div>
                     @else
                         <div class="course-grid">
-                            @foreach($courses as $course)
+                            @foreach($draftCourses as $course)
                                 @php
                                     $coachRolesAll = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
                                     $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
@@ -1635,12 +1641,25 @@
                                     <div class="course-content">
                                         <div class="course-title">{{ $course->name }}</div>
                                         <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
-                                        <div class="course-footer">
+                                        <div class="course-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
                                         <div class="course-counts">
                                                 <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                         </div>
-                                            <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
+                                            <div style="display:flex;align-items:center;gap:8px">
+                                                <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">
+                                                    Unpublished
+                                                </span>
+                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                    <input type="hidden" name="published" value="1">
+                                                    <button type="submit" class="btn-view" style="background:#10b981;border-color:transparent">
+                                                        <i class="fas fa-bullhorn"></i> Publish Course
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1649,6 +1668,101 @@
                     @endif
                 </div>
             </section>
+            <section id="published-courses" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
+                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top:16px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <i class="fas fa-bullhorn" style="color:#059669;"></i>
+                            <h3 style="margin:0;color:#002C76;">Published Courses</h3>
+                        </div>
+                        @php 
+                            $pcs = (isset($publishedCourses) && $publishedCourses instanceof \Illuminate\Support\Collection) 
+                                ? $publishedCourses 
+                                : ((isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> (bool)($c->is_published ?? false))->values() : collect());
+                        @endphp
+                        <span style="color:#6b7280;">Total: {{ $pcs->count() }}</span>
+                    </div>
+                    @if($pcs->isEmpty())
+                        <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;">
+                            No published courses yet.
+                        </div>
+                    @else
+                        <div class="course-grid">
+                            @foreach($pcs as $course)
+                                @php
+                                    $coachRolesAll = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                    $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                    $trainerCount = $course->users
+                                        ? $course->users->filter(fn($u)=>in_array($u->role, $coachRolesAll) && (optional($u->pivot)->status ?? 'active') === 'active')->count()
+                                        : 0;
+                                    $traineeCount = $course->users
+                                        ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status === 'active')->count()
+                                        : 0;
+                                    $img = null;
+                                    if (!empty($course->image_path)) {
+                                        $path = public_path('storage/' . $course->image_path);
+                                        if (file_exists($path)) {
+                                            $img = asset('storage/' . $course->image_path);
+                                        } else {
+                                            $path2 = public_path('images/' . ltrim($course->image_path, '/'));
+                                            if (file_exists($path2)) {
+                                                $img = asset('images/' . ltrim($course->image_path, '/'));
+                                            }
+                                        }
+                                    }
+                                    if (!$img) {
+                                        $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    }
+                                @endphp
+                                <div class="course-card">
+                                    <div class="course-image" style="background-image: url('{{ $img }}');"></div>
+                                    <div class="course-content">
+                                        <div class="course-title">{{ $course->name }}</div>
+                                        <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
+                                        <div class="course-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                                            <div class="course-counts">
+                                                <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
+                                                <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:8px">
+                                                <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0">
+                                                    Published
+                                                </span>
+                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                    <input type="hidden" name="published" value="0">
+                                                    <button type="submit" class="btn-view" style="background:#ef4444;border-color:transparent">
+                                                        <i class="fas fa-eye-slash"></i> Close Course
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </section>
+            <script>
+                (function(){
+                    function scrollToHash(){
+                        if(location.hash){
+                            var el = document.querySelector(location.hash);
+                            if(el && typeof el.scrollIntoView==='function'){
+                                el.scrollIntoView({behavior:'smooth', block:'start'});
+                            }
+                        }
+                    }
+                    if(document.readyState === 'loading'){
+                        document.addEventListener('DOMContentLoaded', scrollToHash);
+                    }else{
+                        scrollToHash();
+                    }
+                })();
+            </script>
 
             <section id="activity-logs" class="content-section {{ request('tab') == 'activity-logs' ? 'active' : '' }}">
                 <div style="background:#fff;padding:20px;border-radius:12px;box-shadow:0 10px 24px rgba(15,23,42,.08);">

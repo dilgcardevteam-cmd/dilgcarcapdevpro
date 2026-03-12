@@ -167,6 +167,8 @@ Route::post('/courses/{course}/enroll', [CourseController::class, 'enrollUser'])
 Route::delete('/courses/{course}/detach/{user}', [CourseController::class, 'detachUser'])->middleware(['auth'])->name('courses.detach');
 Route::post('/courses/{course}/join', [CourseController::class, 'join'])->middleware(['auth'])->name('courses.join');
 Route::put('/courses/{course}/participants', [CourseController::class, 'updateParticipants'])->name('courses.updateParticipants');
+// Publish/Unpublish course
+Route::post('/courses/{course}/publish', [CourseController::class, 'setPublished'])->middleware(['auth'])->name('courses.publish');
 Route::put('/users/{user}', [DashboardController::class, 'updateUser'])->middleware(['auth'])->name('users.update');
 Route::put('/users/{user}/display-details', [DashboardController::class, 'updateDisplayDetails'])->middleware(['auth'])->name('users.update-display-details');
 Route::delete('/users/{user}', [DashboardController::class, 'deleteUser'])->middleware(['auth'])->name('users.delete');

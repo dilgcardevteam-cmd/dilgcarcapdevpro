@@ -603,12 +603,26 @@
                                     <div class="course-content">
                                         <div class="course-title">{{ $course->name }}</div>
                                         <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
-                                        <div class="course-footer">
-                                        <div class="course-counts">
+                                        <div class="course-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                                            <div class="course-counts">
                                                 <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
-                                        </div>
-                                            <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:8px">
+                                                @php $pub = (bool)($course->is_published ?? false); @endphp
+                                                <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;{{ $pub ? 'background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0' : 'background:#fff7ed;color:#9a3412;border:1px solid #fed7aa' }}">
+                                                    {{ $pub ? 'Published' : 'Unpublished' }}
+                                                </span>
+                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                    <input type="hidden" name="published" value="{{ $pub ? '0':'1' }}">
+                                                    <button type="submit" class="btn-view" style="background:{{ $pub?'#ef4444':'#10b981' }};border-color:transparent">
+                                                        <i class="fas {{ $pub?'fa-eye-slash':'fa-bullhorn' }}"></i> {{ $pub ? 'Close Course' : 'Publish Course' }}
+                                                    </button>
+                                                </form>
+                                                <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

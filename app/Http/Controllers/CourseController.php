@@ -484,6 +484,13 @@ class CourseController extends Controller
         if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
             return redirect()->route('trainer.courses.enter', $course);
         }
+        if (auth()->check()) {
+            $role = auth()->user()->role ?? null;
+            $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+            if (in_array($role, $participantRoles, true) && !$course->is_published) {
+                return redirect()->route('dashboard')->with('info', 'This course is not yet open.');
+            }
+        }
         $course->load(['users', 'materials', 'assessments']);
         \Illuminate\Support\Facades\Log::info('traineeShow: loaded users', [
             'course_id' => $course->id,
@@ -747,6 +754,13 @@ class CourseController extends Controller
         if (auth()->check() && in_array(auth()->user()->role ?? null, ['trainer','coach'], true)) {
             return redirect()->route('trainer.courses.view', $course);
         }
+        if (auth()->check()) {
+            $role = auth()->user()->role ?? null;
+            $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+            if (in_array($role, $participantRoles, true) && !$course->is_published) {
+                return redirect()->route('dashboard')->with('info', 'This course is not yet open.');
+            }
+        }
         $course->load(['users', 'materials', 'assessments']);
         // Normalize modules for display for trainees as well
         $mods = $course->modules;
@@ -784,6 +798,34 @@ class CourseController extends Controller
             'status' => $status,
             'viewOnly' => $status !== 'active',
         ]);
+    }
+    public function setPublished(Request $request, Course $course)
+    {
+        $role = auth()->user()->role ?? null;
+        $tmRoles = [
+            'admin',
+            'training_manager',
+            'registrar',
+            'central_office_training_manager',
+            'regional_office_training_manager',
+            'provincial_office_training_manager'
+        ];
+        if (!in_array($role, $tmRoles, true)) {
+            abort(403);
+        }
+        $published = $request->boolean('published');
+        $course->is_published = $published;
+        $course->save();
+        if ($request->wantsJson()) {
+            return response()->json(['ok'=>true,'is_published'=>$course->is_published]);
+        }
+        $tab = $request->input('return_tab', 'trainer-trainee-management');
+        if ($published) {
+            $url = route('dashboard', ['tab' => $tab]) . '#published-courses';
+            return redirect()->to($url)->with('success_user', 'Course published.');
+        }
+        return redirect()->route('dashboard', ['tab' => $tab])
+            ->with('success_user', 'Course closed.');
     }
     public function trainerClassworkCreate(Course $course)
     {

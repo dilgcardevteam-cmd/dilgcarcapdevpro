@@ -355,6 +355,13 @@ class DashboardController extends Controller
                 $courses = Course::whereHas('users', function($q) use ($levelRoles) {
                         $q->whereIn('role', $levelRoles);
                     })->with('users')->get();
+                // Build Published Courses using a direct query; if empty, fallback to filtering $courses
+                $publishedCourses = Course::where('is_published', true)->orderBy('created_at','desc')->get();
+                if ($publishedCourses->isEmpty()) {
+                    $publishedCourses = $courses->filter(function($c){
+                        return (int)($c->is_published ?? 0) === 1 || $c->is_published === true || $c->is_published === '1';
+                    })->values();
+                }
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
@@ -394,6 +401,7 @@ class DashboardController extends Controller
                     'totalCourses',
                     'users',
                     'courses',
+                    'publishedCourses',
                     'potentialParticipants',
                     'notifications',
                     'unreadNotificationsCount',
@@ -414,6 +422,7 @@ class DashboardController extends Controller
                 }
                 $myCourses = $user->courses()
                     ->wherePivot('status', 'active')
+                    ->where('courses.is_published', true)
                     ->orderBy('courses.created_at', 'desc')
                     ->with(['users' => function($q) use ($myCoachRoles) {
                         $q->whereIn('role', $myCoachRoles);
@@ -447,7 +456,7 @@ class DashboardController extends Controller
                 }
                 $availableCourses = Course::whereHas('users', function($q) use ($levelRoles) {
                         $q->whereIn('role', $levelRoles);
-                    });
+                    })->where('is_published', true);
                 if (!empty($excludedIds)) {
                     $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
                 }
