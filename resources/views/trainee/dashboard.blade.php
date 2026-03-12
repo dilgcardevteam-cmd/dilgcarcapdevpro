@@ -2335,9 +2335,7 @@
         function renderMaterials(materials, isEnrolled = false) {
             const list = document.getElementById('materials-list');
             list.innerHTML = '';
-            if (!isEnrolled) {
-                list.innerHTML = '<div class="empty-state"><i class="fas fa-lock" style="font-size: 3rem; color: #dee2e6; margin-bottom: 15px;"></i><h3>Locked</h3><p>You must be enrolled to view materials.</p></div>';
-            } else if (materials && materials.length > 0) {
+            if (materials && materials.length > 0) {
                 materials.forEach(mat => {
                     const path = mat.file_path || '';
                     const isVideo = /\.(mp4|webm|ogg)$/i.test(path);
@@ -2371,9 +2369,7 @@
         function renderAssessments(assessments, isEnrolled = false) {
             const list = document.getElementById('assessments-list');
             list.innerHTML = '';
-            if (!isEnrolled) {
-                list.innerHTML = '<div class="empty-state"><i class="fas fa-lock" style="font-size: 3rem; color: #dee2e6; margin-bottom: 15px;"></i><h3>Locked</h3><p>You must be enrolled to view assessments.</p></div>';
-            } else if (assessments && assessments.length > 0) {
+            if (assessments && assessments.length > 0) {
                 assessments.forEach(ass => {
                     list.innerHTML += `
                         <div style="padding: 15px; border: 1px solid #eee; border-radius: 5px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px;">
@@ -2483,9 +2479,6 @@
             });
         }
         function renderTopicFields(fieldsJson, isEnrolled){
-            if(!isEnrolled){
-                return `<div class="lock-msg"><i class="fas fa-lock"></i> You must be enrolled to view this topic's content.</div>`;
-            }
             if(!fieldsJson){ return `<div class="field-card" style="color:#777;">No fields added.</div>`; }
             let fields=[];
             try{

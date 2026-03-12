@@ -1651,7 +1651,7 @@
                                                     Unpublished
                                                 </span>
                                                 <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
-                                                    onclick="openPublishModal('{{ route('courses.publish', $course) }}','{{ addslashes($course->name) }}')">
+                                                    onclick="openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}')">
                                                     <i class="fas fa-bullhorn"></i> Publish Course
                                                 </button>
                                                 <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
@@ -1805,7 +1805,7 @@
                                                 <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0">
                                                     Published
                                                 </span>
-                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
+                                                <form method="POST" action="{{ route('courses.publish', $course, false) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
                                                     @csrf
                                                     <input type="hidden" name="return_tab" value="trainer-trainee-management">
                                                     <input type="hidden" name="published" value="0">
@@ -1813,6 +1813,7 @@
                                                         <i class="fas fa-eye-slash"></i> Close Course
                                                     </button>
                                                 </form>
+                                                <a href="{{ route('registrar.courses.participants', $course, false) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>
                                     </div>

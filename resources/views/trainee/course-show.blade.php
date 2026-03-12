@@ -393,6 +393,10 @@
         const course = @json($course);
         const USER_ROLE = "{{ auth()->user()->role ?? '' }}";
         const IS_TRAINER = (USER_ROLE==='trainer' || USER_ROLE==='coach');
+        const IS_TRAINEE_USER = (function(){
+            const roles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+            return roles.indexOf(USER_ROLE) > -1;
+        })();
         // Ensure modules is an array (some DBs return JSON as string)
         if (typeof course.modules === 'string') {
             try { course.modules = JSON.parse(course.modules || '[]') || []; } catch(e){ course.modules = []; }
@@ -447,15 +451,15 @@
             mods.forEach((m,mi)=>{
                 const mod = document.createElement('div');
                 mod.className='module';
-                const st = 'unlocked';
-                const isLocked = false;
+                const st = (m && m.status) ? String(m.status) : 'unlocked';
+                const isLocked = (!IS_TRAINEE_USER && st === 'locked');
                 const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
                 const baseTitle = m.title || (isExamOnly ? 'Module Exam' : 'Untitled');
                 const titleStr = isExamOnly ? (m.exam && m.exam.title ? `Module Exam: ${m.exam.title}` : baseTitle) : `Module ${mi+1}: ${baseTitle}`;
                 mod.innerHTML = `
                     <div class="module-header" data-mi="${mi}">
                         <div class="module-left">
-                            <div class="module-title"><span>${titleStr}</span></div>
+                            <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${titleStr}</span></div>
                             <div class="progress-mini"><span id="bar_${mi}"></span></div>
                         </div>
                         <div class="mod-badges">
@@ -467,7 +471,6 @@
                 `;
                 // Locks disabled
                 const topicsCt = mod.querySelector('.topics');
-                const lockedForUser = false;
                 (m.topics||[]).forEach((t,ti)=>{
                     const tEl = document.createElement('div');
                     tEl.className='topic';
@@ -501,7 +504,7 @@
                         });
                     }
                     head.addEventListener('click', (e)=>{
-                        if (lockedForUser) { 
+                        if (isLocked) { 
                             showLockedContent(mi);
                             e.stopPropagation(); 
                             return; 
@@ -514,7 +517,7 @@
                     if(!viewOnly){
                         tEl.querySelectorAll('.sub-item').forEach(n=>{
                             n.addEventListener('click',(e)=>{
-                                if (lockedForUser) { 
+                                if (isLocked) { 
                                     showLockedContent(mi);
                                     e.stopPropagation(); 
                                     return; 
@@ -533,6 +536,10 @@
                 });
                 mod.querySelector('.module-header').addEventListener('click',()=>{
                     // Locks disabled
+                    if (isLocked) { 
+                        showLockedContent(mi);
+                        return;
+                    }
                     const open = topicsCt.style.display==='block';
                     topicsCt.style.display = open?'none':'block';
                     const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
@@ -545,12 +552,11 @@
                 if (!isExamOnly && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
                     const modEx = document.createElement('div');
                     modEx.className = 'module';
-                    if(isLocked){ modEx.classList.add('locked'); }
                     const exTitle = m.exam.title ? `Module Exam: ${m.exam.title}` : 'Module Exam';
                     modEx.innerHTML = `
                         <div class="module-header" data-mi="${mi}">
                             <div class="module-left">
-                                <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i>' : ''}${exTitle}</span></div>
+                                <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${exTitle}</span></div>
                                 <div class="progress-mini"><span id="bar_ex_${mi}"></span></div>
                             </div>
                             <div class="mod-badges">
@@ -577,7 +583,7 @@
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
                     head.addEventListener('click', (e)=>{
-                        if ((st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER)) { 
+                        if (isLocked) { 
                             showLockedContent(mi);
                             e.stopPropagation(); 
                             return; 
@@ -589,11 +595,7 @@
                     });
                     exTopics.appendChild(tEl);
                     exHead.addEventListener('click',()=>{
-                        const locked = (st==='locked') && (ENFORCE_LOCKS_ALL || !IS_TRAINER);
-                        if(locked){
-                            const open = exTopics.style.display==='block';
-                            exTopics.style.display = open?'none':'block';
-                            const chev = modEx.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
+                        if (isLocked) { 
                             showLockedContent(mi);
                             return;
                         }
@@ -663,14 +665,8 @@
             const m = (course.modules||[])[mi]||{};
             const t = (m.topics||[])[ti]||{};
             document.getElementById('contentTitle').textContent = `${mi+1}.${ti}. ${(typeof t==='string')?t:(t.title||'Topic')}`;
-            if(!isEnrolled && !viewOnly){
-                document.getElementById('contentBody').innerHTML = `<div class="lock"><div><div style="font-size:3rem;text-align:center;margin-bottom:8px;"><i class="fas fa-lock"></i></div><div style="text-align:center;color:#334;">Locked Content</div><div style="text-align:center;color:#556;max-width:420px;margin:8px auto 0;">You must be enrolled to view this topic’s materials and questions.</div></div></div>`;
-                return;
-            }
-            // Respect module lock for trainees
-            const isTrainer = IS_TRAINER;
-            const currentStatus = ((course.modules||[])[mi] && (course.modules||[])[mi].status) ? (course.modules||[])[mi].status : 'unlocked';
-            if(((ENFORCE_LOCKS_ALL || !isTrainer) && currentStatus==='locked')){
+            const currentStatus = (course.modules && course.modules[mi] && course.modules[mi].status) ? String(course.modules[mi].status) : 'unlocked';
+            if (!IS_TRAINEE_USER && ((ENFORCE_LOCKS_ALL || !IS_TRAINER) && currentStatus === 'locked')) {
                 showLockedContent(mi);
                 return;
             }
@@ -1977,36 +1973,6 @@
                 }
             });
         }
-        // Auto-refresh module lock statuses every 15s
-        (function(){
-            function applyModuleStatuses(mods){
-                if(!Array.isArray(mods)) return;
-                for(let i=0;i<mods.length;i++){
-                    if(!course.modules || !course.modules[i]) continue;
-                    course.modules[i].status = 'unlocked';
-                    const modEl = document.querySelectorAll('.module')[i];
-                    if(modEl){
-                        const title = modEl.querySelector('.module-title span');
-                        if(title){
-                            const hasLock = title.innerHTML.indexOf('fa-lock')>-1;
-                            const shouldLock = false;
-                            if(shouldLock && !hasLock){
-                                title.innerHTML = '<i class="fas fa-lock" style="color:#64748b"></i> ' + title.innerText.replace(/^(\s*\uF023\s*)?/,'');
-                            }else if(!shouldLock && hasLock){
-                                title.innerHTML = title.innerText;
-                            }
-                        }
-                    }
-                }
-            }
-            function tick(){
-                fetch("{{ route('courses.modules.status', $course) }}", {credentials:'same-origin'})
-                    .then(r=>r.ok?r.json():null)
-                    .then(j=>{ if(j&&j.ok&&Array.isArray(j.modules)){ applyModuleStatuses(j.modules); }})
-                    .catch(()=>{});
-            }
-            setInterval(tick, 15000);
-        })();
         (function(){
             var close=document.getElementById('gateClose');
             var ov=document.getElementById('gateOverlay');
