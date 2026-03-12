@@ -22,47 +22,6 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        if (isset($user->email) && strtolower($user->email) === 'co_participant@gmail.com') {
-            $notifications = Notification::where('user_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->take(10)
-                ->get();
-            $unreadNotificationsCount = Notification::where('user_id', $user->id)
-                ->where('is_read', false)
-                ->count();
-            $myCourses = collect([]);
-            $classroomCourses = collect([]);
-            $pendingCourses = collect([]);
-            $availableCourses = collect([]);
-            $completedCoursesCount = 0;
-            $activeCoursesCount = 0;
-            $announcements = collect([]);
-            $calendarEvents = collect([]);
-            $totalAvailableCourses = 0;
-            $totalCoursesJoined = 0;
-            $courseStatuses = [];
-            $forceProfile = false;
-            $pendingCoursesCount = 0;
-            $earnedCertificates = collect([]);
-            return view('trainee.dashboard', compact(
-                'notifications',
-                'unreadNotificationsCount',
-                'myCourses',
-                'classroomCourses',
-                'pendingCourses',
-                'availableCourses',
-                'completedCoursesCount',
-                'activeCoursesCount',
-                'announcements',
-                'calendarEvents',
-                'totalAvailableCourses',
-                'totalCoursesJoined',
-                'courseStatuses',
-                'forceProfile',
-                'pendingCoursesCount',
-                'earnedCertificates'
-            ));
-        }
         $forceProfile = !$user->profile_completed;
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
@@ -440,8 +399,7 @@ class DashboardController extends Controller
                     'unreadNotificationsCount',
                     'forceProfile'
                 ));
-            case 'participant':
-            case 'trainee':
+            case in_array($user->role, $participantRoles, true):
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
                 $myCoachRoles = [];
