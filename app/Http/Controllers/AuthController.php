@@ -238,12 +238,25 @@ class AuthController extends Controller
         $middleNameFromFull = implode(' ', $nameParts);
         $normalizedName = trim(implode(' ', array_filter([$firstNameFromFull, $middleNameFromFull, $lastNameFromFull])));
 
+        $isDILG = $request->agency === 'DILG';
+        $role = 'participant'; // Default role
+        if ($isDILG) {
+            if ($request->region === 'DILG Central Office') {
+                $role = 'central_office_participants';
+            } elseif ($request->region === 'DILG Regional Office') {
+                $role = 'regional_office_participants';
+            } elseif ($request->region === 'DILG Provincial Office') {
+                $role = 'provincial_office_participants';
+            }
+        }
+
         $user = User::create([
             'name' => $normalizedName,
             'email' => $request->email,
             'mobile_number' => $request->mobile_number,
             'gender' => $request->gender,
             'password' => Hash::make($request->password),
+            'role' => $role,
             'region' => $request->region,
             'province' => $request->province,
             'city' => $request->city,
@@ -471,7 +484,16 @@ class AuthController extends Controller
 
     private function notifyRegistrarsAboutNewUser(User $user): void
     {
-        $registrars = User::where('role', 'registrar')->get();
+        $targetRole = 'registrar'; // Default
+        if ($user->role === 'central_office_participants') {
+            $targetRole = 'central_office_training_manager';
+        } elseif ($user->role === 'regional_office_participants') {
+            $targetRole = 'regional_office_training_manager';
+        } elseif ($user->role === 'provincial_office_participants') {
+            $targetRole = 'provincial_office_training_manager';
+        }
+
+        $registrars = User::where('role', $targetRole)->get();
 
         foreach ($registrars as $registrar) {
             Notification::create([
