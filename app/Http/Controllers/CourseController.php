@@ -1744,12 +1744,60 @@ class CourseController extends Controller
         }
 
         if ($count > 0) {
-            return redirect()->route('dashboard', ['tab' => 'trainer-trainee-management'])
+            return redirect()->back()
                 ->with('success_enroll', $count . ' participant(s) enrolled successfully.');
         }
 
-        return redirect()->route('dashboard', ['tab' => 'trainer-trainee-management'])
+        return redirect()->back()
             ->with('info', 'No new participants were added.');
+    }
+
+    public function enrollManual(Request $request, Course $course)
+    {
+        $request->validate([
+            'account_id' => 'required|string',
+            'name' => 'required|string',
+        ]);
+
+        $actor = auth()->user();
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        
+        $managedRoles = [];
+        if ($actor->role === 'central_office_training_manager') {
+            $managedRoles = ['central_office_participants'];
+        } elseif ($actor->role === 'regional_office_training_manager') {
+            $managedRoles = ['regional_office_participants'];
+        } elseif ($actor->role === 'provincial_office_training_manager') {
+            $managedRoles = ['provincial_office_participants'];
+        } else {
+            $managedRoles = ['participant','trainee'];
+        }
+
+        $user = User::where('account_id', $request->account_id)
+            ->where('name', 'like', '%' . $request->name . '%')
+            ->whereIn('role', $managedRoles)
+            ->first();
+
+        if (!$user) {
+            return redirect()->back()->with('error_enroll', 'Participant not found or unauthorized for your office level.');
+        }
+
+        if ($course->users()->where('user_id', $user->id)->exists()) {
+            return redirect()->back()->with('error_enroll', 'Participant is already enrolled in this course.');
+        }
+
+        $course->users()->attach($user->id, ['status' => 'active']);
+
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => 'Manual Enrollment',
+            'message' => "You have been manually enrolled in the course: {$course->name}.",
+            'type' => 'enrollment_approved',
+            'related_id' => $course->id,
+            'link' => route('dashboard'),
+        ]);
+
+        return redirect()->back()->with('success_enroll', "{$user->name} has been enrolled successfully.");
     }
 
     public function detachUser(Course $course, User $user)
@@ -1776,32 +1824,19 @@ class CourseController extends Controller
             return redirect()->route('dashboard')->with('error', 'You have already requested to join or are enrolled in this course.');
         }
 
-        // Attach with pending status
-        $course->users()->attach($user->id, ['status' => 'pending']);
+        // Attach with active status immediately (automatic enrollment)
+        $course->users()->attach($user->id, ['status' => 'active']);
 
-        // Notify Training Managers of same branch only
-        $tmRoles = [];
-        if ($user->role === 'central_office_participants') {
-            $tmRoles = ['central_office_training_manager'];
-        } elseif ($user->role === 'regional_office_participants') {
-            $tmRoles = ['regional_office_training_manager'];
-        } elseif ($user->role === 'provincial_office_participants') {
-            $tmRoles = ['provincial_office_training_manager'];
-        } else {
-            $tmRoles = ['training_manager'];
-        }
-        $registrars = User::whereIn('role', $tmRoles)->get();
-        foreach ($registrars as $registrar) {
-            Notification::create([
-                'user_id' => $registrar->id,
-                'title' => 'Course Enrollment Request',
-                'message' => "User {$user->name} requested to join course {$course->name}.",
-                'type' => 'enrollment',
-                'related_id' => $user->id, // Or course->id, but user is more relevant for approval
-                'link' => route('dashboard', ['tab' => 'trainer-trainee-management']), // Maybe deep link to course modal if possible, but tab is fine
-            ]);
-        }
+        // Notify user of immediate enrollment
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => 'Course Enrolled',
+            'message' => "You have been automatically enrolled in the course: {$course->name}.",
+            'type' => 'enrollment_approved',
+            'related_id' => $course->id,
+            'link' => route('dashboard'),
+        ]);
 
-        return redirect()->route('dashboard')->with('success_join', 'Enrollment request submitted successfully. Please wait for approval.');
+        return redirect()->route('dashboard')->with('success_join', 'You have been successfully enrolled in the course.');
     }
 }

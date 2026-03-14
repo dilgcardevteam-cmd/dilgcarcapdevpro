@@ -44,6 +44,16 @@
         .submit{margin-top:18px;text-align:right}
         .btn{border:none;background:var(--green);color:#fff;padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:600}
         .btn:hover{filter:brightness(0.95)}
+        .btn-blue{background:var(--blue);color:#fff}
+        .btn-blue:hover{background:#001f54}
+        .modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
+        .modal-content{background:#fff;padding:24px;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .modal-header h2{margin:0;font-size:1.25rem;color:var(--blue)}
+        .close{cursor:pointer;font-size:1.5rem;color:var(--muted)}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;margin-bottom:6px;font-weight:600;color:#374151}
+        .form-group input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;box-sizing:border-box}
         .row{display:flex;align-items:center;gap:8px;margin:6px 0;color:#374151}
         .row i{color:#9ca3af}
         .info{font-size:.9rem;color:var(--muted);margin-top:6px}
@@ -318,7 +328,10 @@
             </div>
             <div id="tab-trainees" class="tab-panel">
             <div class="card">
-                <h3><i class="fas fa-list"></i> Participants Summary</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-right:18px">
+                    <h3><i class="fas fa-list"></i> Participants Summary</h3>
+                    <button type="button" class="btn btn-blue" onclick="openManualEnrollModal()"><i class="fas fa-plus"></i> Add Participants</button>
+                </div>
                 <div class="body">
                     @php 
                         $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
@@ -332,7 +345,7 @@
                                 <div class="summary-cell">Name</div>
                                 <div class="summary-cell">Account ID</div>
                                 <div class="summary-cell">Enrolled At</div>
-                                <div class="summary-cell" style="text-align:right">Status</div>
+                                <div class="summary-cell" style="text-align:right">Action</div>
                             </div>
                             @foreach($courseTrainees as $t)
                                 <div class="summary-row">
@@ -346,7 +359,11 @@
                                     @endphp
                                     <div class="summary-cell">{{ $enrolledAt }}</div>
                                     <div class="summary-cell" style="text-align:right">
-                                        <span class="badge {{ $st === 'active' ? 'b-active' : 'b-pending' }}">{{ $st === 'active' ? 'Enrolled' : 'Pending' }}</span>
+                                        <form action="{{ route('courses.participants.detach', [$course->id, $t->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this participant?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;" title="Remove"><i class="fas fa-user-minus"></i></button>
+                                        </form>
                                     </div>
                                 </div>
                             @endforeach
@@ -354,65 +371,6 @@
                     @else
                         <div class="info">No trainees found.</div>
                     @endif
-                </div>
-            </div>
-            <div class="card">
-                <h3><i class="fas fa-user-graduate"></i> Trainees</h3>
-                <div class="body">
-                    @php
-                        $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
-                        $currentActiveIds = $course->users->whereIn('role',$participantRolesAll)->filter(fn($u)=>$u->pivot && $u->pivot->status==='active')->pluck('id')->toArray();
-                        $allCourseTraineeIds = $course->users->whereIn('role',$participantRolesAll)->pluck('id')->toArray();
-                        $available = $potentialTrainees->filter(fn($u)=>!in_array($u->id, $currentActiveIds));
-                    @endphp
-                        <div class="dual">
-                        <div>
-                            <div class="col-title">Available options</div>
-                            <div class="list-head">
-                                <div class="count"><span id="avail_sel_count">0</span> of <span id="avail_total_count">{{ count($available) }}</span> items selected</div>
-                                <div class="search"><i class="fas fa-search"></i><input id="filter_available" type="text" placeholder="Find by name"></div>
-                            </div>
-                            <div class="shell">
-                                <div id="available_trainees" class="list" aria-label="Available participants">
-                                    @foreach($available as $user)
-                                        <label class="item" data-id="{{ $user->id }}" data-name="{{ strtolower($user->name) }}">
-                                            <input type="checkbox">
-                                            <span class="item-label">{{ $user->name }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                        <div class="actions">
-                            <button type="button" onclick="moveSelected('available_trainees','selected_trainees')"><i class="fas fa-chevron-right"></i></button>
-                            <button type="button" onclick="moveAll('available_trainees','selected_trainees')"><i class="fas fa-angles-right"></i></button>
-                            <button type="button" onclick="moveAll('selected_trainees','available_trainees')"><i class="fas fa-angles-left"></i></button>
-                            <button type="button" onclick="moveSelected('selected_trainees','available_trainees')"><i class="fas fa-chevron-left"></i></button>
-                        </div>
-                        <div>
-                            <div class="col-title">Chosen options</div>
-                            <div class="list-head">
-                                <div class="count"><span id="sel_sel_count">{{ count($currentActiveIds) }}</span> of <span id="sel_total_count">{{ count($currentActiveIds) }}</span> items selected</div>
-                                <div class="search"><i class="fas fa-search"></i><input id="filter_selected" type="text" placeholder="Find by name"></div>
-                            </div>
-                            <div class="shell">
-                                <div id="selected_trainees" class="list" aria-label="Selected trainees">
-                                    @foreach($potentialTrainees as $user)
-                                        @if(in_array($user->id, $currentActiveIds))
-                                            <label class="item" data-id="{{ $user->id }}" data-name="{{ strtolower($user->name) }}">
-                                                <input type="checkbox">
-                                                <span class="item-label">{{ $user->name }}</span>
-                                                <input type="hidden" name="trainee_ids[]" value="{{ $user->id }}">
-                                            </label>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                        </div>
-                    <div class="info">Move trainees to Selected to enroll or approve them as active.</div>
-                    <div class="row"><span class="badge b-active">Active</span> currently enrolled</div>
-                    <div class="row"><span class="badge b-pending">Pending</span> requested to join</div>
                 </div>
             </div>
             </div>
@@ -423,7 +381,41 @@
     </div>
         </main>
     </div>
+    <div id="manualEnrollModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Participant</h2>
+                <span class="close" onclick="closeManualEnrollModal()">&times;</span>
+            </div>
+            <form action="{{ route('courses.participants.manual', $course->id) }}" method="POST">
+                @csrf
+                <div class="form-group">
+                    <label for="manual_account_id">Account ID</label>
+                    <input type="text" id="manual_account_id" name="account_id" required placeholder="Enter Account ID">
+                </div>
+                <div class="form-group">
+                    <label for="manual_name">Participant Name</label>
+                    <input type="text" id="manual_name" name="name" required placeholder="Enter Full Name">
+                </div>
+                <div style="text-align:right;margin-top:20px;">
+                    <button type="submit" class="btn btn-blue">Enroll Participant</button>
+                </div>
+            </form>
+        </div>
+    </div>
 <script>
+    function openManualEnrollModal() {
+        document.getElementById('manualEnrollModal').style.display = 'flex';
+    }
+    function closeManualEnrollModal() {
+        document.getElementById('manualEnrollModal').style.display = 'none';
+    }
+    window.onclick = function(event) {
+        const modal = document.getElementById('manualEnrollModal');
+        if (event.target == modal) {
+            closeManualEnrollModal();
+        }
+    }
     // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn=>{
         btn.addEventListener('click', ()=>{
@@ -436,6 +428,7 @@
         });
     });
     function moveSelected(fromId,toId){
+        if(fromId === 'available_trainees' || toId === 'available_trainees') return;
         const from=document.getElementById(fromId);
         const to=document.getElementById(toId);
         const items=Array.from(from.querySelectorAll('.item input:checked')).map(cb=>cb.closest('.item'));
@@ -445,12 +438,11 @@
         });
         syncHiddenInputs();
         syncAllCounts();
-        applyFilterGeneric('filter_available','available_trainees','avail_total_count');
-        applyFilterGeneric('filter_selected','selected_trainees','sel_total_count');
         applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr');
         applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr');
     }
     function moveAll(fromId,toId){
+        if(fromId === 'available_trainees' || toId === 'available_trainees') return;
         const from=document.getElementById(fromId);
         const to=document.getElementById(toId);
         const items=Array.from(from.querySelectorAll('.item'));
@@ -460,8 +452,6 @@
         });
         syncHiddenInputs();
         syncAllCounts();
-        applyFilterGeneric('filter_available','available_trainees','avail_total_count');
-        applyFilterGeneric('filter_selected','selected_trainees','sel_total_count');
         applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr');
         applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr');
     }
@@ -513,21 +503,15 @@
             it.appendChild(h);
         });
     }
-    document.getElementById('filter_available').addEventListener('input',()=>applyFilterGeneric('filter_available','available_trainees','avail_total_count'));
-    document.getElementById('filter_selected').addEventListener('input',()=>applyFilterGeneric('filter_selected','selected_trainees','sel_total_count'));
-    document.getElementById('available_trainees').addEventListener('change',syncAllCounts);
-    document.getElementById('selected_trainees').addEventListener('change',syncAllCounts);
-    document.getElementById('filter_available_trainers').addEventListener('input',()=>applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr'));
-    document.getElementById('filter_selected_trainers').addEventListener('input',()=>applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr'));
     document.getElementById('available_trainers').addEventListener('change',syncAllCounts);
     document.getElementById('selected_trainers').addEventListener('change',syncAllCounts);
+    if(document.getElementById('filter_available_trainers')) document.getElementById('filter_available_trainers').addEventListener('input',()=>applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr'));
+    if(document.getElementById('filter_selected_trainers')) document.getElementById('filter_selected_trainers').addEventListener('input',()=>applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr'));
     // Ensure no items are pre-selected on load for all lists
-    ['available_trainers','selected_trainers','available_trainees','selected_trainees'].forEach(function(id){
+    ['available_trainers','selected_trainers'].forEach(function(id){
         var el=document.getElementById(id);
         if(el){ el.querySelectorAll('.item input[type=checkbox]').forEach(function(cb){ cb.checked=false; }); }
     });
-    applyFilterGeneric('filter_available','available_trainees','avail_total_count');
-    applyFilterGeneric('filter_selected','selected_trainees','sel_total_count');
     applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr');
     applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr');
     syncHiddenInputs();

@@ -1619,7 +1619,7 @@
                                         ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status === 'active')->count()
                                         : 0;
                                 @endphp
-                                <div class="course-card">
+                                <div class="course-card" style="cursor:pointer;position:relative" onclick="if(!event.target.closest('button') && !event.target.closest('form')) window.location='{{ route('registrar.courses.participants', $course) }}'">
                                     @php
                                         $img = null;
                                         if (!empty($course->image_path)) {
@@ -1651,10 +1651,9 @@
                                                     Unpublished
                                                 </span>
                                                 <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
-                                                    onclick="openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}')">
+                                                    onclick="event.stopPropagation(); openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}')">
                                                     <i class="fas fa-bullhorn"></i> Publish Course
                                                 </button>
-                                                <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>
                                     </div>
@@ -1781,7 +1780,7 @@
                                         $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
                                     }
                                 @endphp
-                                <div class="course-card">
+                                <div class="course-card" style="cursor:pointer;position:relative" onclick="if(!event.target.closest('button') && !event.target.closest('form')) window.location='{{ route('registrar.courses.participants', $course, false) }}'">
                                     <div class="course-image" style="background-image: url('{{ $img }}');"></div>
                                     <div class="course-content">
                                         <div class="course-title">{{ $course->name }}</div>
@@ -1809,11 +1808,10 @@
                                                     @csrf
                                                     <input type="hidden" name="return_tab" value="trainer-trainee-management">
                                                     <input type="hidden" name="published" value="0">
-                                                    <button type="submit" class="btn-view" style="background:#ef4444;border-color:transparent">
+                                                    <button type="submit" class="btn-view" style="background:#ef4444;border-color:transparent" onclick="event.stopPropagation()">
                                                         <i class="fas fa-eye-slash"></i> Close Course
                                                     </button>
                                                 </form>
-                                                <a href="{{ route('registrar.courses.participants', $course, false) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>
                                     </div>

@@ -163,8 +163,9 @@ Route::get('/trainer/assessments/{assessment}/download', [TrainerController::cla
 Route::get('/courses/{course}/reflections-map', [\App\Http\Controllers\ReflectionController::class, 'map'])->middleware(['auth'])->name('courses.reflections.map');
 Route::post('/courses/{course}/reflect', [\App\Http\Controllers\ReflectionController::class, 'store'])->middleware(['auth'])->name('courses.reflect.store');
 Route::get('/courses/{course}/progress', [\App\Http\Controllers\ReflectionController::class, 'progress'])->middleware(['auth'])->name('courses.progress.json');
-Route::post('/courses/{course}/enroll', [CourseController::class, 'enrollUser'])->middleware(['auth'])->name('courses.enroll');
-Route::delete('/courses/{course}/detach/{user}', [CourseController::class, 'detachUser'])->middleware(['auth'])->name('courses.detach');
+Route::post('/courses/{course}/participants', [CourseController::class, 'enrollUser'])->middleware(['auth'])->name('courses.participants.enroll');
+Route::post('/courses/{course}/participants/manual', [CourseController::class, 'enrollManual'])->middleware(['auth'])->name('courses.participants.manual');
+Route::delete('/courses/{course}/participants/{user}', [CourseController::class, 'detachUser'])->middleware(['auth'])->name('courses.participants.detach');
 Route::post('/courses/{course}/join', [CourseController::class, 'join'])->middleware(['auth'])->name('courses.join');
 Route::put('/courses/{course}/participants', [CourseController::class, 'updateParticipants'])->name('courses.updateParticipants');
 // Publish/Unpublish course
