@@ -1212,14 +1212,14 @@
                     <h2 class="section-title">Dashboard</h2>
                 </div>
 
-                <!-- Available Courses to Enroll -->
+                <!-- Assigned Courses by Training Manager -->
                 <div style="background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Available Courses</h3>
-                        <div style="color:#64748b;font-weight:700">{{ isset($availableCourses) ? $availableCourses->count() : 0 }} available</div>
+                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Assigned Courses by the Training Manager</h3>
+                        <div style="color:#64748b;font-weight:700">{{ isset($myCourses) ? $myCourses->count() : 0 }} assigned</div>
                     </div>
                     <div class="course-grid" style="margin-top:12px">
-                        @forelse($availableCourses ?? collect() as $course)
+                        @forelse($myCourses ?? collect() as $course)
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1249,29 +1249,33 @@
                                         $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
                                     }
                                 }
+                                $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                $studentsCount = $course->users ? $course->users->whereIn('role', $participantRoles)->count() : 0;
                             @endphp
-                            <div class="course-card">
+                            <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                                 <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                                 <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
                                     <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                     <div class="course-footer">
-                                        <span><i class="fas fa-user-tie"></i> {{ $course->users->where('role','trainer')->count() }} Trainers</span>
-                                        <button class="btn-view" type="button" onclick="openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Enroll Now</button>
+                                        <span style="font-size: 0.8rem; color: #777;">
+                                            <i class="fas fa-users"></i> {{ $studentsCount }} Students
+                                        </span>
+                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
                                     </div>
                                 </div>
                             </div>
                         @empty
                             <div style="grid-column: 1/-1; text-align: center; padding: 24px; color: #6c757d;">
-                                <i class="fas fa-book-open" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
-                                <div>No available courses at the moment.</div>
+                                <i class="fas fa-chalkboard-teacher" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                                <div>No assigned courses yet.</div>
                             </div>
                         @endforelse
                     </div>
                 </div>
 
-                <!-- Enrolled Courses -->
-                <div style="background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
+                <!-- Removed Enrolled Courses (replaced by Assigned) -->
+                <div style="display:none;background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                         <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Enrolled Courses</h3>
                         @php
@@ -1356,7 +1360,7 @@
             <!-- My Courses Section (Same as above but dedicated page) -->
             <div id="my-courses" class="content-section">
                 <div class="section-header">
-                    <h2 class="section-title">My Courses</h2>
+                    <h2 class="section-title">Assigned Courses by the Training Manager</h2>
                 </div>
                 
                 <div class="course-grid">
