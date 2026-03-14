@@ -226,6 +226,12 @@ class DashboardController extends Controller
 
                 $query = User::query();
                 if ($request->get('tab') === 'user-management') {
+                    // Filter out Google users who haven't completed their profile yet
+                    $query->where(function($q) {
+                        $q->whereNull('google_id')
+                          ->orWhere('profile_completed', true);
+                    });
+
                     $excludedRoles = [
                         'provincial_office_coach',
                         'provincial_office_participants',
@@ -1000,11 +1006,19 @@ class DashboardController extends Controller
             'gender' => 'nullable|string|in:Male,Female,Prefer not to say',
             'region' => 'required|string|max:255',
             'province' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'barangay' => 'required|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'barangay' => 'nullable|string|max:255',
+            'agency' => 'nullable|string|in:DILG,LGU',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'profile_picture_cropped' => 'nullable|string',
         ]);
+
+        // Custom validation: if agency is LGU, city and barangay are required
+        if ($request->input('agency') === 'LGU') {
+            if (!$request->filled('city') || !$request->filled('barangay')) {
+                return back()->withErrors(['city' => 'City and Barangay are required for LGU accounts.'])->withInput();
+            }
+        }
 
         if ($request->filled('profile_picture_cropped')) {
             $data = $request->input('profile_picture_cropped');
@@ -1042,6 +1056,15 @@ class DashboardController extends Controller
             $user->profile_completed_at = now();
         }
         $user->save();
+
+        if ($user->status !== 'active') {
+            User::notifyRegistrarsAboutNewUser($user);
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->with('success', 'Profile setup complete! Your account is now pending approval. Please wait for an email from the registrar.');
+        }
 
         if (!$wasProfileCompleted) {
             $request->session()->flash('success_profile', 'Profile completed successfully.');

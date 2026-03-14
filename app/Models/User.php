@@ -103,24 +103,26 @@ class User extends Authenticatable
             'provincial_office_participants' => 'POP',
         ];
 
-        $roleCode = $roleCodes[$role] ?? 'UNK';
+        $code = $roleCodes[$role] ?? 'USER';
         
-        do {
-            $randomNumber = str_pad((string) rand(0, 9999), 4, '0', STR_PAD_LEFT);
-            $accountId = "{$yy}-{$randomNumber}-{$roleCode}";
-        } while (self::where('account_id', $accountId)->exists());
+        $lastUser = self::where('role', $role)
+            ->whereNotNull('account_id')
+            ->orderBy('account_id', 'desc')
+            ->first();
 
-        return $accountId;
+        $nextNum = 1;
+        if ($lastUser && preg_match('/-(\d{4})$/', $lastUser->account_id, $matches)) {
+            $nextNum = intval($matches[1]) + 1;
+        }
+
+        return "{$yy}-{$code}-" . str_pad((string)$nextNum, 4, '0', STR_PAD_LEFT);
     }
 
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_user')->withPivot('status')->withTimestamps();
-    }
-
-    public function grades()
-    {
-        return $this->hasMany(Grade::class);
+        return $this->belongsToMany(Course::class, 'course_user')
+            ->withPivot('status')
+            ->withTimestamps();
     }
 
     public function announcements()
@@ -138,6 +140,32 @@ class User extends Authenticatable
         return $this->belongsToMany(Certification::class, 'certification_user')
             ->withPivot('certificate_number','course_id','issued_at')
             ->withTimestamps();
+    }
+
+    public static function notifyRegistrarsAboutNewUser(User $user): void
+    {
+        $targetRole = 'registrar'; // Default
+        if ($user->role === 'central_office_participants') {
+            $targetRole = 'central_office_training_manager';
+        } elseif ($user->role === 'regional_office_participants') {
+            $targetRole = 'regional_office_training_manager';
+        } elseif ($user->role === 'provincial_office_participants') {
+            $targetRole = 'provincial_office_training_manager';
+        }
+
+        // Fetch target users
+        $registrars = self::where('role', $targetRole)->get();
+
+        foreach ($registrars as $registrar) {
+            \App\Models\Notification::create([
+                'user_id' => $registrar->id,
+                'title' => 'New User Registration',
+                'message' => "New user {$user->name} has registered and is awaiting approval.",
+                'type' => 'registration',
+                'related_id' => $user->id,
+                'link' => route('dashboard', ['tab' => 'user-management', 'search' => $user->name]),
+            ]);
+        }
     }
 
     public function getAvatarUrlAttribute(): string

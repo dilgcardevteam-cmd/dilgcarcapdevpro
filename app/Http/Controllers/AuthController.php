@@ -139,7 +139,7 @@ class AuthController extends Controller
                 $user->save();
             }
 
-            $this->notifyRegistrarsAboutNewUser($user);
+            // Moved notification to storeProfileSetup so it happens after user fills details
             $this->sendWelcomeEmail($user);
             $isNewUser = true;
         } else {
@@ -161,6 +161,14 @@ class AuthController extends Controller
         }
 
         if ($user->status !== 'active') {
+            // New logic: allow login for pending users who have NOT completed their profile
+            // This is primarily for Google users who need to provide more details
+            if (!$user->profile_completed) {
+                Auth::login($user, true);
+                $request->session()->regenerate();
+                return redirect()->intended('dashboard');
+            }
+
             if ($isNewUser) {
                 return redirect()->route('login')->with('success', 'Google sign-up successful! Please wait for an email from the registrar to activate your account.');
             }
@@ -266,7 +274,7 @@ class AuthController extends Controller
             'profile_completed_at' => now(),
         ]);
 
-        $this->notifyRegistrarsAboutNewUser($user);
+        User::notifyRegistrarsAboutNewUser($user);
         $this->sendWelcomeEmail($user);
 
         // Auth::login($user);
@@ -304,6 +312,11 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             if (Auth::user()->status !== 'active') {
+                // Allow login for pending users who have NOT completed their profile
+                if (!Auth::user()->profile_completed) {
+                    return redirect()->intended('dashboard');
+                }
+
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -480,31 +493,6 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
-    }
-
-    private function notifyRegistrarsAboutNewUser(User $user): void
-    {
-        $targetRole = 'registrar'; // Default
-        if ($user->role === 'central_office_participants') {
-            $targetRole = 'central_office_training_manager';
-        } elseif ($user->role === 'regional_office_participants') {
-            $targetRole = 'regional_office_training_manager';
-        } elseif ($user->role === 'provincial_office_participants') {
-            $targetRole = 'provincial_office_training_manager';
-        }
-
-        $registrars = User::where('role', $targetRole)->get();
-
-        foreach ($registrars as $registrar) {
-            Notification::create([
-                'user_id' => $registrar->id,
-                'title' => 'New User Registration',
-                'message' => "New user {$user->name} has registered and is awaiting approval.",
-                'type' => 'registration',
-                'related_id' => $user->id,
-                'link' => route('dashboard', ['tab' => 'user-management', 'search' => $user->name]),
-            ]);
-        }
     }
 
     private function sendWelcomeEmail(User $user): void
