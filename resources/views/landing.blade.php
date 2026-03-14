@@ -833,7 +833,7 @@
                 </p>
             </div>
             <div class="hero-image">
-            <img src="{{ asset('images/Department of Interior Local Governmment PNG.png') }}" alt="DILG-CAR LMS Hero Image">
+            <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="DILG-CAR LMS Hero Image">
         </div>
         </section>
 

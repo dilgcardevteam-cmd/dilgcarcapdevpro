@@ -2419,7 +2419,17 @@
                                     @endphp
                                     <div class="form-group">
                                         @if($isCentral)
+<<<<<<< Updated upstream
                                         <label>Office Level</label>
+=======
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                                                <circle cx="12" cy="10" r="3"></circle>
+                                            </svg>
+                                            Office Level
+                                        </label>
+>>>>>>> Stashed changes
                                         @else
                                         <label>{{ ($isCentral || $isRegional || $isProvincial) ? 'Office Level' : 'Region' }}</label>
                                         @endif
@@ -2460,7 +2470,16 @@
                                     </div>
                                     <div class="form-group">
                                         @if($isCentral)
+<<<<<<< Updated upstream
                                         <label>Service</label>
+=======
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="3,11 22,2 13,21 11,13 3,11"></polygon>
+                                            </svg>
+                                            Service
+                                        </label>
+>>>>>>> Stashed changes
                                         @else
                                         <label>City / Municipality</label>
                                         @endif
