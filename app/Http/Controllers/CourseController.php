@@ -1274,11 +1274,15 @@ class CourseController extends Controller
     public function uploadContentImage(\Illuminate\Http\Request $request)
     {
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['admin','super_admin','trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $allowedRoles = array_merge($adminRoles, $coachRoles);
+
+        if (!$user || !in_array($user->role, $allowedRoles, true)) {
             return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
         }
         $request->validate([
-            'image' => 'required|image|max:5120', // 5MB
+            'image' => 'required|image|max:10240', // 10MB
         ]);
         try {
             $path = $request->file('image')->store('course_content', 'public');

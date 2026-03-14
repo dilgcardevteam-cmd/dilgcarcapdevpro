@@ -781,9 +781,9 @@
         function insertImageFromInput(input){
             const file = input.files && input.files[0];
             if(!file) return;
-            const types = ['image/jpeg','image/png','image/gif'];
-            if (!types.includes(file.type) || file.size > 5 * 1024 * 1024) {
-                alert('Invalid image. Max 5MB. JPG, PNG, GIF only.');
+            const types = ['image/jpeg','image/png','image/gif','image/webp','image/bmp','image/tiff'];
+            if (!types.includes(file.type) || file.size > 10 * 1024 * 1024) {
+                alert('Invalid image. Max 10MB. Common image formats only.');
                 input.value = '';
                 return;
             }
@@ -943,7 +943,7 @@
                         <button type="button" class="field-move-btn pill-btn" onclick="openTableModal(this)" title="Insert Table"><i class="fas fa-table"></i><span>Table</span></button>
                         <button type="button" class="field-move-btn pill-btn" onclick="triggerImagePicker(this)" title="Insert Image"><i class="fas fa-image"></i><span>Picture</span></button>
                         <button type="button" class="field-move-btn pill-btn" onclick="openVideoModal(this)" title="Insert Video"><i class="fas fa-video"></i><span>Video</span></button>
-                        <input type="file" accept="image/png,image/jpeg,image/gif" onchange="insertImageFromInput(this)" style="display:none">
+                        <input type="file" accept="image/*" onchange="insertImageFromInput(this)" style="display:none">
                     </div>
                 </div>
                 <div class="editor" contenteditable="true" aria-label="Text field editor"></div>
@@ -1027,7 +1027,7 @@
             block.setAttribute('data-type','text');
             block.innerHTML = `
                 <div class="editor-toolbar" style="display:none">
-                    <input type="file" accept="image/png,image/jpeg,image/gif" onchange="insertImageFromInput(this)">
+                    <input type="file" accept="image/*" onchange="insertImageFromInput(this)">
                     <input type="file" accept="video/mp4,video/webm,video/ogg" data-video="1" onchange="insertVideoFromFile(this)">
                 </div>
                 <div class="editor" contenteditable="true" aria-label="Text field editor"></div>
