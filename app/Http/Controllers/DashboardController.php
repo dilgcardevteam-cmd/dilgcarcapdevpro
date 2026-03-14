@@ -209,7 +209,7 @@ class DashboardController extends Controller
                 $approvedCount = User::where('status', 'active')->count();
                 $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
                 // Registrar manages coach/trainer and participant roles
-                $managedRoles = array_values(array_unique(array_merge($coachRoles, $participantRoles)));
+                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
                 // Show all courses to registrar (including those without assigned users yet)
                 $totalCourses = Course::count();
                 $courses = Course::with('users')->orderBy('created_at','desc')->get();
@@ -278,10 +278,14 @@ class DashboardController extends Controller
                     $query->orderBy('created_at', 'desc');
                 }
                 $users = $query->paginate(8)->appends($request->query());
+                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
 
                 if ($request->ajax()) {
-                    return view('registrar.partials.users-table', compact('users'))->render();
+                    return view('registrar.partials.users-table', compact('users', 'roleDisplay'))->render();
                 }
+
+                // Get roles available for the dropdown
+                $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
 
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
@@ -293,7 +297,9 @@ class DashboardController extends Controller
                     'potentialParticipants',
                     'notifications',
                     'unreadNotificationsCount',
-                    'forceProfile'
+                    'forceProfile',
+                    'availableRoles',
+                    'roleDisplay'
                 ));
             case in_array($user->role, $coachRoles, true):
                 // Get courses where the trainer is assigned (assuming pivot table handles this)
@@ -361,13 +367,13 @@ class DashboardController extends Controller
             case in_array($user->role, $tmRoles, true):
                 $managedRoles = [];
                 if ($user->role === 'central_office_training_manager') {
-                    $managedRoles = ['central_office_coach','central_office_participants'];
+                    $managedRoles = ['central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants'];
                 } elseif ($user->role === 'regional_office_training_manager') {
-                    $managedRoles = ['regional_office_coach','regional_office_participants'];
+                    $managedRoles = ['regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants'];
                 } elseif ($user->role === 'provincial_office_training_manager') {
-                    $managedRoles = ['provincial_office_coach','provincial_office_participants'];
+                    $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
                 } else {
-                    $managedRoles = ['coach','trainer','participant','trainee'];
+                    $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
                 }
                 $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
@@ -430,6 +436,10 @@ class DashboardController extends Controller
                 if ($request->ajax()) {
                     return view('registrar.partials.users-table', compact('users','roleDisplay'))->render();
                 }
+
+                // Get roles available for the dropdown based on the Training Manager's level
+                $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
+
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
                     'approvedCount',
@@ -441,7 +451,9 @@ class DashboardController extends Controller
                     'potentialParticipants',
                     'notifications',
                     'unreadNotificationsCount',
-                    'forceProfile'
+                    'forceProfile',
+                    'availableRoles',
+                    'roleDisplay'
                 ));
             case in_array($user->role, $participantRoles, true):
                 // Get enrolled courses (active status)
@@ -606,11 +618,23 @@ class DashboardController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $actor = Auth::user();
-        if ($actor && $actor->role === 'registrar') {
-            // Registrars may only change role and status
-            $allowedRoles = Role::pluck('name')->toArray();
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if ($actor && (in_array($actor->role, $tmRoles) || $actor->role === 'registrar')) {
+            // Determine managed roles based on the actor's level
+            $managedRoles = [];
+            if ($actor->role === 'central_office_training_manager') {
+                $managedRoles = ['central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants'];
+            } elseif ($actor->role === 'regional_office_training_manager') {
+                $managedRoles = ['regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants'];
+            } elseif ($actor->role === 'provincial_office_training_manager') {
+                $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
+            } else {
+                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+            }
+
+            // Training Managers and Registrars may only change role and status
             $validated = $request->validate([
-                'role' => 'required|string|in:' . implode(',', $allowedRoles),
+                'role' => 'required|string|in:' . implode(',', $managedRoles),
                 'status' => 'required|string|in:active,freeze,pending',
             ]);
 
