@@ -7,6 +7,8 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\IncompleteActivityReminder;
+use Illuminate\Support\Facades\Mail;
 
 class CourseController extends Controller
 {
@@ -1927,5 +1929,55 @@ class CourseController extends Controller
         ]);
 
         return redirect()->route('dashboard')->with('success_join', 'You have been successfully enrolled in the course.');
+    }
+
+    public function notifyIncompleteParticipants(Course $course)
+    {
+        $participantRoles = ['participant', 'trainee', 'central_office_participants', 'regional_office_participants', 'provincial_office_participants'];
+        $participants = $course->users()->whereIn('role', $participantRoles)->wherePivot('status', 'active')->get();
+
+        $modules = is_array($course->modules) ? $course->modules : [];
+
+        foreach ($participants as $participant) {
+            $incompleteActivities = [];
+
+            // Check module progress
+            foreach ($modules as $moduleIndex => $module) {
+                $totalSubs = 0;
+                if (isset($module['topics']) && is_array($module['topics'])) {
+                    foreach ($module['topics'] as $topic) {
+                        if (isset($topic['subtopics']) && is_array($topic['subtopics'])) {
+                            $totalSubs += count($topic['subtopics']);
+                        }
+                    }
+                }
+
+                if ($totalSubs > 0) {
+                    $completedSubs = \App\Models\ReflectionResponse::where('user_id', $participant->id)
+                        ->where('course_id', $course->id)
+                        ->where('module_index', $moduleIndex)
+                        ->count();
+
+                    if ($completedSubs < $totalSubs) {
+                        $incompleteActivities[] = (object)['title' => $module['title']];
+                    }
+                }
+
+                // Check exam progress
+                if (isset($module['exam'])) {
+                    $submissionPath = storage_path('app/exam_submissions/course_' . $course->id . '/mi_' . $moduleIndex . '_u_' . $participant->id . '.json');
+
+                    if (!file_exists($submissionPath)) {
+                        $incompleteActivities[] = (object)['title' => $module['exam']['title']];
+                    }
+                }
+            }
+
+            if (!empty($incompleteActivities)) {
+                Mail::to($participant->email)->send(new IncompleteActivityReminder($course, $participant, $incompleteActivities));
+            }
+        }
+
+        return response()->json(['message' => 'Notifications sent successfully.']);
     }
 }

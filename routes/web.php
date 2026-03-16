@@ -102,6 +102,7 @@ Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 's
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 // Participants progress (trainer gradebook)
 Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.participants-progress');
+Route::post('/trainer/courses/{course}/notify-incomplete', [CourseController::class, 'notifyIncompleteParticipants'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.notify-incomplete');
 // Content image upload for editors
 Route::post('/courses/content-image', [CourseController::class, 'uploadContentImage'])->middleware(['auth'])->name('courses.content-image.upload');
 // Admin System Settings

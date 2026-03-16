@@ -1402,8 +1402,12 @@
                     </div>
                     <div id="participantProgressFull" class="card" style="padding:0;">
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e5e7eb;">
-                            <div style="font-weight:800;color:#0f172a">Participant Progress</div>
-                        </div>
+                        <div style="font-weight:800;color:#0f172a">Participant Progress</div>
+                        <button id="notifyIncompleteBtn" class="btn-cta" style="background-color: #C9282D; padding: 8px 12px; font-size: 0.8rem;">
+                            <i class="fas fa-bell"></i>
+                            Notify Incomplete Participants
+                        </button>
+                    </div>
                         <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e5e7eb">
                             <table id="progressTable" style="border-collapse:collapse;width:100%;min-width:960px">
                                 <thead></thead>
@@ -2233,6 +2237,44 @@
             if (event.target == eModal) closeEnrollmentModal();
         }
     </script>
+<script>
+document.getElementById('notifyIncompleteBtn').addEventListener('click', function() {
+    // Show a confirmation dialog
+    if (confirm('Are you sure you want to send email reminders to all participants with incomplete activities?')) {
+        // Disable the button to prevent multiple clicks
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        // Send an AJAX request to the server
+        fetch("{{ route('trainer.courses.notify-incomplete', $course) }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Re-enable the button and restore its original text
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-bell"></i> Notify Incomplete Participants';
+
+            // Show a success message
+            alert(data.message);
+        })
+        .catch(error => {
+            // Re-enable the button and restore its original text
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-bell"></i> Notify Incomplete Participants';
+
+            // Show an error message
+            console.error('Error:', error);
+            alert('An error occurred while sending notifications.');
+        });
+    }
+});
+</script>
+
 </body>
 </html>
  
