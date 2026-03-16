@@ -507,12 +507,22 @@ class DashboardController extends Controller
                 $pendingCourses = $user->courses()
                     ->wherePivot('status', 'pending')
                     ->orderBy('courses.created_at', 'desc')
+                    ->with(['users' => function($q) use ($myCoachRoles) {
+                        $q->whereIn('role', $myCoachRoles);
+                    }])
                     ->get();
                 $pendingCoursesCount = $pendingCourses->count();
                 $classroomCourses = $myCourses->concat($pendingCourses)->sortByDesc('created_at')->values();
                 
                 // Determine course statuses for current user
                 $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
+
+                $progressData = [];
+                foreach ($classroomCourses as $course) {
+                    $progress = $course->getCourseProgress($user);
+                    $progress['total_modules'] = count($course->modules ?? []);
+                    $progressData[$course->id] = $progress;
+                }
 
                 // Get available courses limited strictly to the participant's branch
                 $excludedIds = array_map('intval', array_keys($courseStatuses));
@@ -582,7 +592,7 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainee.dashboard', compact('myCourses', 'classroomCourses', 'pendingCourses', 'availableCourses', 'completedCoursesCount', 'activeCoursesCount', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'totalAvailableCourses', 'totalCoursesJoined', 'courseStatuses', 'forceProfile', 'pendingCoursesCount', 'earnedCertificates'));
+                return view('trainee.dashboard', compact('myCourses', 'classroomCourses', 'pendingCourses', 'availableCourses', 'completedCoursesCount', 'activeCoursesCount', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'totalAvailableCourses', 'totalCoursesJoined', 'courseStatuses', 'forceProfile', 'pendingCoursesCount', 'earnedCertificates', 'progressData'));
             default:
                 // Fallback for users without a role or unknown role
                 return view('trainee.dashboard', compact('forceProfile')); 

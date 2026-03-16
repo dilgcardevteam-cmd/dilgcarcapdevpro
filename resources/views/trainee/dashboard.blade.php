@@ -941,6 +941,58 @@
         @media(max-width:1100px){#profile-section .profile-page-grid{grid-template-columns:1fr}#profile-section .profile-page-fields{grid-template-columns:1fr}}
         @media(max-width:768px){#profile-section .profile-page-banner{flex-direction:column;align-items:flex-start}#profile-section .profile-page-actions{width:100%}}
 
+        /* Home Page Pro Hero Styles */
+        .home-hero-banner { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius: 20px; padding: 35px; color: white; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15); }
+        .home-hero-banner::after { content: ""; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; }
+        .home-hero-title { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .home-hero-subtitle { font-size: 1rem; opacity: 0.9; margin-bottom: 25px; max-width: 600px; }
+        .home-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .home-metric-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.2s; }
+        .home-metric-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
+        .home-metric-icon { width: 45px; height: 45px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #1e40af; font-size: 1.2rem; }
+        .home-metric-info { display: flex; flex-direction: column; }
+        .home-metric-value { font-size: 1.4rem; font-weight: 800; }
+        .home-metric-label { font-size: 0.8rem; opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* New Classroom Styles */
+        .filters-and-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .filter-tabs { display: flex; gap: 10px; background-color: #eef2f7; padding: 5px; border-radius: 12px; }
+        .filter-tab { background: none; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: #475569; cursor: pointer; transition: all .2s ease; }
+        .filter-tab.active { background-color: #2563eb; color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+        .search-and-sort { display: flex; gap: 10px; }
+        .search-input { border: 1px solid #d7e0ea; border-radius: 8px; padding: 8px 12px; font-size: .9rem; }
+        .sort-dropdown { border: 1px solid #d7e0ea; border-radius: 8px; padding: 8px 12px; font-size: .9rem; background-color: white; }
+        .course-stats { display: flex; gap: 20px; margin-bottom: 20px; font-weight: 600; color: #475569; }
+
+        /* New Course Card Styles */
+        .new-course-card { background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; transition: all .2s ease; }
+        .new-course-card:hover { transform: scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+        .card-banner { position: relative; aspect-ratio: 16/9; }
+        .card-banner img { width: 100%; height: 100%; object-fit: cover; }
+        .status-badge-new { position: absolute; top: 12px; left: 12px; padding: 5px 12px; border-radius: 8px; font-size: .75rem; font-weight: 700; color: white; }
+        .status-badge-new.ongoing { background-color: #22c55e; }
+        .status-badge-new.completed { background-color: #3b82f6; }
+        .status-badge-new.upcoming { background-color: #f59e0b; }
+        .status-badge-new.schedule-not-set { background-color: #6b7280; }
+        .card-content { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .card-title { font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin: 0; }
+        .progress-section { font-size: .85rem; }
+        .progress-labels { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; color: #64748b; }
+        .progress-bar { background-color: #e2e8f0; border-radius: 999px; height: 8px; overflow: hidden; }
+        .progress-fill { background-color: #22c55e; height: 100%; border-radius: 999px; }
+        .module-progress { font-size: .85rem; font-weight: 600; color: #64748b; }
+        .card-meta { display: grid; gap: 8px; font-size: .8rem; color: #475569; }
+        .card-meta span { display: flex; align-items: center; gap: 8px; }
+        .btn-gradient { display: block; text-align: center; border-radius: 12px; padding: 10px 18px; background: linear-gradient(135deg, #1e40af, #2563eb); color: white; font-weight: 700; text-decoration: none; transition: all .2s ease; }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); }
+
+        .new-course-card-link { text-decoration: none; color: inherit; }
+
+        /* Responsive Grid */
+        @media (min-width: 1024px) { .course-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 768px) and (max-width: 1023px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 767px) { .course-grid { grid-template-columns: 1fr; } }
+
     </style>
 </head>
 <body>
@@ -1062,44 +1114,42 @@
             
             <!-- Dashboard Home Section -->
             <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section']) ? '' : 'active' }}">
-                <div class="control-hero">
-                    <div class="control-hero-top">
-                        <div>
-                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
-                            <div class="control-hero-sub">Monitor your learning progress and quickly access your classes.</div>
-                        </div>
-                    </div>
-                    <div class="hero-metrics">
-                        <div class="hero-metric">
-                            <div class="metric-left">
-                                <div class="metric-icon"><i class="fas fa-book-open"></i></div>
-                                <h4>Available Courses</h4>
+                <div class="home-hero-banner">
+                    <h1 class="home-hero-title">Welcome back, {{ Auth::user()->name }}!</h1>
+                    <p class="home-hero-subtitle">Monitor your learning progress and quickly access your classes.</p>
+                    
+                    <div class="home-metrics-grid">
+                        <div class="home-metric-card">
+                            <div class="home-metric-icon"><i class="fas fa-book-open"></i></div>
+                            <div class="home-metric-info">
+                                <span class="home-metric-value">{{ $totalAvailableCourses }}</span>
+                                <span class="home-metric-label">Available</span>
                             </div>
-                            <div class="metric-value">{{ $totalAvailableCourses }}</div>
                         </div>
-                        <div class="hero-metric">
-                            <div class="metric-left">
-                                <div class="metric-icon" style="background:#ecfdf5;color:#0f766e"><i class="fas fa-user-graduate"></i></div>
-                                <h4>Courses Joined</h4>
+                        <div class="home-metric-card">
+                            <div class="home-metric-icon"><i class="fas fa-user-graduate"></i></div>
+                            <div class="home-metric-info">
+                                <span class="home-metric-value">{{ $totalCoursesJoined }}</span>
+                                <span class="home-metric-label">Joined</span>
                             </div>
-                            <div class="metric-value">{{ $totalCoursesJoined }}</div>
                         </div>
-                        <div class="hero-metric">
-                            <div class="metric-left">
-                                <div class="metric-icon" style="background:#fff7ed;color:#9a3412"><i class="fas fa-hourglass-half"></i></div>
-                                <h4>Pending Enrollments</h4>
+                        <div class="home-metric-card">
+                            <div class="home-metric-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="home-metric-info">
+                                <span class="home-metric-value">{{ $pendingCoursesCount ?? 0 }}</span>
+                                <span class="home-metric-label">Pending</span>
                             </div>
-                            <div class="metric-value">{{ $pendingCoursesCount ?? 0 }}</div>
                         </div>
-                        <div class="hero-metric">
-                            <div class="metric-left">
-                                <div class="metric-icon" style="background:#e0f2fe;color:#1d4ed8"><i class="fas fa-flag-checkered"></i></div>
-                                <h4>Finished Courses</h4>
+                        <div class="home-metric-card">
+                            <div class="home-metric-icon"><i class="fas fa-flag-checkered"></i></div>
+                            <div class="home-metric-info">
+                                <span class="home-metric-value">{{ $completedCoursesCount ?? 0 }}</span>
+                                <span class="home-metric-label">Finished</span>
                             </div>
-                            <div class="metric-value">{{ $completedCoursesCount ?? 0 }}</div>
                         </div>
                     </div>
                 </div>
+
                 @if(session('success_join'))
                 <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     <i class="fas fa-check-circle"></i> {{ session('success_join') }}
@@ -1117,39 +1167,39 @@
                 </div>
                 <div class="course-grid">
                     @forelse($myCourses as $course)
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainee.courses.show', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainee.courses.show', $course) }}';}">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
-                            <div class="course-content">
-                                @php
-                                    $status = $course->course_status;
-                                    $statusClass = match($status) {
-                                        'Upcoming' => 'status-upcoming',
-                                        'Ongoing' => 'status-ongoing',
-                                        'Completed' => 'status-completed',
-                                        default => 'status-not-set'
-                                    };
-                                @endphp
-                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-
-                                <div class="course-schedule">
-                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
-                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
+                            <div class="new-course-card">
+                                <div class="card-banner">
+                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
+                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
                                 </div>
-                                @php
-                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
-                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                                @endphp
-
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
-                                <div class="course-footer">
-                                    <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
-                                    <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                <div class="card-content">
+                                    <h3 class="card-title">{{ $course->name }}</h3>
+                                    <div class="progress-section">
+                                        <div class="progress-labels">
+                                            <span>Progress</span>
+                                            <span>{{ round($progressData[$course->id]['percentage'] ?? 0) }}%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] ?? 0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-progress">
+                                        <span>Assessments: {{ $progressData[$course->id]['completed'] ?? 0 }} / {{ $progressData[$course->id]['total'] ?? 0 }}</span>
+                                        <span>Modules: {{ $progressData[$course->id]['total_modules'] ?? 0 }}</span>
+                                    </div>
+                                    <div class="card-meta">
+                                        @php
+                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
+                                        @endphp
+                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
+                                    </div>
+                                    <div class="btn-gradient">Enter Class</div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     @empty
                         <div style="grid-column: 1/-1; text-align: center; padding: 28px; color: #6b7280;">
                             <i class="fas fa-graduation-cap" style="font-size: 2.2rem; opacity: 0.6;"></i>
@@ -1159,77 +1209,58 @@
                 </div>
 
                 <!-- Available Courses List -->
-                <div class="section-header">
+                <div class="section-header" style="margin-top: 30px;">
                     <h2 class="section-title">Available Courses</h2>
                 </div>
 
                 <div class="course-grid">
                     @forelse($availableCourses as $course)
-                        <div class="course-card" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
-                            @php
-                                $courseImage = null;
-                                if ($course->image_path) {
-                                    $courseImage = asset('storage/' . $course->image_path);
-                                } else {
-                                    $courseNameLower = strtolower($course->name);
-                                    if (str_contains($courseNameLower, 'research')) {
-                                        $courseImage = asset('images/Basic Research.png');
-                                    } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
-                                        $courseImage = asset('images/Basic Services.png');
-                                    } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
-                                        $courseImage = asset('images/Nature and Types.png');
-                                    } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
-                                        $courseImage = asset('images/Creation.png');
-                                    } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
-                                        $courseImage = asset('images/Local Autonomy.png');
+                        <div class="new-course-card" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
+                            <div class="card-banner">
+                                @php
+                                    $courseImage = null;
+                                    if ($course->image_path) {
+                                        $courseImage = asset('storage/' . $course->image_path);
                                     } else {
-                                        $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                        $courseNameLower = strtolower($course->name);
+                                        if (str_contains($courseNameLower, 'research')) {
+                                            $courseImage = asset('images/Basic Research.png');
+                                        } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                            $courseImage = asset('images/Basic Services.png');
+                                        } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                            $courseImage = asset('images/Nature and Types.png');
+                                        } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                            $courseImage = asset('images/Creation.png');
+                                        } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                            $courseImage = asset('images/Local Autonomy.png');
+                                        } else {
+                                            $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                        }
                                     }
-                                }
-                            @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
-                            <div class="course-content">
-                                @php
-                                    $status = $course->course_status;
-                                    $statusClass = match($status) {
-                                        'Upcoming' => 'status-upcoming',
-                                        'Ongoing' => 'status-ongoing',
-                                        'Completed' => 'status-completed',
-                                        default => 'status-not-set'
-                                    };
                                 @endphp
-                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                <img src="{{ $courseImage }}" alt="Course Image">
+                                <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">{{ $course->name }}</h3>
+                                <p class="course-desc" style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px;">{{ Str::limit($course->description, 100) }}</p>
 
-                                <div class="course-schedule">
-                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
-                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                <div class="card-meta" style="margin-bottom: 15px;">
+                                    @php
+                                        $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
+                                        $enrollable = $course->isEnrollable();
+                                    @endphp
+                                    <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
+                                    <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
                                 </div>
-                                @php
-                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
-                                    
-                                    // Enrollment info from Trainer's schedule
-                                    $s = $course->enrollment_start ? $course->enrollment_start->format('M d, Y') : null;
-                                    $e = $course->enrollment_end ? $course->enrollment_end->format('M d, Y') : null;
-                                    $enrollable = $course->isEnrollable();
-                                @endphp
-                                @if($s || $e)
-                                    <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">
-                                        <span style="margin-left:1px">Enrollment: {{ $s ?: '—' }} — {{ $e ?: '—' }}</span>
-                                    </p>
-                                @endif
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
-                                <div class="course-footer">
-                                    <div style="display: flex; gap: 5px;">
-                                        @if(!$enrollable)
-                                            <button class="btn-view" style="background-color: #94a3b8; cursor: not-allowed; opacity: 0.7;" disabled title="Enrollment is currently closed or schedule not set by trainer">Enrollment Closed</button>
-                                        @else
-                                            <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
-                                        @endif
-                                        <button class="btn-view" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
-                                    </div>
+                                
+                                <div style="display: flex; gap: 10px; margin-top: auto;">
+                                    @if(!$enrollable)
+                                        <button class="btn-gradient" style="background: #94a3b8; cursor: not-allowed; opacity: 0.7; flex: 1;" disabled>Closed</button>
+                                    @else
+                                        <button class="btn-gradient" style="background: linear-gradient(135deg, #059669, #10b981); flex: 1;" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll</button>
+                                    @endif
+                                    <button class="btn-gradient" style="background: linear-gradient(135deg, #64748b, #94a3b8); flex: 1;" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
                                 </div>
                             </div>
                         </div>
@@ -1244,96 +1275,76 @@
 
             <!-- Classroom Section -->
             <div id="classroom" class="content-section {{ request('tab') == 'classroom' ? 'active' : '' }}">
-                
-                <div class="hero-metrics" style="margin-top:-2px;margin-bottom:20px">
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#ecfdf5;color:#0f766e"><i class="fas fa-user-graduate"></i></div>
-                            <h4>Courses Joined</h4>
-                        </div>
-                        <div class="metric-value">{{ $totalCoursesJoined }}</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#fff7ed;color:#9a3412"><i class="fas fa-hourglass-half"></i></div>
-                            <h4>Pending Enrolled Courses</h4>
-                        </div>
-                        <div class="metric-value">{{ $pendingCoursesCount ?? 0 }}</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#e0f2fe;color:#1d4ed8"><i class="fas fa-flag-checkered"></i></div>
-                            <h4>Finished Courses</h4>
-                        </div>
-                        <div class="metric-value">{{ $completedCoursesCount ?? 0 }}</div>
-                    </div>
-                </div>
-                
-                <div class="section-header" style="margin-top:4px">
+                <div class="section-header">
                     <h2 class="section-title">My Classes</h2>
                 </div>
-                
+
+                <div class="filters-and-stats">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active">All</button>
+                        <button class="filter-tab">Ongoing</button>
+                        <button class="filter-tab">Completed</button>
+                        <button class="filter-tab">Upcoming</button>
+                    </div>
+                    <div class="search-and-sort">
+                        <input type="text" class="search-input" placeholder="Search courses...">
+                        <select class="sort-dropdown">
+                            <option>Newest</option>
+                            <option>Progress</option>
+                            <option>Start Date</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="course-stats">
+                    <span>Total Courses: {{ $classroomCourses->count() }}</span>
+                    <span>Ongoing: {{ $classroomCourses->where('course_status', 'Ongoing')->count() }}</span>
+                    <span>Completed: {{ $classroomCourses->where('course_status', 'Completed')->count() }}</span>
+                </div>
+
                 <div class="course-grid">
                     @forelse($classroomCourses as $course)
-                        @php
-                            $st = $courseStatuses[$course->id] ?? 'active';
-                        @endphp
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
-                            @php
-                                $img = null;
-                                if (!empty($course->image_path)) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $img = asset('storage/' . $course->image_path);
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $img = asset('images/' . ltrim($course->image_path, '/'));
-                                        }
-                                    }
-                                }
-                                if (!$img) {
-                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
-                                }
-                            @endphp
-                            <div class="course-image" style="background-image: url('{{ $img }}');"></div>
-                            <div class="course-content">
-                                @php
-                                    $status = $course->course_status;
-                                    $statusClass = match($status) {
-                                        'Upcoming' => 'status-upcoming',
-                                        'Ongoing' => 'status-ongoing',
-                                        'Completed' => 'status-completed',
-                                        default => 'status-not-set'
-                                    };
-                                @endphp
-                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-
-                                <div class="course-schedule">
-                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
-                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="70">
+                            <div class="new-course-card">
+                                <div class="card-banner">
+                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
+                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
                                 </div>
-                                @php /* removed creator/teacher meta in Classroom view for cleaner cards */ @endphp
-                                <div class="course-footer">
-                                    @if($st === 'pending')
-                                        <span class="status-chip status-pending"><i class="fas fa-clock"></i> Pending Approval</span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" style="pointer-events:none; opacity:.6;" onclick="event.stopPropagation();">Enter Class</a>
+                                <div class="card-content">
+                                    <h3 class="card-title">{{ $course->name }}</h3>
+                                    <div class="progress-section">
+                                    <div class="progress-labels">
+                                        <span>Progress</span>
+                                        <span>{{ round($progressData[$course->id]['percentage']) }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] }}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="module-progress">
+                                    <span>
+                                        Module: {{ $progressData[$course->id]['completed'] }} / {{ $progressData[$course->id]['total'] }}
+                                        (Total Modules: {{ $progressData[$course->id]['total_modules'] }})
+                                    </span>
+                                </div>
+                                    <div class="card-meta">
+                                        @php
+                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
+                                        @endphp
+                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
+                                    </div>
+                                    @if($course->course_status == 'Ongoing')
+                                        <div class="btn-gradient">Continue Course</div>
                                     @else
-                                        <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
-                                        <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                        <div class="btn-gradient">View Classroom</div>
                                     @endif
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     @empty
-                        <div style="grid-column: 1/-1; background: white; padding: 40px; border-radius: 10px; text-align: center;">
-                            <i class="fas fa-chalkboard-teacher" style="font-size: 4rem; color: var(--primary-blue); margin-bottom: 20px; opacity: 0.5;"></i>
-                            <h3>No Active Classes Yet</h3>
-                            <p style="color: #666;">Once your enrollment is approved by the registrar, your courses will appear here.</p>
-                            <button class="btn-view" onclick="showContent('dashboard-home', document.querySelector('a[onclick*=\'dashboard-home\']'))" style="margin-top: 20px;">Browse Courses</button>
-                        </div>
+                        <p>You are not enrolled in any courses yet.</p>
                     @endforelse
                 </div>
             </div>
@@ -2926,6 +2937,67 @@
         if(menu && d && !menu.contains(ev.target)){
             d.style.display = 'none';
         }
+    });
+
+    // Classroom Filter/Sort/Search Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterTabs = document.querySelectorAll('#classroom .filter-tab');
+        const searchInput = document.querySelector('#classroom .search-input');
+        const sortDropdown = document.querySelector('#classroom .sort-dropdown');
+        const courseGrid = document.querySelector('#classroom .course-grid');
+        const courseCards = Array.from(courseGrid.querySelectorAll('.new-course-card-link'));
+
+        function updateCourses() {
+            const activeFilter = document.querySelector('#classroom .filter-tab.active').innerText.toLowerCase();
+            const searchTerm = searchInput.value.toLowerCase();
+            const sortBy = sortDropdown.value;
+
+            // 1. Sort
+            let sortedCards = [...courseCards].sort((a, b) => {
+                switch (sortBy) {
+                    case 'Newest':
+                        return b.dataset.startDate - a.dataset.startDate;
+                    case 'Progress':
+                        return b.dataset.progress - a.dataset.progress;
+                    case 'Start Date':
+                        return a.dataset.startDate - b.dataset.startDate;
+                    default:
+                        return 0;
+                }
+            });
+
+            // 2. Filter and Search
+            sortedCards.forEach(card => {
+                const status = card.dataset.status;
+                const title = card.querySelector('.card-title').innerText.toLowerCase();
+
+                const isFilterMatch = activeFilter === 'all' || status === activeFilter;
+                const isSearchMatch = title.includes(searchTerm);
+
+                if (isFilterMatch && isSearchMatch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // 3. Re-append to grid
+            sortedCards.forEach(card => courseGrid.appendChild(card));
+        }
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                updateCourses();
+            });
+        });
+
+        searchInput.addEventListener('input', updateCourses);
+        sortDropdown.addEventListener('change', updateCourses);
+
+        // Initial update
+        updateCourses();
     });
 
     </script>

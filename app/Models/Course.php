@@ -118,4 +118,29 @@ class Course extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+
+    public function getCourseProgress(User $user)
+    {
+        $totalAssessments = $this->assessments()->count();
+        if ($totalAssessments === 0) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        $gradedAssessments = 0;
+        foreach ($this->assessments as $assessment) {
+            if ($assessment->grades()->where('user_id', $user->id)->exists()) {
+                $gradedAssessments++;
+            }
+        }
+
+        return [
+            'completed' => $gradedAssessments,
+            'total' => $totalAssessments,
+            'percentage' => ($gradedAssessments / $totalAssessments) * 100,
+        ];
+    }
 }
