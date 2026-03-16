@@ -25,11 +25,16 @@
                         $statusClass = in_array($statusValue, ['active', 'freeze', 'pending']) ? $statusValue : 'active';
                         $statusLabel = $statusValue === 'freeze' ? 'Blocked' : $statusValue;
                     @endphp
-                    <tr>
+                    <tr @if($user->id === auth()->id()) style="background-color: #f8fafc; border-left: 4px solid #002C76;" @endif>
                         <td>
                             <div class="user-identity">
-                                <span class="user-avatar">{{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}</span>
-                                <span class="user-name">{{ $user->name }}</span>
+                                <span class="user-avatar" @if($user->id === auth()->id()) style="background-color: #002C76; border: 2px solid #ffffff;" @endif>{{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}</span>
+                                <span class="user-name">
+                                    {{ $user->name }}
+                                    @if($user->id === auth()->id())
+                                        <span style="font-size: 0.75rem; color: #002C76; font-weight: 800; background: #eef2ff; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">You</span>
+                                    @endif
+                                </span>
                             </div>
                         </td>
                         <td><span class="mono-text">{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</span></td>

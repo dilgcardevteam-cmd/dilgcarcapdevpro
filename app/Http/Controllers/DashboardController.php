@@ -32,11 +32,11 @@ class DashboardController extends Controller
             case in_array($user->role, $adminRoles, true):
                 $managedRoles = [];
                 if ($user->role === 'central_office_admin') {
-                    $managedRoles = ['central_office_training_manager','central_office_coach','central_office_participants'];
+                    $managedRoles = ['central_office_admin', 'central_office_training_manager','central_office_coach','central_office_participants'];
                 } elseif ($user->role === 'regional_office_admin') {
-                    $managedRoles = ['regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                    $managedRoles = ['regional_office_admin', 'regional_office_training_manager','regional_office_coach','regional_office_participants'];
                 } elseif ($user->role === 'provincial_office_admin') {
-                    $managedRoles = ['provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                    $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
                 } elseif ($user->role === 'super_admin') {
                     $managedRoles = [
                         'admin','super_admin','registrar',
@@ -47,7 +47,7 @@ class DashboardController extends Controller
                         'central_office_admin','regional_office_admin','provincial_office_admin',
                     ];
                 } else { // ordinary admin
-                    $managedRoles = ['training_manager','coach','trainer','participant','trainee'];
+                    $managedRoles = ['admin', 'training_manager','coach','trainer','participant','trainee'];
                 }
                 $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
                 $managedTMRoles = array_values(array_intersect($tmRoles, $managedRoles));
@@ -133,6 +133,11 @@ class DashboardController extends Controller
                         'central_office_training_manager',
                         'super_admin',
                     ];
+                    
+                    // Don't exclude the current user's role if they are one of these admins
+                    $myRole = $user->role;
+                    $excludedRoles = array_diff($excludedRoles, [$myRole]);
+                    
                     $query->whereNotIn('role', $excludedRoles);
                 }
 
@@ -247,6 +252,11 @@ class DashboardController extends Controller
                         'central_office_training_manager',
                         'super_admin',
                     ];
+                    
+                    // Don't exclude the current user's role if they are one of these admins
+                    $myRole = $user->role;
+                    $excludedRoles = array_diff($excludedRoles, [$myRole]);
+                    
                     $query->whereNotIn('role', $excludedRoles);
                 }
 

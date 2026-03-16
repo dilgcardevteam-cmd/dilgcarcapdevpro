@@ -263,6 +263,78 @@
             font-size: 0.68rem;
         }
 
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: capitalize;
+            letter-spacing: 0.01em;
+        }
+
+        .badge-role-admin { background: #00215e; color: #ffffff; }
+        .badge-role-registrar { background: #00215e; color: #ffffff; }
+        .badge-role-training_manager { background: #facc15; color: #1e293b; }
+        .badge-role-trainer { background: #b91c1c; color: #ffffff; }
+        .badge-role-coach { background: #b91c1c; color: #ffffff; }
+        .badge-role-trainee { background: #f59e0b; color: #ffffff; }
+        .badge-role-participant { background: #f59e0b; color: #ffffff; }
+
+        /* Office Level Role Variants */
+        .badge-role-central_office_admin, .badge-role-regional_office_admin, .badge-role-provincial_office_admin { background: #00215e; color: #ffffff; }
+        .badge-role-central_office_training_manager, .badge-role-regional_office_training_manager, .badge-role-provincial_office_training_manager { background: #facc15; color: #1e293b; }
+        .badge-role-central_office_coach, .badge-role-regional_office_coach, .badge-role-provincial_office_coach { background: #b91c1c; color: #ffffff; }
+        .badge-role-central_office_participants, .badge-role-regional_office_participants, .badge-role-provincial_office_participants { background: #f59e0b; color: #ffffff; }
+
+        .badge-status-active { background: #16a34a; color: #ffffff; }
+        .badge-status-freeze { background: #dc2626; color: #ffffff; }
+        .badge-status-pending { background: #facc15; color: #1e293b; }
+
+        .user-identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background-color: #002C76;
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            display: block;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .mono-text {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.82rem;
+            color: #334155;
+        }
+
+        .muted-cell {
+            color: #64748b;
+        }
+
+        .actions-inline {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
         #profile-section .profile-page-upload {
             margin-top: 12px;
             display: flex;

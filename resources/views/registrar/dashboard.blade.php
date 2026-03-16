@@ -702,17 +702,23 @@
             letter-spacing: 0.01em;
         }
 
-        .badge-role-admin { background: #0B2C74; color: #ffffff; }
-        .badge-role-registrar { background: #0B2C74; color: #ffffff; }
-        .badge-role-training_manager { background: #facc15; color: #111827; }
+        .badge-role-admin { background: #00215e; color: #ffffff; }
+        .badge-role-registrar { background: #00215e; color: #ffffff; }
+        .badge-role-training_manager { background: #facc15; color: #1e293b; }
         .badge-role-coach { background: #b91c1c; color: #ffffff; }
         .badge-role-trainer { background: #b91c1c; color: #ffffff; }
         .badge-role-trainee { background: #f59e0b; color: #ffffff; }
         .badge-role-participant { background: #f59e0b; color: #ffffff; }
 
+        /* Office Level Role Variants */
+        .badge-role-central_office_admin, .badge-role-regional_office_admin, .badge-role-provincial_office_admin { background: #00215e; color: #ffffff; }
+        .badge-role-central_office_training_manager, .badge-role-regional_office_training_manager, .badge-role-provincial_office_training_manager { background: #facc15; color: #1e293b; }
+        .badge-role-central_office_coach, .badge-role-regional_office_coach, .badge-role-provincial_office_coach { background: #b91c1c; color: #ffffff; }
+        .badge-role-central_office_participants, .badge-role-regional_office_participants, .badge-role-provincial_office_participants { background: #f59e0b; color: #ffffff; }
+
         .badge-status-active { background: #16a34a; color: #ffffff; }
         .badge-status-freeze { background: #dc2626; color: #ffffff; }
-        .badge-status-pending { background: #facc15; color: #111827; }
+        .badge-status-pending { background: #facc15; color: #1e293b; }
 
         .actions-inline {
             display: flex;
