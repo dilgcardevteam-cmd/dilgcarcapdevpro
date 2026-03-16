@@ -896,7 +896,7 @@
         #profile-section .profile-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
         #profile-section .profile-page-title{margin:0;font-size:2rem;color:var(--primary-blue);letter-spacing:-.02em}
         #profile-section .profile-page-subtitle{margin:6px 0 0;color:#6b7280;font-size:.95rem;max-width:560px}
-        #profile-section .profile-page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        #profile-section .profile-page-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;width:100%}
         #profile-section .profile-page-btn{border:1px solid transparent;border-radius:999px;padding:10px 18px;font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease;box-shadow:0 6px 14px rgba(15,23,42,.12)}
         #profile-section .profile-page-btn:active{transform:translateY(1px);box-shadow:0 3px 8px rgba(15,23,42,.14)}
         #profile-section .profile-page-btn.edit{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
@@ -904,6 +904,7 @@
         #profile-section .profile-page-btn.save{background:var(--primary-green);color:#fff}
         #profile-section .profile-page-btn.save:hover{background:#6aa832}
         #profile-section .profile-page-alert{display:flex;align-items:center;gap:10px;background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:12px 14px;border-radius:12px;font-weight:600;font-size:.92rem}
+        #profile-section .profile-page-alert.error{background:#fef2f2;border-color:#fecaca;color:#991b1b;align-items:flex-start}
         #profile-section .profile-page-banner{display:flex;align-items:center;gap:20px;padding:20px;border-radius:16px;border:1px solid #e2e8f0;background:radial-gradient(circle at top left, rgba(127,183,61,.12), transparent 50%),radial-gradient(circle at top right, rgba(0,44,118,.12), transparent 48%),#fff;box-shadow:0 12px 24px rgba(15,23,42,.08)}
         #profile-section .profile-page-avatar{width:92px;height:92px;border-radius:22px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:3px solid #fff;box-shadow:0 10px 18px rgba(15,23,42,.18)}
         #profile-section .profile-page-avatar img{width:100%;height:100%;object-fit:cover}
@@ -916,14 +917,26 @@
         #profile-section .profile-page-upload input[type=file]::file-selector-button{border:none;background:var(--primary-blue);color:#fff;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer;margin-right:10px}
         #profile-section .profile-page-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
         #profile-section .profile-page-panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 6px 14px rgba(15,23,42,.06)}
+        #profile-section .profile-page-panel.account-panel{border-color:#d8e5ff;background:linear-gradient(160deg,#f7fbff 0%,#fff 58%)}
+        #profile-section .profile-page-panel.location-panel{border-color:#dbead2;background:linear-gradient(160deg,#f8fcf5 0%,#fff 58%)}
         #profile-section .profile-page-panel-wide{grid-column:1 / -1}
         #profile-section .profile-page-panel-header{display:flex;align-items:center;gap:10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#64748b;font-weight:700;margin-bottom:14px}
+        #profile-section .profile-page-panel-header-rich{margin-bottom:16px;text-transform:none;letter-spacing:normal;align-items:flex-start}
+        #profile-section .profile-page-header-icon{width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+        #profile-section .profile-page-panel.account-panel .profile-page-header-icon{background:#e0ebff;color:#1d4ed8}
+        #profile-section .profile-page-panel.location-panel .profile-page-header-icon{background:#e3f2db;color:#2f7a15}
+        #profile-section .profile-page-header-icon .icon-feather{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+        #profile-section .profile-page-panel-heading{display:flex;flex-direction:column;gap:2px}
+        #profile-section .profile-page-panel-title{font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.08em;line-height:1.2}
+        #profile-section .profile-page-panel-note{font-size:.78rem;color:#64748b;font-weight:500;line-height:1.2}
+        #profile-section .profile-page-panel.account-panel .form-group,
+        #profile-section .profile-page-panel.location-panel .form-group{background:rgba(255,255,255,.82);border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px}
         #profile-section .profile-page-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
         #profile-section .profile-page-fields .form-group{margin-bottom:0}
         #profile-section .profile-page-fields label{display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
         #profile-section .profile-input{width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;box-sizing:border-box;background:#f8fafc;color:#0f172a;transition:border-color .2s ease,box-shadow .2s ease}
         #profile-section .profile-input:focus{outline:none;border-color:#2f5aa8;box-shadow:0 0 0 3px rgba(47,90,168,.15)}
-        #profile-section .profile-input[readonly]{background:#f1f5f9;color:#475569;cursor:not-allowed}
+        #profile-section .profile-input[readonly],#profile-section .profile-input:disabled{background:#f1f5f9;color:#475569;cursor:not-allowed}
         #profile-section .profile-page-help{color:#64748b;font-size:.8rem;display:block;margin-top:6px}
         @media(max-width:1100px){#profile-section .profile-page-grid{grid-template-columns:1fr}#profile-section .profile-page-fields{grid-template-columns:1fr}}
         @media(max-width:768px){#profile-section .profile-page-banner{flex-direction:column;align-items:flex-start}#profile-section .profile-page-actions{width:100%}}
@@ -1480,20 +1493,6 @@
                                 <h1 class="profile-page-title">My Profile</h1>
                                 <p class="profile-page-subtitle">Keep your account information current and review your access details in one place.</p>
                             </div>
-                            <div class="profile-page-actions">
-                                <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
-                                    <i class="fas fa-pen"></i>
-                                    Edit Profile
-                                </button>
-                                <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display: none;">
-                                    <i class="fas fa-xmark"></i>
-                                    Cancel
-                                </button>
-                                <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display: none;">
-                                    <i class="fas fa-save"></i>
-                                    Save Changes
-                                </button>
-                            </div>
                         </div>
 
                         @if(session('success_profile'))
@@ -1503,7 +1502,7 @@
                             </div>
                         @endif
                         @if ($errors->any())
-                            <div class="profile-page-alert" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">
+                            <div class="profile-page-alert error">
                                 <i class="fas fa-triangle-exclamation"></i>
                                 <span>{{ $errors->first() }}</span>
                             </div>
@@ -1530,8 +1529,19 @@
                         </div>
 
                         <div class="profile-page-grid">
-                            <div class="profile-page-panel">
-                                <div class="profile-page-panel-header">Account</div>
+                            <div class="profile-page-panel account-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                            <path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path>
+                                        </svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Account</span>
+                                        <span class="profile-page-panel-note">Identity and contact details</span>
+                                    </div>
+                                </div>
                                 <div class="profile-page-fields">
                                     <div class="form-group">
                                         <label>Account ID</label>
@@ -1548,8 +1558,19 @@
                                 </div>
                             </div>
 
-                            <div class="profile-page-panel">
-                                <div class="profile-page-panel-header">Location</div>
+                            <div class="profile-page-panel location-panel">
+                                <div class="profile-page-panel-header profile-page-panel-header-rich">
+                                    <span class="profile-page-header-icon" aria-hidden="true">
+                                        <svg class="icon-feather" viewBox="0 0 24 24">
+                                            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                    </span>
+                                    <div class="profile-page-panel-heading">
+                                        <span class="profile-page-panel-title">Location</span>
+                                        <span class="profile-page-panel-note">Assigned service area details</span>
+                                    </div>
+                                </div>
                                 <div class="profile-page-fields">
                                     @php
                                         $profileRegion = old('region', Auth::user()->region ?? '');
@@ -1635,6 +1656,20 @@
                                 </div>
                                 <div class="profile-page-help">Leave blank to keep your current password.</div>
                             </div>
+                        </div>
+                        <div class="profile-page-actions">
+                            <button type="button" id="btnEditProfile" onclick="enableProfileEdit()" class="profile-page-btn edit">
+                                <i class="fas fa-pen"></i>
+                                Edit Profile
+                            </button>
+                            <button type="button" id="btnCancelProfile" onclick="cancelProfileEdit()" class="profile-page-btn cancel" style="display: none;">
+                                <i class="fas fa-xmark"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" id="btnSaveProfile" class="profile-page-btn save" style="display: none;">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
                         </div>
                     </div>
                 </form>
