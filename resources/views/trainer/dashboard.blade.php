@@ -1601,7 +1601,10 @@
                 <!-- Upcoming Events List -->
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
                     <h3 style="margin-bottom: 20px; color: var(--primary-blue);">Upcoming Events</h3>
-                    @if($calendarEvents->isEmpty())
+                    @php
+                        $manualEvents = $calendarEvents->filter(fn($e) => !empty($e->id));
+                    @endphp
+                    @if($manualEvents->isEmpty())
                         <div class="empty-state">
                             <i class="fas fa-calendar" style="font-size: 3rem; color: var(--primary-green); margin-bottom: 10px;"></i>
                             <h3>No Events Scheduled</h3>
@@ -1609,7 +1612,7 @@
                         </div>
                     @else
                         <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                            @foreach($calendarEvents as $event)
+                            @foreach($manualEvents as $event)
                                 <div style="border-left: 4px solid var(--primary-green); background: #f9f9f9; padding: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
                                     <div>
                                         <h4 style="margin: 0; color: var(--dark-text);">{{ $event->title }}</h4>
@@ -1624,6 +1627,7 @@
                                             <p style="margin: 5px 0 0; color: #555; font-size: 0.9rem;">{{ $event->description }}</p>
                                         @endif
                                     </div>
+                                    @if($event->id)
                                     <form action="{{ route('trainer.calendar-events.destroy', $event->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event?');">
                                         @csrf
                                         @method('DELETE')
@@ -1631,6 +1635,7 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

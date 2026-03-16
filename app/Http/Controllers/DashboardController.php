@@ -354,6 +354,24 @@ class DashboardController extends Controller
                 $announcements = Announcement::with('user')->latest()->get();
                 $calendarEvents = CalendarEvent::where('user_id', $user->id)->orderBy('start_time')->get();
 
+                // Add Course start and end dates as calendar events
+                foreach ($myCourses as $course) {
+                    if ($course->start_date) {
+                        $calendarEvents->push(new CalendarEvent([
+                            'title' => $course->name . ' (Starts)',
+                            'start_time' => $course->start_date->startOfDay(),
+                            'type' => 'class',
+                        ]));
+                    }
+                    if ($course->end_date) {
+                        $calendarEvents->push(new CalendarEvent([
+                            'title' => $course->name . ' (Ends)',
+                            'start_time' => $course->end_date->endOfDay(),
+                            'type' => 'deadline',
+                        ]));
+                    }
+                }
+
                 // Fetch Notifications
                 $notifications = Notification::where('user_id', $user->id)
                     ->orderBy('created_at', 'desc')
@@ -530,6 +548,24 @@ class DashboardController extends Controller
                 $calendarEvents = CalendarEvent::where('user_id', $user->id)
                     ->orderBy('start_time', 'asc')
                     ->get();
+
+                // Add Course start and end dates as calendar events
+                foreach ($myCourses as $course) {
+                    if ($course->start_date) {
+                        $calendarEvents->push(new CalendarEvent([
+                            'title' => $course->name . ' (Starts)',
+                            'start_time' => $course->start_date->startOfDay(),
+                            'type' => 'class',
+                        ]));
+                    }
+                    if ($course->end_date) {
+                        $calendarEvents->push(new CalendarEvent([
+                            'title' => $course->name . ' (Ends)',
+                            'start_time' => $course->end_date->endOfDay(),
+                            'type' => 'deadline',
+                        ]));
+                    }
+                }
 
                 // Fetch Notifications
                 $notifications = Notification::where('user_id', $user->id)
