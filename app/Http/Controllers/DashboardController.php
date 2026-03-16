@@ -365,8 +365,16 @@ class DashboardController extends Controller
 
                 return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
             case in_array($user->role, $tmRoles, true):
-                // Training Managers should only manage core roles regardless of office level
-                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+                $managedRoles = [];
+                if ($user->role === 'central_office_training_manager') {
+                    $managedRoles = ['central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants'];
+                } elseif ($user->role === 'regional_office_training_manager') {
+                    $managedRoles = ['regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants'];
+                } elseif ($user->role === 'provincial_office_training_manager') {
+                    $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
+                } else {
+                    $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+                }
                 $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
                 $unapprovedCount = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
@@ -612,8 +620,17 @@ class DashboardController extends Controller
         $actor = Auth::user();
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
         if ($actor && (in_array($actor->role, $tmRoles) || $actor->role === 'registrar')) {
-            // Training Managers and Registrars are limited to core roles only
-            $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+            // Determine managed roles based on the actor's level
+            $managedRoles = [];
+            if ($actor->role === 'central_office_training_manager') {
+                $managedRoles = ['central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants'];
+            } elseif ($actor->role === 'regional_office_training_manager') {
+                $managedRoles = ['regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants'];
+            } elseif ($actor->role === 'provincial_office_training_manager') {
+                $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
+            } else {
+                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+            }
 
             // Training Managers and Registrars may only change role and status
             $validated = $request->validate([
