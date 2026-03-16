@@ -1119,11 +1119,17 @@
                         @if(!empty($asTrainer))
                             @php
                                 $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                // Check if user is the creator OR is in the coaches list resolved by controller
+                                $isCreator = $course->trainer_id === auth()->id();
+                                $isInCoaches = isset($coaches) && $coaches->pluck('id')->contains(auth()->id());
+                                $isAttached = $course->users->pluck('id')->contains(auth()->id());
                             @endphp
-                            @if(in_array(auth()->user()->role, $managedCoachRoles) && (!$course->trainer_id || auth()->id() === $course->trainer_id))
-                                <button class="hero-btn" onclick="openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')">
-                                    <i class="fas fa-calendar-check"></i> Set Schedule
-                                </button>
+                            @if(in_array(auth()->user()->role, $managedCoachRoles, true) && ($isCreator || $isInCoaches || $isAttached))
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="hero-btn ghost" onclick="openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')">
+                                        <i class="fas fa-clock"></i> Course Duration
+                                    </button>
+                                </div>
                             @endif
                         @endif
                     </div>
@@ -1144,6 +1150,56 @@
                             <div class="avatar"><i class="fas fa-align-left"></i></div>
                             <div>About this course</div>
                         </div>
+
+                        {{-- Enrollment Status and Action for Trainees --}}
+                        @if(empty($asTrainer))
+                            <div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                                    <div>
+                                        <div style="font-weight: 800; color: #1e293b; margin-bottom: 4px;">Enrollment Status</div>
+                                        @if(!$course->trainer_ready)
+                                            <span class="status-badge status-not-set" style="margin: 0;">
+                                                <i class="fas fa-hourglass-start"></i> Waiting for Trainer Schedule
+                                            </span>
+                                        @elseif($course->isEnrollable())
+                                            <span class="status-badge status-ongoing" style="margin: 0;">
+                                                <i class="fas fa-check-circle"></i> Enrollment Open
+                                            </span>
+                                            <div class="muted" style="font-size: 0.8rem; margin-top: 4px;">
+                                                Closes: {{ $course->enrollment_end ? $course->enrollment_end->format('M d, Y g:i A') : 'TBA' }}
+                                            </div>
+                                        @else
+                                            <span class="status-badge status-completed" style="margin: 0;">
+                                                <i class="fas fa-times-circle"></i> Enrollment Closed
+                                            </span>
+                                            @if($course->enrollment_start && now()->lt($course->enrollment_start))
+                                                <div class="muted" style="font-size: 0.8rem; margin-top: 4px;">
+                                                    Opens: {{ $course->enrollment_start->format('M d, Y g:i A') }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    @php
+                                        $isEnrolled = $course->users && $course->users->contains(auth()->id());
+                                    @endphp
+
+                                    @if($isEnrolled)
+                                        <button class="hero-btn" style="background: #10b981; cursor: default;" disabled>
+                                            <i class="fas fa-check"></i> Already Enrolled
+                                        </button>
+                                    @else
+                                        <form action="{{ route('courses.join', $course) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="hero-btn {{ !$course->isEnrollable() ? 'disabled' : '' }}" {{ !$course->isEnrollable() ? 'disabled' : '' }}>
+                                                <i class="fas fa-user-plus"></i> Enroll Now
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
                         @if(!empty($course->description))
                             <div class="muted">{{ $course->description }}</div>
                         @else
@@ -2090,6 +2146,50 @@
         </div>
     </div>
 
+    <!-- Enrollment Schedule Modal -->
+    <div id="enrollmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-plus"></i> Set Enrollment Schedule
+                </h3>
+                <button type="button" class="close-modal" onclick="closeEnrollmentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="enrollmentForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="enroll_start">Enrollment Start</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="datetime-local" name="enrollment_start" id="enroll_start" class="form-control-pro" required>
+                        </div>
+                        <span class="form-help">Date and time when trainees can start enrolling.</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="enroll_end">Enrollment End</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-check"></i>
+                            <input type="datetime-local" name="enrollment_end" id="enroll_end" class="form-control-pro" required>
+                        </div>
+                        <span class="form-help">Date and time when enrollment closes.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="hero-btn ghost" style="box-shadow: none; margin: 0;" onclick="closeEnrollmentModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="hero-btn" style="margin: 0;">
+                        <i class="fas fa-save"></i> Save Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openDurationModal(courseId, startDate, endDate) {
             const modal = document.getElementById('durationModal');
@@ -2108,12 +2208,29 @@
             document.getElementById('durationModal').classList.remove('active');
         }
 
+        function openEnrollmentModal(courseId, startDate, endDate) {
+            const modal = document.getElementById('enrollmentModal');
+            const form = document.getElementById('enrollmentForm');
+            const startInput = document.getElementById('enroll_start');
+            const endInput = document.getElementById('enroll_end');
+
+            form.action = `/trainer/courses/${courseId}/enrollment-schedule`;
+            startInput.value = startDate;
+            endInput.value = endDate;
+
+            modal.classList.add('active');
+        }
+
+        function closeEnrollmentModal() {
+            document.getElementById('enrollmentModal').classList.remove('active');
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('durationModal');
-            if (event.target == modal) {
-                closeDurationModal();
-            }
+            const dModal = document.getElementById('durationModal');
+            const eModal = document.getElementById('enrollmentModal');
+            if (event.target == dModal) closeDurationModal();
+            if (event.target == eModal) closeEnrollmentModal();
         }
     </script>
 </body>

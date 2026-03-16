@@ -449,6 +449,7 @@ class CourseController extends Controller
         $course = Course::create($validated);
 
         if (auth()->check()) {
+            // Ensure the creator is attached as a user with active status
             if (!$course->users()->where('user_id', auth()->id())->exists()) {
                 $course->users()->attach(auth()->id(), ['status' => 'active']);
             }
@@ -827,8 +828,13 @@ class CourseController extends Controller
                 'enrollment_start_at' => 'required|date',
                 'enrollment_end_at' => 'required|date|after_or_equal:enrollment_start_at',
             ]);
+            // Legacy fields for backward compatibility
             $course->enrollment_start_at = $data['enrollment_start_at'];
             $course->enrollment_end_at = $data['enrollment_end_at'];
+            
+            // New fields used by isEnrollable()
+            $course->enrollment_start = $data['enrollment_start_at'];
+            $course->enrollment_end = $data['enrollment_end_at'];
         }
         $course->is_published = $published;
         $course->save();
@@ -1097,25 +1103,67 @@ class CourseController extends Controller
             return back()->with('error', 'Unauthorized access.');
         }
 
-        // Based on requirement: "Only allow updates if: course.trainer_id == authenticated_user.id"
-        // But for existing courses with NULL trainer_id, we allow the first trainer to update and take ownership.
-        if ($course->trainer_id && $course->trainer_id !== $user->id) {
-            return back()->with('error', 'You can only modify your own courses.');
+        // Allow update if:
+        // 1. User is the creator (trainer_id)
+        // 2. OR user is attached to the course as a coach/trainer
+        $isCreator = $course->trainer_id === $user->id;
+        $isAttached = $course->users()->where('user_id', $user->id)->exists();
+
+        if (!$isCreator && !$isAttached) {
+            return back()->with('error', 'You can only modify courses assigned to you.');
         }
+
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
 
         // Assign ownership if not yet set
         if (!$course->trainer_id) {
             $validated['trainer_id'] = $user->id;
         }
 
-        $validated = array_merge($validated, $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ]));
+        // Setting the duration also signifies the trainer is ready for enrollment
+        $validated['trainer_ready'] = true;
 
         $course->update($validated);
 
         return back()->with('success', 'Course duration updated successfully.');
+    }
+
+    /**
+     * Set the enrollment schedule for a course (Trainer only).
+     */
+    public function setEnrollmentSchedule(\Illuminate\Http\Request $request, Course $course)
+    {
+        $user = auth()->user();
+        $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $tmRoles = ['admin', 'training_manager', 'registrar', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'];
+        
+        $isTrainer = in_array($user->role, $managedCoachRoles, true);
+        $isRegistrar = in_array($user->role, $tmRoles, true);
+
+        if (!$user || (!$isTrainer && !$isRegistrar)) {
+            return back()->with('error', 'Unauthorized access.');
+        }
+
+        // If it's a trainer, they must own the course
+        if ($isTrainer && !$isRegistrar && $course->trainer_id !== $user->id) {
+            return back()->with('error', 'You can only modify your own courses.');
+        }
+
+        $validated = $request->validate([
+            'enrollment_start' => 'required|date',
+            'enrollment_end' => 'required|date|after_or_equal:enrollment_start',
+        ]);
+
+        $course->update([
+            'enrollment_start' => $validated['enrollment_start'],
+            'enrollment_end' => $validated['enrollment_end'],
+            'trainer_ready' => true,
+        ]);
+
+        return back()->with('success', 'Enrollment schedule has been set successfully. Trainees can now enroll during the specified period.');
     }
 
     public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)

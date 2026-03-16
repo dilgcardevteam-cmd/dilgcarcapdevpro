@@ -503,18 +503,37 @@
                             @endphp
                             <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
+                                @php
+                                    $status = $course->course_status;
+                                    $statusClass = match($status) {
+                                        'Upcoming' => 'status-upcoming',
+                                        'Ongoing' => 'status-ongoing',
+                                        'Completed' => 'status-completed',
+                                        default => 'status-not-set'
+                                    };
+                                @endphp
+                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                <div class="course-schedule">
+                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
+                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                </div>
                                 @php
-                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
-                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
+                                    $enrollable = $course->isEnrollable();
                                 @endphp
-                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        @if(!$enrollable)
+                                            <button class="btn-view" style="background-color: #94a3b8; cursor: not-allowed; opacity: 0.7;" disabled title="Enrollment is currently closed or schedule not set by trainer">Enrollment Closed</button>
+                                        @else
+                                            <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        @endif
                                         <button class="btn-view" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
                                     </div>
                                 </div>

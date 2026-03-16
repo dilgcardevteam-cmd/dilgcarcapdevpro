@@ -1196,12 +1196,11 @@
                                 @php
                                     $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
                                     $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
-                                    $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                                @endphp
-                                @php
-                                    $s = optional($course->enrollment_start_at)->format('M d, Y');
-                                    $e = optional($course->enrollment_end_at)->format('M d, Y');
-                                    $closed = $course->enrollment_end_at && $course->enrollment_end_at->isPast();
+                                    
+                                    // Enrollment info from Trainer's schedule
+                                    $s = $course->enrollment_start ? $course->enrollment_start->format('M d, Y') : null;
+                                    $e = $course->enrollment_end ? $course->enrollment_end->format('M d, Y') : null;
+                                    $enrollable = $course->isEnrollable();
                                 @endphp
                                 @if($s || $e)
                                     <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">
@@ -1211,8 +1210,8 @@
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
-                                        @if($closed)
-                                            <span class="status-chip" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
+                                        @if(!$enrollable)
+                                            <button class="btn-view" style="background-color: #94a3b8; cursor: not-allowed; opacity: 0.7;" disabled title="Enrollment is currently closed or schedule not set by trainer">Enrollment Closed</button>
                                         @else
                                             <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
                                         @endif

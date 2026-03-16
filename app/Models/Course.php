@@ -24,6 +24,9 @@ class Course extends Model
         'trainer_id',
         'start_date',
         'end_date',
+        'trainer_ready',
+        'enrollment_start',
+        'enrollment_end',
     ];
 
     protected $casts = [
@@ -33,7 +36,39 @@ class Course extends Model
         'enrollment_end_at' => 'date',
         'start_date' => 'date',
         'end_date' => 'date',
+        'trainer_ready' => 'boolean',
+        'enrollment_start' => 'datetime',
+        'enrollment_end' => 'datetime',
     ];
+
+    /**
+     * Check if the course is currently enrollable.
+     */
+    public function isEnrollable()
+    {
+        if (!$this->is_published) {
+            return false;
+        }
+
+        // If trainer hasn't set their schedule yet, we fallback to Registrar's schedule if available,
+        // or just check trainer_ready flag based on your new double-gated requirement.
+        if (!$this->trainer_ready) {
+            return false;
+        }
+
+        $now = now();
+        
+        // Use the enrollment dates set by Registrar (which are saved in enrollment_start/end via the new method)
+        if ($this->enrollment_start && $now->lt($this->enrollment_start)) {
+            return false;
+        }
+
+        if ($this->enrollment_end && $now->gt($this->enrollment_end)) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Get the trainer/creator of the course.

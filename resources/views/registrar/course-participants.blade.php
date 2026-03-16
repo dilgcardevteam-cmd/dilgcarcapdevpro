@@ -198,6 +198,19 @@
                         </div>
                     </div>
                 </div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <button class="btn-primary" onclick="openEnrollmentModal('{{ $course->enrollment_start ? $course->enrollment_start->format('Y-m-d\TH:i') : '' }}', '{{ $course->enrollment_end ? $course->enrollment_end->format('Y-m-d\TH:i') : '' }}')">
+                        <i class="fas fa-calendar-alt"></i> Set Enrollment Schedule
+                    </button>
+                    <span style="margin-left: 10px; font-size: 0.9rem; color: #666;">
+                        @if($course->enrollment_start || $course->enrollment_end)
+                            Current: {{ $course->enrollment_start ? $course->enrollment_start->format('M d, Y g:i A') : 'TBA' }} - {{ $course->enrollment_end ? $course->enrollment_end->format('M d, Y g:i A') : 'TBA' }}
+                        @else
+                            Schedule not set
+                        @endif
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -384,21 +397,62 @@
     <div id="manualEnrollModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Participant</h2>
-                <span class="close" onclick="closeManualEnrollModal()">&times;</span>
+                <h3 class="modal-title">Add Participants</h3>
+                <button type="button" class="close-modal" onclick="closeManualEnrollModal()">&times;</button>
             </div>
             <form action="{{ route('courses.participants.manual', $course->id) }}" method="POST">
                 @csrf
                 <div class="form-group">
-                    <label for="manual_account_id">Account ID</label>
-                    <input type="text" id="manual_account_id" name="account_id" required placeholder="Enter Account ID">
+                    <label class="form-label">Select Users</label>
+                    <div style="max-height:200px;overflow-y:auto;border:1px solid #ddd;padding:10px;border-radius:4px;">
+                        @foreach($potentialTrainees as $pt)
+                            <label style="display:block;margin-bottom:5px;">
+                                <input type="checkbox" name="user_ids[]" value="{{ $pt->id }}"> {{ $pt->name }} ({{ $pt->email }})
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="manual_name">Participant Name</label>
-                    <input type="text" id="manual_name" name="name" required placeholder="Enter Full Name">
+                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
+                    <button type="button" class="btn" style="background:#eee;color:#333" onclick="closeManualEnrollModal()">Cancel</button>
+                    <button type="submit" class="btn btn-blue">Add Selected</button>
                 </div>
-                <div style="text-align:right;margin-top:20px;">
-                    <button type="submit" class="btn btn-blue">Enroll Participant</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enrollment Schedule Modal -->
+    <div id="enrollmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-plus"></i> Set Enrollment Schedule
+                </h3>
+                <button type="button" class="close-modal" onclick="closeEnrollmentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="enrollmentForm" method="POST" action="{{ route('trainer.courses.enrollment-schedule', $course->id) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" for="enroll_start" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment Start</label>
+                        <input type="datetime-local" name="enrollment_start" id="enroll_start" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
+                        <small style="color:#666;display:block;margin-top:4px;">Date and time when trainees can start enrolling.</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" for="enroll_end" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment End</label>
+                        <input type="datetime-local" name="enrollment_end" id="enroll_end" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
+                        <small style="color:#666;display:block;margin-top:4px;">Date and time when enrollment closes.</small>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding:15px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px;">
+                    <button type="button" class="btn" style="background:#eee;color:#333;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;" onclick="closeEnrollmentModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-blue" style="background:#007bff;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">
+                        <i class="fas fa-save"></i> Save Schedule
+                    </button>
                 </div>
             </form>
         </div>
@@ -411,10 +465,29 @@
         document.getElementById('manualEnrollModal').style.display = 'none';
     }
     window.onclick = function(event) {
-        const modal = document.getElementById('manualEnrollModal');
-        if (event.target == modal) {
+        const manualModal = document.getElementById('manualEnrollModal');
+        if (event.target == manualModal) {
             closeManualEnrollModal();
         }
+        const enrollmentModal = document.getElementById('enrollmentModal');
+        if (event.target == enrollmentModal) {
+            closeEnrollmentModal();
+        }
+    }
+
+    function openEnrollmentModal(start, end) {
+        const modal = document.getElementById('enrollmentModal');
+        const startInput = document.getElementById('enroll_start');
+        const endInput = document.getElementById('enroll_end');
+
+        if(start) startInput.value = start;
+        if(end) endInput.value = end;
+
+        modal.style.display = 'flex';
+    }
+
+    function closeEnrollmentModal() {
+        document.getElementById('enrollmentModal').style.display = 'none';
     }
     // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn=>{
