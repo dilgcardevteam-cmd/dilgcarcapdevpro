@@ -1088,8 +1088,7 @@
                                     $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
-                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
+
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
@@ -1142,12 +1141,25 @@
                                     $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
-                                <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
+                                @php
+                                    $s = optional($course->enrollment_start_at)->format('M d, Y');
+                                    $e = optional($course->enrollment_end_at)->format('M d, Y');
+                                    $closed = $course->enrollment_end_at && $course->enrollment_end_at->isPast();
+                                @endphp
+                                @if($s || $e)
+                                    <p style="color: var(--light-text); margin: 6px 0 0; font-size: 0.85rem;">
+                                        <span style="margin-left:1px">Enrollment: {{ $s ?: '—' }} — {{ $e ?: '—' }}</span>
+                                    </p>
+                                @endif
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        @if($closed)
+                                            <span class="status-chip" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
+                                            <button class="btn-view" style="background:#e5e7eb;color:#64748b;pointer-events:none;cursor:not-allowed" onclick="event.stopPropagation();return false;">Closed</button>
+                                        @else
+                                            <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
+                                        @endif
                                         <button class="btn-view" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
                                     </div>
                                 </div>

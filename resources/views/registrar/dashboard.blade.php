@@ -1791,6 +1791,16 @@
                                                 <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                             </div>
+                                            @php
+                                                $s = optional($course->enrollment_start_at)->format('M d, Y');
+                                                $e = optional($course->enrollment_end_at)->format('M d, Y');
+                                            @endphp
+                                            @if($s || $e)
+                                                <div class="muted" style="font-size:.85rem;margin-top:6px">
+                                                    <i class="fas fa-calendar-alt" style="color:#0f3b8f"></i>
+                                                    <span style="margin-left:6px">Enrollment: {{ $s ?: '—' }} — {{ $e ?: '—' }}</span>
+                                                </div>
+                                            @endif
                                             <div style="display:flex;align-items:center;gap:8px">
                                                 <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0">
                                                     Published

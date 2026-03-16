@@ -1759,6 +1759,14 @@ class CourseController extends Controller
     {
         $user = auth()->user();
 
+        // Enrollment window check
+        if ($course->enrollment_end_at && $course->enrollment_end_at->isPast()) {
+            return redirect()->route('dashboard')->with('error', 'Enrollment for this course is closed.');
+        }
+        if ($course->enrollment_start_at && now()->lt($course->enrollment_start_at)) {
+            return redirect()->route('dashboard')->with('error', 'Enrollment for this course has not started yet.');
+        }
+
         // Check if already enrolled or pending
         if ($course->users()->where('user_id', $user->id)->exists()) {
             return redirect()->route('dashboard')->with('error', 'You have already requested to join or are enrolled in this course.');
