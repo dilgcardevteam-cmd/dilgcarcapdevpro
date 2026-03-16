@@ -557,6 +557,34 @@
             </section>
             <section id="trainer-trainee-management" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    @php
+                        $totalCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->count() : 0;
+                        $unpublishedCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> !(bool)($c->is_published ?? false))->count() : 0;
+                        $publishedCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> (bool)($c->is_published ?? false))->count() : 0;
+                    @endphp
+                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#f8fafc">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eef2ff;color:#4f46e5"><i class="fas fa-layer-group"></i></div>
+                                <div style="font-weight:700;color:#0f172a">Courses</div>
+                            </div>
+                            <div style="font-weight:800;font-size:1.4rem;color:#0f172a">{{ $totalCourses }}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff7ed">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#ffedd5;color:#9a3412"><i class="fas fa-eye-slash"></i></div>
+                                <div style="font-weight:700;color:#9a3412">Unpublished Courses</div>
+                            </div>
+                            <div style="font-weight:800;font-size:1.4rem;color:#9a3412">{{ $unpublishedCount }}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#ecfdf5">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#d1fae5;color:#065f46"><i class="fas fa-bullhorn"></i></div>
+                                <div style="font-weight:700;color:#065f46">Published Courses</div>
+                            </div>
+                            <div style="font-weight:800;font-size:1.4rem;color:#065f46">{{ $publishedCount }}</div>
+                        </div>
+                    </div>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <i class="fas fa-chalkboard-teacher" style="color:#002C76;"></i>
