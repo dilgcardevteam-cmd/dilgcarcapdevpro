@@ -2419,17 +2419,7 @@
                                     @endphp
                                     <div class="form-group">
                                         @if($isCentral)
-<<<<<<< Updated upstream
                                         <label>Office Level</label>
-=======
-                                        <label class="profile-field-label">
-                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path>
-                                                <circle cx="12" cy="10" r="3"></circle>
-                                            </svg>
-                                            Office Level
-                                        </label>
->>>>>>> Stashed changes
                                         @else
                                         <label>{{ ($isCentral || $isRegional || $isProvincial) ? 'Office Level' : 'Region' }}</label>
                                         @endif
@@ -2450,19 +2440,14 @@
                                     </div>
                                     <div class="form-group">
                                         @if($isCentral)
-                                        <label class="profile-field-label">
-                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polygon points="1,6 1,22 8,19 16,22 23,19 23,3 16,6 8,3 1,6"></polygon>
-                                                <line x1="8" y1="3" x2="8" y2="19"></line>
-                                                <line x1="16" y1="6" x2="16" y2="22"></line>
-                                            </svg>
-                                            Office Type
-                                        </label>
+                                        <label>Office Type</label>
                                         @else
                                         <label>Province</label>
                                         @endif
                                         <select id="profile_province" name="province" class="profile-input" data-selected="{{ $profileProvince }}" disabled>
-                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>
+                                                {{ $isCentral ? 'Select Office Type' : 'Select Province' }}
+                                            </option>
                                             @if($profileProvince)
                                                 <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
                                             @endif
@@ -2470,21 +2455,14 @@
                                     </div>
                                     <div class="form-group">
                                         @if($isCentral)
-<<<<<<< Updated upstream
                                         <label>Service</label>
-=======
-                                        <label class="profile-field-label">
-                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polygon points="3,11 22,2 13,21 11,13 3,11"></polygon>
-                                            </svg>
-                                            Service
-                                        </label>
->>>>>>> Stashed changes
                                         @else
                                         <label>City / Municipality</label>
                                         @endif
                                         <select id="profile_city" name="city" class="profile-input" data-selected="{{ $profileCity }}" disabled>
-                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>
+                                                {{ $isCentral ? 'Select Service' : 'Select City/Municipality' }}
+                                            </option>
                                             @if($profileCity)
                                                 <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
                                             @endif

@@ -104,15 +104,9 @@
         .mc-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
         .btn-green{flex:1;min-width:160px;background:var(--b);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-weight:700;cursor:pointer}
         .btn-green:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}
-<<<<<<< HEAD
-<<<<<<< HEAD
         .mc-actions [data-act="feedback"]{background:#fff;color:#0f3b8f;border:1px solid #c7d2fe}
         .mc-actions [data-act="reset"]{background:#0f3b8f;color:#fff}
         .mc-feedback{margin-top:8px;font-weight:700;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
-=======
-=======
->>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
-        .mc-feedback{margin-top:8px;font-weight:700}
         .btn-blue{
             background:linear-gradient(90deg,#002C76 0%, #0f3b8f 100%);
             color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;
@@ -121,10 +115,6 @@
         }
         .btn-blue:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(0,44,118,.28); filter:brightness(1.03); }
         .btn-blue:disabled{ background:#e5e7eb;color:#9ca3af;cursor:not-allowed; box-shadow:none; }
-<<<<<<< HEAD
->>>>>>> 784202431884b5fe0713b51cfac0955a87223c63
-=======
->>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .view-only .module-bar,
         .view-only .module-kpi,
         .view-only .done-toggle,
@@ -248,14 +238,11 @@
         .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
         .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
-<<<<<<< HEAD
         .mc .mc-option{background:#fff;border:1px solid #e6edf5}
         .mc .mc-option:hover{background:#f5f8ff}
         .mc .mc-option.selected{background:#eef2ff;border-color:#c7d2fe}
         .mc-actions{gap:10px}
         .btn-ghost{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;background:#fff;font-weight:700}
-=======
->>>>>>> fc1b73832febb5eb8213c8b0091e514ff787652b
         .pane{
             border-radius:16px;
             box-shadow:0 14px 30px rgba(15,23,42,.14);
