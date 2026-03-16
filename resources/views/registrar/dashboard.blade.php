@@ -1150,11 +1150,11 @@
                 <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
-                <li class="menu-item {{ !request()->hasAny(['search', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
+                <li class="menu-item {{ !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                     <div class="menu-icon"><i class="fas fa-home"></i></div>
                     <span class="menu-text">Dashboard</span>
                 </li>
-                <li class="menu-item {{ request()->hasAny(['search', 'statuses', 'roles', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
+                <li class="menu-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
@@ -1172,7 +1172,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Home Section -->
-            <section id="dashboard-home" class="content-section {{ !request()->hasAny(['search', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}">
+            <section id="dashboard-home" class="content-section {{ !request('tab') ? 'active' : '' }}">
                 <div class="control-hero">
                     <div class="control-hero-left">
                         <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center"><i class="fas fa-gauge-high"></i></div>
@@ -1507,7 +1507,7 @@
             </section>
 
             <!-- User Management Section -->
-            <section id="user-management" class="content-section {{ request()->hasAny(['search', 'statuses', 'roles', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}">
+            <section id="user-management" class="content-section {{ request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
                     
                     @if(session('success_user'))
@@ -2296,6 +2296,12 @@
         const selectedSection = document.getElementById(sectionId);
         if (selectedSection) {
             selectedSection.classList.add('active');
+        }
+        if (sectionId === 'trainer-trainee-management') {
+            const published = document.getElementById('published-courses');
+            if (published) {
+                published.classList.add('active');
+            }
         }
 
         const menuItems = document.querySelectorAll('.menu-item');
