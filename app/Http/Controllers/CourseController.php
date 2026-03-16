@@ -1931,13 +1931,22 @@ class CourseController extends Controller
         return redirect()->route('dashboard')->with('success_join', 'You have been successfully enrolled in the course.');
     }
 
-    public function notifyIncompleteParticipants(Course $course)
+    public function notifyIncompleteParticipants(Request $request, Course $course)
     {
+        $userId = $request->input('user_id');
         $participantRoles = ['participant', 'trainee', 'central_office_participants', 'regional_office_participants', 'provincial_office_participants'];
-        $participants = $course->users()->whereIn('role', $participantRoles)->wherePivot('status', 'active')->get();
+        
+        $query = $course->users()->whereIn('role', $participantRoles)->wherePivot('status', 'active');
+        
+        if ($userId) {
+            $query->where('users.id', $userId);
+        }
+        
+        $participants = $query->get();
 
         $modules = is_array($course->modules) ? $course->modules : [];
 
+        $sentCount = 0;
         foreach ($participants as $participant) {
             $incompleteActivities = [];
 
@@ -1975,9 +1984,14 @@ class CourseController extends Controller
 
             if (!empty($incompleteActivities)) {
                 Mail::to($participant->email)->send(new IncompleteActivityReminder($course, $participant, $incompleteActivities));
+                $sentCount++;
             }
         }
 
-        return response()->json(['message' => 'Notifications sent successfully.']);
+        $message = $sentCount > 0 
+            ? "Notifications sent successfully to {$sentCount} participant(s)." 
+            : "No incomplete activities found. No notifications sent.";
+
+        return response()->json(['message' => $message]);
     }
 }

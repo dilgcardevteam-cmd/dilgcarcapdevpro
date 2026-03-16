@@ -2070,6 +2070,7 @@
                         colPlan.push({type:'exam', mi: idx, pass: m?.passing_score ?? null});
                     }
                 });
+                h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Notify</th>`);
                 if(thead){ thead.innerHTML = `<tr>${h1.join('')}</tr>`; }
                 const rows = users.map(u=>{
                     const first = `<td style="position:sticky;left:0;background:#fff;z-index:1;padding:10px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#0f172a">${u.name||('User '+u.user_id)}</td>`;
@@ -2085,7 +2086,12 @@
                             return gradeCell(s.exam_pct, plan.pass ?? null);
                         }
                     }).join('');
-                    return `<tr>${first}${cells}</tr>`;
+                    const notifyBtn = `<td style="text-align:center;border-bottom:1px solid #e5e7eb">
+                        <button onclick="notifyIndividual(${u.user_id}, this)" class="btn-cta" style="background-color: #C9282D; padding: 4px 8px; font-size: 0.7rem; margin: 0;">
+                            <i class="fas fa-bell"></i> Notify
+                        </button>
+                    </td>`;
+                    return `<tr>${first}${cells}${notifyBtn}</tr>`;
                 }).join('');
                 if(tbody){
                     if(users.length === 0){
@@ -2227,6 +2233,35 @@
 
         function closeEnrollmentModal() {
             document.getElementById('enrollmentModal').classList.remove('active');
+        }
+
+        function notifyIndividual(userId, btn) {
+            if (confirm('Send an email reminder to this participant about their incomplete activities?')) {
+                const originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                fetch("{{ route('trainer.courses.notify-incomplete', $course) }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    alert(data.message);
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the notification.');
+                });
+            }
         }
 
         // Close modal when clicking outside
