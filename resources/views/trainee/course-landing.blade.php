@@ -189,6 +189,161 @@
         .forum-card.selected{outline:3px solid #0f3b8f;outline-offset:0;border-color:#bfd7ff}
         .asm-details{display:none;margin-top:10px;background:#f1f6ff;border:1px solid #d6e4ff;border-radius:10px;padding:12px;color:#0f172a}
         .forum-title{font-weight:700;color:#0f172a}
+
+        /* Professional Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal.active { 
+            display: flex; 
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 0;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f3b8f;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .close-modal {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #e2e8f0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .close-modal:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        .form-label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 700; 
+            color: #334155; 
+            font-size: 0.9rem; 
+        }
+        .input-with-icon {
+            position: relative;
+        }
+        .input-with-icon i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        .form-control-pro { 
+            width: 100%; 
+            padding: 12px 14px 12px 40px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            font-size: 1rem;
+            color: #1e293b;
+            transition: all 0.2s;
+            background-color: #ffffff;
+        }
+        .form-control-pro:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: #fff;
+        }
+        .form-help {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Course Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .status-upcoming { background-color: #fef3c7; color: #92400e; }
+        .status-ongoing { background-color: #dcfce7; color: #166534; }
+        .status-completed { background-color: #fee2e2; color: #991b1b; }
+        .status-not-set { background-color: #f3f4f6; color: #374151; }
+
+        .course-schedule-info {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .course-schedule-info div { display: flex; align-items: center; gap: 8px; }
+        .course-schedule-info i { color: #0f3b8f; }
+
         .disc-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:10px 0 12px}
         .disc-tab{position:relative;padding:10px 14px;font-weight:700;color:#64748b;background:transparent;border:none;cursor:pointer;border-radius:8px 8px 0 0;display:inline-flex;align-items:center;gap:8px}
         .disc-tab:hover{background:#f2f6ff;color:#0f3b8f}
@@ -938,7 +1093,41 @@
                     @if (!empty($course->subject_area))
                         <span class="chip"><i class="fas fa-layer-group"></i> {{ $course->subject_area }}</span>
                     @endif
-                    <div class="title">{{ $course->name }}</div>
+                    
+                    @php
+                        $status = $course->course_status;
+                        $statusClass = match($status) {
+                            'Upcoming' => 'status-upcoming',
+                            'Ongoing' => 'status-ongoing',
+                            'Completed' => 'status-completed',
+                            default => 'status-not-set'
+                        };
+                    @endphp
+                    <div style="margin-top: 10px;">
+                        <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 300px;">
+                            <div class="title">{{ $course->name }}</div>
+                            <div class="course-schedule-info">
+                                <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
+                                <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                            </div>
+                        </div>
+                        
+                        @if(!empty($asTrainer))
+                            @php
+                                $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
+                            @endphp
+                            @if(in_array(auth()->user()->role, $managedCoachRoles) && (!$course->trainer_id || auth()->id() === $course->trainer_id))
+                                <button class="hero-btn" onclick="openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')">
+                                    <i class="fas fa-calendar-check"></i> Set Schedule
+                                </button>
+                            @endif
+                        @endif
+                    </div>
+
                     <div class="tabs" role="tablist">
                         <button id="tabBtnStream" class="tab active" onclick="switchTo('Stream')" role="tab" aria-controls="paneStream" aria-selected="true">Stream</button>
                         <button id="tabBtnClasswork" class="tab" onclick="switchTo('Classwork')" role="tab" aria-controls="paneClasswork" aria-selected="false" tabindex="-1">Classwork</button>
@@ -1856,6 +2045,76 @@
                 renderParticipantProgress();
             }
         });
+    </script>
+    <!-- Duration Modal -->
+    <div id="durationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-calendar-alt"></i> Set Course Duration
+                </h3>
+                <button type="button" class="close-modal" onclick="closeDurationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="durationForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="start_date">Start Date</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-day"></i>
+                            <input type="date" name="start_date" id="start_date" class="form-control-pro" required>
+                        </div>
+                        <span class="form-help"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="end_date">End Date</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-check"></i>
+                            <input type="date" name="end_date" id="end_date" class="form-control-pro" required>
+                        </div>
+                        <span class="form-help"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="hero-btn ghost" style="box-shadow: none; margin: 0;" onclick="closeDurationModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="hero-btn" style="margin: 0;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openDurationModal(courseId, startDate, endDate) {
+            const modal = document.getElementById('durationModal');
+            const form = document.getElementById('durationForm');
+            const startInput = document.getElementById('start_date');
+            const endInput = document.getElementById('end_date');
+
+            form.action = `/trainer/courses/${courseId}/duration`;
+            startInput.value = startDate;
+            endInput.value = endDate;
+
+            modal.classList.add('active');
+        }
+
+        function closeDurationModal() {
+            document.getElementById('durationModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('durationModal');
+            if (event.target == modal) {
+                closeDurationModal();
+            }
+        }
     </script>
 </body>
 </html>

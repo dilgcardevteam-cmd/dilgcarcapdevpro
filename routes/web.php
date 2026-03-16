@@ -93,6 +93,8 @@ Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLandin
 Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
 // Trainer: update course banner image only
 Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.image');
+// Trainer: update course duration
+Route::put('/trainer/courses/{course}/duration', [CourseController::class, 'updateDuration'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.duration');
 // Module Exam submissions and results
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');

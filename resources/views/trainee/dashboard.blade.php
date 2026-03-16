@@ -363,6 +363,31 @@
             opacity:1;
         }
 
+        /* Course Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .status-upcoming { background-color: #fef3c7; color: #92400e; }
+        .status-ongoing { background-color: #dcfce7; color: #166534; }
+        .status-completed { background-color: #fee2e2; color: #991b1b; }
+        .status-not-set { background-color: #f3f4f6; color: #374151; }
+
+        .course-schedule {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .course-schedule i { width: 16px; text-align: center; margin-right: 4px; }
+
         .course-content {
             padding: 14px;
             flex: 1;
@@ -1082,8 +1107,23 @@
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainee.courses.show', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainee.courses.show', $course) }}';}">
                             <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
+                                @php
+                                    $status = $course->course_status;
+                                    $statusClass = match($status) {
+                                        'Upcoming' => 'status-upcoming',
+                                        'Ongoing' => 'status-ongoing',
+                                        'Completed' => 'status-completed',
+                                        default => 'status-not-set'
+                                    };
+                                @endphp
+                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                <div class="course-schedule">
+                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
+                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                </div>
                                 @php
                                     $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
                                     $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
@@ -1136,8 +1176,23 @@
                             @endphp
                             <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
+                                @php
+                                    $status = $course->course_status;
+                                    $statusClass = match($status) {
+                                        'Upcoming' => 'status-upcoming',
+                                        'Ongoing' => 'status-ongoing',
+                                        'Completed' => 'status-completed',
+                                        default => 'status-not-set'
+                                    };
+                                @endphp
+                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                <div class="course-schedule">
+                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
+                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                </div>
                                 @php
                                     $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
                                     $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
@@ -1231,8 +1286,23 @@
                             @endphp
                             <div class="course-image" style="background-image: url('{{ $img }}');"></div>
                             <div class="course-content">
+                                @php
+                                    $status = $course->course_status;
+                                    $statusClass = match($status) {
+                                        'Upcoming' => 'status-upcoming',
+                                        'Ongoing' => 'status-ongoing',
+                                        'Completed' => 'status-completed',
+                                        default => 'status-not-set'
+                                    };
+                                @endphp
+                                <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                <div class="course-schedule">
+                                    <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
+                                    <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                </div>
                                 @php /* removed creator/teacher meta in Classroom view for cleaner cards */ @endphp
                                 <div class="course-footer">
                                     @if($st === 'pending')

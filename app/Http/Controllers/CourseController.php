@@ -248,6 +248,10 @@ class CourseController extends Controller
             $validated['modules'] = $modules;
         }
 
+        if (auth()->check()) {
+            $validated['trainer_id'] = auth()->id();
+        }
+
         $course = Course::create($validated);
 
         // Link the creator to the course so we can display "Created by"
@@ -436,6 +440,10 @@ class CourseController extends Controller
         }
         if (!empty($modules)) {
             $validated['modules'] = $modules;
+        }
+
+        if (auth()->check()) {
+            $validated['trainer_id'] = auth()->id();
         }
 
         $course = Course::create($validated);
@@ -1075,6 +1083,39 @@ class CourseController extends Controller
             \Log::error('trainerUpdateImage failed', ['course' => $course->id, 'error' => $e->getMessage()]);
             return response()->json(['error' => 'Upload failed'], 500);
         }
+    }
+
+    /**
+     * Update course duration (Trainer only).
+     */
+    public function updateDuration(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
+        
+        if (!$user || !in_array($user->role, $managedCoachRoles, true)) {
+            return back()->with('error', 'Unauthorized access.');
+        }
+
+        // Based on requirement: "Only allow updates if: course.trainer_id == authenticated_user.id"
+        // But for existing courses with NULL trainer_id, we allow the first trainer to update and take ownership.
+        if ($course->trainer_id && $course->trainer_id !== $user->id) {
+            return back()->with('error', 'You can only modify your own courses.');
+        }
+
+        // Assign ownership if not yet set
+        if (!$course->trainer_id) {
+            $validated['trainer_id'] = $user->id;
+        }
+
+        $validated = array_merge($validated, $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]));
+
+        $course->update($validated);
+
+        return back()->with('success', 'Course duration updated successfully.');
     }
 
     public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)

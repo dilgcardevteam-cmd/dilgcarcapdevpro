@@ -116,6 +116,32 @@
         .course-image { aspect-ratio: 16 / 9; background-color: #eef2f7; background-size: cover; background-position: center; flex-shrink: 0; position: relative; overflow: hidden; }
         .course-image::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,44,118,0.0) 0%, rgba(0,44,118,0.08) 70%, rgba(0,44,118,0.18) 100%); opacity:0; transition:opacity .2s ease;}
         .course-card:hover .course-image::after{ opacity:1; }
+
+        /* Course Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .status-upcoming { background-color: #fef3c7; color: #92400e; }
+        .status-ongoing { background-color: #dcfce7; color: #166534; }
+        .status-completed { background-color: #fee2e2; color: #991b1b; }
+        .status-not-set { background-color: #f3f4f6; color: #374151; }
+
+        .course-schedule {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .course-schedule i { width: 16px; text-align: center; margin-right: 4px; }
+
         .course-content { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .course-title { font-size: 1rem; font-weight: 800; color: var(--primary-blue); margin: 0; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .course-desc { color: #6b7280; font-size: 0.85rem; line-height: 1.4; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

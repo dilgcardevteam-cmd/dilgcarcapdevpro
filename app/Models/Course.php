@@ -21,6 +21,9 @@ class Course extends Model
         'is_published',
         'enrollment_start_at',
         'enrollment_end_at',
+        'trainer_id',
+        'start_date',
+        'end_date',
     ];
 
     protected $casts = [
@@ -28,7 +31,43 @@ class Course extends Model
         'is_published' => 'boolean',
         'enrollment_start_at' => 'date',
         'enrollment_end_at' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
+
+    /**
+     * Get the trainer/creator of the course.
+     */
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'trainer_id');
+    }
+
+    /**
+     * Get the dynamic status of the course based on its duration.
+     */
+    public function getCourseStatusAttribute()
+    {
+        $now = now()->startOfDay();
+        
+        if (!$this->start_date || !$this->end_date) {
+            return 'Schedule not set';
+        }
+
+        if ($now->lt($this->start_date)) {
+            return 'Upcoming';
+        }
+
+        if ($now->gte($this->start_date) && $now->lte($this->end_date)) {
+            return 'Ongoing';
+        }
+
+        if ($now->gt($this->end_date)) {
+            return 'Completed';
+        }
+
+        return 'Unknown';
+    }
 
     public function users()
     {
