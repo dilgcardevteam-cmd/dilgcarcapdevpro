@@ -1085,11 +1085,12 @@
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 @php
-                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
 
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <span class="status-chip status-enrolled"><i class="fas fa-check-circle"></i> Enrolled</span>
                                     <a class="btn-view" href="{{ route('trainee.courses.show', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
@@ -1138,7 +1139,8 @@
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 @php
-                                    $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
+                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
                                     $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
                                 @endphp
                                 @php
@@ -1151,12 +1153,11 @@
                                         <span style="margin-left:1px">Enrollment: {{ $s ?: '—' }} — {{ $e ?: '—' }}</span>
                                     </p>
                                 @endif
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Teacher: {{ $teacherNames ?: 'TBA' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
                                         @if($closed)
                                             <span class="status-chip" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
-                                            <button class="btn-view" style="background:#e5e7eb;color:#64748b;pointer-events:none;cursor:not-allowed" onclick="event.stopPropagation();return false;">Closed</button>
                                         @else
                                             <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
                                         @endif
@@ -1587,9 +1588,12 @@
                                 </div>
                             </div>
                         </div>
-                        <button id="detail-enroll-btn" class="btn-view" style="background-color: #C9282D; padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
-                            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
-                        </button>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                            <span id="detail-enroll-chip" class="status-chip" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
+                            <button id="detail-enroll-btn" class="btn-view" style="background-color: #C9282D; padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                                <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -2228,7 +2232,17 @@
             document.getElementById('detail-description').innerText = course.description;
             document.getElementById('detail-category-badge').innerText = course.subject_area || 'General';
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
-            document.getElementById('detail-trainer').innerText = "Coach: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
+            // Coach display (prefer assigned coaches/trainers)
+            (function(){
+                const span = document.getElementById('detail-trainer');
+                let coachText = 'TBA';
+                if (course.users && Array.isArray(course.users)) {
+                    const roles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                    const names = course.users.filter(u=>roles.includes(u.role||'')).map(u=>u.name).filter(Boolean);
+                    if (names.length) coachText = names.join(', ');
+                }
+                if (span) span.innerText = "Coach: " + coachText;
+            })();
             
             const hero = document.getElementById('detail-hero');
             if (course.image_path) {
@@ -2246,17 +2260,34 @@
             // Update Enroll button in header
             const status = courseStatuses[courseId] || null;
             const enrollBtn = document.getElementById('detail-enroll-btn');
+            const enrollChip = document.getElementById('detail-enroll-chip');
             enrollBtn.style.display = 'none';
+            if (enrollChip) enrollChip.style.display = 'none';
+            // Enrollment window gating
+            (function(){
+                try{
+                    const now = new Date();
+                    const start = course.enrollment_start_at ? new Date(course.enrollment_start_at) : null;
+                    const end = course.enrollment_end_at ? new Date(course.enrollment_end_at) : null;
+                    const notStarted = !!(start && now < new Date(start.getFullYear(), start.getMonth(), start.getDate()+0, 23,59,59));
+                    const finished = !!(end && now > new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23,59,59));
+                    if (finished) {
+                        if (enrollChip) enrollChip.style.display = 'inline-block';
+                        return; // keep button hidden
+                    }
+                    if (notStarted) {
+                        // hide button; could show "Not Yet Open" if desired
+                        return;
+                    }
+                }catch(e){}
+                // Only show if not enrolled and window is open
+                if (status === 'active' || status === 'pending') {
+                    enrollBtn.style.display = 'none';
+                } else {
+                    enrollBtn.style.display = 'inline-block';
+                }
+            })();
             
-            if (status === 'active') {
-                enrollBtn.style.display = 'none';
-            } else if (status === 'pending') {
-                enrollBtn.style.display = 'none';
-            } else {
-                // Not enrolled
-                enrollBtn.style.display = 'inline-block';
-            }
-
             // Handle Enrolled vs Not Enrolled UI state
             // If not enrolled, maybe hide Classwork/People tabs or show them as locked?
             // The requirement didn't specify locking, but logically they should be accessible only if enrolled.
