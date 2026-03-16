@@ -1464,6 +1464,10 @@
                                 <div class="profile-page-panel-header">Account</div>
                                 <div class="profile-page-fields">
                                     <div class="form-group">
+                                        <label>Account ID</label>
+                                        <div class="profile-input" style="display:flex;align-items:center;background:#f1f5f9;color:#475569;cursor:not-allowed;">{{ Auth::user()->account_id ?? 'N/A' }}</div>
+                                    </div>
+                                    <div class="form-group">
                                         <label>Full Name</label>
                                         <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="profile-input" required>
                                     </div>

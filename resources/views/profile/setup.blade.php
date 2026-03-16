@@ -608,6 +608,10 @@
                                         <h3 class="section-title">Basic Details</h3>
                                         <div class="grid">
                                             <div class="form-group">
+                                                <label>Account ID</label>
+                                                <div style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; background: #f8fafc; color: #6b7280; display: flex; align-items: center; cursor: not-allowed;">{{ $user->account_id ?? 'N/A' }}</div>
+                                            </div>
+                                            <div class="form-group">
                                                 <label>First Name <span class="require">*</span></label>
                                                 <input type="text" name="first_name" value="{{ old('first_name', $firstParsed) }}" required>
                                             </div>

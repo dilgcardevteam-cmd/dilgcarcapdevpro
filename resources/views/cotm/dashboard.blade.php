@@ -770,6 +770,10 @@
                                 <div style="display:flex;align-items:center;gap:10px;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#64748b;font-weight:700;margin-bottom:14px">Account</div>
                                 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px">
                                     <div class="form-group">
+                                        <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Account ID</label>
+                                        <div class="profile-input" style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;box-sizing:border-box;background:#f1f5f9;color:#475569;cursor:not-allowed;display:flex;align-items:center;">{{ Auth::user()->account_id ?? 'N/A' }}</div>
+                                    </div>
+                                    <div class="form-group">
                                         <label style="display:block;margin-bottom:6px;color:#64748b;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Full Name</label>
                                         <input type="text" name="name" value="{{ Auth::user()->name }}" readonly class="profile-input" style="width:100%;height:42px;padding:0 12px;border:1px solid #d7e0ea;border-radius:10px;box-sizing:border-box;background:#f8fafc;color:#0f172a">
                                     </div>

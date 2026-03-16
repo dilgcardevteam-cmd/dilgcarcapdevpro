@@ -4854,6 +4854,16 @@
                                     <div class="form-group">
                                         <label class="profile-field-label">
                                             <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
+                                                <path d="M7 11h10M7 15h10"></path>
+                                            </svg>
+                                            Account ID
+                                        </label>
+                                        <div class="profile-input" style="display: flex; align-items: center; background: #f1f5f9; color: #475569; cursor: not-allowed;">{{ Auth::user()->account_id ?? 'N/A' }}</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="profile-field-label">
+                                            <svg class="profile-field-icon" viewBox="0 0 24 24" aria-hidden="true">
                                                 <circle cx="12" cy="7" r="4"></circle>
                                                 <path d="M5.5 21a6.5 6.5 0 0 1 13 0"></path>
                                             </svg>
