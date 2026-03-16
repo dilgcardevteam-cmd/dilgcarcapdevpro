@@ -1030,6 +1030,376 @@
             }
         }
 
+        #profile-section .profile-page {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        #profile-section .profile-page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        #profile-section .profile-page-title {
+            margin: 0;
+            font-size: 2rem;
+            color: var(--primary-blue);
+            letter-spacing: -0.02em;
+        }
+
+        #profile-section .profile-page-subtitle {
+            margin: 6px 0 0;
+            color: #6b7280;
+            font-size: 0.95rem;
+            max-width: 560px;
+        }
+
+        #profile-section .profile-page-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        #profile-section .profile-page-btn {
+            border: 1px solid transparent;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        #profile-section .profile-page-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.14);
+        }
+
+        #profile-section .profile-page-btn.edit {
+            background: #fff7ed;
+            color: #9a3412;
+            border-color: #fed7aa;
+        }
+
+        #profile-section .profile-page-btn.cancel {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        #profile-section .profile-page-btn.save {
+            background: var(--primary-green);
+            color: #ffffff;
+        }
+
+        #profile-section .profile-page-btn.save:hover {
+            background: #6aa832;
+        }
+
+        #profile-section .profile-page-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ecfdf3;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        #profile-section .profile-page-alert.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+            align-items: flex-start;
+        }
+
+        #profile-section .profile-page-alert.error ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        #profile-section .profile-page-banner {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: radial-gradient(circle at top left, rgba(127, 183, 61, 0.12), transparent 50%),
+                        radial-gradient(circle at top right, rgba(0, 44, 118, 0.12), transparent 48%),
+                        #ffffff;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        #profile-section .profile-page-avatar {
+            width: 92px;
+            height: 92px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 3px solid #ffffff;
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.18);
+        }
+
+        #profile-section .profile-page-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #profile-section .profile-page-identity {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #profile-section .profile-page-name {
+            font-size: 1.4rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        #profile-section .profile-page-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        #profile-section .profile-page-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #e8effd;
+            color: #1e3a8a;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.68rem;
+        }
+
+        #profile-section .profile-page-upload {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #profile-section .profile-page-upload input[type="file"] {
+            font-size: 0.82rem;
+        }
+
+        #profile-section .profile-page-upload input[type="file"]::file-selector-button {
+            border: none;
+            background: var(--primary-blue);
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        #profile-section .profile-page-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        #profile-section .profile-page-panel {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+        }
+
+        #profile-section .profile-page-panel.account-panel {
+            border-color: #d8e5ff;
+            background: linear-gradient(160deg, #f7fbff 0%, #ffffff 58%);
+        }
+
+        #profile-section .profile-page-panel.location-panel {
+            border-color: #dbead2;
+            background: linear-gradient(160deg, #f8fcf5 0%, #ffffff 58%);
+        }
+
+        #profile-section .profile-page-panel-wide {
+            grid-column: 1 / -1;
+        }
+
+        #profile-section .profile-page-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        #profile-section .profile-page-panel-header-rich {
+            margin-bottom: 16px;
+            text-transform: none;
+            letter-spacing: normal;
+            align-items: flex-start;
+        }
+
+        #profile-section .profile-page-header-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        #profile-section .profile-page-panel.account-panel .profile-page-header-icon {
+            background: #e0ebff;
+            color: #1d4ed8;
+        }
+
+        #profile-section .profile-page-panel.location-panel .profile-page-header-icon {
+            background: #e3f2db;
+            color: #2f7a15;
+        }
+
+        #profile-section .profile-page-header-icon .icon-feather {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #profile-section .profile-page-panel-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #profile-section .profile-page-panel-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+        }
+
+        #profile-section .profile-page-panel-note {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        #profile-section .profile-page-panel.account-panel .form-group,
+        #profile-section .profile-page-panel.location-panel .form-group {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        #profile-section .profile-page-fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 16px;
+        }
+
+        #profile-section .profile-page-fields .form-group {
+            margin-bottom: 0;
+        }
+
+        #profile-section .profile-page-fields label,
+        #profile-section .profile-field-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        #profile-section .profile-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #d7e0ea;
+            border-radius: 10px;
+            box-sizing: border-box;
+            background: #f8fafc;
+            color: #0f172a;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #profile-section .profile-input:focus {
+            outline: none;
+            border-color: #2f5aa8;
+            box-shadow: 0 0 0 3px rgba(47, 90, 168, 0.15);
+        }
+
+        #profile-section .profile-input[readonly],
+        #profile-section .profile-input:disabled {
+            background: #f1f5f9;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        #profile-section .profile-page-help {
+            color: #64748b;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 1100px) {
+            #profile-section .profile-page-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #profile-section .profile-page-fields {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #profile-section .profile-page-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1753,12 +2123,21 @@
                         </div>
 
                         @php
+                            $profileRegion = old('region', Auth::user()->region ?? '');
+                            $profileProvince = old('province', Auth::user()->province ?? '');
+                            $profileCity = old('city', Auth::user()->city ?? '');
+                            $profileBarangay = old('barangay', Auth::user()->barangay ?? '');
                             $myRole = Auth::user()->role ?? '';
-                            $isRegionalOfficeUser = in_array($myRole, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
-                            $profileRegion = old('region', Auth::user()->region);
-                            $profileProvince = old('province', Auth::user()->province);
-                            $profileCity = old('city', Auth::user()->city);
-                            $profileBarangay = old('barangay', Auth::user()->barangay);
+                            $centralRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                            $regionalRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                            $provincialRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                            $isCentral = in_array($myRole, $centralRoles, true);
+                            $isRegional = in_array($myRole, $regionalRoles, true);
+                            $isProvincial = in_array($myRole, $provincialRoles, true);
+                            $labelRegion = ($isCentral || $isRegional || $isProvincial) ? 'Office Level' : 'Region';
+                            $labelProvince = $isCentral ? 'Office Type' : ($isRegional ? 'Region' : ($isProvincial ? 'Office' : 'Province'));
+                            $isBureau = is_string($profileProvince) && (stripos($profileProvince, 'bureau') !== false || strtolower($profileProvince) === 'bureau');
+                            $labelCity = $isCentral ? ($isBureau ? 'Bureau' : 'Service') : 'City / Municipality';
                         @endphp
                         <div class="profile-page-grid">
                             <div class="profile-page-panel account-panel">
@@ -1799,50 +2178,57 @@
                                 </div>
                                 <div class="profile-page-fields">
                                     <div class="form-group">
-                                        <label class="profile-field-label">Region</label>
-                                        <select id="profile_region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
-                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
+                                        <label>{{ $labelRegion }}</label>
+                                        <select id="profile_region" @if(!($isCentral || $isRegional || $isProvincial)) name="region" @endif class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                            <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>
+                                                {{ ($isCentral || $isRegional || $isProvincial) ? 'Select Level' : 'Select Region' }}
+                                            </option>
                                             @if($profileRegion)
                                                 <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group" id="group_profile_region_actual" style="display: {{ $isRegionalOfficeUser ? '' : 'none' }};">
-                                        <label class="profile-field-label">Region</label>
-                                        <select id="profile_region_actual" name="region" class="profile-input" data-selected="{{ $profileRegion }}" disabled>
+                                    <div class="form-group" id="group_profile_region_actual" @if(!$isRegional) style="display:none" @endif>
+                                        <label>Region</label>
+                                        <select id="profile_region_actual" @if($isRegional) name="region" @endif class="profile-input" data-selected="{{ $isRegional ? $profileRegion : '' }}" disabled>
                                             <option value="" disabled {{ $profileRegion ? '' : 'selected' }}>Select Region</option>
-                                            @if($profileRegion)
-                                                <option value="{{ $profileRegion }}" selected>{{ $profileRegion }}</option>
-                                            @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="profile-field-label">Province</label>
-                                        <select id="profile_province" name="province" class="profile-input" data-selected="{{ $profileProvince }}" disabled>
-                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>Select Province</option>
+                                    <div class="form-group" @if($isRegional) style="display:none" @endif>
+                                        <label>{{ $labelProvince }}</label>
+                                        <select id="profile_province" @if(!$isRegional) name="province" @endif class="profile-input" data-selected="{{ $profileProvince }}" disabled>
+                                            <option value="" disabled {{ $profileProvince ? '' : 'selected' }}>
+                                                @if($isCentral) Select Office Type @elseif($isProvincial) Select Office @else Select Province @endif
+                                            </option>
                                             @if($profileProvince)
                                                 <option value="{{ $profileProvince }}" selected>{{ $profileProvince }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="profile-field-label">City / Municipality</label>
-                                        <select id="profile_city" name="city" class="profile-input" data-selected="{{ $profileCity }}" disabled>
-                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>Select City/Municipality</option>
+                                    <div class="form-group" @if($isRegional || $isProvincial) style="display:none" @endif>
+                                        <label>{{ $labelCity }}</label>
+                                        <select id="profile_city" @if(!($isRegional || $isProvincial)) name="city" @endif class="profile-input" data-selected="{{ $profileCity }}" disabled>
+                                            <option value="" disabled {{ $profileCity ? '' : 'selected' }}>
+                                                @if($isCentral) {{ $isBureau ? 'Select Bureau' : 'Select Service' }} @else Select City/Municipality @endif
+                                            </option>
                                             @if($profileCity)
                                                 <option value="{{ $profileCity }}" selected>{{ $profileCity }}</option>
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="profile-field-label">Barangay</label>
-                                        <select id="profile_barangay" name="barangay" class="profile-input" data-selected="{{ $profileBarangay }}" disabled>
-                                            <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
-                                            @if($profileBarangay)
-                                                <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
-                                            @endif
-                                        </select>
-                                    </div>
+                                    @if(!$isCentral)
+                                        <div class="form-group" @if($isRegional || $isProvincial) style="display:none" @endif>
+                                            <label>Barangay</label>
+                                            <select id="profile_barangay" @if(!($isRegional || $isProvincial)) name="barangay" @endif class="profile-input" data-selected="{{ $profileBarangay }}" disabled>
+                                                <option value="" disabled {{ $profileBarangay ? '' : 'selected' }}>Select Barangay</option>
+                                                @if($profileBarangay)
+                                                    <option value="{{ $profileBarangay }}" selected>{{ $profileBarangay }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    @else
+                                        <input type="hidden" id="profile_barangay" name="barangay" value="">
+                                    @endif
                                 </div>
                             </div>
 
@@ -2212,17 +2598,33 @@
                 const provLabelNode = provinceSelect.closest('.form-group')?.querySelector('label'); if (provLabelNode) provLabelNode.textContent = IS_OFFICE(myRole,'central') ? 'Office Type' : 'Office';
                 const cityLabelNode = citySelect.closest('.form-group')?.querySelector('label');
                 if (IS_OFFICE(myRole,'central')) {
+                    let officeType = selectedProvince || '';
+                    let officeItem = selectedCity || '';
+                    if (officeType !== 'Bureau' && officeType !== 'Services') {
+                        if (!officeItem && (BUREAUS.includes(officeType) || SERVICES.includes(officeType))) {
+                            officeItem = officeType;
+                            officeType = BUREAUS.includes(officeItem) ? 'Bureau' : 'Services';
+                        } else if (officeItem) {
+                            if (BUREAUS.includes(officeItem)) officeType = 'Bureau';
+                            else if (SERVICES.includes(officeItem)) officeType = 'Services';
+                        } else {
+                            officeType = 'Services';
+                        }
+                    }
                     resetSelect(provinceSelect,'Select Office Type'); ['Bureau','Services'].forEach(lbl=>{ const o=document.createElement('option'); o.value=lbl; o.textContent=lbl; provinceSelect.appendChild(o); });
                     provinceSelect.addEventListener('change', function(){
                         const cat=this.value; if (cityLabelNode) cityLabelNode.textContent = cat==='Bureau' ? 'Bureau' : 'Service';
                         resetSelect(citySelect, cat==='Bureau' ? 'Select Bureau' : 'Select Service');
                         const list=cat==='Bureau'?BUREAUS:SERVICES; let matched=false;
-                        list.forEach(item=>{ const o=document.createElement('option'); o.value=item; o.textContent=item; if (selectedProvince&&selectedProvince===item){ o.selected=true; matched=true; } citySelect.appendChild(o); });
-                        if (selectedProvince && !matched) addFallbackOption(citySelect, selectedProvince);
-                        citySelect.disabled=false;
+                        list.forEach(item=>{ const o=document.createElement('option'); o.value=item; o.textContent=item; if (officeItem && officeItem===item){ o.selected=true; matched=true; } citySelect.appendChild(o); });
+                        if (officeItem && !matched) addFallbackOption(citySelect, officeItem);
+                        citySelect.disabled = provinceSelect.disabled;
                         const barangayGroup=barangaySelect.closest('.form-group'); if (barangayGroup) barangayGroup.style.display='none';
                     });
-                    if (selectedProvince){ const isB=BUREAUS.includes(selectedProvince); provinceSelect.value=isB?'Bureau':'Services'; provinceSelect.dispatchEvent(new Event('change')); }
+                    if (officeType) {
+                        provinceSelect.value = officeType;
+                        provinceSelect.dispatchEvent(new Event('change'));
+                    }
                 } else if (IS_OFFICE(myRole,'regional')) {
                     const regActualGroup = regionActualSelect?.closest('.form-group');
                     if (regActualGroup) regActualGroup.style.display = '';
@@ -2274,6 +2676,10 @@
                 else { if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince); if (selectedCity) addFallbackOption(citySelect, selectedCity); if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay); }
             }).catch(()=>{ if (selectedRegion) addFallbackOption(regionSelect, selectedRegion); if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince); if (selectedCity) addFallbackOption(citySelect, selectedCity); if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay); });
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initProfileLocationDropdowns();
+        });
 
         function showContent(id, element) {
             document.querySelectorAll('.content-section').forEach(section => {

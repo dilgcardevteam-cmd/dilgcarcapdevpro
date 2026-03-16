@@ -16,13 +16,6 @@
     $lastParsed = count($tokens) > 1 ? $tokens[count($tokens) - 1] : '';
     $middleParsed = count($tokens) > 2 ? implode(' ', array_slice($tokens, 1, -1)) : '';
 
-    $isDILG = in_array($user->role, [
-        'central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants',
-        'regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants',
-        'provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'
-    ]);
-    $currentAgency = $isDILG ? 'DILG' : 'LGU';
-
     $avatarSrc = $user->avatar_url;
 @endphp
 <style>
@@ -864,102 +857,19 @@
 <div class="profile-page">
     <div class="setup-wrap">
         <div class="setup-card">
-            <div class="content">
-                @if(session('success_profile'))
-                    <div class="alert"><i class="fas fa-check-circle"></i> {{ session('success_profile') }}</div>
-                @endif
-                @if($errors->any())
-                    <div class="alert alert-error">
-                        <ul style="margin:0;padding-left:20px">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('profile.setup.store') }}" id="setupForm" enctype="multipart/form-data">
-                    @csrf
-                    
-                    <div class="section-title">Personal Information</div>
-                    <div class="grid">
-                        <div class="form-group">
-                            <label>First Name</label>
-                            <input id="first_name" type="text" name="first_name" value="{{ old('first_name', $firstParsed) }}" placeholder="First Name" required />
-                        </div>
-                        <div class="form-group">
-                            <label>Middle Name (Optional)</label>
-                            <input id="middle_name" type="text" name="middle_name" value="{{ old('middle_name', $middleParsed) }}" placeholder="Middle Name" />
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name</label>
-                            <input id="last_name" type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" placeholder="Last Name" required />
-                        </div>
-                        <div class="form-group">
-                            <label>Mobile Number</label>
-                            <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" placeholder="Mobile Number" />
-                        </div>
-                        <div class="form-group">
-                            <label>Sex</label>
-                            <select id="gender" name="gender">
-                                <option value="" disabled {{ $user->gender ? '' : 'selected' }}>Select Sex</option>
-                                <option value="Male" {{ (old('gender', $user->gender) === 'Male') ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ (old('gender', $user->gender) === 'Female') ? 'selected' : '' }}>Female</option>
-                                <option value="Prefer not to say" {{ (old('gender', $user->gender) === 'Prefer not to say') ? 'selected' : '' }}>Prefer not to say</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Agency/LGU</label>
-                            <select id="main_agency" name="agency">
-                                <option value="DILG" {{ $currentAgency === 'DILG' ? 'selected' : '' }}>DILG</option>
-                                <option value="LGU" {{ $currentAgency === 'LGU' ? 'selected' : '' }}>LGU</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="section-title" id="location-section-title">Address Information</div>
-                    <div class="grid">
-                        <div class="form-group">
-                            <label id="region-label">Region</label>
-                            <select id="main_setup_region" name="region" required>
-                                <option value="" disabled selected>Select Region</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="province-container">
-                            <label id="province-label">Province</label>
-                            <select id="main_setup_province" name="province">
-                                <option value="" disabled selected>Select Province</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="city-container">
-                            <label id="city-label">City/Municipality</label>
-                            <select id="main_setup_city" name="city">
-                                <option value="" disabled selected>Select City/Municipality</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="barangay-container">
-                            <label id="barangay-label">Barangay</label>
-                            <select id="main_setup_barangay" name="barangay">
-                                <option value="" disabled selected>Select Barangay</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="section-title">Login Credentials</div>
-                    <div class="grid">
-                        <div class="form-group single-col">
-                            <label>Email Address</label>
-                            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" placeholder="Email Address" required />
-                        </div>
-                    </div>
-
-                    <div style="margin-top:24px; display:flex; gap:12px">
-                        <button type="submit" class="btn-primary" style="padding:12px 24px; border-radius:8px; font-weight:700; border:0; background:var(--primary-blue); color:#fff; cursor:pointer">
-                            <i class="fas fa-save"></i> Complete Setup
-                        </button>
-                    </div>
-                </form>
+            <div class="card-head">
+                <h1 class="card-title"><i class="fas fa-user-cog"></i> {{ $isProfileCompleted ? 'coCoach Settings' : 'Complete Your coCoach' }}</h1>
+                <div class="header-quick">
+                    @if(!$isProfileCompleted)
+                        <span class="badge badge-required"><i class="fas fa-lock"></i> Required before dashboard</span>
+                    @else
+                        <span class="badge badge-ready"><i class="fas fa-check-circle"></i> Account active</span>
+                    @endif
+                </div>
             </div>
+
+            
+        </div>
     </div>
 </div>
     </div>
@@ -1053,304 +963,243 @@ function showContent(id, el){
 </script>
 <script>
 function initSetupLocationDropdowns() {
-    const regionSelect = document.getElementById('main_setup_region');
-    const provinceSelect = document.getElementById('main_setup_province');
-    const citySelect = document.getElementById('main_setup_city');
-    const barangaySelect = document.getElementById('main_setup_barangay');
-    const agencySelect = document.getElementById('main_agency');
+    const regionSelect = document.getElementById('setup_region');
+    const provinceSelect = document.getElementById('setup_province');
+    const citySelect = document.getElementById('setup_city');
+    const barangaySelect = document.getElementById('setup_barangay');
     
-    const provinceContainer = document.getElementById('province-container');
-    const cityContainer = document.getElementById('city-container');
-    const barangayContainer = document.getElementById('barangay-container');
+    if (!regionSelect || !provinceSelect || !citySelect || !barangaySelect) return;
+    if (regionSelect.dataset.initialized === 'true') return;
+    regionSelect.dataset.initialized = 'true';
 
-    const selectedRegion = @json(old('region', $user->region));
-    const selectedProvince = @json(old('province', $user->province));
-    const selectedCity = @json(old('city', $user->city));
-    const selectedBarangay = @json(old('barangay', $user->barangay));
+    const selectedRegion = regionSelect.dataset.selected || '';
+    const selectedProvince = provinceSelect.dataset.selected || '';
+    const selectedCity = citySelect.dataset.selected || '';
+    const selectedBarangay = barangaySelect.dataset.selected || '';
 
-    const BUREAUS = [
-        'Bureau of Local Government Development (BLGD)',
-        'Bureau of Local Government Supervision (BLGS)',
-        'Office of Project Development Services (OPDS)',
-        'National Barangay Operations Office (NBOO)',
-    ];
-    const SERVICES = [
-        'Administrative Service',
-        'Information Systems and Technology Management Service',
-        'Financial and Management Service',
-        'Internal Audit Service',
-        'Legal and Legislative Liaison Service',
-        'Planning Service',
-        'Public Affairs and Communication Service',
-    ];
+    const resetSelect = (selectElement, placeholder) => {
+        selectElement.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+    };
 
-    function applyAgencyMode() {
-        const mode = agencySelect ? agencySelect.value : 'LGU';
-        const levelLabel = (regionSelect && regionSelect.options[regionSelect.selectedIndex]) ? regionSelect.options[regionSelect.selectedIndex].value : '';
-        const titleEl = document.getElementById('location-section-title');
-        const regionLabel = document.getElementById('region-label');
-        const provinceLabel = document.getElementById('province-label');
-        const cityLabel = document.getElementById('city-label');
+    const addFallbackOption = (selectElement, value, label = value) => {
+        if (!value) return null;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        option.selected = true;
+        selectElement.appendChild(option);
+        return option;
+    };
 
-        if (mode === 'DILG') {
-            if (titleEl) titleEl.textContent = 'Office Information';
-            if (regionLabel) regionLabel.textContent = 'DILG Level';
-            if (provinceLabel) provinceLabel.textContent = 'Specific Office';
-            if (cityLabel) cityLabel.textContent = 'Bureaus/Services';
+    function loadBarangays(cityCode, selectedBarangayValue = null) {
+        resetSelect(barangaySelect, 'Select Barangay');
 
-            if (provinceContainer) provinceContainer.style.display = levelLabel ? '' : 'none';
-            if (cityContainer) cityContainer.style.display = (levelLabel === 'DILG Central Office') ? '' : 'none';
-            if (barangayContainer) barangayContainer.style.display = 'none';
-        } else {
-            if (titleEl) titleEl.textContent = 'Address Information';
-            if (regionLabel) regionLabel.textContent = 'Region';
-            if (provinceLabel) provinceLabel.textContent = 'Province';
-            if (cityLabel) cityLabel.textContent = 'City/Municipality';
-
-            if (provinceContainer) provinceContainer.style.display = '';
-            if (cityContainer) cityContainer.style.display = '';
-            if (barangayContainer) barangayContainer.style.display = '';
-        }
-    }
-
-    function populateRegionOrLevelOptions(preserveSelection = false) {
-        const mode = agencySelect ? agencySelect.value : 'LGU';
-        
-        regionSelect.innerHTML = '<option value="" disabled selected>' + (mode === 'DILG' ? 'Select Level' : 'Select Region') + '</option>';
-        
-        if (mode === 'DILG') {
-            ['DILG Central Office','DILG Regional Office','DILG Provincial Office'].forEach(label => {
-                const opt = document.createElement('option');
-                opt.value = label;
-                opt.textContent = label;
-                if (preserveSelection && selectedRegion && selectedRegion === label) opt.selected = true;
-                regionSelect.appendChild(opt);
-            });
-            applyAgencyMode();
-            if (preserveSelection && selectedRegion) populateOfficeByLevel(selectedRegion, true);
+        if (!cityCode) {
+            if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
             return;
         }
 
-        fetch('{{ route('psgc.regions') }}')
+        fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`)
             .then(response => response.json())
             .then(data => {
-                // Check if agency is still LGU before populating
-                if (agencySelect.value !== 'LGU') return;
-
-                data.sort((a,b) => a.name.localeCompare(b.name));
-                // Clear and add placeholder again to be safe
-                regionSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
-                
-                data.forEach(region => {
+                data.sort((a, b) => a.name.localeCompare(b.name));
+                let matched = false;
+                data.forEach(barangay => {
                     const option = document.createElement('option');
-                    option.value = region.name;
-                    option.dataset.code = region.code;
-                    option.textContent = region.name;
-                    if (preserveSelection && selectedRegion && selectedRegion === region.name) option.selected = true;
-                    regionSelect.appendChild(option);
+                    option.value = barangay.name;
+                    option.textContent = barangay.name;
+                    if (selectedBarangayValue && selectedBarangayValue === barangay.name) {
+                        option.selected = true;
+                        matched = true;
+                    }
+                    barangaySelect.appendChild(option);
                 });
-                if (preserveSelection && selectedRegion) {
-                    const code = regionSelect.options[regionSelect.selectedIndex]?.dataset?.code;
-                    if (code) loadProvincesByRegion(code, selectedProvince, selectedCity, selectedBarangay);
+
+                if (selectedBarangayValue && !matched) {
+                    addFallbackOption(barangaySelect, selectedBarangayValue);
                 }
-                applyAgencyMode();
+            })
+            .catch(error => {
+                console.error('Error fetching barangays:', error);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
             });
     }
 
-    function populateOfficeByLevel(levelLabel, preserveSelection = false) {
-        provinceSelect.innerHTML = '<option value="" disabled selected>Select Office</option>';
-        provinceSelect.disabled = true;
-        
-        if (levelLabel === 'DILG Central Office') {
-            ['Bureaus','Services'].forEach(label => {
-                const opt = document.createElement('option');
-                opt.value = label;
-                opt.textContent = label;
-                if (preserveSelection && selectedProvince && (selectedProvince === 'Bureaus' || selectedProvince === 'Services' || BUREAUS.includes(selectedProvince) || SERVICES.includes(selectedProvince))) {
-                     if (label === 'Bureaus' && (selectedProvince === 'Bureaus' || BUREAUS.includes(selectedProvince))) opt.selected = true;
-                     if (label === 'Services' && (selectedProvince === 'Services' || SERVICES.includes(selectedProvince))) opt.selected = true;
-                }
-                provinceSelect.appendChild(opt);
-            });
-            provinceSelect.disabled = false;
-            if (provinceSelect.selectedIndex > 0) populateCentralOfficeSub(provinceSelect.value, preserveSelection);
-        } else if (levelLabel === 'DILG Regional Office' || levelLabel === 'DILG Provincial Office') {
-            fetch('{{ route('psgc.regions') }}')
-                .then(response => response.json())
-                .then(data => {
-                    data.sort((a,b) => a.name.localeCompare(b.name));
-                    data.forEach(region => {
-                        const opt = document.createElement('option');
-                        const val = levelLabel === 'DILG Provincial Office' ? region.name + ' Office' : region.name;
-                        opt.value = val;
-                        opt.textContent = levelLabel === 'DILG Provincial Office' ? 'DILG ' + region.name + ' Office' : region.name;
-                        if (preserveSelection && selectedProvince && selectedProvince === val) opt.selected = true;
-                        provinceSelect.appendChild(opt);
-                    });
-                    provinceSelect.disabled = false;
-                });
-        }
-        applyAgencyMode();
-    }
+    function fetchCities(code, isRegion, selectedCityValue = null, selectedBarangayValue = null) {
+        const url = isRegion
+            ? `https://psgc.gitlab.io/api/regions/${code}/cities-municipalities/`
+            : `https://psgc.gitlab.io/api/provinces/${code}/cities-municipalities/`;
 
-    function populateCentralOfficeSub(category, preserveSelection = false) {
-        citySelect.innerHTML = '<option value="" disabled selected>' + (category === 'Bureaus' ? 'Select Bureau' : 'Select Service') + '</option>';
-        const list = category === 'Bureaus' ? BUREAUS : SERVICES;
-        list.forEach(item => {
-            const o = document.createElement('option');
-            o.value = item;
-            o.textContent = item;
-            if (preserveSelection && selectedCity && selectedCity === item) o.selected = true;
-            citySelect.appendChild(o);
-        });
-        citySelect.disabled = false;
-    }
+        resetSelect(citySelect, 'Select City/Municipality');
+        resetSelect(barangaySelect, 'Select Barangay');
 
-    function loadProvincesByRegion(regionCode, selProv = null, selCity = null, selBar = null) {
-        provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
-        provinceSelect.disabled = true;
-        
-        fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
-            .then(response => response.json())
-            .then(data => {
-                data.sort((a,b) => a.name.localeCompare(b.name));
-                if (data.length === 0 && regionCode === '130000000') {
-                    const opt = document.createElement('option');
-                    opt.value = regionSelect.value;
-                    opt.dataset.code = regionCode;
-                    opt.dataset.isRegion = 'true';
-                    opt.textContent = regionSelect.value;
-                    opt.selected = true;
-                    provinceSelect.appendChild(opt);
-                    provinceSelect.disabled = false;
-                    fetchCities(regionCode, true, selCity, selBar);
-                    return;
-                }
-                data.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.name;
-                    opt.dataset.code = p.code;
-                    opt.textContent = p.name;
-                    if (selProv && selProv === p.name) opt.selected = true;
-                    provinceSelect.appendChild(opt);
-                });
-                provinceSelect.disabled = false;
-                if (provinceSelect.selectedIndex > 0) {
-                    const code = provinceSelect.options[provinceSelect.selectedIndex].dataset.code;
-                    const isReg = provinceSelect.options[provinceSelect.selectedIndex].dataset.isRegion === 'true';
-                    fetchCities(code, isReg, selCity, selBar);
-                }
-            });
-    }
-
-    function fetchCities(code, isRegion, selCity = null, selBar = null) {
-        const url = isRegion ? `{{ url('/psgc/regions') }}/${code}/cities` : `{{ url('/psgc/provinces') }}/${code}/cities`;
-        citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-        citySelect.disabled = true;
-        
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                data.sort((a,b) => a.name.localeCompare(b.name));
-                data.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.name;
-                    opt.dataset.code = c.code;
-                    opt.textContent = c.name;
-                    if (selCity && selCity === c.name) opt.selected = true;
-                    citySelect.appendChild(opt);
+                data.sort((a, b) => a.name.localeCompare(b.name));
+                let selectedCityCode = '';
+                let matched = false;
+
+                data.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.name;
+                    option.dataset.code = city.code;
+                    option.textContent = city.name;
+                    if (selectedCityValue && selectedCityValue === city.name) {
+                        option.selected = true;
+                        selectedCityCode = city.code;
+                        matched = true;
+                    }
+                    citySelect.appendChild(option);
                 });
-                citySelect.disabled = false;
-                if (citySelect.selectedIndex > 0) loadBarangays(citySelect.options[citySelect.selectedIndex].dataset.code, selBar);
+
+                if (selectedCityValue && !matched) {
+                    addFallbackOption(citySelect, selectedCityValue);
+                }
+
+                if (selectedCityCode) {
+                    loadBarangays(selectedCityCode, selectedBarangayValue);
+                } else if (selectedBarangayValue) {
+                    addFallbackOption(barangaySelect, selectedBarangayValue);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cities:', error);
+                if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
             });
     }
 
-    function loadBarangays(cityCode, selBar = null) {
-        barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-        barangaySelect.disabled = true;
-        fetch(`{{ url('/psgc/cities') }}/${cityCode}/barangays`)
+    function loadProvincesByRegion(regionCode, selectedProvinceValue = null, selectedCityValue = null, selectedBarangayValue = null) {
+        resetSelect(provinceSelect, 'Select Province');
+        resetSelect(citySelect, 'Select City/Municipality');
+        resetSelect(barangaySelect, 'Select Barangay');
+
+        if (!regionCode) {
+            if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+            if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+            if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+            return;
+        }
+
+        fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
             .then(response => response.json())
             .then(data => {
-                data.sort((a,b) => a.name.localeCompare(b.name));
-                data.forEach(b => {
-                    const opt = document.createElement('option');
-                    opt.value = b.name;
-                    opt.textContent = b.name;
-                    if (selBar && selBar === b.name) opt.selected = true;
-                    barangaySelect.appendChild(opt);
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                if (data.length === 0 && regionCode === '130000000') {
+                    const option = addFallbackOption(provinceSelect, regionSelect.value, regionSelect.value);
+                    if (option) {
+                        option.dataset.code = regionCode;
+                        option.dataset.isRegion = 'true';
+                    }
+                    fetchCities(regionCode, true, selectedCityValue, selectedBarangayValue);
+                    return;
+                }
+
+                let selectedProvinceCode = '';
+                let matched = false;
+                data.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.name;
+                    option.dataset.code = province.code;
+                    option.textContent = province.name;
+                    if (selectedProvinceValue && selectedProvinceValue === province.name) {
+                        option.selected = true;
+                        selectedProvinceCode = province.code;
+                        matched = true;
+                    }
+                    provinceSelect.appendChild(option);
                 });
-                barangaySelect.disabled = false;
+
+                if (selectedProvinceValue && !matched) {
+                    addFallbackOption(provinceSelect, selectedProvinceValue);
+                }
+
+                if (selectedProvinceCode) {
+                    fetchCities(selectedProvinceCode, false, selectedCityValue, selectedBarangayValue);
+                } else if (selectedCityValue) {
+                    addFallbackOption(citySelect, selectedCityValue);
+                    if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching provinces:', error);
+                if (selectedProvinceValue) addFallbackOption(provinceSelect, selectedProvinceValue);
+                if (selectedCityValue) addFallbackOption(citySelect, selectedCityValue);
+                if (selectedBarangayValue) addFallbackOption(barangaySelect, selectedBarangayValue);
             });
     }
 
-    agencySelect.addEventListener('change', () => populateRegionOrLevelOptions(false));
     regionSelect.addEventListener('change', function() {
-        if (agencySelect.value === 'DILG') {
-            populateOfficeByLevel(this.value, false);
-        } else {
-            const code = this.options[this.selectedIndex]?.dataset?.code;
-            if (code) loadProvincesByRegion(code);
-        }
-    });
-    provinceSelect.addEventListener('change', function() {
-        if (agencySelect.value === 'DILG' && regionSelect.value === 'DILG Central Office') {
-            populateCentralOfficeSub(this.value, false);
-        } else if (agencySelect.value === 'LGU') {
-            const code = this.options[this.selectedIndex]?.dataset?.code;
-            const isReg = this.options[this.selectedIndex]?.dataset?.isRegion === 'true';
-            if (code) fetchCities(code, isReg);
-        }
-    });
-    citySelect.addEventListener('change', function() {
-        if (agencySelect.value === 'LGU') {
-            const code = this.options[this.selectedIndex]?.dataset?.code;
-            if (code) loadBarangays(code);
-        }
+        const selectedOption = this.options[this.selectedIndex];
+        const regionCode = selectedOption?.dataset?.code || '';
+        loadProvincesByRegion(regionCode);
     });
 
-    populateRegionOrLevelOptions(true);
+    provinceSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const provinceCode = selectedOption?.dataset?.code || '';
+        const isRegion = selectedOption?.dataset?.isRegion === 'true';
+        if (!provinceCode) {
+            resetSelect(citySelect, 'Select City/Municipality');
+            resetSelect(barangaySelect, 'Select Barangay');
+            return;
+        }
+        fetchCities(provinceCode, isRegion);
+    });
+
+    citySelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const cityCode = selectedOption?.dataset?.code || '';
+        loadBarangays(cityCode);
+    });
+
+    fetch('https://psgc.gitlab.io/api/regions/')
+        .then(response => response.json())
+        .then(data => {
+            resetSelect(regionSelect, 'Select Region');
+            data.sort((a, b) => a.name.localeCompare(b.name));
+
+            let selectedRegionCode = '';
+            let matched = false;
+            data.forEach(region => {
+                const option = document.createElement('option');
+                option.value = region.name;
+                option.dataset.code = region.code;
+                option.textContent = `${region.name} (${region.regionName})`;
+                if (selectedRegion && selectedRegion === region.name) {
+                    option.selected = true;
+                    selectedRegionCode = region.code;
+                    matched = true;
+                }
+                regionSelect.appendChild(option);
+            });
+
+            if (selectedRegion && !matched) {
+                addFallbackOption(regionSelect, selectedRegion);
+            }
+
+            if (selectedRegionCode) {
+                loadProvincesByRegion(selectedRegionCode, selectedProvince || null, selectedCity || null, selectedBarangay || null);
+            } else {
+                if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+                if (selectedCity) addFallbackOption(citySelect, selectedCity);
+                if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching regions:', error);
+            if (selectedRegion) addFallbackOption(regionSelect, selectedRegion);
+            if (selectedProvince) addFallbackOption(provinceSelect, selectedProvince);
+            if (selectedCity) addFallbackOption(citySelect, selectedCity);
+            if (selectedBarangay) addFallbackOption(barangaySelect, selectedBarangay);
+        });
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initSetupLocationDropdowns();
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var mobile = document.getElementById('mobile_number');
-    if (!mobile) return;
-    function digitsOnly(v) { return v.replace(/\D/g, ''); }
-    function normalize(v) {
-        var d = digitsOnly(v);
-        if (d.startsWith('639')) d = '09' + d.slice(3);
-        else if (d.startsWith('63')) d = '09' + d.slice(2);
-        else if (!d.startsWith('09')) {
-            if (d.startsWith('9')) d = '0' + d;
-            else d = '09' + d.replace(/^0+/, '').replace(/^9?/, '');
-        }
-        return d.slice(0, 11);
-    }
-    mobile.addEventListener('focus', function () {
-        if (!mobile.value) mobile.value = '09';
-        setTimeout(function(){ try { mobile.setSelectionRange(mobile.value.length, mobile.value.length); } catch(e){} }, 0);
-    });
-    mobile.addEventListener('blur', function () {
-        if (mobile.value === '09') mobile.value = '';
-    });
-    mobile.addEventListener('input', function () {
-        var nv = normalize(mobile.value);
-        if (mobile.value !== nv) mobile.value = nv;
-    });
-    mobile.addEventListener('keydown', function (e) {
-        var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Home','End','Tab'];
-        if (allowed.includes(e.key)) {
-            if ((e.key === 'Backspace' || e.key === 'Delete') && mobile.selectionStart <= 2 && mobile.selectionEnd <= 2) e.preventDefault();
-            return;
-        }
-        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
-        if (mobile.value.length >= 11 && mobile.selectionStart === mobile.selectionEnd && mobile.selectionStart >= 11) e.preventDefault();
-    });
 });
 </script>
 @endsection
