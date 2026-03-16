@@ -105,17 +105,14 @@ class User extends Authenticatable
 
         $code = $roleCodes[$role] ?? 'USER';
         
-        $lastUser = self::where('role', $role)
-            ->whereNotNull('account_id')
-            ->orderBy('account_id', 'desc')
-            ->first();
+        // Loop until we find a unique random ID
+        do {
+            $randomNum = str_pad((string)rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $accountId = "{$yy}-{$randomNum}-{$code}";
+            $exists = self::where('account_id', $accountId)->exists();
+        } while ($exists);
 
-        $nextNum = 1;
-        if ($lastUser && preg_match('/-(\d{4})$/', $lastUser->account_id, $matches)) {
-            $nextNum = intval($matches[1]) + 1;
-        }
-
-        return "{$yy}-{$code}-" . str_pad((string)$nextNum, 4, '0', STR_PAD_LEFT);
+        return $accountId;
     }
 
     public function courses()

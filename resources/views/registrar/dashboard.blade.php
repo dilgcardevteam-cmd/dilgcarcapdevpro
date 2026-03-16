@@ -2378,7 +2378,7 @@
                                 <div class="profile-page-fields">
                                     <div class="form-group">
                                         <label>Account ID</label>
-                                        <div class="profile-input" style="background:#f1f5f9;color:#475569;cursor:not-allowed;display:flex;align-items:center;">{{ Auth::user()->account_id ?? 'N/A' }}</div>
+                                        <div class="profile-input" style="background:#f1f5f9;color:#475569;cursor:not-allowed;display:flex;align-items:center;">{{ Auth::user()->status === 'pending' ? 'N/A' : (Auth::user()->account_id ?? 'N/A') }}</div>
                                     </div>
                                     <div class="form-group">
                                         <label>Full Name</label>

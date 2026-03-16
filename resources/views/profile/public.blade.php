@@ -42,7 +42,7 @@
             </div>
             <div class="cell">
                 <div class="label">Account ID</div>
-                <div>{{ $user->account_id ?? '-' }}</div>
+                <div>{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</div>
             </div>
         </div>
     </div>

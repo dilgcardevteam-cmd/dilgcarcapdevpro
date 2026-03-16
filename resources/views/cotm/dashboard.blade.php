@@ -871,7 +871,7 @@
                                                         <span class="user-name">{{ $user->name }}</span>
                                                     </div>
                                                 </td>
-                                                <td><span class="mono-text">{{ $user->account_id ?? '-' }}</span></td>
+                                                <td><span class="mono-text">{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</span></td>
                                                 <td>{{ $user->email }}</td>
                                                 <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $roleLabel }}</span></td>
                                                 <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
@@ -1129,7 +1129,7 @@
                                 <div class="profile-page-fields">
                                     <div class="form-group">
                                         <label>Account ID</label>
-                                        <div class="profile-input" style="display:flex;align-items:center;">{{ Auth::user()->account_id ?? 'N/A' }}</div>
+                                        <div class="profile-input" style="display:flex;align-items:center;">{{ Auth::user()->status === 'pending' ? 'N/A' : (Auth::user()->account_id ?? 'N/A') }}</div>
                                     </div>
                                     <div class="form-group">
                                         <label>Full Name</label>

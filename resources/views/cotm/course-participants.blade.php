@@ -335,7 +335,7 @@
                             @foreach($courseTrainees as $t)
                                 <div class="summary-row">
                                     <div class="summary-cell">{{ $t->name }}</div>
-                                    <div class="summary-cell">{{ $t->account_id ?? '—' }}</div>
+                                    <div class="summary-cell">{{ $t->status === 'pending' ? '—' : ($t->account_id ?? '—') }}</div>
                                     @php 
                                         $st = optional($t->pivot)->status; 
                                         $enrolledAt = ($st === 'active' && optional($t->pivot)->updated_at)

@@ -32,7 +32,7 @@
                                 <span class="user-name">{{ $user->name }}</span>
                             </div>
                         </td>
-                        <td><span class="mono-text">{{ $user->account_id ?? '-' }}</span></td>
+                        <td><span class="mono-text">{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</span></td>
                         <td>{{ $user->email }}</td>
                         <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $roleLabel }}</span></td>
                         <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
