@@ -43,6 +43,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password/update', [AuthController::class, 'updatePasswordAfterOtp'])->name('password.update.after.otp');
 });
 
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
