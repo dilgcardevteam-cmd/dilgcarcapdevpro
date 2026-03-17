@@ -462,9 +462,9 @@
         </div>
 
         <div class="help-actions-row">
-            <button type="button" id="openDataPrivacyNotice" class="help-action-btn"><i class="far fa-shield-alt"></i> DATA PRIVACY NOTICE</button>
-            <button type="button" id="openPrivacyPolicy" class="help-action-btn"><i class="far fa-lock"></i> PRIVACY POLICY</button>
-            <button type="button" id="openAboutSite" class="help-action-btn"><i class="far fa-info-circle"></i> ABOUT THIS SITE</button>
+            <button type="button" id="openDataPrivacyNotice" class="help-action-btn"><i class="fas fa-shield-halved"></i> DATA PRIVACY NOTICE</button>
+            <button type="button" id="openPrivacyPolicy" class="help-action-btn"><i class="fas fa-file-contract"></i> PRIVACY POLICY</button>
+            <button type="button" id="openAboutSite" class="help-action-btn"><i class="fas fa-circle-info"></i> ABOUT THIS SITE</button>
         </div>
     </div>
 

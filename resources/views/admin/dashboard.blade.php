@@ -4119,12 +4119,12 @@
                                     }
                                 }
                                 if (!$img) {
-                                    $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                    $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
                                 }
                                 if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
                                     $img = $course->image_path;
                                 }
-                                $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                                $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
                             @endphp
                             <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
                             <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
@@ -4204,12 +4204,12 @@
                                         }
                                     }
                                     if (!$img) {
-                                        $img = 'https://via.placeholder.com/300x150?text=' . urlencode($course->name);
+                                        $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150"><rect width="300" height="150" rx="18" fill="#eef4ff"/><path d="M98 58h104a10 10 0 0 1 10 10v14a10 10 0 0 1-10 10H98a10 10 0 0 1-10-10V68a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="75" r="12" fill="#93c5fd"/><path d="M110 104l28-25 18 15 18-22 28 32H110Z" fill="#bfdbfe"/><text x="150" y="130" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
                                     }
                                     if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
                                         $img = $course->image_path;
                                     }
-                                    $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                                    $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
                                 @endphp
                                 <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
                                 <div style="padding: 14px;">
@@ -4264,7 +4264,7 @@
                             @endphp
                             <div class="course-card" role="button" tabindex="0" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;position:relative">
                                 <div style="position:relative">
-                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'https://via.placeholder.com/600x300?text='.urlencode($course->name) }}" alt="{{ $course->name }}" style="width:100%;height:150px;object-fit:cover;filter:grayscale(100%)">
+                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path).'?v='.$ver : 'data:image/svg+xml;utf8,'.rawurlencode('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\"><rect width=\"600\" height=\"300\" rx=\"24\" fill=\"#eef4ff\"/><path d=\"M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z\" fill=\"#dbe7fb\"/><circle cx=\"244\" cy=\"143\" r=\"22\" fill=\"#93c5fd\"/><path d=\"M218 210l54-52 44 38 44-58 68 72H218Z\" fill=\"#bfdbfe\"/><text x=\"300\" y=\"256\" text-anchor=\"middle\" fill=\"#1d4ed8\" font-family=\"Arial, sans-serif\" font-size=\"24\" font-weight=\"700\">'.e(\Illuminate\Support\Str::limit($course->name, 28, '')).'</text></svg>') }}" alt="{{ $course->name }}" style="width:100%;height:150px;object-fit:cover;filter:grayscale(100%)">
                                     <span style="position:absolute;left:12px;top:12px;display:inline-block;background:#1f2937;color:#fff;border-radius:999px;padding:4px 10px;font-weight:800;font-size:.75rem;opacity:.9">Archived</span>
                                     <button type="button" class="kebab" onclick="event.stopPropagation(); toggleCertMenu('arch-{{ $course->id }}')" style="position:absolute;right:12px;top:12px"><i class="fas fa-ellipsis-v"></i></button>
                                     <div id="menu-arch-{{ $course->id }}" class="menu" style="right:12px;top:46px">
@@ -4536,9 +4536,9 @@
                                                 $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
                                             }
                                         }
-                                        if (!$img) { $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name); }
+                                        if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
                                         if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
-                                        $ph = 'https://via.placeholder.com/600x300?text=' . urlencode($course->name);
+                                        $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
                                     @endphp
                                     <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
                                     <div class="cert-card-head" style="border:none">

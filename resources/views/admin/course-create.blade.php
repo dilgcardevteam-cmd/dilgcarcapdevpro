@@ -3543,7 +3543,7 @@
                     if(!item) return;
                     const items = Array.from(listClick.children);
                     const idxClick = items.indexOf(item);
-                    if(idxClick>=0) setActiveExamIndex(idxClick);
+                    if(idxClick>=0) setActiveExamIndex(wrap, idxClick);
                 });
             }
             function ensureExamInputsBox(){
@@ -3682,7 +3682,7 @@
                 syncExamJSON();
                 updateExamNavigator.call(wrap);
                 // Focus editor on the newly added blank question
-                setActiveExamIndex(Math.max(0, listEl.children.length - 1));
+                setActiveExamIndex(wrap, Math.max(0, listEl.children.length - 1));
             });
             function ensureInitialQuestion(){
                 const listEl = wrap.querySelector('.exam-q-list');
@@ -3702,7 +3702,7 @@
                 addExamInputGroupFor(obj.type);
                 updateExamInputGroup(0, obj);
                 updateExamNavigator.call(wrap);
-                setActiveExamIndex(0);
+                setActiveExamIndex(wrap, 0);
             }
             renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap); ensureInitialQuestion();
             if(prefill){
@@ -3728,7 +3728,7 @@
                         });
                     });
                     syncExamJSON();
-                    setActiveExamIndex(0);
+                    setActiveExamIndex(wrap, 0);
                 }catch(e){}
             }
             reindexModules();
@@ -3793,7 +3793,7 @@
             const nav = wrap.querySelector('.exam-nav');
             if(nav) updateExamNavigator.call(wrap);
             syncExamJSON.call(wrap);
-            setActiveExamIndex(Math.max(0, idx-1));
+            setActiveExamIndex(wrap, Math.max(0, idx-1));
         }
         function deleteActiveExamQuestion(btn){
             const wrap = btn.closest('.exam-wrapper');
@@ -3821,10 +3821,11 @@
             });
             updateExamNavigator.call(wrap);
             recalcExamJSON(wrap);
-            setActiveExamIndex(Math.max(0, active-1));
+            setActiveExamIndex(wrap, Math.max(0, active-1));
         }
             function updateExamNavigator(){
-            const wrap = this.classList?.contains('exam-wrapper') ? this : document.querySelector('.exam-wrapper'); 
+            const wrap = this.classList?.contains('exam-wrapper') ? this : null; 
+            if(!wrap) return;
             const nav = wrap.querySelector('.exam-nav');
             if(!nav) { return; }
             const track = nav.querySelector('.nav-track');
@@ -3838,12 +3839,12 @@
                 b.className = 'nav-block';
                 b.textContent = (i+1);
                 b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-            b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(i); });
+            b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
                 track.appendChild(b);
             }
-            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(Math.max(0, getActiveExamIndex(wrap)-1));
-            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(Math.min(count-1, getActiveExamIndex(wrap)+1));
-            setActiveExamIndex(getActiveExamIndex(wrap)); 
+            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(wrap, Math.max(0, getActiveExamIndex(wrap)-1));
+            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(wrap, Math.min(count-1, getActiveExamIndex(wrap)+1));
+            setActiveExamIndex(wrap, getActiveExamIndex(wrap)); 
         }
         function getActiveExamIndex(wrap){
             const track = wrap.querySelector('.nav-track');
@@ -3855,8 +3856,8 @@
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
         }
-        function setActiveExamIndex(i){
-            const wrap = document.querySelector('.exam-wrapper') || document;
+        function setActiveExamIndex(wrap, i){
+            if(!wrap) return;
             const nav = wrap.querySelector('.exam-nav');
             const track = nav ? nav.querySelector('.nav-track') : null;
             const blocks = track ? Array.from(track.children) : [];
