@@ -976,7 +976,7 @@
                     <!-- Removed tabs: Classwork, People, Grades -->
                 </div>
             </div>
-            @if(request('tab') == 'help-support')
+            @if(request('tab') == 'help-support' || request('tab') == 'help_support')
                 @include('dashboard.help-support')
             @endif
         </div>

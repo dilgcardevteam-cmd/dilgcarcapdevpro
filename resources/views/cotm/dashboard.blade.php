@@ -576,7 +576,7 @@
                     <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
-                    <a class="dropdown-item" href="mailto:support@capdevpro.local">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
@@ -1277,6 +1277,9 @@
                     </div>
                 </div>
             </section>
+            @if(request('tab') == 'help-support' || request('tab') == 'help_support')
+                @include('dashboard.help-support')
+            @endif
         </main>
     </div>
 <script>

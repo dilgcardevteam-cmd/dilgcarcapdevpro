@@ -1121,7 +1121,7 @@
         <div class="main-content">
             
             <!-- Dashboard Home Section -->
-            <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section']) ? '' : 'active' }}">
+            <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section','help-support','help_support']) ? '' : 'active' }}">
                 <div class="home-hero-banner">
                     <h1 class="home-hero-title">Welcome back, {{ Auth::user()->name }}!</h1>
                     <p class="home-hero-subtitle">Monitor your learning progress and quickly access your classes.</p>
@@ -1764,7 +1764,7 @@
 
                 </div>
             </div>
-            @if(request('tab') == 'help-support')
+            @if(request('tab') == 'help-support' || request('tab') == 'help_support')
                 @include('dashboard.help-support')
             @endif
 
