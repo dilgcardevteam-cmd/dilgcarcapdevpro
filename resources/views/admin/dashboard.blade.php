@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2805,7 +2805,7 @@
                                 
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(12,20,60,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;box-shadow:0 20px 40px rgba(2,6,23,.6);pointer-events:none;color:#e5e7eb;min-width:220px;"></div>
-                            <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data Â© Contributors Â· Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
+                            <div style="margin-top:10px;text-align:right;color:#94a3b8;font-size:.75rem">Map data © Contributors · Source: <a href="https://github.com/justinegealogo/philippines-region-province-citymuni-barangay" target="_blank" rel="noopener" style="color:#64748b;text-decoration:none;font-weight:500;">Philippines GeoJSON</a></div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                             <script>
                             (function(){
@@ -3176,31 +3176,52 @@
                                     var el=document.getElementById(elId);
                                     if(!el){return;}
                                     var width=220, height=220, r=80, ir=48;
+                                    var total=parts.reduce(function(a,b){return a+b;},0);
+                                    if(total===0){return;} // don't render if no data
+                                    
                                     var svg=d3.select('#'+elId).append('svg').attr('width',width).attr('height',height);
                                     var g=svg.append('g').attr('transform','translate('+width/2+','+height/2+')');
-                                    var total=parts.reduce(function(a,b){return a+b;},0);
+                                    
+                                    // Filter out zero parts to avoid padding/rendering issues with 0-angle segments
+                                    var validParts = [];
+                                    var validColors = [];
+                                    parts.forEach(function(p, i){
+                                        if(p > 0){
+                                            validParts.push(p);
+                                            validColors.push(colors[i]);
+                                        }
+                                    });
+                                    
+                                    // Use padAngle on pie layout, but only if there's more than one part
                                     var pie=d3.pie().sort(null);
-                                    var arc=d3.arc().innerRadius(ir).outerRadius(r).padAngle(0.03).cornerRadius(6);
-                                    var data=pie(parts);
-                                  var paths=g.selectAll('path').data(data).enter().append('path')
+                                    if(validParts.length > 1){
+                                        pie.padAngle(0.03);
+                                    }
+                                    
+                                    var arc=d3.arc().innerRadius(ir).outerRadius(r).cornerRadius(6);
+                                    var data=pie(validParts);
+                                    
+                                    var paths=g.selectAll('path').data(data).enter().append('path')
                                       .attr('d',arc)
-                                      .attr('fill',function(d,i){return colors[i];})
+                                      .attr('fill',function(d,i){return validColors[i];})
                                       .attr('stroke','#ffffff')
                                       .attr('stroke-width','1.2')
                                       .style('filter','drop-shadow(0 6px 10px rgba(17,24,39,.12))')
                                       .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
                                       .on('mouseout', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1)'); });
-                                  paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', function(d){
-                                    var i=d3.interpolate({startAngle:d.startAngle, endAngle:d.startAngle}, d);
-                                    return function(t){ return arc(i(t)); };
-                                  });
+                                    
+                                    paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', function(d){
+                                      var i=d3.interpolate({startAngle:d.startAngle, endAngle:d.startAngle}, d);
+                                      return function(t){ return arc(i(t)); };
+                                    });
+                                    
                                     // percentage labels on arcs
                                     g.selectAll('text').data(data).enter().append('text')
                                       .attr('transform', function(d){ return 'translate('+arc.centroid(d)+')'; })
                                       .attr('dy','.35em')
                                       .attr('text-anchor','middle')
                                       .attr('font-size','12px')
-                                      .attr('fill', function(d,i){ return colors[i] === '#FFD700' ? '#0f172a' : '#ffffff'; })
+                                      .attr('fill', function(d,i){ return validColors[i] === '#FFD700' ? '#0f172a' : '#ffffff'; })
                                       .text(function(d){ var p=total? Math.round((d.value/total)*100):0; return p>0? (p+'%'):''; });
                                   }
                                   // Accounts
@@ -3210,9 +3231,9 @@
                                   var aTotal={{ $userCount }};
                                   renderArcDonut('donut-accounts', [aActive,aPending,aBlocked], ['#002C76','#FFD700','#B10606']);
                                   function pct(n,t){ return t>0? Math.round((n/t)*100):0; }
-                                  document.getElementById('acc-legend-active').innerText = aActive+' Â· '+pct(aActive,aTotal)+'%';
-                                  document.getElementById('acc-legend-pending').innerText = aPending+' Â· '+pct(aPending,aTotal)+'%';
-                                  document.getElementById('acc-legend-blocked').innerText = aBlocked+' Â· '+pct(aBlocked,aTotal)+'%';
+                                  document.getElementById('acc-legend-active').innerText = aActive+' · '+pct(aActive,aTotal)+'%';
+                                  document.getElementById('acc-legend-pending').innerText = aPending+' · '+pct(aPending,aTotal)+'%';
+                                  document.getElementById('acc-legend-blocked').innerText = aBlocked+' · '+pct(aBlocked,aTotal)+'%';
                                   // Courses (no drafts)
                                   var cActive={{ $activeCoursesSafe ?? 0 }};
                                   var cPending={{ $pendingCoursesSafe ?? 0 }};
@@ -3220,9 +3241,9 @@
                                   var cTotal=cActive+cPending+cArchived;
                                   document.getElementById('total-courses').innerText = cTotal;
                                   renderArcDonut('donut-courses', [cActive,cPending,cArchived], ['#002C76','#FFD700','#B10606']);
-                                  document.getElementById('course-legend-active').innerText = cActive+' Â· '+pct(cActive,cTotal)+'%';
-                                  document.getElementById('course-legend-pending').innerText = cPending+' Â· '+pct(cPending,cTotal)+'%';
-                                  document.getElementById('course-legend-arch').innerText = cArchived+' Â· '+pct(cArchived,cTotal)+'%';
+                                  document.getElementById('course-legend-active').innerText = cActive+' · '+pct(cActive,cTotal)+'%';
+                                  document.getElementById('course-legend-pending').innerText = cPending+' · '+pct(cPending,cTotal)+'%';
+                                  document.getElementById('course-legend-arch').innerText = cArchived+' · '+pct(cArchived,cTotal)+'%';
                                 })();
                             </script>
                         </div>
@@ -3671,7 +3692,7 @@
                             var dt=new DataTransfer();
                             dt.items.add(f);
                             fi.files=dt.files;
-                            fn.textContent=name+' Â· '+Math.round(f.size/1024)+' KB';
+                            fn.textContent=name+' · '+Math.round(f.size/1024)+' KB';
                             if(ext==='csv'){
                                 btn.disabled=false;
                                 document.getElementById('psgcStatus').textContent='Ready to import';

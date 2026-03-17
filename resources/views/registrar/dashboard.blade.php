@@ -1696,15 +1696,31 @@
                             var el=document.getElementById(elId);
                             if(!el){return;}
                             var width=220, height=220, r=80, ir=48;
+                            var total=parts.reduce(function(a,b){return a+b;},0);
+                            if(total===0){return;}
+
                             var svg=d3.select('#'+elId).append('svg').attr('width',width).attr('height',height);
                             var g=svg.append('g').attr('transform','translate('+width/2+','+height/2+')');
-                            var total=parts.reduce(function(a,b){return a+b;},0);
+                            
+                            var validParts = [];
+                            var validColors = [];
+                            parts.forEach(function(p, i){
+                                if(p > 0){
+                                    validParts.push(p);
+                                    validColors.push(colors[i]);
+                                }
+                            });
+
                             var pie=d3.pie().sort(null);
-                            var arc=d3.arc().innerRadius(ir).outerRadius(r).padAngle(0.03).cornerRadius(6);
-                            var data=pie(parts);
+                            if(validParts.length > 1){
+                                pie.padAngle(0.03);
+                            }
+
+                            var arc=d3.arc().innerRadius(ir).outerRadius(r).cornerRadius(6);
+                            var data=pie(validParts);
                             var paths=g.selectAll('path').data(data).enter().append('path')
                               .attr('d',arc)
-                              .attr('fill',function(d,i){return colors[i];})
+                              .attr('fill',function(d,i){return validColors[i];})
                               .attr('stroke','#ffffff')
                               .attr('stroke-width','1.2')
                               .on('mouseover', function(){ d3.select(this).transition().duration(150).attr('transform','scale(1.03)'); })
@@ -1718,7 +1734,7 @@
                               .attr('dy','.35em')
                               .attr('text-anchor','middle')
                               .attr('font-size','12px')
-                              .attr('fill','#0f172a')
+                              .attr('fill', function(d,i){ return validColors[i] === '#FFD700' ? '#0f172a' : '#ffffff'; })
                               .text(function(d){ var p=total? Math.round((d.value/total)*100):0; return p>0? (p+'%'):''; });
                           }
                           function pct(n,t){ return t>0? Math.round((n/t)*100):0; }
