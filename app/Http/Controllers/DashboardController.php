@@ -14,6 +14,7 @@ use App\Models\CalendarEvent;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\Role;
 
@@ -1762,5 +1763,76 @@ class DashboardController extends Controller
     public function helpSupport()
     {
         return view('help_support');
+    }
+
+    public function storeSupportRequest(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validateWithBag('supportRequest', [
+            'request_type' => ['required', 'in:ticket,contact'],
+            'subject' => ['required', 'string', 'max:150'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $entry = [
+            'submitted_at' => now()->toDateTimeString(),
+            'request_type' => $validated['request_type'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'user' => [
+                'id' => $user?->id,
+                'name' => $user?->name,
+                'email' => $user?->email,
+                'role' => $user?->role,
+            ],
+            'ip_address' => $request->ip(),
+            'user_agent' => (string) $request->userAgent(),
+        ];
+
+        Storage::disk('local')->makeDirectory('support');
+        Storage::disk('local')->append(
+            'support/support-requests.log',
+            json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        );
+
+        try {
+            Mail::raw(
+                "Support request type: {$validated['request_type']}\n"
+                ."From: {$user?->name} <{$user?->email}>\n"
+                ."Role: {$user?->role}\n"
+                ."Subject: {$validated['subject']}\n\n"
+                ."{$validated['message']}",
+                function ($message) use ($validated, $user) {
+                    $message->to(env('SUPPORT_CONTACT_EMAIL', env('MAIL_FROM_ADDRESS', 'dilgcarcapdevpro@gmail.com')))
+                        ->subject('[CAPDEV PRO] '.$validated['subject']);
+
+                    if (!empty($user?->email)) {
+                        $message->replyTo($user->email, $user->name ?? null);
+                    }
+                }
+            );
+
+        } catch (\Throwable $e) {
+            Log::error('Support request mail send failed.', [
+                'message' => $e->getMessage(),
+                'request_type' => $validated['request_type'],
+                'subject' => $validated['subject'],
+                'recipient' => env('SUPPORT_CONTACT_EMAIL', env('MAIL_FROM_ADDRESS', 'dilgcarcapdevpro@gmail.com')),
+                'user_id' => $user?->id,
+                'user_email' => $user?->email,
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error_help_support', 'Support request was saved, but email sending failed. Please check the mail configuration or Laravel log.');
+        }
+
+        return back()->with(
+            'success_help_support',
+            $validated['request_type'] === 'ticket'
+                ? 'Support ticket submitted successfully.'
+                : 'Support message sent successfully.'
+        );
     }
 }

@@ -143,6 +143,7 @@ Route::post('/admin/users/{user}/rollback-training-manager', [DashboardControlle
 // Trainee assessment answering and shared Help & Support
 Route::middleware('auth')->group(function(){
     Route::get('/help-support', [DashboardController::class, 'helpSupport'])->name('help.support');
+    Route::post('/help-support/request', [DashboardController::class, 'storeSupportRequest'])->name('help.support.request');
     Route::get('/trainee/assessments/{assessment}/take', [AssessmentAnswerController::class, 'take'])->name('trainee.assessments.take');
     Route::post('/trainee/assessments/{assessment}/submit', [AssessmentAnswerController::class, 'submit'])->name('trainee.assessments.submit');
 });
