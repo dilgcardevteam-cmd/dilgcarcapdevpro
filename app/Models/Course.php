@@ -128,14 +128,6 @@ class Course extends Model
     public function getCourseProgress(User $user)
     {
         $totalAssessments = $this->assessments()->count();
-        if ($totalAssessments === 0) {
-            return [
-                'completed' => 0,
-                'total' => 0,
-                'percentage' => 0,
-            ];
-        }
-
         $gradedAssessments = 0;
         foreach ($this->assessments as $assessment) {
             if ($assessment->grades()->where('user_id', $user->id)->exists()) {
@@ -143,10 +135,57 @@ class Course extends Model
             }
         }
 
+        // Also calculate topic completion from ReflectionResponses
+        $mods = is_array($this->modules) ? $this->modules : [];
+        $reflectionRows = \App\Models\ReflectionResponse::where('user_id', $user->id)
+            ->where('course_id', $this->id)
+            ->get(['module_index', 'topic_index', 'answers_json']);
+        
+        $topicDoneSet = [];
+        foreach ($reflectionRows as $r) {
+            $answers = is_array($r->answers_json) ? $r->answers_json : [];
+            $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
+                ? trim($answers['learned'])
+                : '';
+            if ($val === '') continue;
+            $topicDoneSet["{$r->module_index}_{$r->topic_index}"] = true;
+        }
+
+        $totalTopics = 0;
+        $doneTopics = 0;
+        foreach ($mods as $mi => $m) {
+            $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
+            $totalTopics += count($topics);
+            foreach ($topics as $ti => $_t) {
+                if (!empty($topicDoneSet["{$mi}_{$ti}"])) {
+                    $doneTopics++;
+                }
+            }
+        }
+
+        $totalItems = $totalAssessments + $totalTopics;
+        $completedItems = $gradedAssessments + $doneTopics;
+
+        if ($totalItems === 0) {
+            return [
+                'completed' => 0,
+                'total' => 0,
+                'percentage' => 0,
+                'topics_completed' => 0,
+                'topics_total' => 0,
+                'assessments_completed' => 0,
+                'assessments_total' => 0,
+            ];
+        }
+
         return [
-            'completed' => $gradedAssessments,
-            'total' => $totalAssessments,
-            'percentage' => ($gradedAssessments / $totalAssessments) * 100,
+            'completed' => $completedItems,
+            'total' => $totalItems,
+            'percentage' => ($completedItems / $totalItems) * 100,
+            'topics_completed' => $doneTopics,
+            'topics_total' => $totalTopics,
+            'assessments_completed' => $gradedAssessments,
+            'assessments_total' => $totalAssessments,
         ];
     }
 }

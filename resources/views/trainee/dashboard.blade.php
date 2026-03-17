@@ -1201,9 +1201,14 @@
                                             <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] ?? 0 }}%;"></div>
                                         </div>
                                     </div>
-                                    <div class="module-progress">
-                                        <span>Assessments: {{ $progressData[$course->id]['completed'] ?? 0 }} / {{ $progressData[$course->id]['total'] ?? 0 }}</span>
-                                        <span>Modules: {{ $progressData[$course->id]['total_modules'] ?? 0 }}</span>
+                                    <div class="module-progress" style="display: flex; flex-direction: column; gap: 4px;">
+                                        @if($progressData[$course->id]['topics_total'] > 0)
+                                            <span>Topics: {{ $progressData[$course->id]['topics_completed'] }} / {{ $progressData[$course->id]['topics_total'] }}</span>
+                                        @endif
+                                        @if($progressData[$course->id]['assessments_total'] > 0)
+                                            <span>Assessments: {{ $progressData[$course->id]['assessments_completed'] }} / {{ $progressData[$course->id]['assessments_total'] }}</span>
+                                        @endif
+                                        <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
                                     </div>
                                     <div class="card-meta">
                                         @php
@@ -1339,11 +1344,14 @@
                                         <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] }}%;"></div>
                                     </div>
                                 </div>
-                                <div class="module-progress">
-                                    <span>
-                                        Module: {{ $progressData[$course->id]['completed'] }} / {{ $progressData[$course->id]['total'] }}
-                                        (Total Modules: {{ $progressData[$course->id]['total_modules'] }})
-                                    </span>
+                                <div class="module-progress" style="display: flex; flex-direction: column; gap: 4px;">
+                                    @if($progressData[$course->id]['topics_total'] > 0)
+                                        <span>Topics: {{ $progressData[$course->id]['topics_completed'] }} / {{ $progressData[$course->id]['topics_total'] }}</span>
+                                    @endif
+                                    @if($progressData[$course->id]['assessments_total'] > 0)
+                                        <span>Assessments: {{ $progressData[$course->id]['assessments_completed'] }} / {{ $progressData[$course->id]['assessments_total'] }}</span>
+                                    @endif
+                                    <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
                                 </div>
                                     <div class="card-meta">
                                         @php
