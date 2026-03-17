@@ -89,8 +89,9 @@
         .bg-green { background-color: #e8f5e9; color: #388e3c; }
         .bg-orange { background-color: #fff3e0; color: #f57c00; }
         .bg-purple { background-color: #f3e5f5; color: #7b1fa2; }
-        .control-hero{background:linear-gradient(135deg,#002C76 0%, #0b57d0 55%, #1e88e5 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+        .control-hero{background:linear-gradient(135deg,#c96a09 0%, #f59e0b 58%, #ffb11b 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(245,158,11,.22)}
         .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .control-hero-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
         .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
         .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
         .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -412,7 +413,9 @@
                 <div class="control-hero">
                     <div class="control-hero-top">
                         <div>
-                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            <div class="control-hero-head">
+                                <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                            </div>
                             <div class="control-hero-sub">Monitor your learning progress and quickly access your classes.</div>
                         </div>
                     </div>

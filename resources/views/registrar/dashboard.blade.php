@@ -138,11 +138,13 @@
 
         /* Hero control (match trainer style) */
         .control-hero{background:linear-gradient(135deg,#0B2C74 0%,#1f4aa5 60%,#4e79e8 100%);color:#fff;border-radius:14px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 10px 24px rgba(11,44,116,.18);margin-bottom:20px}
+        .control-hero.is-training-manager{background:linear-gradient(135deg,#ca8a04 0%,#facc15 58%,#fde047 100%);color:#1e293b;box-shadow:0 10px 24px rgba(250,204,21,.24)}
         .control-hero-left{display:flex;align-items:center;gap:14px}
         .control-hero-title{font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
         .control-hero-sub{font-size:.95rem;opacity:.9}
         .hero-actions{display:flex;gap:10px;flex-wrap:wrap}
         .hero-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0B2C74;border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:10px 14px;font-weight:800;text-decoration:none;box-shadow:0 6px 16px rgba(11,44,116,.18)}
+        .control-hero.is-training-manager .hero-btn{background:#fffdf1;color:#8a4b06;border:1px solid rgba(255,255,255,.72);box-shadow:0 6px 16px rgba(161,98,7,.14)}
         .hero-btn:hover{transform:translateY(-1px)}
 
         /* Distribution card */
@@ -1543,7 +1545,10 @@
         <main class="main-content">
             <!-- Dashboard Home Section -->
             <section id="dashboard-home" class="content-section {{ !request('tab') ? 'active' : '' }}">
-                <div class="control-hero">
+                @php
+                    $isTrainingManagerHero = in_array(Auth::user()->role, ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'], true);
+                @endphp
+                <div class="control-hero {{ $isTrainingManagerHero ? 'is-training-manager' : '' }}">
                     <div class="control-hero-left">
                         <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center"><i class="fas fa-gauge-high"></i></div>
                         <div>

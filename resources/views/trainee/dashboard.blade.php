@@ -268,7 +268,7 @@
         .bg-purple { background-color: #f3e5f5; color: #7b1fa2; }
 
         /* Control Hero */
-        .control-hero{background:linear-gradient(135deg,#002C76 0%, #0b57d0 55%, #1e88e5 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+        .control-hero{background:linear-gradient(135deg,#c96a09 0%, #f59e0b 55%, #ffb11b 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(245,158,11,.22)}
         .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
         .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
         .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
@@ -279,8 +279,8 @@
         .hero-metric{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
         .hero-metric h4{margin:0;font-size:.95rem;color:#374151;font-weight:700}
         .metric-left{display:flex;align-items:center;gap:12px}
-        .metric-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8effd;color:var(--primary-blue);font-size:1.1rem;flex-shrink:0}
-        .metric-value{font-size:1.4rem;font-weight:800;color:var(--primary-blue)}
+        .metric-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#fff7ed;color:#c96a09;font-size:1.1rem;flex-shrink:0}
+        .metric-value{font-size:1.4rem;font-weight:800;color:#c96a09}
 
         /* Content Sections */
         .content-section {
@@ -434,20 +434,22 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(15, 23, 42, 0.58);
             z-index: 2000;
             justify-content: center;
             align-items: center;
+            padding: 18px;
         }
         
         .modal-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            padding: 34px 32px 28px;
+            border-radius: 28px;
             width: 90%;
-            max-width: 500px;
+            max-width: 520px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 1px solid #dbe6fb;
+            box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
             animation: slideIn 0.3s ease;
         }
 
@@ -457,9 +459,11 @@
         }
 
         .modal-title {
-            font-size: 1.5rem;
+            font-size: 1.9rem;
             color: var(--primary-blue);
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
         }
 
         .modal-buttons {
@@ -467,25 +471,27 @@
             justify-content: center;
             gap: 15px;
             margin-top: 25px;
+            flex-wrap: wrap;
         }
 
         .btn-confirm {
-            background-color: var(--primary-green);
+            background-color: #153E8A;
             color: white;
-            padding: 10px 25px;
+            padding: 12px 26px;
             border: none;
-            border-radius: 5px;
+            border-radius: 16px;
             cursor: pointer;
             font-weight: bold;
             font-size: 1rem;
+            box-shadow: 0 10px 18px rgba(21,62,138,0.24);
         }
 
         .btn-cancel {
-            background-color: #d9534f;
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
+            background-color: #ffffff;
+            color: #334155;
+            padding: 12px 26px;
+            border: 1px solid #d1d9ea;
+            border-radius: 16px;
             cursor: pointer;
             font-weight: bold;
             font-size: 1rem;
@@ -942,14 +948,15 @@
         @media(max-width:768px){#profile-section .profile-page-banner{flex-direction:column;align-items:flex-start}#profile-section .profile-page-actions{width:100%}}
 
         /* Home Page Pro Hero Styles */
-        .home-hero-banner { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius: 20px; padding: 35px; color: white; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15); }
-        .home-hero-banner::after { content: ""; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; }
+        .home-hero-banner { background: linear-gradient(135deg, #c96a09 0%, #f59e0b 58%, #ffb11b 100%); border-radius: 20px; padding: 35px; color: white; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.22); }
+        .home-hero-banner::after { content: ""; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; }
+        .home-hero-head { display:block; margin-bottom:8px; }
         .home-hero-title { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
         .home-hero-subtitle { font-size: 1rem; opacity: 0.9; margin-bottom: 25px; max-width: 600px; }
         .home-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .home-metric-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.2s; }
-        .home-metric-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
-        .home-metric-icon { width: 45px; height: 45px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #1e40af; font-size: 1.2rem; }
+        .home-metric-card { background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.2s; }
+        .home-metric-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.2); }
+        .home-metric-icon { width: 45px; height: 45px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #c96a09; font-size: 1.2rem; }
         .home-metric-info { display: flex; flex-direction: column; }
         .home-metric-value { font-size: 1.4rem; font-weight: 800; }
         .home-metric-label { font-size: 0.8rem; opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -1123,7 +1130,9 @@
             <!-- Dashboard Home Section -->
             <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section','help-support','help_support']) ? '' : 'active' }}">
                 <div class="home-hero-banner">
-                    <h1 class="home-hero-title">Welcome back, {{ Auth::user()->name }}!</h1>
+                    <div class="home-hero-head">
+                        <h1 class="home-hero-title" style="margin-bottom:0;">Welcome back, {{ Auth::user()->name }}!</h1>
+                    </div>
                     <p class="home-hero-subtitle">Monitor your learning progress and quickly access your classes.</p>
                     
                     <div class="home-metrics-grid">
@@ -1257,6 +1266,7 @@
                                     @php
                                         $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
                                         $enrollable = $course->isEnrollable();
+                                        $awaitingTrainerAssignment = !$coachNames;
                                     @endphp
                                     <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
                                     <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
@@ -1264,11 +1274,11 @@
                                 
                                 <div style="display: flex; gap: 10px; margin-top: auto;">
                                     @if(!$enrollable)
-                                        <button class="btn-gradient" style="background: #94a3b8; cursor: not-allowed; opacity: 0.7; flex: 1;" disabled>Closed</button>
+                                        <button class="btn-gradient" style="{{ $awaitingTrainerAssignment ? 'background:#FFF4DB;color:#B4690E;border:1px solid #F7C66A;box-shadow:none;' : 'background:#94a3b8;color:#ffffff;border:none;' }} cursor: not-allowed; opacity: 0.95; flex: 1;" disabled title="{{ $awaitingTrainerAssignment ? 'Trainer assignment is still pending for this course.' : 'This course is not yet open for enrollment.' }}">{{ $awaitingTrainerAssignment ? 'Awaiting Trainer Assignment' : 'Not Yet Available' }}</button>
                                     @else
-                                        <button class="btn-gradient" style="background: linear-gradient(135deg, #059669, #10b981); flex: 1;" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll</button>
+                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll</button>
                                     @endif
-                                    <button class="btn-gradient" style="background: linear-gradient(135deg, #64748b, #94a3b8); flex: 1;" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
+                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
                                 </div>
                             </div>
                         </div>
@@ -1720,7 +1730,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                             <span id="detail-enroll-chip" class="status-chip" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
-                            <button id="detail-enroll-btn" class="btn-view" style="background-color: #C9282D; padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                            <button id="detail-enroll-btn" class="btn-view" style="background-color: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
                                 <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
                             </button>
                         </div>
@@ -1791,11 +1801,11 @@
     <!-- Enrollment Confirmation Modal -->
     <div id="enrollModal" class="modal-overlay">
         <div class="modal-container">
-            <div style="margin-bottom: 20px;">
-                <i class="fas fa-question-circle" style="font-size: 4rem; color: var(--primary-blue);"></i>
+            <div style="width:88px;height:88px;margin:0 auto 18px;border-radius:28px;background:linear-gradient(135deg,#e8f0ff 0%,#cfe0ff 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 30px rgba(21,62,138,0.14);">
+                <i class="fas fa-user-plus" style="font-size: 2.2rem; color: #153E8A;"></i>
             </div>
             <h2 class="modal-title">Confirm Enrollment</h2>
-            <p style="color: #666; margin-bottom: 25px;">Are you sure you want to enroll in this course?</p>
+            <p style="color:#64748b; margin:0 0 24px; line-height:1.7; font-size:1rem;">Are you sure you want to enroll in this course?</p>
             
             <form id="enrollForm" method="POST" action="">
                 @csrf
@@ -1813,8 +1823,17 @@
         const storageBaseUrl = "{{ asset('storage') }}";
         const coursesData = {};
         const courseStatuses = @json($courseStatuses);
+        const courseEnrollability = {};
+        const courseAwaitingTrainerAssignment = {};
         @foreach($availableCourses as $course)
+            @php
+                $courseHasAssignedTrainer = $course->users
+                    ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->isNotEmpty()
+                    : false;
+            @endphp
             coursesData[{{ $course->id }}] = @json($course);
+            courseEnrollability[{{ $course->id }}] = @json($course->isEnrollable());
+            courseAwaitingTrainerAssignment[{{ $course->id }}] = @json(!$courseHasAssignedTrainer);
         @endforeach
 
         const enrolledCourseIds = @json($myCourses->pluck('id'));
@@ -2391,10 +2410,35 @@
             const status = courseStatuses[courseId] || null;
             const enrollBtn = document.getElementById('detail-enroll-btn');
             const enrollChip = document.getElementById('detail-enroll-chip');
+            const isEnrollable = !!courseEnrollability[courseId];
+            const awaitingTrainerAssignment = !!courseAwaitingTrainerAssignment[courseId];
             enrollBtn.style.display = 'none';
-            if (enrollChip) enrollChip.style.display = 'none';
+            if (enrollChip) {
+                enrollChip.style.display = 'none';
+                enrollChip.innerHTML = '<i class="fas fa-ban"></i> Enrollment Closed';
+                enrollChip.style.background = '#fef2f2';
+                enrollChip.style.border = '1px solid #fecaca';
+                enrollChip.style.color = '#991b1b';
+            }
             // Enrollment window gating
             (function(){
+                if (!isEnrollable) {
+                    if (enrollChip) {
+                        if (awaitingTrainerAssignment) {
+                            enrollChip.innerHTML = '<i class="fas fa-user-clock"></i> Awaiting Trainer Assignment';
+                            enrollChip.style.background = '#FFF4DB';
+                            enrollChip.style.border = '1px solid #F7C66A';
+                            enrollChip.style.color = '#B4690E';
+                        } else {
+                            enrollChip.innerHTML = '<i class="fas fa-ban"></i> Not Yet Available';
+                            enrollChip.style.background = '#f1f5f9';
+                            enrollChip.style.border = '1px solid #cbd5e1';
+                            enrollChip.style.color = '#475569';
+                        }
+                        enrollChip.style.display = 'inline-block';
+                    }
+                    return;
+                }
                 try{
                     const now = new Date();
                     const start = course.enrollment_start_at ? new Date(course.enrollment_start_at) : null;
