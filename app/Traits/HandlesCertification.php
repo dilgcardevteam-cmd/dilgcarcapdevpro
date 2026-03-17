@@ -16,7 +16,7 @@ trait HandlesCertification
     /**
      * Issue a certificate if the trainee has completed 100% of the course.
      */
-    public function issueCertificateIfCompleted(User $user, Course $course)
+    public function issueCertificateIfCompleted(User $user, Course $course): bool
     {
         // 1. Calculate overall progress
         $mods = is_array($course->modules) ? $course->modules : [];
@@ -29,7 +29,7 @@ trait HandlesCertification
             }
         }
 
-        if ($overallTotal === 0) return;
+        if ($overallTotal === 0) return false;
 
         $rows = ReflectionResponse::where('user_id', $user->id)
             ->where('course_id', $course->id)
@@ -49,20 +49,20 @@ trait HandlesCertification
         $percent = round((count($doneSet) / $overallTotal) * 100);
 
         // 2. Check if progress is 100%
-        if ($percent < 100) return;
+        if ($percent < 100) return false;
 
         // 3. Find the certification associated with this course
         $certId = $course->certification_id;
         if (!$certId) {
             // Fallback to first available certification if course doesn't have one linked
             $cert = Certification::orderBy('id')->first();
-            if (!$cert) return;
+            if (!$cert) return false;
             $certId = $cert->id;
         } else {
             $cert = Certification::find($certId);
         }
 
-        if (!$cert) return;
+        if (!$cert) return false;
 
         // 4. Check if already certified for this course
         $alreadyCertified = $user->certifications()
@@ -70,7 +70,7 @@ trait HandlesCertification
             ->wherePivot('course_id', $course->id)
             ->exists();
 
-        if ($alreadyCertified) return;
+        if ($alreadyCertified) return false;
 
         // 5. Issue the certificate
         $certNumber = $this->generateUniqueCertificateNumber();
@@ -103,6 +103,8 @@ trait HandlesCertification
         } catch (\Throwable $e) {
             \Log::error("Auto certification PDF generation failed: " . $e->getMessage());
         }
+        
+        return true; // Indicate that a certificate was newly issued
     }
 
     protected function generateUniqueCertificateNumber(): string

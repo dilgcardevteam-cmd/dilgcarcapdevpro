@@ -1116,6 +1116,69 @@
             </form>
         </div>
     </div>
+    <div id="congratsModal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:3000;backdrop-filter:blur(4px);">
+        <div style="background:#fff;border-radius:24px;width:min(500px,90vw);padding:40px;text-align:center;position:relative;z-index:3002;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="width:80px;height:80px;background:linear-gradient(135deg, #FFD700 0%, #FDB931 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 10px 15px -3px rgba(255, 215, 0, 0.3);">
+                <i class="fas fa-trophy" style="font-size:40px;color:#fff;"></i>
+            </div>
+            <h2 style="font-size:2rem;font-weight:800;color:#1e293b;margin-bottom:8px;line-height:1.2;">Congratulations!</h2>
+            <p style="color:#64748b;font-size:1.1rem;margin-bottom:24px;">You have successfully completed<br><strong style="color:#0f3b8f;">{{ $course->name }}</strong></p>
+            <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:32px;border:1px solid #e2e8f0;">
+                <p style="margin:0;color:#475569;font-size:0.95rem;">Your certificate is now available.</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <a href="{{ route('dashboard', ['tab' => 'certificates']) }}" class="btn-blue" style="padding:14px;border-radius:12px;font-weight:700;text-decoration:none;display:block;font-size:1rem;text-align:center">
+                    <i class="fas fa-certificate" style="margin-right:8px;"></i> View Certificate
+                </a>
+                <button type="button" onclick="document.getElementById('congratsModal').style.display='none'" style="background:transparent;border:none;color:#64748b;font-weight:600;cursor:pointer;padding:10px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        function showCongrats() {
+            const modal = document.getElementById('congratsModal');
+            if(modal) {
+                modal.style.display = 'flex';
+                // Fire multiple bursts using global confetti
+                const duration = 5 * 1000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 4000 };
+
+                function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    const particleCount = 50 * (timeLeft / duration);
+                    // since particles fall down, start a bit higher than random
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+                }, 250);
+
+                // Add two big initial bursts from bottom corners
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6, x: 0 },
+                    zIndex: 4000
+                });
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6, x: 1 },
+                    zIndex: 4000
+                });
+            }
+        }
+    </script>
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const course = @json($course);
@@ -1156,7 +1219,17 @@
             var pct = total ? Math.round((done/total)*100) : 0;
             var ring = document.getElementById('overallRing');
             var det = document.getElementById('overallDetail');
-            if(ring){ ring.style.setProperty('--deg', pct*3.6+'deg'); ring.textContent = pct+'%'; }
+            if(ring){ 
+                ring.style.setProperty('--deg', pct*3.6+'deg'); 
+                ring.textContent = pct+'%';
+                if(pct >= 100){
+                    ring.style.cursor = 'pointer';
+                    ring.title = 'Click to see congratulations!';
+                } else {
+                    ring.style.cursor = 'default';
+                    ring.title = '';
+                }
+            }
             if(det){ det.textContent = total ? '('+done+' / '+total+' complete)' : ''; }
             renderModuleProgress(mods, function(i){
                 var sum=0, d=0;
@@ -1172,6 +1245,15 @@
             });
         }
         (function initProgress(){
+            var ring = document.getElementById('overallRing');
+            if(ring){
+                ring.addEventListener('click', function(){
+                    var currentPct = parseInt(ring.textContent);
+                    if(currentPct >= 100 && typeof showCongrats === 'function'){
+                        showCongrats();
+                    }
+                });
+            }
             var doneSet = {};
             fetch('{{ route('courses.reflections.map', $course) }}', {credentials:'same-origin'})
                 .then(function(r){ return r.json(); })

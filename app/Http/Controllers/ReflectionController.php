@@ -86,11 +86,12 @@ class ReflectionController extends Controller
         // Check if course is now 100% complete and issue certificate
         $course = Course::find($courseId);
         $user = Auth::user();
+        $completed = false;
         if ($course && $user) {
-            $this->issueCertificateIfCompleted($user, $course);
+            $completed = $this->issueCertificateIfCompleted($user, $course);
         }
 
-        return response()->json(['ok' => true, 'id' => $row->id]);
+        return response()->json(['ok' => true, 'id' => $row->id, 'completed' => $completed]);
     }
 
     public function progress(Request $request, \App\Models\Course $course)

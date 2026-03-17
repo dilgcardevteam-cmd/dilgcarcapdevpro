@@ -1264,9 +1264,9 @@ class CourseController extends Controller
         file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT));
 
         // Check if course is now 100% complete and issue certificate
-        $this->issueCertificateIfCompleted($user, $course);
+        $completed = $this->issueCertificateIfCompleted($user, $course);
 
-        return response()->json(['ok'=>true]);
+        return response()->json(['ok'=>true, 'completed' => $completed]);
     }
 
     /**
