@@ -77,12 +77,24 @@
         .progress-track { width: 100%; height: 10px; border-radius: 999px; background: #e2e8f0; border: 1px solid #dbe2ea; overflow: hidden; }
         .progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, #0d6efd 0%, #00a859 100%); transition: width .25s ease; }
         .progress-status { margin-top: 6px; font-size: .82rem; color: #475569; font-weight: 700; }
-        .progress-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+        .progress-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
         .step { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; color: #334155; font-weight: 700; font-size: .84rem; border: 1px solid #e5e7eb; transition: all .2s ease; }
         .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
         .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
         .step.done .step-index { background: #10b981; color: #ffffff; }
         @media (max-width: 640px){ .progress-steps { grid-template-columns: 1fr; } }
+        .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .summary-section { margin-bottom: 24px; }
+        .summary-section:last-child { margin-bottom: 0; }
+        .summary-title { font-size: 1rem; font-weight: 800; color: #002C76; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .summary-content { color: #334155; font-size: 0.95rem; line-height: 1.6; }
+        .summary-label { font-weight: 700; color: #64748b; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .summary-module { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .summary-module-title { font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .summary-topic { margin-left: 20px; padding-left: 12px; border-left: 2px solid #e2e8f0; margin-bottom: 6px; font-size: 0.9rem; }
+        .summary-subtopic { margin-left: 20px; color: #64748b; font-size: 0.85rem; }
+        .summary-cert-preview { display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .summary-cert-img { width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e5e7eb; }
         .error-text { color: #dc2626; font-size: 0.85rem; margin-top: 6px; }
         .editor-toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
         .editor-toolbar button { padding: 6px 8px; border: 1px solid #e5e7eb; background: #f8fafc; border-radius: 6px; cursor: pointer; }
@@ -185,12 +197,14 @@
                     <span id="step1" class="step"><span class="step-index">1</span><span>Details</span></span>
                     <span id="step2" class="step"><span class="step-index">2</span><span>Modules</span></span>
                     <span id="step3" class="step"><span class="step-index">3</span><span>Certificate</span></span>
+                    <span id="step4" class="step"><span class="step-index">4</span><span>Finalize</span></span>
                 </div>
             </div>
             <div class="tabs" role="tablist">
                 <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
                 <button id="tabBtn2" class="tab" role="tab" aria-controls="tab2" aria-selected="false" tabindex="0">Modules Management</button>
                 <button id="tabBtn3" class="tab" role="tab" aria-controls="tab3" aria-selected="false" tabindex="0">Certificate</button>
+                <button id="tabBtn4" class="tab disabled" role="tab" aria-controls="tab4" aria-selected="false" tabindex="-1">Finalize</button>
             </div>
             @if($errors->update_course->any())
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
@@ -254,7 +268,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="actions" style="justify-content: space-between;">
+                    <div class="actions" style="justify-content: flex-end; gap: 10px;">
                         <button type="button" class="btn btn-cancel" id="saveDraftBtn" onclick="saveDraft()">Save Draft</button>
                         <button type="button" class="btn btn-submit" id="nextToModules">Next</button>
                     </div>
@@ -269,7 +283,7 @@
                     </div>
                     <div class="actions" style="justify-content: space-between;">
                         <button type="button" class="btn btn-cancel" id="backToDetails">Back</button>
-                        <div>
+                        <div style="display:flex; gap:10px;">
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn2" onclick="saveDraft()">Save Draft</button>
                             <button type="button" class="btn btn-submit" id="nextToCertificate">Next</button>
                         </div>
@@ -317,8 +331,57 @@
 
                     <div class="actions" style="justify-content: space-between; margin-top:30px;">
                         <button type="button" class="btn btn-cancel" id="backToModules">Back</button>
-                        <div>
+                        <div style="display:flex; gap:10px;">
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn3" onclick="saveDraft()">Save Draft</button>
+                            <button type="button" class="btn btn-submit" id="nextToFinalize">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab4" class="tab-content">
+                    <div class="summary-card">
+                        <div class="summary-section">
+                            <div class="summary-title"><i class="fas fa-info-circle"></i> Course Overview</div>
+                            <div class="summary-content">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <span class="summary-label">Course Name</span>
+                                        <div id="summaryName" style="font-weight: 700; font-size: 1.1rem; color: #0f172a;"></div>
+                                        
+                                        <span class="summary-label" style="margin-top: 12px;">Subject Area</span>
+                                        <div id="summarySubject"></div>
+                                    </div>
+                                    <div id="summaryImageWrapper">
+                                        <span class="summary-label">Course Image</span>
+                                        <div id="summaryImagePreview" style="width: 100%; height: 120px; background: #f1f5f9; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                            <span style="color: #94a3b8;">No image</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="summary-label" style="margin-top: 12px;">Description</span>
+                                <div id="summaryDescription" style="white-space: pre-wrap;"></div>
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <div class="summary-title"><i class="fas fa-layer-group"></i> Modules & Topics</div>
+                            <div id="summaryModules" class="summary-content">
+                                <!-- Modules will be listed here -->
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <div class="summary-title"><i class="fas fa-certificate"></i> Selected Certificate</div>
+                            <div id="summaryCertificate" class="summary-content">
+                                <!-- Selected cert will be shown here -->
+                                <div style="color: #64748b; font-style: italic;">No certificate selected.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions" style="justify-content: space-between; margin-top:30px;">
+                        <button type="button" class="btn btn-cancel" id="backToCertificate">Back</button>
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn btn-cancel" id="saveDraftBtn4" onclick="saveDraft()">Save Draft</button>
                             <button type="submit" class="btn btn-submit" id="submitBtn">Update Course</button>
                         </div>
                     </div>
@@ -1706,36 +1769,134 @@
         function isCertificateStepComplete(){
             return !!document.querySelector('input[name="certification_id"]:checked');
         }
+        function isFinalizeStepComplete(){
+            return isDetailsStepComplete() && isModulesStepComplete() && isCertificateStepComplete();
+        }
         function updateProgress(){
             const step1 = document.getElementById('step1');
             const step2 = document.getElementById('step2');
             const step3 = document.getElementById('step3');
+            const step4 = document.getElementById('step4');
             const progressFill = document.getElementById('courseProgressFill');
             const progressText = document.getElementById('courseProgressText');
             const detailsDone = isDetailsStepComplete();
             const modulesDone = isModulesStepComplete();
             const certificateDone = isCertificateStepComplete();
+            const finalizeDone = isFinalizeStepComplete();
 
             step1.classList.toggle('done', detailsDone);
             step2.classList.toggle('done', modulesDone);
             step3.classList.toggle('done', certificateDone);
+            step4.classList.toggle('done', finalizeDone);
 
-            const completedCount = (detailsDone ? 1 : 0) + (modulesDone ? 1 : 0) + (certificateDone ? 1 : 0);
-            const percent = Math.round((completedCount / 3) * 100);
+            const completedCount = (detailsDone ? 1 : 0) + (modulesDone ? 1 : 0) + (certificateDone ? 1 : 0) + (finalizeDone ? 1 : 0);
+            const percent = Math.round((completedCount / 4) * 100);
             if (progressFill) progressFill.style.width = `${percent}%`;
-            if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/3 steps)`;
+            if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/4 steps)`;
+
+            const tab2Btn = document.getElementById('tabBtn2');
+            const tab3Btn = document.getElementById('tabBtn3');
+            const tab4Btn = document.getElementById('tabBtn4');
+            
+            const enable2 = detailsDone;
+            if (tab2Btn) {
+                tab2Btn.classList.toggle('disabled', !enable2);
+                tab2Btn.setAttribute('aria-disabled', enable2 ? 'false' : 'true');
+                tab2Btn.setAttribute('tabindex', enable2 ? '0' : '-1');
+            }
+
+            const enable3 = detailsDone && modulesDone;
+            if (tab3Btn) {
+                tab3Btn.classList.toggle('disabled', !enable3);
+                tab3Btn.setAttribute('aria-disabled', enable3 ? 'false' : 'true');
+                tab3Btn.setAttribute('tabindex', enable3 ? '0' : '-1');
+            }
+
+            const enable4 = detailsDone && modulesDone && certificateDone;
+            if (tab4Btn) {
+                tab4Btn.classList.toggle('disabled', !enable4);
+                tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
+                tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
+            }
         }
         function switchTo(tab){
-            document.getElementById('tab1').classList.toggle('active', tab===1);
-            document.getElementById('tab2').classList.toggle('active', tab===2);
-            document.getElementById('tab3').classList.toggle('active', tab===3);
-            document.getElementById('tabBtn1').classList.toggle('active', tab===1);
-            document.getElementById('tabBtn2').classList.toggle('active', tab===2);
-            document.getElementById('tabBtn3').classList.toggle('active', tab===3);
-            document.getElementById('tabBtn1').setAttribute('aria-selected', tab===1 ? 'true':'false');
-            document.getElementById('tabBtn2').setAttribute('aria-selected', tab===2 ? 'true':'false');
-            document.getElementById('tabBtn3').setAttribute('aria-selected', tab===3 ? 'true':'false');
+            if (tab === 4) renderSummary();
+
+            [1,2,3,4].forEach(n => {
+                const t = document.getElementById('tab' + n);
+                const b = document.getElementById('tabBtn' + n);
+                if (t) t.classList.toggle('active', tab === n);
+                if (b) {
+                    b.classList.toggle('active', tab === n);
+                    b.setAttribute('aria-selected', tab === n ? 'true' : 'false');
+                    if (tab === n) b.removeAttribute('tabindex');
+                    else b.setAttribute('tabindex', '-1');
+                }
+            });
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function renderSummary() {
+            // Course Details
+            document.getElementById('summaryName').textContent = document.getElementById('name').value || '(Untitled Course)';
+            document.getElementById('summaryDescription').textContent = document.getElementById('description').value || '(No description)';
+            const subj = document.getElementById('subject_area');
+            document.getElementById('summarySubject').textContent = subj.options[subj.selectedIndex]?.text || '(No subject area)';
+            
+            // Image Preview
+            const imgPreview = document.getElementById('imagePreview');
+            const summaryImgPreview = document.getElementById('summaryImagePreview');
+            if (imgPreview && imgPreview.querySelector('img')) {
+                summaryImgPreview.innerHTML = `<img src="${imgPreview.querySelector('img').src}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                summaryImgPreview.innerHTML = `<span style="color: #94a3b8;">No image</span>`;
+            }
+
+            // Modules
+            const summaryModules = document.getElementById('summaryModules');
+            summaryModules.innerHTML = '';
+            const modules = document.querySelectorAll('.module-wrapper');
+            if (modules.length === 0) {
+                summaryModules.innerHTML = '<div style="color: #64748b; font-style: italic;">No modules added yet.</div>';
+            } else {
+                modules.forEach((m, i) => {
+                    const title = m.querySelector('.module-title-input').value || `Module ${i+1}`;
+                    const modDiv = document.createElement('div');
+                    modDiv.className = 'summary-module';
+                    let topicsHtml = '';
+                    m.querySelectorAll('.topic-row').forEach(t => {
+                        const tTitle = t.querySelector('input[name*="[title]"]').value || '(Untitled Topic)';
+                        topicsHtml += `<div class="summary-topic">${tTitle}`;
+                        t.querySelectorAll('.subtopic-row').forEach(s => {
+                            const sTitle = s.querySelector('input[name*="[title]"]').value || '(Untitled Subtopic)';
+                            topicsHtml += `<div class="summary-subtopic">• ${sTitle}</div>`;
+                        });
+                        topicsHtml += `</div>`;
+                    });
+                    modDiv.innerHTML = `<div class="summary-module-title">Module ${i+1}: ${title}</div>${topicsHtml}`;
+                    summaryModules.appendChild(modDiv);
+                });
+            }
+
+            // Certificate
+            const summaryCert = document.getElementById('summaryCertificate');
+            const selectedCert = document.querySelector('input[name="certification_id"]:checked');
+            if (selectedCert) {
+                const card = selectedCert.closest('.cert-card');
+                const certName = card.querySelector('.cert-info div').textContent;
+                const certImg = card.querySelector('.cert-preview img')?.src;
+                summaryCert.innerHTML = `
+                    <div class="summary-cert-preview" style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        ${certImg ? `<img src="${certImg}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e5e7eb;">` : `<i class="fas fa-certificate" style="font-size:2rem; color:#e2e8f0;"></i>`}
+                        <div>
+                            <div style="font-weight: 700; color: #1e293b;">${certName}</div>
+                            <div style="font-size: 0.85rem; color: #64748b;">Selected Template</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                summaryCert.innerHTML = '<div style="color: #64748b; font-style: italic;">No certificate selected.</div>';
+            }
         }
         function ensureDefaultModule(){
             const container = document.getElementById('modulesContainer');
@@ -1762,15 +1923,23 @@
             const b1 = document.getElementById('tabBtn1');
             const b2 = document.getElementById('tabBtn2');
             const b3 = document.getElementById('tabBtn3');
+            const b4 = document.getElementById('tabBtn4');
             b1 && b1.addEventListener('click', ()=> switchTo(1));
             b2 && b2.addEventListener('click', ()=> { if(validateDetails()) switchTo(2); });
             b3 && b3.addEventListener('click', ()=> { if(validateDetails() && validateModules()) switchTo(3); });
+            b4 && b4.addEventListener('click', ()=> { if(validateDetails() && validateModules() && isCertificateStepComplete()) switchTo(4); });
+            
             document.getElementById('backToDetails').addEventListener('click', ()=> switchTo(1));
             document.getElementById('backToModules').addEventListener('click', ()=> switchTo(2));
+            document.getElementById('backToCertificate').addEventListener('click', ()=> switchTo(3));
+
             const nxtModules = document.getElementById('nextToModules');
             nxtModules && nxtModules.addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } else { switchTo(1); } });
             const nxtCert = document.getElementById('nextToCertificate');
             nxtCert && nxtCert.addEventListener('click', ()=> { if(validateModules()){ switchTo(3); } else { switchTo(2); } });
+            const nxtFinalize = document.getElementById('nextToFinalize');
+            nxtFinalize && nxtFinalize.addEventListener('click', ()=> { if(isCertificateStepComplete()){ switchTo(4); } else { const err = document.getElementById('certError'); if(err) err.style.display = 'block'; } });
+
             ['name','description','subject_area','image'].forEach(id=>{
                 const el = document.getElementById(id);
                 el && el.addEventListener('input', updateProgress);
@@ -1798,6 +1967,114 @@
                 }
             });
         }
+        function serializeModules() {
+            const modules = [];
+            document.querySelectorAll('.module-wrapper').forEach((m, i) => {
+                const title = m.querySelector('.module-title-input').value;
+                const topics = [];
+                m.querySelectorAll('.topic-row').forEach((t, j) => {
+                    const tTitle = t.querySelector('input[name*="[title]"]').value;
+                    const subtopics = [];
+                    t.querySelectorAll('.subtopic-row').forEach((s, k) => {
+                        const sTitle = s.querySelector('input[name*="[title]"]').value;
+                        const fieldsJson = s.querySelector('textarea[name*="[fields_json]"]').value;
+                        subtopics.push({ title: sTitle, fields_json: fieldsJson });
+                    });
+                    topics.push({ title: tTitle, subtopics: subtopics });
+                });
+                const examJson = m.querySelector('.module-exam-json').value;
+                modules.push({ title: title, topics: topics, exam_json: examJson });
+            });
+            return modules;
+        }
+
+        function restoreModules(modules) {
+            const container = document.getElementById('modulesContainer');
+            container.innerHTML = ''; // Clear existing
+            
+            if (!modules || !Array.isArray(modules)) return;
+
+            modules.forEach((m, i) => {
+                createModule(); // Adds a blank module at the end
+                const wrapper = container.lastElementChild;
+                wrapper.querySelector('.module-title-input').value = m.title || '';
+                if (m.exam_json) {
+                    wrapper.querySelector('.module-exam-json').value = m.exam_json;
+                }
+
+                const topicsContainer = wrapper.querySelector('.topics');
+                if (m.topics && Array.isArray(m.topics)) {
+                    m.topics.forEach((t, j) => {
+                        addTopicInput(topicsContainer);
+                        const topicRow = topicsContainer.lastElementChild;
+                        topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
+                        
+                        const subtopicsContainer = topicRow.querySelector('.subtopics');
+                        if (t.subtopics && Array.isArray(t.subtopics)) {
+                            t.subtopics.forEach((s, k) => {
+                                addSubtopicRow(topicRow); // Adds blank subtopic
+                                const subRow = subtopicsContainer.lastElementChild;
+                                subRow.querySelector('input[name*="[title]"]').value = s.title || '';
+                                const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
+                                fieldsArea.value = s.fields_json || '';
+                                
+                                // Restore fields visual
+                                const panel = subRow.querySelector('.fields-panel');
+                                if (s.fields_json) {
+                                    try {
+                                        const fields = JSON.parse(s.fields_json);
+                                        if (Array.isArray(fields)) {
+                                            fields.forEach(f => {
+                                                if (f.type === 'text') {
+                                                    addTextField(panel);
+                                                    const block = panel.querySelector('.field-block:last-child');
+                                                    const editor = block.querySelector('.editor');
+                                                    if (editor) editor.innerHTML = f.html || '';
+                                                } else if (f.type === 'question') {
+                                                    addQuestionField(panel);
+                                                    const block = panel.querySelector('.field-block:last-child');
+                                                    const qTitle = block.querySelector('.q-title');
+                                                    const qType = block.querySelector('.q-type');
+                                                    if (qTitle) qTitle.value = f.question.title || '';
+                                                    if (qType) {
+                                                        qType.value = f.question.type || 'multiple_choice';
+                                                        setupDefaultOptions(block); // Reset options based on type
+                                                        // Restore options/answers
+                                                        if (f.question.type === 'multiple_choice' && f.question.options) {
+                                                            const optsDiv = block.querySelector('.q-options');
+                                                            optsDiv.innerHTML = '';
+                                                            f.question.options.forEach(opt => {
+                                                                const div = document.createElement('div');
+                                                                div.className = 'q-option-row';
+                                                                div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" value="${opt.replace(/"/g, '&quot;')}" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
+                                                                optsDiv.appendChild(div);
+                                                            });
+                                                            // Add "Add Option" button back
+                                                            const addBtn = document.createElement('button');
+                                                            addBtn.type = 'button';
+                                                            addBtn.className = 'btn-add-option';
+                                                            addBtn.innerText = '+ Add Option';
+                                                            addBtn.onclick = function() {
+                                                                const div = document.createElement('div');
+                                                                div.className = 'q-option-row';
+                                                                div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
+                                                                optsDiv.insertBefore(div, addBtn);
+                                                            };
+                                                            optsDiv.appendChild(addBtn);
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } catch (e) {}
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
         // In case scripts load late in embedded iframe, ensure binding after load
         window.addEventListener('load', function(){ try{ bindTabs(); }catch(e){} });
         function draftKey(){ 
@@ -1843,6 +2120,9 @@
             if(imgTag && imgTag.src.startsWith('data:image')) {
                 obj['image_draft_data'] = imgTag.src;
             }
+            
+            // Save modules
+            obj['modules'] = serializeModules();
             
             localStorage.setItem(draftKey(), JSON.stringify(obj));
             document.getElementById('draftSavedModal').style.display = 'flex';
@@ -1890,6 +2170,11 @@
                     if(fileNameDisplay) {
                         fileNameDisplay.textContent = 'Restored from draft';
                     }
+                }
+                
+                // Restore modules
+                if(obj['modules']) {
+                    restoreModules(obj['modules']);
                 }
                 
                 updateProgress();
