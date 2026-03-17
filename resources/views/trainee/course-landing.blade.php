@@ -1980,7 +1980,12 @@
                         ring.style.cursor = 'default';
                         ring.title = '';
                     }
-                    if(detail){ detail.textContent = total ? '('+done+'/'+total+' topics)' : ''; }
+                    if(detail){ 
+                        let parts = [];
+                        if(j.overall.topics_total > 0) parts.push(j.overall.topics_done + '/' + j.overall.topics_total + ' topics');
+                        if(j.overall.assessments_total > 0) parts.push(j.overall.assessments_done + '/' + j.overall.assessments_total + ' assessments');
+                        detail.textContent = parts.length ? '(' + parts.join(', ') + ')' : '';
+                    }
                     if(list && Array.isArray(j.modules)){
                         list.innerHTML = j.modules.map(function(m, idx){
                             var isExam = !!m.is_exam;

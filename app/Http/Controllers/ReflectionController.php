@@ -96,36 +96,34 @@ class ReflectionController extends Controller
 
     public function progress(Request $request, \App\Models\Course $course)
     {
-        $userId = $this->userId();
+        $user = Auth::user();
+        $progress = $course->getCourseProgress($user);
+        
+        // Prepare module-specific progress for the AJAX response
         $mods = is_array($course->modules) ? $course->modules : [];
-        $rows = ReflectionResponse::where('user_id', $userId)
+        $reflectionRows = \App\Models\ReflectionResponse::where('user_id', $user->id)
             ->where('course_id', $course->id)
-            ->get(['module_index','topic_index','sub_index','answers_json']);
-        // Build topic-level done set; legacy subtopic reflections count towards topic
-        $topicDone = [];
-        foreach ($rows as $r) {
+            ->get(['module_index', 'topic_index', 'answers_json']);
+        
+        $topicDoneSet = [];
+        foreach ($reflectionRows as $r) {
             $answers = is_array($r->answers_json) ? $r->answers_json : [];
-            $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
-                ? trim($answers['learned'])
-                : '';
-            if ($val === '') continue;
-            $topicKey = "{$r->module_index}_{$r->topic_index}";
-            $topicDone[$topicKey] = true;
+            if (isset($answers['learned']) && trim($answers['learned']) !== '') {
+                $topicDoneSet["{$r->module_index}_{$r->topic_index}"] = true;
+            }
         }
-        $overallTotal = 0;
-        $overallDone = 0;
+
         $modules = [];
         foreach ($mods as $mi => $m) {
             $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
             $mTotal = count($topics);
             $mDone = 0;
             foreach ($topics as $ti => $_t) {
-                if (!empty($topicDone["{$mi}_{$ti}"])) {
+                if (!empty($topicDoneSet["{$mi}_{$ti}"])) {
                     $mDone++;
                 }
             }
-            $overallTotal += $mTotal;
-            $overallDone += $mDone;
+            
             $isExam = isset($m['exam']) && is_array($m['exam']) && !empty($m['exam']['questions']);
             $modules[] = [
                 'index' => $mi,
@@ -137,12 +135,16 @@ class ReflectionController extends Controller
                 'exam_title' => $isExam ? (string)($m['exam']['title'] ?? '') : '',
             ];
         }
-        $overallPercent = $overallTotal ? round(($overallDone/$overallTotal)*100) : 0;
+
         return response()->json([
             'overall' => [
-                'done' => $overallDone,
-                'total' => $overallTotal,
-                'percent' => $overallPercent,
+                'done' => $progress['completed'],
+                'total' => $progress['total'],
+                'percent' => round($progress['percentage']),
+                'topics_done' => $progress['topics_completed'],
+                'topics_total' => $progress['topics_total'],
+                'assessments_done' => $progress['assessments_completed'],
+                'assessments_total' => $progress['assessments_total'],
             ],
             'modules' => $modules,
         ]);
