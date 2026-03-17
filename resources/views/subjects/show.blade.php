@@ -309,18 +309,22 @@
                 </div>
                 
                 <div class="detail-image-column">
-                    <img src="{{ asset($subject['image']) }}" alt="{{ $subject['title'] }}" class="subject-detail-image">
+                    <img
+                        src="{{ asset($subject['image']) }}"
+                        alt="{{ $subject['title'] }}"
+                        class="subject-detail-image"
+                        onerror="this.onerror=null;this.src='{{ asset('images/CAPDEV-PRO-LOGO.png') }}';"
+                    >
                 </div>
             </div>
         </div>
     </main>
 
     <footer class="footer">
-        <p class="footer-logo-text">DILG CAR - Universidad De Dagupan</p>
+        <p class="footer-logo-text">DILG CAR - Josiah Love Gween</p>
         <p>&copy; 2026 CAPDEV PRO. All rights reserved.</p>
     </footer>
 </body>
 </html>
-
 
 

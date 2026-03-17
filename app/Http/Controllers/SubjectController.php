@@ -11,7 +11,7 @@ class SubjectController extends Controller
             'title' => 'Core Governance & Administration',
             'description' => 'Foundational principles of effective local governance and administrative management.',
             'content' => 'This subject area focuses on the essential frameworks that govern local administration. It covers the Local Government Code, parliamentary procedures for local legislative bodies, administrative office management, and public service ethics. Participants will learn how to effectively manage local government operations, ensure transparency, and uphold the highest standards of public service.',
-            'image' => 'images/core gove.jpeg',
+            'image' => 'images/core-governance-training.png',
             'type' => 'subject-area',
         ],
         'finance-compliance' => [
