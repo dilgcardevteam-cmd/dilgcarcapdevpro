@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -4144,9 +4144,14 @@
             <section id="course-create" class="content-section {{ request('tab') == 'course-create' ? 'active' : '' }}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
-                    <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-arrow-left"></i> Back to Course Management
-                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            <i class="fas fa-file-pen"></i> Draft Courses
+                        </button>
+                        <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-left"></i> Back to Course Management
+                        </button>
+                    </div>
                 </div>
                 <div class="course-create-shell">
                     <iframe id="courseCreateFrame" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', ['embedded' => 1]) : '' }}"></iframe>
@@ -4157,9 +4162,14 @@
             <section id="pending-courses" class="content-section {{ request('tab') == 'pending-courses' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
-                    <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-arrow-left"></i> Back to Course Management
-                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            <i class="fas fa-file-pen"></i> Draft Courses
+                        </button>
+                        <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-left"></i> Back to Course Management
+                        </button>
+                    </div>
                 </div>
 
                 @if(session('success_course'))
@@ -4231,21 +4241,17 @@
                 @endif
             </section>
 
-            <section id="draft-courses" class="content-section {{ request('tab') == 'draft-courses' ? 'active' : '' }}">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-                    <h1 class="welcome-title" style="margin:0;">Draft <strong>Courses</strong></h1>
-                    <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
-                        <i class="fas fa-arrow-left"></i> Back to Course Management
-                    </button>
-                </div>
-                <div id="draftCoursesMainContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
-            </section>
             <section id="archived-courses" class="content-section {{ request('tab') == 'archived-courses' ? 'active' : '' }}">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Archived <strong>Courses</strong></h1>
-                    <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
-                        <i class="fas fa-arrow-left"></i> Back to Course Management
-                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            <i class="fas fa-file-pen"></i> Draft Courses
+                        </button>
+                        <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+                            <i class="fas fa-arrow-left"></i> Back to Course Management
+                        </button>
+                    </div>
                 </div>
                 @if($archivedCourses->isEmpty())
                     <p style="color:#6c757d;font-style:italic;margin:0">There are no archived courses yet.</p>
@@ -5236,6 +5242,26 @@
                     <span>Loading course details...</span>
                 </div>
                 <iframe id="view_course_iframe" title="Course details"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Draft Courses Modal -->
+    <div id="draftCoursesModal" class="modal">
+        <div class="modal-content" style="width: min(1000px, 95vw); max-height: 85vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-file-pen"></i> Draft Courses
+                </h2>
+                <button type="button" class="close" onclick="closeDraftCoursesModal()" style="font-size: 28px; background: none; border: none; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+            <div style="padding: 24px; overflow-y: auto; background: #f8fafc; flex: 1;">
+                <div id="draftCoursesModalContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                    <!-- Drafts will be rendered here via JS -->
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e5e7eb; background: #fff; text-align: right;">
+                <button type="button" onclick="closeDraftCoursesModal()" style="background: #64748b; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
             </div>
         </div>
     </div>
@@ -6954,6 +6980,10 @@
 
         // Helper function to navigate to a section by ID
         function navigateToSection(sectionId) {
+            if (sectionId === 'draft-courses') {
+                openDraftCoursesModal();
+                return;
+            }
             const menuItem = Array.from(document.querySelectorAll('.menu-item')).find(item => 
                 item.getAttribute('onclick') && item.getAttribute('onclick').includes(sectionId)
             );
@@ -7219,7 +7249,8 @@
             }
 
             if (requestedTab === 'course-create') {
-                openAddCourseModal();
+                const isDraft = sessionStorage.getItem('load_draft') === '1';
+                openAddCourseModal(isDraft);
             } else if (requestedTab === 'course-management' && params.get('open_add_course') === '1') {
                 openAddCourseModal();
             }
@@ -7281,28 +7312,18 @@
         }
 
         // Add Course in Dashboard Main Content
-        function openAddCourseModal() {
-            // Clear the form for a new course
-            sessionStorage.removeItem('draft_course_key');
-            ensureCourseCreateFrameLoaded();
-            // Clear form fields after iframe loads
-            setTimeout(() => {
-                const iframe = document.getElementById('courseCreateFrame');
-                if (iframe && iframe.contentWindow) {
-                    try {
-                        const form = iframe.contentWindow.document.getElementById('courseForm');
-                        if (form) form.reset();
-                        // Explicitly clear main fields
-                        const nameField = iframe.contentWindow.document.getElementById('name');
-                        const descField = iframe.contentWindow.document.getElementById('description');
-                        if (nameField) nameField.value = '';
-                        if (descField) descField.value = '';
-                        // Clear localStorage draft
-                        iframe.contentWindow.localStorage.removeItem('draft_course_create');
-                        iframe.contentWindow.localStorage.removeItem('draft_course_edit_');
-                    } catch(e) {}
-                }
-            }, 500);
+        function openAddCourseModal(forceDraft = false) {
+            // Signal to course-create NOT to load any draft unless explicitly told
+            if (!forceDraft) {
+                sessionStorage.setItem('load_draft', '0');
+                sessionStorage.removeItem('draft_course_key');
+            }
+            
+            const frame = document.getElementById('courseCreateFrame');
+            if (frame) {
+                // Force reload to ensure a fresh blank form or loaded draft
+                frame.src = courseCreateEmbeddedUrl;
+            }
             showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }
         function closeAddCourseModal() {
@@ -7379,8 +7400,17 @@
 
         // Archived Courses Modal
         function openDraftCoursesModal() {
-            navigateToSection('draft-courses');
-            renderDraftCoursesInMain();
+            const modal = document.getElementById('draftCoursesModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                renderDraftCoursesInModal();
+            }
+        }
+        function closeDraftCoursesModal() {
+            const modal = document.getElementById('draftCoursesModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
         function openArchivedCoursesModal() {
             navigateToSection('archived-courses');
@@ -7391,7 +7421,7 @@
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (!key) continue;
-                if (key === 'draft_course_create' || key.startsWith('draft_course_edit_')) {
+                if (key === 'draft_course_create' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                     const raw = localStorage.getItem(key);
                     if (raw && raw !== '{}' && raw !== 'null') {
                         try {
@@ -7403,12 +7433,12 @@
             }
             return drafts;
         }
-        function renderDraftCoursesInMain() {
-            const container = document.getElementById('draftCoursesMainContainer');
+        function renderDraftCoursesInModal() {
+            const container = document.getElementById('draftCoursesModalContainer');
             const drafts = getDraftCoursesFromLocalStorage();
             
             if (drafts.length === 0) {
-                container.innerHTML = '<p style="color: #6c757d; font-style: italic; grid-column: 1 / -1;">You have no draft courses yet.</p>';
+                container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff; border-radius: 12px; border: 2px dashed #e5e7eb;"><i class="fas fa-file-pen" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 16px; display: block;"></i><p style="color: #64748b; font-weight: 600; margin: 0;">You have no draft courses yet.</p></div>';
                 return;
             }
             
@@ -7417,23 +7447,26 @@
                 const courseName = draft.data.name || 'Untitled Course';
                 const courseDesc = draft.data.description || 'No description';
                 const card = document.createElement('div');
-                card.className = 'course-card';
-                card.style.cssText = 'background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer;';
+                card.style.cssText = 'background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease;';
                 card.innerHTML = `
-                    <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    <div style="width: 100%; height: 160px; background: linear-gradient(135deg, #002C76 0%, #0056b3 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
                         <i class="fas fa-file-pen"></i>
                     </div>
-                    <div style="padding: 15px;">
-                        <h3 style="margin: 0 0 8px; color: #333; font-size: 1rem;">${courseName}</h3>
-                        <p style="color: #6c757d; margin-bottom: 12px; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseDesc}</p>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}');" style="flex: 1; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center;">Edit</button>
-                            <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="flex: 1; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+                    <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="margin: 0 0 10px; color: #002C76; font-size: 1.15rem; font-weight: 800; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseName}</h3>
+                        <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">${courseDesc}</p>
+                        <div style="display: flex; gap: 10px; margin-top: auto;">
+                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}');" style="flex: 1; padding: 10px; background: #002C76; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="fas fa-edit"></i> Edit</button>
+                            <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="padding: 10px 14px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem;"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+        function renderDraftCoursesInMain() {
+            // Deprecated, use renderDraftCoursesInModal
+            renderDraftCoursesInModal();
         }
         function getDraftCoursesDashboardCount() {
             try {
@@ -7441,7 +7474,7 @@
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (!key) continue;
-                    if (key === 'draft_course_create' || key.startsWith('draft_course_edit_')) {
+                    if (key === 'draft_course_create' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                         const raw = localStorage.getItem(key);
                         if (raw && raw !== '{}' && raw !== 'null') {
                             count++;
@@ -7457,13 +7490,27 @@
         function refreshDraftCoursesDashboardCount() {
             const valueNode = document.getElementById('draftCoursesCount');
             if (!valueNode) return;
-            valueNode.textContent = String(getDraftCoursesDashboardCount());
+            const count = getDraftCoursesDashboardCount();
+            valueNode.textContent = String(count);
+            
+            // Also check if we should open the modal (from a redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open_drafts') === '1' || urlParams.get('tab') === 'draft-courses') {
+                openDraftCoursesModal();
+                // Clean up URL without refreshing
+                let search = window.location.search
+                    .replace(/[?&]open_drafts=1/, '')
+                    .replace(/[?&]tab=draft-courses/, '');
+                search = search.startsWith('&') ? '?' + search.substring(1) : search;
+                const newUrl = window.location.pathname + search;
+                window.history.replaceState({}, '', newUrl);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', refreshDraftCoursesDashboardCount);
         window.addEventListener('focus', refreshDraftCoursesDashboardCount);
         window.addEventListener('storage', function(event) {
-            if (!event.key || event.key === 'draft_course_create' || event.key.startsWith('draft_course_edit_')) {
+            if (!event.key || event.key === 'draft_course_create' || event.key.startsWith('draft_course_new_') || event.key.startsWith('draft_course_edit_')) {
                 refreshDraftCoursesDashboardCount();
             }
         });
@@ -7596,7 +7643,8 @@
             if(!raw){ alert('Draft not found'); return; }
             try {
                 const data = JSON.parse(raw);
-                // Store the storage key in session storage so course-create can load it
+                // Signal to course-create to LOAD this specific draft
+                sessionStorage.setItem('load_draft', '1');
                 sessionStorage.setItem('draft_course_key', storageKey);
                 window.location.href = '/dashboard?tab=course-create';
             } catch(e) {
@@ -7606,7 +7654,7 @@
         function deleteDraftCourse(storageKey){
             if(!confirm('Delete this draft?')) return;
             localStorage.removeItem(storageKey);
-            renderDraftCoursesInModal();
+            renderDraftCoursesInMain();
             refreshDraftCoursesDashboardCount();
         }
         document.addEventListener('click',function(ev){

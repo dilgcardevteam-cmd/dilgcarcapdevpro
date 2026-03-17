@@ -55,24 +55,28 @@ class CourseController extends Controller
      */
     public function create(Request $request)
     {
+        $certifications = \App\Models\Certification::all();
         if (auth()->check() && auth()->user()->role === 'admin' && !$request->boolean('embedded')) {
             return redirect()->route('dashboard', [
                 'tab' => 'course-create',
+                'certifications' => $certifications,
             ]);
         }
 
-        return view('admin.course-create');
+        return view('admin.course-create', compact('certifications'));
     }
 
     public function edit(Course $course)
     {
-        return view('admin.course-edit', compact('course'));
+        $certifications = \App\Models\Certification::all();
+        return view('admin.course-edit', compact('course', 'certifications'));
     }
 
     public function trainerCreate()
     {
         $forTrainer = true;
-        return view('admin.course-create', compact('forTrainer'));
+        $certifications = \App\Models\Certification::all();
+        return view('admin.course-create', compact('forTrainer', 'certifications'));
     }
 
     /**
@@ -86,7 +90,9 @@ class CourseController extends Controller
             'subject_area' => 'required|string',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'image' => 'required_without:image_draft_data|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'image_draft_data' => 'nullable|string',
+            'certification_id' => 'nullable|exists:certifications,id',
         ]);
 
         // Ensure DB columns that may be NOT NULL receive safe defaults
@@ -119,6 +125,26 @@ class CourseController extends Controller
                 return back()
                     ->withErrors(['image' => 'Image upload failed on server. Check storage permissions or disk space.'], 'create_course')
                     ->withInput();
+            }
+        } elseif ($request->filled('image_draft_data')) {
+            try {
+                $base64 = $request->input('image_draft_data');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $data = substr($base64, strpos($base64, ',') + 1);
+                    $type = strtolower($type[1]); // jpg, png, etc.
+                    if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp', 'svg'])) {
+                        throw new \Exception('Invalid image type');
+                    }
+                    $data = base64_decode($data);
+                    if ($data === false) {
+                        throw new \Exception('base64_decode failed');
+                    }
+                    $fileName = 'course_images/' . uniqid() . '.' . $type;
+                    Storage::disk('public')->put($fileName, $data);
+                    $validated['image_path'] = $fileName;
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Draft image restoration failed', ['error' => $e->getMessage()]);
             }
         }
         if ($request->hasFile('video')) {
@@ -264,7 +290,7 @@ class CourseController extends Controller
         }
 
         if ($request->boolean('embedded')) {
-            $target = route('dashboard', ['tab' => 'course-management']);
+            $target = route('dashboard', ['tab' => 'course-management', 'clear_draft' => 'draft_course_create']);
             $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             return response(
                 "<!doctype html><html><body><script>window.top.location.href={$encodedTarget};</script></body></html>",
@@ -286,6 +312,7 @@ class CourseController extends Controller
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'certification_id' => 'nullable|exists:certifications,id',
         ]);
 
         if (!$request->filled('video_url')) {
@@ -945,6 +972,7 @@ class CourseController extends Controller
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'certification_id' => 'nullable|exists:certifications,id',
         ]);
 
         if ($request->hasFile('image')) {

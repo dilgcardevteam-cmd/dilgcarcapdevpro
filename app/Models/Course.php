@@ -27,7 +27,13 @@ class Course extends Model
         'trainer_ready',
         'enrollment_start',
         'enrollment_end',
+        'certification_id',
     ];
+
+    public function certification()
+    {
+        return $this->belongsTo(Certification::class);
+    }
 
     protected $casts = [
         'modules' => 'array',

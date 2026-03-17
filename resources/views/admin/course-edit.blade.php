@@ -158,6 +158,21 @@
     </script>
 </head>
 <body>
+    <header class="header" style="background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
+        <div class="header-left">
+            <div class="header-title">
+                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:40px; display:block;">
+            </div>
+        </div>
+        <div class="header-right" style="display:flex; gap:10px;">
+            <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fas fa-file-pen"></i> Draft Courses
+            </a>
+            <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fas fa-arrow-left"></i> Back to Course Management
+            </a>
+        </div>
+    </header>
     <div class="page-container">
         <h1>Edit Course</h1>
         <div class="card" aria-live="polite">
@@ -169,11 +184,13 @@
                 <div class="progress-steps">
                     <span id="step1" class="step"><span class="step-index">1</span><span>Details</span></span>
                     <span id="step2" class="step"><span class="step-index">2</span><span>Modules</span></span>
+                    <span id="step3" class="step"><span class="step-index">3</span><span>Certificate</span></span>
                 </div>
             </div>
             <div class="tabs" role="tablist">
                 <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
                 <button id="tabBtn2" class="tab" role="tab" aria-controls="tab2" aria-selected="false" tabindex="0">Modules Management</button>
+                <button id="tabBtn3" class="tab" role="tab" aria-controls="tab3" aria-selected="false" tabindex="0">Certificate</button>
             </div>
             @if($errors->update_course->any())
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
@@ -220,7 +237,12 @@
                             </div>
                             <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-image"></i> Course Image (optional)</div>
-                                <input id="image" type="file" name="image" accept="image/*" aria-describedby="imageError">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                    <button type="button" class="btn btn-cancel" onclick="document.getElementById('image').click()" style="padding:8px 16px; font-size:0.85rem; margin:0; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:600;">Choose File</button>
+                                    <span id="fileNameDisplay" style="color:#64748b; font-size:0.85rem;">No file chosen</span>
+                                </div>
+                                <input id="image" type="file" name="image" accept="image/*" aria-describedby="imageError" style="display:none;">
+                                <input type="hidden" id="image_draft_data" name="image_draft_data">
                                 <div id="imageError" class="error-text" style="display:none;"></div>
                                 <div class="preview-thumb" id="imagePreview">
                                     @if($course->image_path)
@@ -249,11 +271,81 @@
                         <button type="button" class="btn btn-cancel" id="backToDetails">Back</button>
                         <div>
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn2" onclick="saveDraft()">Save Draft</button>
+                            <button type="button" class="btn btn-submit" id="nextToCertificate">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab3" class="tab-content">
+                    <div class="section">
+                        <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><i class="fas fa-certificate"></i> Select Certificate Template</span>
+                            <a href="javascript:void(0)" onclick="confirmGoToCertifications('{{ route('dashboard', ['tab' => 'certification-management']) }}')" style="color:#0d6efd; font-size:0.85rem; font-weight:600; text-decoration:none;">
+                                <i class="fas fa-external-link-alt" style="margin-right:4px;"></i>Go to Certifications
+                            </a>
+                        </div>
+                        <p style="color:#64748b; font-size:0.9rem; margin-bottom:16px;">Choose the certificate template that will be issued to participants upon completion of this course.</p>
+                        
+                        <div class="certificate-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:20px;">
+                            @forelse($certifications as $cert)
+                                <label class="cert-card {{ $course->certification_id == $cert->id ? 'selected' : '' }}" style="cursor:pointer; position:relative; border:2px solid {{ $course->certification_id == $cert->id ? '#0d6efd' : '#e5e7eb' }}; border-radius:12px; overflow:hidden; transition:all 0.2s ease; background: {{ $course->certification_id == $cert->id ? '#f0f7ff' : '#fff' }};">
+                                    <input type="radio" name="certification_id" value="{{ $cert->id }}" {{ $course->certification_id == $cert->id ? 'checked' : '' }} style="position:absolute; opacity:0;" onchange="updateCertSelection(this)">
+                                    <div class="cert-preview" style="height:160px; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                        @if($cert->file_path)
+                                            <img src="{{ asset('storage/'.$cert->file_path) }}" alt="{{ $cert->name }}" style="width:100%; height:100%; object-fit:cover;">
+                                        @else
+                                            <i class="fas fa-certificate" style="font-size:3rem; color:#e2e8f0;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="cert-info" style="padding:12px; border-top:1px solid #e5e7eb;">
+                                        <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">{{ $cert->name }}</div>
+                                        <div style="font-size:0.75rem; color:#64748b;">Category: {{ $cert->category }}</div>
+                                    </div>
+                                    <div class="cert-check" style="position:absolute; top:8px; right:8px; width:24px; height:24px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #e5e7eb; color:#0d6efd; font-size:12px; visibility: {{ $course->certification_id == $cert->id ? 'visible' : 'hidden' }};">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </label>
+                            @empty
+                                <div style="grid-column: 1/-1; text-align:center; padding:40px; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:12px;">
+                                    <i class="fas fa-certificate" style="font-size:3rem; color:#e2e8f0; margin-bottom:12px; display:block;"></i>
+                                    <div style="color:#64748b; font-weight:600;">No certificate templates available.</div>
+                                    <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Please <a href="{{ route('dashboard', ['tab' => 'certification-management']) }}" target="_top" style="color:#0d6efd; text-decoration:underline;">add templates in Certificate Management</a> first.</div>
+                                </div>
+                            @endforelse
+                        </div>
+                        <div id="certError" class="error-text" style="display:none; margin-top:10px;">Please select a certificate template.</div>
+                    </div>
+
+                    <div class="actions" style="justify-content: space-between; margin-top:30px;">
+                        <button type="button" class="btn btn-cancel" id="backToModules">Back</button>
+                        <div>
+                            <button type="button" class="btn btn-cancel" id="saveDraftBtn3" onclick="saveDraft()">Save Draft</button>
                             <button type="submit" class="btn btn-submit" id="submitBtn">Update Course</button>
                         </div>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <div id="draftSavedModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2300">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(420px,92vw);padding:24px;text-align:center;">
+            <div style="width:60px;height:60px;background:#dcfce7;color:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.8rem;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Draft Saved Successfully</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">You can find it in the "Draft Courses" section of Course Management.</p>
+            <div style="display:flex;justify-content:center;">
+                <button type="button" class="btn btn-submit" onclick="closeDraftSavedModal()" style="padding:10px 40px;background-color:#0d6efd;">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="confirmCertModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(420px,92vw);padding:24px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Confirm Navigation</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">The courses will be saved on drafts. Are you sure you want to go to certifications?</p>
+            <div style="display:flex;justify-content:center;gap:12px;">
+                <button type="button" class="btn btn-cancel" onclick="closeConfirmCertModal()" style="padding:10px 24px;">Cancel</button>
+                <button type="button" class="btn btn-submit" id="confirmCertBtn" style="padding:10px 24px;background-color:#0d6efd;">Confirm</button>
+            </div>
         </div>
     </div>
     <div id="correctModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
@@ -1611,43 +1703,74 @@
         function isModulesStepComplete(){
             return document.querySelectorAll('.module-wrapper').length > 0;
         }
+        function isCertificateStepComplete(){
+            return !!document.querySelector('input[name="certification_id"]:checked');
+        }
         function updateProgress(){
             const step1 = document.getElementById('step1');
             const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
             const progressFill = document.getElementById('courseProgressFill');
             const progressText = document.getElementById('courseProgressText');
             const detailsDone = isDetailsStepComplete();
             const modulesDone = isModulesStepComplete();
+            const certificateDone = isCertificateStepComplete();
 
             step1.classList.toggle('done', detailsDone);
             step2.classList.toggle('done', modulesDone);
+            step3.classList.toggle('done', certificateDone);
 
-            const completedCount = (detailsDone ? 1 : 0) + (modulesDone ? 1 : 0);
-            const percent = Math.round((completedCount / 2) * 100);
+            const completedCount = (detailsDone ? 1 : 0) + (modulesDone ? 1 : 0) + (certificateDone ? 1 : 0);
+            const percent = Math.round((completedCount / 3) * 100);
             if (progressFill) progressFill.style.width = `${percent}%`;
-            if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/2 steps)`;
+            if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/3 steps)`;
         }
         function switchTo(tab){
             document.getElementById('tab1').classList.toggle('active', tab===1);
             document.getElementById('tab2').classList.toggle('active', tab===2);
+            document.getElementById('tab3').classList.toggle('active', tab===3);
             document.getElementById('tabBtn1').classList.toggle('active', tab===1);
             document.getElementById('tabBtn2').classList.toggle('active', tab===2);
+            document.getElementById('tabBtn3').classList.toggle('active', tab===3);
             document.getElementById('tabBtn1').setAttribute('aria-selected', tab===1 ? 'true':'false');
             document.getElementById('tabBtn2').setAttribute('aria-selected', tab===2 ? 'true':'false');
+            document.getElementById('tabBtn3').setAttribute('aria-selected', tab===3 ? 'true':'false');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         function ensureDefaultModule(){
             const container = document.getElementById('modulesContainer');
             if(container.children.length > 0) return;
             createModule();
         }
+        function updateCertSelection(input) {
+            document.querySelectorAll('.cert-card').forEach(card => {
+                card.style.borderColor = '#e5e7eb';
+                card.style.background = '#fff';
+                const check = card.querySelector('.cert-check');
+                if(check) check.style.visibility = 'hidden';
+            });
+            if(input.checked) {
+                const card = input.closest('.cert-card');
+                card.style.borderColor = '#0d6efd';
+                card.style.background = '#f0f7ff';
+                const check = card.querySelector('.cert-check');
+                if(check) check.style.visibility = 'visible';
+            }
+            updateProgress();
+        }
         function bindTabs(){
             const b1 = document.getElementById('tabBtn1');
             const b2 = document.getElementById('tabBtn2');
+            const b3 = document.getElementById('tabBtn3');
             b1 && b1.addEventListener('click', ()=> switchTo(1));
-            b2 && b2.addEventListener('click', ()=> switchTo(2));
+            b2 && b2.addEventListener('click', ()=> { if(validateDetails()) switchTo(2); });
+            b3 && b3.addEventListener('click', ()=> { if(validateDetails() && validateModules()) switchTo(3); });
             document.getElementById('backToDetails').addEventListener('click', ()=> switchTo(1));
-            const nxt = document.getElementById('nextToModules');
-            nxt && nxt.addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } else { switchTo(1); } });
+            document.getElementById('backToModules').addEventListener('click', ()=> switchTo(2));
+            const nxtModules = document.getElementById('nextToModules');
+            nxtModules && nxtModules.addEventListener('click', ()=> { if(validateDetails()){ switchTo(2); ensureDefaultModule(); } else { switchTo(1); } });
+            const nxtCert = document.getElementById('nextToCertificate');
+            nxtCert && nxtCert.addEventListener('click', ()=> { if(validateModules()){ switchTo(3); } else { switchTo(2); } });
             ['name','description','subject_area','image'].forEach(id=>{
                 const el = document.getElementById(id);
                 el && el.addEventListener('input', updateProgress);
@@ -1655,7 +1778,15 @@
             });
             document.getElementById('courseForm').addEventListener('submit', (e)=>{
                 updateProgress();
-                if(!validateDetails() || !validateModules()){ e.preventDefault(); switchTo(!validateDetails()?1:2); }
+                if(!validateDetails()) { e.preventDefault(); switchTo(1); return; }
+                if(!validateModules()) { e.preventDefault(); switchTo(2); return; }
+                if(!isCertificateStepComplete()) { 
+                    e.preventDefault(); 
+                    switchTo(3);
+                    const err = document.getElementById('certError');
+                    if(err) err.style.display = 'block';
+                    return; 
+                }
             });
             // Prevent accidental submit via Enter while editing exam inputs
             const form = document.getElementById('courseForm');
@@ -1669,23 +1800,98 @@
         }
         // In case scripts load late in embedded iframe, ensure binding after load
         window.addEventListener('load', function(){ try{ bindTabs(); }catch(e){} });
-        function draftKey(){ return 'draft_course_edit_{{ $course->id }}'; }
+        function draftKey(){ 
+            // Use the key provided by the dashboard if we're editing a specific draft
+            return sessionStorage.getItem('draft_course_key') || 'draft_course_edit_{{ $course->id }}'; 
+        }
+        function confirmGoToCertifications(url) {
+            const modal = document.getElementById('confirmCertModal');
+            const confirmBtn = document.getElementById('confirmCertBtn');
+            modal.style.display = 'flex';
+            confirmBtn.onclick = function() {
+                // Save draft first without alert/redirect
+                const form = document.getElementById('courseForm');
+                const data = new FormData(form);
+                const obj = {};
+                data.forEach((v,k)=>{ if(!(v instanceof File)) obj[k]=v; });
+                
+                // Save image draft if present
+                const imgPreview = document.getElementById('imagePreview');
+                const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
+                if(imgTag && imgTag.src.startsWith('data:image')) {
+                    obj['image_draft_data'] = imgTag.src;
+                }
+                
+                localStorage.setItem(draftKey(), JSON.stringify(obj));
+                
+                // Navigate
+                window.top.location.href = url;
+            };
+        }
+        function closeConfirmCertModal() {
+            document.getElementById('confirmCertModal').style.display = 'none';
+        }
         function saveDraft(){
             const form = document.getElementById('courseForm');
             const data = new FormData(form);
             const obj = {};
             data.forEach((v,k)=>{ if(!(v instanceof File)) obj[k]=v; });
+            
+            // Save image draft if present
+            const imgPreview = document.getElementById('imagePreview');
+            const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
+            if(imgTag && imgTag.src.startsWith('data:image')) {
+                obj['image_draft_data'] = imgTag.src;
+            }
+            
             localStorage.setItem(draftKey(), JSON.stringify(obj));
-            alert('Draft saved.');
+            document.getElementById('draftSavedModal').style.display = 'flex';
+        }
+        function closeDraftSavedModal() {
+            document.getElementById('draftSavedModal').style.display = 'none';
+            // Redirect to dashboard and open modal
+            window.top.location.href = "{{ route('dashboard') }}?open_drafts=1";
         }
         function restoreDraft(){
-            const raw = localStorage.getItem(draftKey());
+            const key = draftKey();
+            const raw = localStorage.getItem(key);
             if(!raw) return;
             try{
                 const obj = JSON.parse(raw);
-                ['name','description','subject_area'].forEach(k=>{
-                    if(obj[k] !== undefined){ const el = document.querySelector(`[name="${k}"]`); if(el) el.value = obj[k]; }
+                // Restore top-level fields
+                ['name','description','subject_area','video_url','certification_id'].forEach(k=>{
+                    if(obj[k] !== undefined){ 
+                        const el = document.querySelector(`[name="${k}"]`); 
+                        if(el) {
+                            el.value = obj[k];
+                            // Trigger selection styling for certificate
+                            if(k === 'certification_id') {
+                                const input = document.querySelector(`input[name="certification_id"][value="${obj[k]}"]`);
+                                if(input) {
+                                    input.checked = true;
+                                    updateCertSelection(input);
+                                }
+                            }
+                        }
+                    }
                 });
+                
+                // Restore image draft if present
+                if(obj['image_draft_data']) {
+                    const imgPreview = document.getElementById('imagePreview');
+                    const imgDraftInput = document.getElementById('image_draft_data');
+                    const fileNameDisplay = document.getElementById('fileNameDisplay');
+                    if(imgPreview) {
+                        imgPreview.innerHTML = `<img alt="preview" src="${obj['image_draft_data']}">`;
+                    }
+                    if(imgDraftInput) {
+                        imgDraftInput.value = obj['image_draft_data'];
+                    }
+                    if(fileNameDisplay) {
+                        fileNameDisplay.textContent = 'Restored from draft';
+                    }
+                }
+                
                 updateProgress();
             }catch(e){}
         }
@@ -1720,6 +1926,37 @@
             updateProgress();
             __bindAutosizeTextareas(document);
             initDynamicMenu();
+            
+            const img = document.getElementById('image');
+            if(img){
+                img.addEventListener('change', function(){
+                    const p = document.getElementById('imagePreview');
+                    const draftInput = document.getElementById('image_draft_data');
+                    const fileNameDisplay = document.getElementById('fileNameDisplay');
+                    const f = img.files && img.files[0];
+                    if(!f){ 
+                        if (draftInput && draftInput.value) {
+                            // Keep the draft image preview if no new file is chosen but one existed
+                            if (fileNameDisplay) fileNameDisplay.textContent = 'Using draft image';
+                        } else {
+                            p.innerHTML = '<span style="color:#94a3b8;">No image selected</span>'; 
+                            if (fileNameDisplay) fileNameDisplay.textContent = 'No file chosen';
+                        }
+                        return; 
+                    }
+                    if (fileNameDisplay) fileNameDisplay.textContent = f.name;
+                    if(!(f.type && f.type.startsWith('image/')) || f.size > 5*1024*1024){
+                        p.innerHTML = '<span style="color:#dc2626;">Invalid image. Use JPG/PNG/GIF/WebP ≤ 5MB.</span>';
+                        const err = document.getElementById('imageError'); err.style.display='block'; err.textContent='Image must be JPG/PNG/GIF/WebP and ≤ 5MB.';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = e => { p.innerHTML = '<img alt="preview" src="'+e.target.result+'">'; };
+                    reader.readAsDataURL(f);
+                    const err = document.getElementById('imageError'); err.style.display='none'; err.textContent='';
+                });
+            }
+
             const existing = {!! json_encode($course->modules ?? [], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!};
             populateExistingModules(existing);
             // Ensure the Modules Management tab is active with a default layout similar to create view
