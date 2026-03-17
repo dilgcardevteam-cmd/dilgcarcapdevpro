@@ -54,6 +54,10 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])
     ->name('dashboard');
+
+Route::get('/participant-dashboard-preview', [DashboardController::class, 'participantPreview'])
+    ->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])
+    ->name('participant.dashboard.preview');
 // Roles management
 Route::resource('/admin/roles', RoleController::class)
     ->only(['index','store','update','destroy'])

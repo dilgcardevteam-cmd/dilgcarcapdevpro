@@ -1106,6 +1106,14 @@
                         <span class="nav-text">Announcements</span>
                     </a>
                 </li>
+                @if(in_array(Auth::user()->role, ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach']))
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link">
+                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                        <span class="nav-text">Go to Coach Dashboard</span>
+                    </a>
+                </li>
+                @endif
             </ul>
         </div>
 

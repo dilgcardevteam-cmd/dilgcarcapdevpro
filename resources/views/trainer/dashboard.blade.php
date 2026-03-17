@@ -1517,6 +1517,12 @@
                         <span class="nav-text">Announcements</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('participant.dashboard.preview') }}" class="nav-link">
+                        <i class="fas fa-user-graduate nav-icon"></i>
+                        <span class="nav-text">Go to Participant Dashboard</span>
+                    </a>
+                </li>
             </ul>
         </div>
 

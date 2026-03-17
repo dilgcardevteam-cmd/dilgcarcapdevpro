@@ -610,6 +610,99 @@ class DashboardController extends Controller
         }
     }
 
+    /**
+     * Preview the Participant Dashboard for Coach/Trainer roles.
+     */
+    public function participantPreview(Request $request)
+    {
+        $user = Auth::user();
+        $coachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
+        
+        if (!in_array($user->role, $coachRoles, true)) {
+            abort(403, 'Unauthorized access to participant preview.');
+        }
+
+        $forceProfile = !$user->profile_completed;
+        
+        // Simulate participant data for the coach
+        // We can treat them as a generic participant/trainee for the preview
+        $myCoachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
+        
+        $myCourses = $user->courses()
+            ->wherePivot('status', 'active')
+            ->where('courses.is_published', true)
+            ->orderBy('courses.created_at', 'desc')
+            ->with(['users' => function($q) use ($myCoachRoles) {
+                $q->whereIn('role', $myCoachRoles);
+            }, 'materials', 'assessments.grades' => function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }])
+            ->get();
+
+        $pendingCourses = $user->courses()
+            ->wherePivot('status', 'pending')
+            ->orderBy('courses.created_at', 'desc')
+            ->with(['users' => function($q) use ($myCoachRoles) {
+                $q->whereIn('role', $myCoachRoles);
+            }])
+            ->get();
+            
+        $pendingCoursesCount = $pendingCourses->count();
+        $classroomCourses = $myCourses->concat($pendingCourses)->sortByDesc('created_at')->values();
+        $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
+
+        $progressData = [];
+        foreach ($classroomCourses as $course) {
+            $progress = $course->getCourseProgress($user);
+            $progress['total_modules'] = count($course->modules ?? []);
+            $progressData[$course->id] = $progress;
+        }
+
+        // For coaches, show all published courses in the preview
+        $excludedIds = array_map('intval', array_keys($courseStatuses));
+        $availableCourses = Course::where('is_published', true);
+        if (!empty($excludedIds)) {
+            $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
+        }
+        $availableCourses = $availableCourses->orderBy('created_at', 'desc')->get();
+        
+        $totalAvailableCourses = $availableCourses->count();
+        $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
+        $completedCoursesCount = $user->courses()->wherePivot('status', 'completed')->count();
+        $activeCoursesCount = $myCourses->count();
+        $earnedCertificates = $user->certifications()->with('users')->get();
+        $announcements = Announcement::with('user')->orderBy('created_at', 'desc')->take(5)->get();
+        $calendarEvents = CalendarEvent::where('user_id', $user->id)->orderBy('start_time', 'asc')->get();
+
+        foreach ($myCourses as $course) {
+            if ($course->start_date) {
+                $calendarEvents->push(new CalendarEvent([
+                    'title' => $course->name . ' (Starts)',
+                    'start_time' => $course->start_date->startOfDay(),
+                    'type' => 'class',
+                ]));
+            }
+            if ($course->end_date) {
+                $calendarEvents->push(new CalendarEvent([
+                    'title' => $course->name . ' (Ends)',
+                    'start_time' => $course->end_date->endOfDay(),
+                    'type' => 'deadline',
+                ]));
+            }
+        }
+
+        $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
+        $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
+
+        return view('trainee.dashboard', compact(
+            'myCourses', 'classroomCourses', 'pendingCourses', 'availableCourses', 
+            'completedCoursesCount', 'activeCoursesCount', 'announcements', 'calendarEvents', 
+            'notifications', 'unreadNotificationsCount', 'totalAvailableCourses', 
+            'totalCoursesJoined', 'courseStatuses', 'forceProfile', 'pendingCoursesCount', 
+            'earnedCertificates', 'progressData'
+        ));
+    }
+
     // DILG Central Office: Bureaus list
     public function centralBureausJson()
     {
