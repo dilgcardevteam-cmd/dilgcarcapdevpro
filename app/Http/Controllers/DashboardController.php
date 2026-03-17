@@ -54,7 +54,7 @@ class DashboardController extends Controller
                 $managedTMRoles = array_values(array_intersect($tmRoles, $managedRoles));
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
 
-                $userCount = User::whereIn('role', $managedRoles)->count();
+                $userCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->count();
                 // Only show courses that belong to the same branch/level
                 $levelRoles = [];
                 if ($user->role === 'central_office_admin') {
@@ -107,17 +107,19 @@ class DashboardController extends Controller
                         $q->whereIn('role', $adminRoles);
                     })
                     ->count();
-                $activeUsersCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
-                $pendingUsersTotal = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
-                $frozenUsersCount = User::whereIn('role', $managedRoles)->where('status', 'freeze')->count();
-                $trainersCount = User::whereIn('role', $managedCoachRoles)->count();
-                $traineesCount = User::whereIn('role', $managedParticipantRoles)->count();
-                $adminsCount = User::whereIn('role', $adminRoles)->count();
+                $activeUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count();
+                $pendingUsersTotal = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'pending')->count();
+                $frozenUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'freeze')->count();
+                $trainersCount = User::whereIn('role', $managedCoachRoles)->where('profile_completed', true)->count();
+                $traineesCount = User::whereIn('role', $managedParticipantRoles)->where('profile_completed', true)->count();
+                $adminsCount = User::whereIn('role', $adminRoles)->where('profile_completed', true)->count();
                 $registrarsCount = User::where('role', 'registrar')->count();
                 $archivedCoursesCount = Course::onlyTrashed()->count();
                 $certificationCount = Certification::count();
                 
-                $query = User::query()->whereIn('role', $managedRoles);
+                $query = User::query()
+                    ->whereIn('role', $managedRoles)
+                    ->where('profile_completed', true);
                 if ($request->get('tab') === 'user-management') {
                     $excludedRoles = [
                         'provincial_office_coach',
@@ -211,9 +213,16 @@ class DashboardController extends Controller
                     'roleDisplay'
                 ));
             case $user->role === 'registrar':
-                $unapprovedCount = User::where('status', 'pending')->count();
-                $approvedCount = User::where('status', 'active')->count();
-                $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('status', 'pending')->count();
+                $registrarScope = function ($query) {
+                    $query->where(function ($scoped) {
+                        $scoped->whereNull('agency')
+                            ->orWhere('agency', '!=', 'DILG');
+                    });
+                };
+
+                $unapprovedCount = User::where('profile_completed', true)->where('status', 'pending')->where($registrarScope)->count();
+                $approvedCount = User::where('profile_completed', true)->where('status', 'active')->where($registrarScope)->count();
+                $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('profile_completed', true)->where('status', 'pending')->where($registrarScope)->count();
                 // Registrar manages coach/trainer and participant roles
                 $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
                 // Show all courses to registrar (including those without assigned users yet)
@@ -230,14 +239,8 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                $query = User::query();
+                $query = User::query()->where('profile_completed', true)->where($registrarScope);
                 if ($request->get('tab') === 'user-management') {
-                    // Filter out Google users who haven't completed their profile yet
-                    $query->where(function($q) {
-                        $q->whereNull('google_id')
-                          ->orWhere('profile_completed', true);
-                    });
-
                     $excludedRoles = [
                         'provincial_office_coach',
                         'provincial_office_participants',
@@ -401,20 +404,55 @@ class DashboardController extends Controller
                 return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile'));
             case in_array($user->role, $tmRoles, true):
                 $managedRoles = [];
+                $pendingApplicantScope = null;
                 if ($user->role === 'central_office_training_manager') {
                     $managedRoles = ['central_office_admin', 'central_office_training_manager', 'central_office_coach', 'central_office_participants'];
+                    $pendingApplicantScope = function ($query) {
+                        $query->whereNull('role')
+                            ->where('status', 'pending')
+                            ->where('agency', 'DILG')
+                            ->where('region', 'DILG Central Office');
+                    };
                 } elseif ($user->role === 'regional_office_training_manager') {
                     $managedRoles = ['regional_office_admin', 'regional_office_training_manager', 'regional_office_coach', 'regional_office_participants'];
+                    $pendingApplicantScope = function ($query) {
+                        $query->whereNull('role')
+                            ->where('status', 'pending')
+                            ->where('agency', 'DILG')
+                            ->where('region', 'DILG Regional Office');
+                    };
                 } elseif ($user->role === 'provincial_office_training_manager') {
                     $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
+                    $pendingApplicantScope = function ($query) {
+                        $query->whereNull('role')
+                            ->where('status', 'pending')
+                            ->where('agency', 'DILG')
+                            ->where('region', 'DILG Provincial Office');
+                    };
                 } else {
                     $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+                    $pendingApplicantScope = function ($query) {
+                        $query->whereNull('role')
+                            ->where('status', 'pending')
+                            ->where(function ($scoped) {
+                                $scoped->whereNull('agency')
+                                    ->orWhere('agency', '!=', 'DILG');
+                            });
+                    };
                 }
                 $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
-                $unapprovedCount = User::whereIn('role', $managedRoles)->where('status', 'pending')->count();
-                $approvedCount = User::whereIn('role', $managedRoles)->where('status', 'active')->count();
-                $pendingTraineesCount = User::whereIn('role', $managedParticipantRoles)->where('status', 'pending')->count();
+                $unapprovedCount = User::where('profile_completed', true)
+                    ->where(function ($query) use ($managedRoles, $pendingApplicantScope) {
+                        $query->whereIn('role', $managedRoles);
+                        if ($pendingApplicantScope) {
+                            $query->orWhere($pendingApplicantScope);
+                        }
+                    })
+                    ->where('status', 'pending')
+                    ->count();
+                $approvedCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count();
+                $pendingTraineesCount = User::whereIn('role', $managedParticipantRoles)->where('profile_completed', true)->where('status', 'pending')->count();
                 // Limit visible courses to TM's branch/level
                 $levelRoles = [];
                 if ($user->role === 'central_office_training_manager') {
@@ -442,7 +480,14 @@ class DashboardController extends Controller
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
-                $query = User::query()->whereIn('role', $managedRoles);
+                $query = User::query()
+                    ->where('profile_completed', true)
+                    ->where(function ($builder) use ($managedRoles, $pendingApplicantScope) {
+                        $builder->whereIn('role', $managedRoles);
+                        if ($pendingApplicantScope) {
+                            $builder->orWhere($pendingApplicantScope);
+                        }
+                    });
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
                 if ($request->has('roles')) {
                     $selected = (array) $request->roles;
@@ -1075,16 +1120,48 @@ class DashboardController extends Controller
         return redirect()->route('dashboard', ['tab' => 'profile-section'])->with('success_profile', 'Profile updated successfully.');
     }
 
-    public function setupProfile()
+    public function setupProfile(Request $request)
     {
         $user = Auth::user();
-        if ($user->profile_completed) {
-            return redirect()->route('dashboard', ['tab' => 'profile-section']);
+        $hasCompletedOnboardingProfile = $user->hasCompletedOnboardingProfile();
+
+        if ($user->status === 'pending' && !$hasCompletedOnboardingProfile && $user->profile_completed) {
+            $user->profile_completed = false;
+            $user->profile_completed_at = null;
+            $user->save();
         }
+
+        $fullNameParsed = trim($user->name ?? '');
+        $tokens = $fullNameParsed !== '' ? preg_split('/\s+/', $fullNameParsed) : [];
+        $firstParsed = $tokens[0] ?? '';
+        $lastParsed = count($tokens) > 1 ? $tokens[count($tokens) - 1] : '';
+        $middleParsed = count($tokens) > 2 ? implode(' ', array_slice($tokens, 1, -1)) : '';
+
+        if (!$user->profile_completed || !$hasCompletedOnboardingProfile) {
+            $isReviewMode = false;
+            return view('auth.create-account', compact('user', 'firstParsed', 'middleParsed', 'lastParsed', 'isReviewMode'));
+        }
+
+        if ($user->status === 'pending') {
+            $isReviewMode = true;
+            return view('auth.create-account', compact('user', 'firstParsed', 'middleParsed', 'lastParsed', 'isReviewMode'));
+        }
+
+        if ($request->routeIs('create-account')) {
+            if ($user->status === 'active') {
+                return redirect()->route('dashboard', ['tab' => 'profile-section']);
+            }
+
+            if ($user->status === 'pending') {
+                return redirect()->route('pending.approval');
+            }
+        }
+
         $notifications = Notification::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->take(20)
             ->get();
+
         return view('profile.setup', compact('notifications'));
     }
 
@@ -1097,8 +1174,13 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $wasProfileCompleted = (bool) $user->profile_completed;
+        $isOnboarding = !$wasProfileCompleted;
+        $agency = $request->input('agency');
         $section = $request->input('section', 'info');
         if ($section === 'password') {
+            if ($isOnboarding) {
+                return redirect()->route('create-account');
+            }
             $validated = $request->validate([
                 'current_password' => 'required|string',
                 'password' => 'required|confirmed|min:8',
@@ -1117,21 +1199,22 @@ class DashboardController extends Controller
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'mobile_number' => 'required|string|max:20',
-            'gender' => 'nullable|string|in:Male,Female,Prefer not to say',
+            'gender' => $isOnboarding ? 'required|string|in:Male,Female,Prefer not to say' : 'nullable|string|in:Male,Female,Prefer not to say',
             'region' => 'required|string|max:255',
             'province' => 'required|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'barangay' => 'nullable|string|max:255',
-            'agency' => 'nullable|string|in:DILG,LGU',
+            'city' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
+            'barangay' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
+            'agency' => $isOnboarding ? 'required|string|in:DILG,LGU' : 'nullable|string|in:DILG,LGU',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'profile_picture_cropped' => 'nullable|string',
         ]);
 
-        // Custom validation: if agency is LGU, city and barangay are required
-        if ($request->input('agency') === 'LGU') {
-            if (!$request->filled('city') || !$request->filled('barangay')) {
-                return back()->withErrors(['city' => 'City and Barangay are required for LGU accounts.'])->withInput();
-            }
+        if ($request->input('agency') === 'LGU' && (!$request->filled('city') || !$request->filled('barangay'))) {
+            return back()->withErrors(['city' => 'City and Barangay are required for LGU accounts.'])->withInput();
+        }
+
+        if ($request->input('agency') === 'DILG') {
+            $validated['barangay'] = null;
         }
 
         if ($request->filled('profile_picture_cropped')) {
@@ -1165,19 +1248,19 @@ class DashboardController extends Controller
         unset($validated['first_name'], $validated['middle_name'], $validated['last_name']);
 
         $user->fill($validated);
+        if ($isOnboarding) {
+            $user->role = null;
+            $user->status = 'pending';
+        }
         if (!$user->profile_completed) {
             $user->profile_completed = true;
             $user->profile_completed_at = now();
         }
         $user->save();
 
-        if ($user->status !== 'active') {
+        if ($user->status === 'pending') {
             User::notifyRegistrarsAboutNewUser($user);
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')->with('success', 'Profile setup complete! Your account is now pending approval. Please wait for an email from the registrar.');
+            return redirect()->route('pending.approval')->with('success_pending_approval', 'Profile setup complete! Your account is now pending approval.');
         }
 
         if (!$wasProfileCompleted) {
@@ -1186,6 +1269,25 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('dashboard', ['tab' => 'profile-section'])->with('success_profile', 'Profile updated successfully.');
+    }
+
+    public function pendingApproval()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if (!$user->profile_completed || !$user->hasCompletedOnboardingProfile()) {
+            return redirect()->route('create-account')->with('profile_required', true);
+        }
+
+        if ($user->status === 'active') {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.pending-approval');
     }
 
     public function markNotificationAsRead(Notification $notification)

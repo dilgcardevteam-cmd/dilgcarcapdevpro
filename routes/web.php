@@ -46,8 +46,10 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/create-account', [DashboardController::class, 'setupProfile'])->name('create-account');
     Route::get('/profile/setup', [DashboardController::class, 'setupProfile'])->name('profile.setup');
     Route::post('/profile/setup', [DashboardController::class, 'storeProfileSetup'])->name('profile.setup.store');
+    Route::get('/pending-approval', [DashboardController::class, 'pendingApproval'])->name('pending.approval');
     Route::get('/users/{user}', [DashboardController::class, 'publicProfile'])->name('users.profile');
 });
 

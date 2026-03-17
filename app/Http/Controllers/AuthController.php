@@ -130,6 +130,7 @@ class AuthController extends Controller
                 'email' => $email,
                 'password' => Hash::make(Str::random(40)),
                 'google_id' => $googleId,
+                'role' => null,
                 'status' => 'pending',
                 'profile_completed' => false,
             ]);
@@ -160,28 +161,38 @@ class AuthController extends Controller
             }
         }
 
-        if ($user->status !== 'active') {
-            // New logic: allow login for pending users who have NOT completed their profile
-            // This is primarily for Google users who need to provide more details
-            if (!$user->profile_completed) {
-                Auth::login($user, true);
-                $request->session()->regenerate();
-                return redirect()->intended('dashboard');
-            }
-
-            if ($isNewUser) {
-                return redirect()->route('login')->with('success', 'Google sign-up successful! Please wait for an email from the registrar to activate your account.');
-            }
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'Your account is pending approval. Please wait for the registrar to activate your account.',
-            ])->onlyInput('email');
-        }
-
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        return redirect()->intended('dashboard');
+        if ($user->status === 'pending' && !$user->hasCompletedOnboardingProfile()) {
+            if ($user->profile_completed) {
+                $user->profile_completed = false;
+                $user->profile_completed_at = null;
+                $user->save();
+            }
+
+            return redirect()->route('create-account');
+        }
+
+        if (!$user->profile_completed) {
+            return redirect()->route('create-account');
+        }
+
+        if ($user->status === 'pending') {
+            return redirect()->route('pending.approval');
+        }
+
+        if ($user->status !== 'active') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account cannot access the system right now. Please contact the administrator.',
+            ]);
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     /**
@@ -311,24 +322,8 @@ class AuthController extends Controller
             RateLimiter::clear($key);
             $request->session()->regenerate();
 
-            if (Auth::user()->status !== 'active') {
-                // Allow login for pending users who have NOT completed their profile
-                if (!Auth::user()->profile_completed) {
-                    return redirect()->intended('dashboard');
-                }
-
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return back()->withErrors([
-                    'email' => 'Your account is pending approval. Please wait for the registrar to activate your account.',
-                ])->onlyInput('email');
-            }
-
-            // Ensure DILG office users have pre-populated office/location and skip profile setup
             $u = Auth::user();
-            if ($u && !$u->profile_completed) {
+            if ($u && $u->status === 'active' && !$u->profile_completed) {
                 $role = $u->role ?? '';
                 $isCentral = in_array($role, ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'], true);
                 $isRegional = in_array($role, ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'], true);
@@ -364,7 +359,33 @@ class AuthController extends Controller
                 }
             }
 
-            return redirect()->intended('dashboard');
+            if ($u && $u->status === 'pending' && !$u->hasCompletedOnboardingProfile()) {
+                if ($u->profile_completed) {
+                    $u->profile_completed = false;
+                    $u->profile_completed_at = null;
+                    $u->save();
+                }
+            }
+
+            if (!$u->profile_completed) {
+                return redirect()->route('create-account');
+            }
+
+            if ($u->status === 'pending') {
+                return redirect()->route('pending.approval');
+            }
+
+            if ($u->status !== 'active') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Your account cannot access the system right now. Please contact the administrator.',
+                ])->onlyInput('email');
+            }
+
+            return redirect()->intended(route('dashboard'));
         }
 
         // If authentication fails, hit the rate limiter and show remaining attempts or lockout

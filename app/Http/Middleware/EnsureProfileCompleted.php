@@ -27,7 +27,15 @@ class EnsureProfileCompleted
             if ($request->routeIs('profile.setup') || $request->routeIs('profile.setup.store') || $request->routeIs('logout')) {
                 return $next($request);
             }
-            return redirect()->route('profile.setup')->with('profile_required', true);
+            return redirect()->route('create-account')->with('profile_required', true);
+        }
+
+        if ($user && $user->status === 'pending') {
+            if ($request->routeIs('pending.approval') || $request->routeIs('logout')) {
+                return $next($request);
+            }
+
+            return redirect()->route('pending.approval');
         }
 
         return $next($request);

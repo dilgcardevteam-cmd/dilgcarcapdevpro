@@ -590,8 +590,10 @@
                                 @endif
                                 <div class="tabs-container">
                                     <button type="button" class="tab-btn" data-tab-target="tab-info" onclick="showTab('tab-info')">Personal Information</button>
-                                    <button type="button" class="tab-btn" data-tab-target="tab-password" onclick="showTab('tab-password')">Password</button>
-                                    <button type="button" class="tab-btn" data-tab-target="tab-history" onclick="showTab('tab-history')">History</button>
+                                    @if($isProfileCompleted)
+                                        <button type="button" class="tab-btn" data-tab-target="tab-password" onclick="showTab('tab-password')">Password</button>
+                                        <button type="button" class="tab-btn" data-tab-target="tab-history" onclick="showTab('tab-history')">History</button>
+                                    @endif
                                 </div>
                                 <div id="tab-info" class="tab-pane">
                                     <p class="why">All fields marked with <span class="require">*</span> are required.</p>
@@ -632,12 +634,20 @@
                                                 <input type="text" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Gender</label>
-                                                <select name="gender">
-                                                    <option value="" {{ old('gender', $user->gender) == '' ? 'selected' : '' }}>Select</option>
+                                                <label>Sex <span class="require">*</span></label>
+                                                <select name="gender" required>
+                                                    <option value="" {{ old('gender', $user->gender) == '' ? 'selected' : '' }}>Select Sex</option>
                                                     <option value="Male" {{ old('gender', $user->gender) == 'Male' ? 'selected' : '' }}>Male</option>
                                                     <option value="Female" {{ old('gender', $user->gender) == 'Female' ? 'selected' : '' }}>Female</option>
                                                     <option value="Prefer not to say" {{ old('gender', $user->gender) == 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Agency <span class="require">*</span></label>
+                                                <select name="agency" required>
+                                                    <option value="" {{ old('agency', $user->agency) == '' ? 'selected' : '' }}>Select Agency</option>
+                                                    <option value="DILG" {{ old('agency', $user->agency) == 'DILG' ? 'selected' : '' }}>DILG</option>
+                                                    <option value="LGU" {{ old('agency', $user->agency) == 'LGU' ? 'selected' : '' }}>LGU</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -687,10 +697,11 @@
                                             </div>
                                         </div>
                                         <div class="actions">
-                                            <button class="btn btn-primary" type="submit">Save Changes</button>
+                                            <button class="btn btn-primary" type="submit">{{ $isProfileCompleted ? 'Save Changes' : 'Submit for Approval' }}</button>
                                         </div>
                                     </form>
                                 </div>
+                                @if($isProfileCompleted)
                                 <div id="tab-password" class="tab-pane">
                                     <form action="{{ route('profile.setup.store') }}" method="POST">
                                         @csrf
@@ -741,6 +752,7 @@
                                         </div>
                                     @endif
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>

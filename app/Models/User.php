@@ -26,6 +26,7 @@ class User extends Authenticatable
         'account_id',
         'mobile_number',
         'gender',
+        'agency',
         'google_id',
         'password',
         'region',
@@ -139,18 +140,41 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function hasCompletedOnboardingProfile(): bool
+    {
+        if (!$this->name || !$this->email || !$this->mobile_number || !$this->gender || !$this->agency || !$this->region || !$this->province) {
+            return false;
+        }
+
+        if ($this->agency === 'LGU') {
+            return !empty($this->city) && !empty($this->barangay);
+        }
+
+        if ($this->agency === 'DILG') {
+            if ($this->region === 'DILG Central Office') {
+                return !empty($this->city);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public static function notifyRegistrarsAboutNewUser(User $user): void
     {
         $targetRole = 'registrar'; // Default
-        if ($user->role === 'central_office_participants') {
+        $registrationLevel = trim((string) ($user->region ?? ''));
+
+        if ($user->role === 'central_office_participants' || ($user->agency === 'DILG' && $registrationLevel === 'DILG Central Office')) {
             $targetRole = 'central_office_training_manager';
-        } elseif ($user->role === 'regional_office_participants') {
+        } elseif ($user->role === 'regional_office_participants' || ($user->agency === 'DILG' && $registrationLevel === 'DILG Regional Office')) {
             $targetRole = 'regional_office_training_manager';
-        } elseif ($user->role === 'provincial_office_participants') {
+        } elseif ($user->role === 'provincial_office_participants' || ($user->agency === 'DILG' && $registrationLevel === 'DILG Provincial Office')) {
             $targetRole = 'provincial_office_training_manager';
         }
 
-        // Fetch target users
+        // Fetch target approvers for the selected agency/level.
         $registrars = self::where('role', $targetRole)->get();
 
         foreach ($registrars as $registrar) {

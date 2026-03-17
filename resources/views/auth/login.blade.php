@@ -1124,8 +1124,8 @@
             <button type="submit" class="register-submit">Sign Up</button>
             <p class="or-separator">or</p>
 
-            <a href="http://127.0.0.1:8000/auth/google/redirect" class="google-btn google-btn-compact">
-                <img src="http://127.0.0.1:8000/images/google-logo-icon-.png" alt="Google">
+            <a href="{{ route('auth.google.redirect') }}" class="google-btn google-btn-compact">
+                <img src="{{ asset('images/google-logo-icon-.png') }}" alt="Google">
                 Sign up with Google
             </a>
             
