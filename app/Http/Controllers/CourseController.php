@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Notification;
 use App\Models\User;
+use App\Traits\HandlesCertification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Mail\IncompleteActivityReminder;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Mail;
 
 class CourseController extends Controller
 {
+    use HandlesCertification;
+
     /**
      * Remove large inline media from rich HTML to keep JSON small and safe.
      * - Strips <img src="data:..."> and replaces with a small placeholder
@@ -1259,6 +1262,10 @@ class CourseController extends Controller
         if (!is_dir($dir)) @mkdir($dir, 0775, true);
         $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$data['mi'].'_u_'.$user->id.'.json';
         file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT));
+
+        // Check if course is now 100% complete and issue certificate
+        $this->issueCertificateIfCompleted($user, $course);
+
         return response()->json(['ok'=>true]);
     }
 

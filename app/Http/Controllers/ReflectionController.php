@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\ReflectionResponse;
+use App\Models\Course;
+use App\Traits\HandlesCertification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ReflectionController extends Controller
 {
+    use HandlesCertification;
+
     protected function userId()
     {
         return Auth::id();
@@ -78,6 +82,13 @@ class ReflectionController extends Controller
                 'answers_json' => $data['answers'],
             ]
         );
+
+        // Check if course is now 100% complete and issue certificate
+        $course = Course::find($courseId);
+        $user = Auth::user();
+        if ($course && $user) {
+            $this->issueCertificateIfCompleted($user, $course);
+        }
 
         return response()->json(['ok' => true, 'id' => $row->id]);
     }
