@@ -248,18 +248,22 @@
         }
 
         /* Hero */
-        .control-hero{background:linear-gradient(135deg,#991b1b 0%, #dc2626 58%, #ef4444 100%);color:#fff;border-radius:14px;padding:22px;margin-bottom:24px;box-shadow:0 10px 24px rgba(220,38,38,.22)}
-        .control-hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-        .control-hero-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0}
-        .control-hero-sub{opacity:.9;font-size:.95rem;margin-top:6px}
-        .hero-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:12px}
-        .hero-metric{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 6px 14px rgba(0,0,0,.06)}
-        .metric-left{display:flex;align-items:center;gap:12px}
-        .metric-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8effd;color:var(--primary-blue);font-size:1.1rem;flex-shrink:0}
-        .metric-value{font-size:1.4rem;font-weight:800;color:var(--primary-blue)}
-        .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-        .hero-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 16px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06)}
-        .hero-btn:hover{background:rgba(255,255,255,.12)}
+        .control-hero{background:linear-gradient(135deg,#991b1b 0%,#dc2626 58%,#ef4444 100%);color:#fff;border-radius:22px;padding:34px 36px;position:relative;overflow:hidden;margin-bottom:26px;box-shadow:0 14px 34px rgba(220,38,38,.24)}
+        .control-hero::after{content:"";position:absolute;top:-48%;right:-8%;width:320px;height:320px;background:rgba(255,255,255,.1);border-radius:50%}
+        .control-hero-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px}
+        .control-hero-left{display:flex;align-items:flex-start;gap:16px}
+        .control-hero-badge{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+        .control-hero-title{font-size:2.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:0}
+        .control-hero-sub{opacity:.92;font-size:1.02rem;max-width:640px;margin-top:10px}
+        .hero-stats-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px}
+        @media (min-width: 900px){ .hero-stats-grid{grid-template-columns:repeat(2,1fr)} }
+        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(4,1fr)} }
+        .hero-stat-card{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.24);border-radius:18px;padding:20px 22px;transition:transform .18s ease, background-color .18s ease}
+        .hero-stat-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.2)}
+        .hero-stat-icon{width:52px;height:52px;border-radius:16px;background:#fff;color:#b91c1c;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:0 0 auto}
+        .hero-stat-info{display:flex;flex-direction:column}
+        .hero-stat-value{font-size:2rem;font-weight:800;line-height:1}
+        .hero-stat-label{font-size:.82rem;opacity:.88;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
 
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
@@ -986,7 +990,10 @@
                 gap: 10px;
             }
 
-            .stats-grid{gap:14px}
+            .control-hero{padding:24px 20px}
+            .control-hero-top{margin-bottom:18px}
+            .control-hero-title{font-size:1.7rem}
+            .hero-stat-card{padding:18px}
             .course-grid{gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}
             .course-card{border-radius:14px}
             .course-image{aspect-ratio:16/9}
@@ -1544,42 +1551,43 @@
 
                 <div class="control-hero">
                     <div class="control-hero-top">
-                        <div>
-                            <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
-                            <div class="control-hero-sub">Monitor learning outcomes and efficiently manage classes.</div>
+                        <div class="control-hero-left">
+                            <div class="control-hero-badge"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <div>
+                                <h1 class="control-hero-title">Welcome, {{ Auth::user()->name }}</h1>
+                                <div class="control-hero-sub">Monitor learning outcomes and efficiently manage classes.</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="hero-metrics">
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon"><i class="fas fa-book-open"></i></div>
-                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Courses Teaching</h4>
+                    <div class="hero-stats-grid">
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-book-open"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $totalCoursesTeaching }}</span>
+                                <span class="hero-stat-label">Courses Teaching</span>
+                            </div>
                         </div>
-                        <div class="metric-value">{{ $totalCoursesTeaching }}</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#ecfdf5;color:#0f766e"><i class="fas fa-user-graduate"></i></div>
-                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Total Students</h4>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-graduate"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $totalStudents }}</span>
+                                <span class="hero-stat-label">Total Students</span>
+                            </div>
                         </div>
-                        <div class="metric-value">{{ $totalStudents }}</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#e0f2fe;color:#1d4ed8"><i class="fas fa-calendar-check"></i></div>
-                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">Upcoming Events</h4>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ isset($calendarEvents) ? $calendarEvents->count() : 0 }}</span>
+                                <span class="hero-stat-label">Upcoming Events</span>
+                            </div>
                         </div>
-                        <div class="metric-value">{{ isset($calendarEvents) ? $calendarEvents->count() : 0 }}</div>
-                    </div>
-                    <div class="hero-metric">
-                        <div class="metric-left">
-                            <div class="metric-icon" style="background:#f1f5f9;color:#0f172a"><i class="fas fa-bell"></i></div>
-                            <h4 style="margin:0;font-size:.95rem;color:#374151;font-weight:700">New Notifications</h4>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-bell"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }}</span>
+                                <span class="hero-stat-label">New Notifications</span>
+                            </div>
                         </div>
-                        <div class="metric-value">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }}</div>
                     </div>
                 </div>
 

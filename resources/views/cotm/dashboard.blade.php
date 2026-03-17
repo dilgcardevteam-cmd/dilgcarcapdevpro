@@ -69,21 +69,22 @@
         @keyframes fadeIn {from { opacity: 0; transform: translateY(10px); }to { opacity: 1; transform: translateY(0); }}
         .welcome-title {font-size: 2rem;color: var(--primary-blue);margin-bottom: 30px;font-weight: 300;}
         .welcome-title strong {font-weight: 700;}
-        .stats-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px;margin-bottom:24px}
-        @media (min-width: 900px){ .stats-grid{grid-template-columns:repeat(2,1fr)} }
-        @media (min-width: 1200px){ .stats-grid{grid-template-columns:repeat(4,1fr)} }
-        .stat-card{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;box-shadow:0 8px 24px rgba(17,24,39,.06);transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
-        .stat-card:hover {transform: translateY(-5px);}
-        .stat-icon{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center}
-        .stat-info h3{margin:0;font-size:1.6rem;color:#002C76}
-        .stat-info p{margin:0;color:#6b7280}
-        .control-hero{background:linear-gradient(135deg,#ca8a04 0%,#facc15 58%,#fde047 100%);color:#1e293b;border-radius:14px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 10px 24px rgba(250,204,21,.24);margin-bottom:20px}
-        .control-hero-left{display:flex;align-items:center;gap:14px}
-        .control-hero-title{font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
-        .control-hero-sub{font-size:.95rem;opacity:.9}
-        .hero-actions{display:flex;gap:10px;flex-wrap:wrap}
-        .hero-btn{display:inline-flex;align-items:center;gap:8px;background:#fffdf1;color:#8a4b06;border:1px solid rgba(255,255,255,.72);border-radius:999px;padding:10px 14px;font-weight:800;text-decoration:none;box-shadow:0 6px 16px rgba(161,98,7,.14)}
-        .hero-btn:hover{transform:translateY(-1px)}
+        .control-hero{background:linear-gradient(135deg,#c96a09 0%,#f59e0b 58%,#ffb11b 100%);color:#fff;border-radius:22px;padding:34px 36px;position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(245,158,11,.24);margin-bottom:26px}
+        .control-hero::after{content:"";position:absolute;top:-48%;right:-8%;width:320px;height:320px;background:rgba(255,255,255,.1);border-radius:50%}
+        .control-hero-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px}
+        .control-hero-left{display:flex;align-items:flex-start;gap:16px}
+        .control-hero-badge{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+        .control-hero-title{font-size:2.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+        .control-hero-sub{font-size:1.02rem;opacity:.92;max-width:640px;margin-top:10px}
+        .hero-stats-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px}
+        @media (min-width: 900px){ .hero-stats-grid{grid-template-columns:repeat(2,1fr)} }
+        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(4,1fr)} }
+        .hero-stat-card{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.24);border-radius:18px;padding:20px 22px;transition:transform .18s ease, background-color .18s ease}
+        .hero-stat-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.2)}
+        .hero-stat-icon{width:52px;height:52px;border-radius:16px;background:#fff;color:#c96a09;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:0 0 auto}
+        .hero-stat-info{display:flex;flex-direction:column}
+        .hero-stat-value{font-size:2rem;font-weight:800;line-height:1}
+        .hero-stat-label{font-size:.82rem;opacity:.88;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
         .insight-panel {background: #ffffff;border: 1px solid #e5eef7;border-radius: 16px;padding: 20px;box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);}
         .insight-panel-header {display: flex;justify-content: space-between;align-items: center;gap: 10px;margin-bottom: 16px;}
         .insight-panel-header h2 {margin: 0;color: #0B2C74;font-size: 1.15rem;font-weight: 800;letter-spacing: -.01em;}
@@ -97,7 +98,7 @@
         .table-empty i {display: block;font-size: 1.8rem;color: #94a3b8;margin-bottom: 10px;}
         .users-pagination {margin-top: 10px;display: flex;justify-content: center;}
         .users-page-number {margin-top: 14px;text-align: right;color: #64748b;font-size: 0.84rem;font-weight: 600;}
-        @media (max-width: 992px) {.header {height: auto;padding: 12px 14px;flex-wrap: wrap;gap: 10px}.header-logo {height: 38px;margin-right: 10px;}.header-title img {height: 36px;}.header-right {width: 100%;justify-content: space-between;flex-wrap: wrap;gap: 8px;}.user-profile-header {margin-right: 0 !important;}.dashboard-container {flex-direction: column;overflow: visible;}.sidebar,.sidebar.collapsed {width: 100%;max-width: 100%;overflow: visible;}.sidebar-toggle {display: none;}.sidebar-menu {display: flex;overflow-x: auto;white-space: nowrap;}.menu-item {flex: 0 0 auto;padding: 12px 14px;}.sidebar.collapsed .menu-text {opacity: 1;display: inline;}.main-content {padding: 16px;overflow: visible;}.welcome-title {font-size: 1.5rem;margin-bottom: 18px;}.stats-grid {gap: 14px;}}
+        @media (max-width: 992px) {.header {height: auto;padding: 12px 14px;flex-wrap: wrap;gap: 10px}.header-logo {height: 38px;margin-right: 10px;}.header-title img {height: 36px;}.header-right {width: 100%;justify-content: space-between;flex-wrap: wrap;gap: 8px;}.user-profile-header {margin-right: 0 !important;}.dashboard-container {flex-direction: column;overflow: visible;}.sidebar,.sidebar.collapsed {width: 100%;max-width: 100%;overflow: visible;}.sidebar-toggle {display: none;}.sidebar-menu {display: flex;overflow-x: auto;white-space: nowrap;}.menu-item {flex: 0 0 auto;padding: 12px 14px;}.sidebar.collapsed .menu-text {opacity: 1;display: inline;}.main-content {padding: 16px;overflow: visible;}.welcome-title {font-size: 1.5rem;margin-bottom: 18px;}.control-hero{padding:24px 20px}.control-hero-top{flex-direction:column;align-items:flex-start;margin-bottom:18px}.control-hero-title{font-size:1.7rem}.hero-stat-card{padding:18px}}
 
         #profile-section .profile-page {
             display: flex;
@@ -616,23 +617,45 @@
         <main class="main-content">
             <section id="dashboard-home" class="content-section {{ !request('tab') ? 'active' : '' }}">
                 <div class="control-hero">
-                    <div class="control-hero-left">
-                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center"><i class="fas fa-gauge-high"></i></div>
-                        <div>
-                            <div class="control-hero-title">Welcome, {{ Auth::user()->name }}</div>
-                            <div class="control-hero-sub">Monitor learner activation, course readiness, and certification output.</div>
+                    <div class="control-hero-top">
+                        <div class="control-hero-left">
+                            <div class="control-hero-badge"><i class="fas fa-gauge-high"></i></div>
+                            <div>
+                                <div class="control-hero-title">Welcome, {{ Auth::user()->name }}</div>
+                                <div class="control-hero-sub">Monitor learner activation, course readiness, and certification output.</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="hero-actions">
-                        <a class="hero-btn" href="{{ route('dashboard', ['tab' => 'user-management']) }}"><i class="fas fa-users"></i> Review Users</a>
-                        <a class="hero-btn" href="{{ route('dashboard', ['tab' => 'trainer-trainee-management']) }}"><i class="fas fa-chalkboard-teacher"></i> Manage Courses</a>
+                    <div class="hero-stats-grid">
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $unapprovedCount }}</span>
+                                <span class="hero-stat-label">Total Unapproved Users</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-check"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $approvedCount }}</span>
+                                <span class="hero-stat-label">Total Approved Users</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-book"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $totalCourses }}</span>
+                                <span class="hero-stat-label">Total Courses</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-hourglass"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $pendingTraineesCount }}</span>
+                                <span class="hero-stat-label">Pending Participants</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-icon" style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107;"><i class="fas fa-user-clock"></i></div><div class="stat-info"><h3>{{ $unapprovedCount }}</h3><p>Total Unapproved Users</p></div></div>
-                    <div class="stat-card"><div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;"><i class="fas fa-user-check"></i></div><div class="stat-info"><h3>{{ $approvedCount }}</h3><p>Total Approved Users</p></div></div>
-                    <div class="stat-card"><div class="stat-icon" style="background-color: rgba(99,102,241,0.12); color: #6366f1;"><i class="fas fa-book"></i></div><div class="stat-info"><h3>{{ $totalCourses }}</h3><p>Total Courses</p></div></div>
-                    <div class="stat-card"><div class="stat-icon" style="background-color: rgba(255,193,7,0.12); color: #fd7e14;"><i class="fas fa-user-hourglass"></i></div><div class="stat-info"><h3>{{ $pendingTraineesCount }}</h3><p>Pending Participants</p></div></div>
                 </div>
                 @php
                     $userCount = \App\Models\User::count();
