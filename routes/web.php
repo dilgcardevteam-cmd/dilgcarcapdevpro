@@ -43,7 +43,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password/update', [AuthController::class, 'updatePasswordAfterOtp'])->name('password.update.after.otp');
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/logout', function () {
+    return redirect('/');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/create-account', [DashboardController::class, 'setupProfile'])->name('create-account');
