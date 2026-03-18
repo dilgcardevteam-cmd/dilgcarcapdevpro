@@ -110,6 +110,14 @@ class DashboardController extends Controller
                 $activeUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count();
                 $pendingUsersTotal = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'pending')->count();
                 $frozenUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'freeze')->count();
+                
+                $publishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->where('is_published', true)->count();
+                $unpublishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    })->where('is_published', false)->count();
+
                 $trainersCount = User::whereIn('role', $managedCoachRoles)->where('profile_completed', true)->count();
                 $traineesCount = User::whereIn('role', $managedParticipantRoles)->where('profile_completed', true)->count();
                 $adminsCount = User::whereIn('role', $adminRoles)->where('profile_completed', true)->count();
@@ -210,7 +218,9 @@ class DashboardController extends Controller
                     'roles',
                     'permissions',
                     'rolePermissions',
-                    'roleDisplay'
+                    'roleDisplay',
+                    'publishedCoursesCount',
+                    'unpublishedCoursesCount'
                 ));
             case $user->role === 'registrar':
                 $registrarScope = function ($query) {
@@ -304,8 +314,39 @@ class DashboardController extends Controller
                     return view('registrar.partials.users-table', compact('users', 'roleDisplay'))->render();
                 }
 
-                // Get roles available for the dropdown
                 $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
+
+                // Calculate counts for the dashboard donut charts
+                $userQuery = User::whereIn('role', $managedRoles)->where($registrarScope);
+                $userCount = $userQuery->count();
+                $aActive = (clone $userQuery)->where('status', 'active')->count();
+                $aPending = (clone $userQuery)->where('status', 'pending')->count();
+                $aBlocked = (clone $userQuery)->where('status', 'freeze')->count();
+
+                $rAdmins = User::where('role', 'admin')->where($registrarScope)->count();
+                $rTM = User::where('role', 'training_manager')->where($registrarScope)->count();
+                $rCoaches = User::whereIn('role', ['coach', 'trainer'])->where($registrarScope)->count();
+                $rParticipants = User::whereIn('role', ['participant', 'trainee'])->where($registrarScope)->count();
+
+                $publishedCoursesCount = Course::where('is_published', true)->count();
+                $unpublishedCoursesCount = Course::where('is_published', false)->count();
+
+                $courseQuery = Course::query(); // Registrar sees all for now
+                $cActive = $courseQuery->count();
+                $cNoCoachNoPart = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cNoCoachOnly = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cNoParticipantOnly = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cActiveBoth = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cWithCoach = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
+                $cWithoutCoach = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
 
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
@@ -319,7 +360,12 @@ class DashboardController extends Controller
                     'unreadNotificationsCount',
                     'forceProfile',
                     'availableRoles',
-                    'roleDisplay'
+                    'roleDisplay',
+                    'userCount', 'aActive', 'aPending', 'aBlocked',
+                    'rAdmins', 'rTM', 'rCoaches', 'rParticipants',
+                    'cActive', 'cNoCoachNoPart', 'cNoCoachOnly', 'cNoParticipantOnly', 'cActiveBoth',
+                    'publishedCoursesCount', 'unpublishedCoursesCount',
+                    'cWithCoach', 'cWithoutCoach'
                 ));
             case in_array($user->role, $coachRoles, true):
                 // Get courses where the trainer is assigned (assuming pivot table handles this)
@@ -517,8 +563,45 @@ class DashboardController extends Controller
                     return view('registrar.partials.users-table', compact('users','roleDisplay'))->render();
                 }
 
-                // Get roles available for the dropdown based on the Training Manager's level
                 $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
+
+                // Calculate counts for the dashboard donut charts scoped to TM
+                $userQuery = User::whereIn('role', $managedRoles)->where('profile_completed', true);
+                $userCount = $userQuery->count();
+                $aActive = (clone $userQuery)->where('status', 'active')->count();
+                $aPending = (clone $userQuery)->where('status', 'pending')->count();
+                $aBlocked = (clone $userQuery)->where('status', 'freeze')->count();
+
+                $rAdmins = User::whereIn('role', $adminRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
+                $rTM = User::whereIn('role', $tmRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
+                $rCoaches = User::whereIn('role', $coachRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
+                $rParticipants = User::whereIn('role', $participantRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
+
+                $publishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                    $q->whereIn('role', $levelRoles);
+                })->where('is_published', true)->count();
+                $unpublishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                    $q->whereIn('role', $levelRoles);
+                })->where('is_published', false)->count();
+
+                $courseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
+                    $q->whereIn('role', $levelRoles);
+                });
+                $cActive = $courseQuery->count();
+                $cNoCoachNoPart = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cNoCoachOnly = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cNoParticipantOnly = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cActiveBoth = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })
+                    ->whereHas('users', function($q){ $q->whereIn('role',['participant','trainee']); })
+                    ->count();
+                $cWithCoach = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
+                $cWithoutCoach = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
 
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
@@ -533,7 +616,12 @@ class DashboardController extends Controller
                     'unreadNotificationsCount',
                     'forceProfile',
                     'availableRoles',
-                    'roleDisplay'
+                    'roleDisplay',
+                    'userCount', 'aActive', 'aPending', 'aBlocked',
+                    'rAdmins', 'rTM', 'rCoaches', 'rParticipants',
+                    'cActive', 'cNoCoachNoPart', 'cNoCoachOnly', 'cNoParticipantOnly', 'cActiveBoth',
+                    'publishedCoursesCount', 'unpublishedCoursesCount',
+                    'cWithCoach', 'cWithoutCoach'
                 ));
             case in_array($user->role, $participantRoles, true):
                 // Get enrolled courses (active status)

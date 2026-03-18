@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -3267,12 +3267,11 @@
                                     <div id="donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
                                     <div style="margin-top:10px;text-align:center">
                                         <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
-                                        <div id="total-courses" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">0</div>
+                                        <div id="total-courses" style="font-weight:800;color:#002C76;font-size:1.5rem;line-height:1">{{ $courseCount }}</div>
                                     </div>
                                     <div style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
-                                        <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Active <span id="course-legend-active" style="color:#6b7280;margin-left:6px"></span></div>
-                                        <div style="width:12px;height:12px;border-radius:50%;background:#FFD700;border:1px solid #eab308"></div><div style="color:#002C76;font-weight:800">Pending <span id="course-legend-pending" style="color:#6b7280;margin-left:6px"></span></div>
-                                        <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Archived <span id="course-legend-arch" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#002C76"></div><div style="color:#002C76;font-weight:800">Published <span id="course-legend-published" style="color:#6b7280;margin-left:6px"></span></div>
+                                        <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#002C76;font-weight:800">Unpublished <span id="course-legend-unpublished" style="color:#6b7280;margin-left:6px"></span></div>
                                     </div>
                                 </div>
                             </div>
@@ -3340,16 +3339,14 @@
                                   document.getElementById('acc-legend-active').innerText = aActive+' · '+pct(aActive,aTotal)+'%';
                                   document.getElementById('acc-legend-pending').innerText = aPending+' · '+pct(aPending,aTotal)+'%';
                                   document.getElementById('acc-legend-blocked').innerText = aBlocked+' · '+pct(aBlocked,aTotal)+'%';
-                                  // Courses (no drafts)
-                                  var cActive={{ $activeCoursesSafe ?? 0 }};
-                                  var cPending={{ $pendingCoursesSafe ?? 0 }};
-                                  var cArchived={{ $archivedCoursesSafe ?? 0 }};
-                                  var cTotal=cActive+cPending+cArchived;
+                                  // Courses
+                                  var cPublished={{ $publishedCoursesCount }};
+                                  var cUnpublished={{ $unpublishedCoursesCount }};
+                                  var cTotal=cPublished+cUnpublished;
                                   document.getElementById('total-courses').innerText = cTotal;
-                                  renderArcDonut('donut-courses', [cActive,cPending,cArchived], ['#002C76','#FFD700','#B10606']);
-                                  document.getElementById('course-legend-active').innerText = cActive+' · '+pct(cActive,cTotal)+'%';
-                                  document.getElementById('course-legend-pending').innerText = cPending+' · '+pct(cPending,cTotal)+'%';
-                                  document.getElementById('course-legend-arch').innerText = cArchived+' · '+pct(cArchived,cTotal)+'%';
+                                  renderArcDonut('donut-courses', [cPublished,cUnpublished], ['#002C76','#B10606']);
+                                  document.getElementById('course-legend-published').innerText = cPublished+' · '+pct(cPublished,cTotal)+'%';
+                                  document.getElementById('course-legend-unpublished').innerText = cUnpublished+' · '+pct(cUnpublished,cTotal)+'%';
                                 })();
                             </script>
                         </div>
