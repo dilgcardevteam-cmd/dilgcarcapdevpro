@@ -137,7 +137,7 @@
         .count-label{color:#6b7280;font-size:.8rem;margin-left:4px}
 
         /* Hero control (match trainer style) */
-        .control-hero{background:linear-gradient(135deg,#0B2C74 0%,#1f4aa5 60%,#4e79e8 100%);color:#fff;border-radius:22px;padding:34px 36px;position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(11,44,116,.2);margin-bottom:24px}
+        .control-hero{background:linear-gradient(135deg,#c96a09 0%,#f59e0b 58%,#ffb11b 100%);color:#fff;border-radius:22px;padding:34px 36px;position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(11,44,116,.2);margin-bottom:24px}
         .control-hero::after{content:"";position:absolute;top:-48%;right:-8%;width:320px;height:320px;background:rgba(255,255,255,.1);border-radius:50%}
         .control-hero.is-training-manager{background:linear-gradient(135deg,#c96a09 0%,#f59e0b 58%,#ffb11b 100%);color:#fff;box-shadow:0 14px 34px rgba(245,158,11,.24)}
         .control-hero-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:24px}
