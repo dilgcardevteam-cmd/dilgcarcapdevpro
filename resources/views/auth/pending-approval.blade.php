@@ -217,7 +217,6 @@
         </div>
 
         <div class="pending-actions">
-            <a href="{{ route('profile.setup') }}" class="pending-btn">Review Profile</a>
             <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="pending-btn primary">Back to Login</button>

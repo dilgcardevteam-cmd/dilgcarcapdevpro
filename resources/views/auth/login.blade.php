@@ -401,6 +401,90 @@
         padding-right: 44px;
     }
 
+    .password-feedback {
+        display: none;
+        margin-top: 10px;
+    }
+
+    .password-feedback.visible {
+        display: block;
+    }
+
+    .password-error {
+        display: none;
+        margin-bottom: 10px;
+        color: #dc2626;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .password-error.visible {
+        display: block;
+    }
+
+    .password-strength {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .password-strength-bar {
+        flex: 1;
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+
+    .password-strength-fill {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: #dc2626;
+        transition: width 0.2s ease, background-color 0.2s ease;
+    }
+
+    .password-strength-label {
+        min-width: 74px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #dc2626;
+        text-align: right;
+    }
+
+    .password-rules {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .password-rule {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #dc2626;
+        font-size: 13px;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+
+    .password-rule.is-hidden {
+        display: none;
+    }
+
+    .password-rule i {
+        width: 14px;
+        text-align: center;
+        color: inherit;
+    }
+
+    .password-rule.valid {
+        color: #16a34a;
+    }
+
     .password-toggle {
         position: absolute;
         right: 12px;
@@ -1078,7 +1162,7 @@
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                 </svg>
                             </span>
-                            <input id="password-register" type="password" name="password" class="password-input" placeholder="Password" required />
+                            <input id="password-register" type="password" name="password" class="password-input" placeholder="Password" required minlength="12" maxlength="20" />
                             <button type="button" class="password-toggle" data-target="password-register" data-visible="false" aria-label="Show password">
                                 <svg class="feather-icon icon-eye" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1091,6 +1175,22 @@
                                     <path d="M1 1l22 22"></path>
                                 </svg>
                             </button>
+                        </div>
+                        <div class="password-feedback" id="password-register-feedback">
+                            <div id="password-register-error" class="password-error">Password must be between 12 and 20 characters</div>
+                            <div class="password-strength">
+                                <div class="password-strength-bar">
+                                    <div id="password-register-strength-fill" class="password-strength-fill"></div>
+                                </div>
+                                <span id="password-register-strength-label" class="password-strength-label">Very Weak</span>
+                            </div>
+                            <ul class="password-rules">
+                                <li class="password-rule" data-rule="length"><i class="fas fa-times"></i><span>At least 12 characters</span></li>
+                                <li class="password-rule" data-rule="uppercase"><i class="fas fa-times"></i><span>Contains uppercase letter</span></li>
+                                <li class="password-rule" data-rule="lowercase"><i class="fas fa-times"></i><span>Contains lowercase letter</span></li>
+                                <li class="password-rule" data-rule="number"><i class="fas fa-times"></i><span>Contains number</span></li>
+                                <li class="password-rule" data-rule="special"><i class="fas fa-times"></i><span>Contains special character</span></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -1271,6 +1371,10 @@
     // Address Cascading Logic
     document.addEventListener('DOMContentLoaded', function() {
         const registerForm = document.getElementById('registerForm');
+        const registerPasswordInput = document.getElementById('password-register');
+        const registerPasswordError = document.getElementById('password-register-error');
+        const registerStrengthFill = document.getElementById('password-register-strength-fill');
+        const registerStrengthLabel = document.getElementById('password-register-strength-label');
         const firstNameInput = document.getElementById('first_name');
         const middleNameInput = document.getElementById('middle_name');
         const lastNameInput = document.getElementById('last_name');
@@ -1279,6 +1383,94 @@
         const provinceSelect = document.getElementById('province');
         const citySelect = document.getElementById('city');
         const barangaySelect = document.getElementById('barangay');
+
+        function updateRegisterPasswordValidation() {
+            if (!registerPasswordInput || !registerPasswordError || !registerStrengthFill || !registerStrengthLabel) {
+                return true;
+            }
+
+            const value = registerPasswordInput.value || '';
+            const rules = {
+                length: value.length >= 12 && value.length <= 20,
+                uppercase: /[A-Z]/.test(value),
+                lowercase: /[a-z]/.test(value),
+                number: /[0-9]/.test(value),
+                special: /[^A-Za-z0-9]/.test(value),
+            };
+
+            const validCount = Object.values(rules).filter(Boolean).length;
+            const hasLengthError = value.length > 0 && !rules.length;
+            const allValid = Object.values(rules).every(Boolean);
+
+            registerPasswordError.classList.toggle('visible', hasLengthError);
+            registerPasswordInput.setCustomValidity(hasLengthError ? 'Password must be between 12 and 20 characters' : '');
+
+            document.querySelectorAll('#password-register-feedback .password-rule').forEach((ruleItem) => {
+                const ruleKey = ruleItem.getAttribute('data-rule');
+                const passed = !!rules[ruleKey];
+                ruleItem.classList.toggle('valid', passed);
+                ruleItem.classList.toggle('is-hidden', passed);
+                const icon = ruleItem.querySelector('i');
+                if (icon) {
+                    icon.className = passed ? 'fas fa-check' : 'fas fa-times';
+                }
+            });
+
+            let strengthText = 'Very Weak';
+            let strengthColor = '#dc2626';
+            let strengthWidth = '25%';
+
+            if (value.length === 0) {
+                strengthWidth = '0%';
+            } else if (validCount <= 1) {
+                strengthText = 'Very Weak';
+                strengthColor = '#dc2626';
+                strengthWidth = '25%';
+            } else if (validCount === 2) {
+                strengthText = 'Weak';
+                strengthColor = '#f97316';
+                strengthWidth = '50%';
+            } else if (validCount === 3 || validCount === 4) {
+                strengthText = 'Medium';
+                strengthColor = '#eab308';
+                strengthWidth = '75%';
+            } else if (allValid) {
+                strengthText = 'Strong';
+                strengthColor = '#16a34a';
+                strengthWidth = '100%';
+            }
+
+            registerStrengthFill.style.width = strengthWidth;
+            registerStrengthFill.style.backgroundColor = strengthColor;
+            registerStrengthLabel.textContent = strengthText;
+            registerStrengthLabel.style.color = strengthColor;
+
+            return allValid;
+        }
+
+        if (registerPasswordInput) {
+            const registerPasswordFeedback = document.getElementById('password-register-feedback');
+            const showPasswordFeedback = function () {
+                if (registerPasswordFeedback) {
+                    registerPasswordFeedback.classList.add('visible');
+                }
+            };
+
+            registerPasswordInput.addEventListener('focus', showPasswordFeedback);
+            registerPasswordInput.addEventListener('click', showPasswordFeedback);
+            registerPasswordInput.addEventListener('input', updateRegisterPasswordValidation);
+            registerPasswordInput.addEventListener('blur', updateRegisterPasswordValidation);
+            updateRegisterPasswordValidation();
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', function (event) {
+                if (!updateRegisterPasswordValidation()) {
+                    event.preventDefault();
+                    registerPasswordInput.focus();
+                }
+            });
+        }
         const agencySelect = document.getElementById('agency');
         const provinceContainer = provinceSelect ? provinceSelect.closest('.form-group') : null;
         const cityContainer = citySelect ? citySelect.closest('.form-group') : null;
