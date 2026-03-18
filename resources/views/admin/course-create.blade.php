@@ -61,6 +61,11 @@
         .btn-blue:hover { background:#002f8c; }
         .module-wrapper { background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05); }
         .module-header { display:flex;align-items:center;justify-content:space-between;padding:12px 14px; }
+        .exam-meta-row { display:flex; justify-content:space-between; align-items:center; gap:16px; width:100%; }
+        .exam-meta-timer { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; margin:0; }
+        .exam-meta-timer-label { font-weight:700; color:#111827; white-space:nowrap; }
+        .exam-meta-timer-input { width:110px; padding:8px; border:1px solid #e5e7eb; border-radius:8px; }
+        .exam-meta-title { margin-left:auto; font-weight:800; color:#0B2C74; text-align:right; }
         .module-title { display:flex;align-items:center;gap:12px;margin:0;color:#001f54;font-size:1rem; flex: 1; min-width: 0; }
         .module-index { width:28px;height:28px;border-radius:50%;background:#00a859;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700; }
         .module-number-label { white-space: nowrap; font-weight: 600; color: #001f54; }
@@ -102,7 +107,11 @@
         .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
         .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
         .step.done .step-index { background: #10b981; color: #ffffff; }
-        @media (max-width: 640px){ .progress-steps { grid-template-columns: 1fr; } }
+        @media (max-width: 640px){
+            .progress-steps { grid-template-columns: 1fr; }
+            .exam-meta-row { flex-wrap:wrap; align-items:flex-start; }
+            .exam-meta-title { width:100%; margin-left:0; text-align:left; }
+        }
         .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         .summary-section { margin-bottom: 24px; }
         .summary-section:last-child { margin-bottom: 0; }
@@ -3017,12 +3026,12 @@
             host.dataset.bound = '1';
             host.innerHTML = `
                 <div class="q-block">
-                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Exam</div>
-                        <label style="display:flex;align-items:center;gap:8px">
-                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
-                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                    <div class="q-header exam-meta-row">
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <div class="exam-meta-title">Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
                         <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
@@ -3209,7 +3218,9 @@
                 const idx = blocks.findIndex(b=> b.classList.contains('active'));
                 return idx>=0 ? idx : 0;
             }
-            function setActiveIndex(i){
+            function setActiveIndex(i, options){
+                options = options || {};
+                const shouldFocusBuilder = options.focusBuilder !== false;
                 const nav = host.querySelector('.exam-nav');
                 const track = nav ? nav.querySelector('.nav-track') : null;
                 const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
@@ -3271,10 +3282,14 @@
                     addGroupFor(obj.type);
                     updateNav();
                     populateFromItem(items.length);
-                    const txt2 = host.querySelector('.eq-text'); if(txt2){ setTimeout(()=> txt2.focus(), 0); }
+                    if(shouldFocusBuilder){
+                        const txt2 = host.querySelector('.eq-text'); if(txt2){ setTimeout(()=> txt2.focus(), 0); }
+                    }
                     return;
                 }
-                const txt = host.querySelector('.eq-text'); if(txt){ setTimeout(()=> txt.focus(), 0); }
+                if(shouldFocusBuilder){
+                    const txt = host.querySelector('.eq-text'); if(txt){ setTimeout(()=> txt.focus(), 0); }
+                }
             }
             function updateNav(){
                 const nav = host.querySelector('.exam-nav');
@@ -3301,15 +3316,16 @@
             // Prefill logic
             if(prefill){
                 try{
-                    host.querySelector('.exam-duration').value = prefill.timer_minutes || '';
+                    const normalizedPrefill = normalizeExamPrefill(prefill);
+                    host.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
                     const listEl = host.querySelector('.exam-q-list');
                     listEl.innerHTML = '';
                     const box = ensureInputsBox();
                     box.innerHTML = '';
-                    (prefill.questions||[]).forEach((q, i2)=>{
+                    (normalizedPrefill?.questions || []).forEach((q, i2)=>{
                         const node = document.createElement('div');
                         node.className = 'q-item';
-                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||q.title||'')+'</div>'
+                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||'')+'</div>'
                             + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
                         node.dataset.payload = JSON.stringify(q);
                         listEl.appendChild(node);
@@ -3318,7 +3334,7 @@
                     });
                     updateNav();
                     syncExamJSON();
-                    if(prefill.questions && prefill.questions.length > 0) setActiveIndex(0);
+                    if(normalizedPrefill?.questions && normalizedPrefill.questions.length > 0) setActiveIndex(0, { focusBuilder: false });
                 }catch(e){}
             }
 
@@ -3425,6 +3441,42 @@
             expandModuleAccordion(body);
             return host;
         }
+        function normalizeExamQuestionShape(q){
+            if(!q || typeof q !== 'object') return null;
+            const type = String(q.type || 'multiple_choice');
+            const text = String(q.text ?? q.title ?? q.question ?? '').trim();
+            if(type === 'multiple_choice'){
+                const rawChoices = Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : []);
+                const choices = [0,1,2,3].map(function(i){ return String(rawChoices[i] ?? ''); });
+                let answerIndex = null;
+                if(typeof q.answer_index === 'number' && !isNaN(q.answer_index)) answerIndex = q.answer_index;
+                else if(q.correct_answer !== undefined && q.correct_answer !== null && q.correct_answer !== '' && !isNaN(Number(q.correct_answer))) answerIndex = Number(q.correct_answer);
+                return { type:'multiple_choice', text, choices, answer_index: answerIndex };
+            }
+            if(type === 'identification'){
+                return { type:'identification', text, answer: String(q.answer ?? q.correct_answer ?? '') };
+            }
+            if(type === 'true_false'){
+                let answer = null;
+                if(q.answer === true || q.answer === false) answer = q.answer;
+                else if(String(q.answer).toLowerCase() === 'true') answer = true;
+                else if(String(q.answer).toLowerCase() === 'false') answer = false;
+                else if(String(q.correct_answer).toLowerCase() === 'true') answer = true;
+                else if(String(q.correct_answer).toLowerCase() === 'false') answer = false;
+                return { type:'true_false', text, answer };
+            }
+            return { type, text, answer: String(q.answer ?? '') };
+        }
+        function normalizeExamPrefill(prefill){
+            if(!prefill || typeof prefill !== 'object') return null;
+            const rawQuestions = Array.isArray(prefill.questions) ? prefill.questions : [];
+            return {
+                title: String(prefill.title ?? ''),
+                description: String(prefill.description ?? ''),
+                timer_minutes: parseInt(prefill.timer_minutes || prefill.duration || 0, 10) || 0,
+                questions: rawQuestions.map(normalizeExamQuestionShape).filter(Boolean)
+            };
+        }
         function createCourseExam(afterEl, prefill){
             const container = document.getElementById('modulesContainer');
             const idx = container.children.length;
@@ -3443,12 +3495,12 @@
                         <input class="exam-title" type="text" placeholder="Exam title (required)" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                         <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
                     </div>
-                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Module Exam</div>
-                        <label style="display:flex;align-items:center;gap:8px">
-                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
-                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                    <div class="q-header exam-meta-row">
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <div class="exam-meta-title">Module Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
                         <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
@@ -3789,34 +3841,41 @@
                 addExamInputGroupFor(obj.type);
                 updateExamInputGroup(0, obj);
                 updateExamNavigator.call(wrap);
-                setActiveExamIndex(wrap, 0);
+                setActiveExamIndex(wrap, 0, { focusBuilder: false });
             }
-            renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap); ensureInitialQuestion();
+            renderChoices(); syncBuilderBoxes(); syncExamJSON(); updateExamNavigator.call(wrap);
             if(prefill){
                 try{
-                    wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
-                    if(prefill.title) wrap.querySelector('.exam-title').value = prefill.title;
-                    if(prefill.description) wrap.querySelector('.exam-desc').value = prefill.description;
+                    const normalizedPrefill = normalizeExamPrefill(prefill);
+                    wrap.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
+                    if(normalizedPrefill?.title) wrap.querySelector('.exam-title').value = normalizedPrefill.title;
+                    if(normalizedPrefill?.description) wrap.querySelector('.exam-desc').value = normalizedPrefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
-                    (prefill.questions||[]).forEach((q, i2)=>{
+                    listEl.innerHTML = '';
+                    const box = ensureExamInputsBox();
+                    box.innerHTML = '';
+                    (normalizedPrefill?.questions || []).forEach((q, i2)=>{
                         const node = document.createElement('div');
                         node.className = 'q-item';
-                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||q.title||'')+'</div>'
+                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||'')+'</div>'
                             + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
                         node.dataset.payload = JSON.stringify(q);
                         listEl.appendChild(node);
                         addExamInputGroupFor(q.type||'multiple_choice');
-                        updateExamInputGroup(i2, {
-                            type: q.type||'multiple_choice',
-                            text: q.text||q.title||'',
-                            choices: q.choices||q.options||['','','',''],
-                            answer_index: typeof q.answer_index==='number'?q.answer_index:null,
-                            answer: q.answer
-                        });
+                        updateExamInputGroup(i2, q);
                     });
                     syncExamJSON();
-                    setActiveExamIndex(wrap, 0);
+                    updateExamNavigator.call(wrap);
+                    if(normalizedPrefill?.questions && normalizedPrefill.questions.length > 0){
+                        setActiveExamIndex(wrap, 0, { focusBuilder: false });
+                    } else {
+                        ensureInitialQuestion();
+                    }
                 }catch(e){}
+            } else {
+                ensureInitialQuestion();
+                const examTitleInput = wrap.querySelector('.exam-title');
+                if(examTitleInput){ setTimeout(()=> examTitleInput.focus(), 20); }
             }
             reindexModules();
             return wrap;
@@ -3943,7 +4002,9 @@
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
         }
-        function setActiveExamIndex(wrap, i){
+        function setActiveExamIndex(wrap, i, options){
+            options = options || {};
+            const shouldFocusBuilder = options.focusBuilder !== false;
             if(!wrap) return;
             const nav = wrap.querySelector('.exam-nav');
             const track = nav ? nav.querySelector('.nav-track') : null;
@@ -3995,7 +4056,7 @@
             // Focus builder textarea for immediate typing
             const txt = wrap.querySelector('.eq-text');
             ensureBuilderEnabled(wrap);
-            if(txt){ setTimeout(()=> txt.focus(), 0); }
+            if(shouldFocusBuilder && txt){ setTimeout(()=> txt.focus(), 0); }
         }
         function recalcExamJSON(wrap){
             const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
