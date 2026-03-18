@@ -310,6 +310,7 @@
             align-items: flex-start;
             gap: 18px;
             flex-wrap: wrap;
+            margin-bottom: 24px;
         }
 
         .lms-home-kicker {
@@ -334,6 +335,109 @@
             line-height: 1.5;
             font-size: 0.95rem;
             color: rgba(255, 255, 255, 0.92);
+        }
+
+        .admin-hero-stats-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        @media (min-width: 900px) {
+            .admin-hero-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .admin-hero-stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .admin-hero-stat-card {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
+            min-height: 108px;
+        }
+
+        .admin-hero-stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+        }
+
+        .admin-hero-stat-card.clickable {
+            cursor: pointer;
+        }
+
+        .admin-hero-stat-card.clickable:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.92);
+            outline-offset: 2px;
+        }
+
+        .admin-hero-stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #1d4ed8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex: 0 0 auto;
+        }
+
+        .admin-hero-stat-card.tone-green .admin-hero-stat-icon {
+            color: #15803d;
+        }
+
+        .admin-hero-stat-card.tone-orange .admin-hero-stat-icon {
+            color: #b45309;
+        }
+
+        .admin-hero-stat-card.tone-slate .admin-hero-stat-icon {
+            color: #334155;
+        }
+
+        .admin-hero-stat-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .admin-hero-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #ffffff;
+        }
+
+        .admin-hero-stat-label {
+            margin-top: 6px;
+            font-size: 0.82rem;
+            opacity: 0.9;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .admin-hero-stat-meta {
+            margin-top: 6px;
+            font-size: 0.92rem;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.88);
         }
 
         .lms-home-quick {
@@ -2429,6 +2533,10 @@
                 font-size: 1.56rem;
             }
 
+            .admin-hero-stat-card {
+                padding: 18px;
+            }
+
             .stats-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 14px;
@@ -2695,68 +2803,66 @@
                                 </p>
                             </div>
                         </div>
-
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card clickable"
+                        <div class="admin-hero-stats-grid">
+                        <div class="admin-hero-stat-card clickable"
                             role="button"
                             tabindex="0"
                             onclick="window.location.href='{{ route('dashboard', ['tab' => 'user-management']) }}'"
                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                            <div class="stat-icon">
+                            <div class="admin-hero-stat-icon">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <div class="stat-info">
-                                <h3>{{ $userCount }}</h3>
-                                <p>Total Accounts</p>
-                                <div class="stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }} | Blocked: {{ $frozenUsersSafe }}</div>
+                            <div class="admin-hero-stat-info">
+                                <span class="admin-hero-stat-value">{{ $userCount }}</span>
+                                <span class="admin-hero-stat-label">Total Accounts</span>
+                                <div class="admin-hero-stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }} | Blocked: {{ $frozenUsersSafe }}</div>
                             </div>
                         </div>
 
-                        <div class="stat-card tone-green clickable"
+                        <div class="admin-hero-stat-card tone-green clickable"
                             role="button"
                             tabindex="0"
                             onclick="window.location.href='{{ route('dashboard', ['tab' => 'course-management']) }}'"
                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                            <div class="stat-icon">
+                            <div class="admin-hero-stat-icon">
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
-                            <div class="stat-info">
-                                <h3>{{ $courseCount }}</h3>
-                                <p>Active Courses</p>
-                                <div class="stat-meta">Archived: {{ $archivedCoursesSafe }}</div>
+                            <div class="admin-hero-stat-info">
+                                <span class="admin-hero-stat-value">{{ $courseCount }}</span>
+                                <span class="admin-hero-stat-label">Active Courses</span>
+                                <div class="admin-hero-stat-meta">Archived: {{ $archivedCoursesSafe }}</div>
                             </div>
                         </div>
 
-                        <div class="stat-card tone-orange clickable"
+                        <div class="admin-hero-stat-card tone-orange clickable"
                             role="button"
                             tabindex="0"
                             onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'"
                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                            <div class="stat-icon">
+                            <div class="admin-hero-stat-icon">
                                 <i class="fas fa-hourglass-half"></i>
                             </div>
-                            <div class="stat-info">
-                                <h3>{{ $pendingCoursesSafe }}</h3>
-                                <p>Pending Course Reviews</p>
+                            <div class="admin-hero-stat-info">
+                                <span class="admin-hero-stat-value">{{ $pendingCoursesSafe }}</span>
+                                <span class="admin-hero-stat-label">Pending Course Reviews</span>
                             </div>
                         </div>
 
-                        <div class="stat-card tone-slate clickable"
+                        <div class="admin-hero-stat-card tone-slate clickable"
                             role="button"
                             tabindex="0"
                             onclick="showContent('certification-management', document.querySelector('.menu-item[onclick*=\'certification-management\']))"
                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                            <div class="stat-icon">
+                            <div class="admin-hero-stat-icon">
                                 <i class="fas fa-award"></i>
                             </div>
-                            <div class="stat-info">
-                                <h3>{{ $certificationSafe }}</h3>
-                                <p>Certification Templates</p>
-                                <div class="stat-meta">Ready for issuance</div>
+                            <div class="admin-hero-stat-info">
+                                <span class="admin-hero-stat-value">{{ $certificationSafe }}</span>
+                                <span class="admin-hero-stat-label">Certification Templates</span>
+                                <div class="admin-hero-stat-meta">Ready for issuance</div>
                             </div>
                         </div>
+                    </div>
                     </div>
 
                     <div class="insight-grid">
