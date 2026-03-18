@@ -283,6 +283,44 @@
                     </div>
                 </div>
                 <div id="tab2" class="tab-content">
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label style="margin-bottom:8px; display:block; font-weight:700; color:#002C76;">Materials & Sources</label>
+                        <div class="materials-panel" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; background: #f8fafc; transition: all 0.2s ease;">
+                            <div id="materialsList" style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                                @if($course->materials && count($course->materials) > 0)
+                                    @foreach($course->materials as $material)
+                                        @php
+                                            $ext = pathinfo($material, PATHINFO_EXTENSION);
+                                            $icon = 'fa-file';
+                                            $color = '#64748b';
+                                            if($ext == 'pdf') { $icon = 'fa-file-pdf'; $color = '#ef4444'; }
+                                            elseif(in_array($ext, ['doc', 'docx'])) { $icon = 'fa-file-word'; $color = '#2563eb'; }
+                                            elseif(in_array($ext, ['xls', 'xlsx'])) { $icon = 'fa-file-excel'; $color = '#10b981'; }
+                                            elseif(in_array($ext, ['ppt', 'pptx'])) { $icon = 'fa-file-powerpoint'; $color = '#f97316'; }
+                                        @endphp
+                                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.88rem; color: #1e293b; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                                            <i class="fas {{ $icon }}" style="color: {{ $color }}; font-size: 1.1rem;"></i>
+                                            <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: left;">
+                                                <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ basename($material) }}</span>
+                                                <span style="color: #0d6efd; font-size: 0.7rem; font-weight: 500;">Existing Material</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div style="color: #94a3b8; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                        <i class="fas fa-file-circle-plus" style="font-size: 2rem; color: #e2e8f0;"></i>
+                                        <span>No materials uploaded yet (Optional)</span>
+                                    </div>
+                                @endif
+                            </div>
+                            <button type="button" class="btn" onclick="document.getElementById('course_materials').click()" style="padding:10px 24px; font-size:0.9rem; margin:0; background:#ffffff; border:1.5px solid #e2e8f0; color:#002C76; font-weight:700; border-radius:10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                                <i class="fas fa-paperclip" style="margin-right:8px;"></i>Attach Files (PDF, Docs, Sheets)
+                            </button>
+                            <input id="course_materials" type="file" name="materials[]" multiple style="display:none;" onchange="handleMaterialsUpload(this)">
+                            <p style="margin-top: 12px; font-size: 0.75rem; color: #64748b; font-weight: 500;">Supported: PDF, DOCX, XLSX, PPTX (Max 10MB each)</p>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:8px;">
                             <label style="margin:0;">Modules & Topics</label>
@@ -497,6 +535,55 @@
     </div>
     <div id="dmHelp" style="position:absolute;left:-9999px;top:-9999px;">Use Tab/Shift+Tab to move between menu buttons. Press Enter or Space to activate.</div>
     <script>
+        function handleMaterialsUpload(input) {
+            const list = document.getElementById('materialsList');
+            const files = input.files;
+            
+            if (files.length === 0) {
+                // Keep existing materials if no new files selected
+                return;
+            }
+
+            // Append new files to the list (visual only)
+            Array.from(files).forEach((file, index) => {
+                const extension = file.name.split('.').pop().toLowerCase();
+                let icon = 'fa-file';
+                let color = '#64748b';
+
+                if (extension === 'pdf') { icon = 'fa-file-pdf'; color = '#ef4444'; }
+                else if (['doc', 'docx'].includes(extension)) { icon = 'fa-file-word'; color = '#2563eb'; }
+                else if (['xls', 'xlsx'].includes(extension)) { icon = 'fa-file-excel'; color = '#10b981'; }
+                else if (['ppt', 'pptx'].includes(extension)) { icon = 'fa-file-powerpoint'; color = '#f97316'; }
+
+                const badge = document.createElement('div');
+                badge.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px 16px;
+                    background: #ffffff;
+                    border: 1.5px solid #10b981;
+                    border-radius: 10px;
+                    font-size: 0.88rem;
+                    color: #1e293b;
+                    font-weight: 600;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                    transition: transform 0.2s ease;
+                `;
+                badge.onmouseover = () => badge.style.transform = 'translateY(-2px)';
+                badge.onmouseout = () => badge.style.transform = 'translateY(0)';
+                
+                badge.innerHTML = `
+                    <i class="fas ${icon}" style="color: ${color}; font-size: 1.1rem;"></i>
+                    <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: left;">
+                        <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</span>
+                        <span style="color: #10b981; font-size: 0.7rem; font-weight: 500;">New: ${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
+                `;
+                list.appendChild(badge);
+            });
+        }
+
         function createModule() {
             const container = document.getElementById('modulesContainer');
             const index = container.children.length;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -856,7 +856,7 @@
 
         #course-management .course-stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 14px;
             margin: 0 0 20px;
         }
@@ -912,6 +912,7 @@
         #course-management .course-stat-card.pending .course-stat-icon { background: #d97706; }
         #course-management .course-stat-card.draft .course-stat-icon { background: #7c3aed; }
         #course-management .course-stat-card.archived .course-stat-icon { background: #475569; }
+        #course-management .course-stat-card.library .course-stat-icon { background: #10b981; }
 
         #course-create .course-create-shell {
             background: #ffffff;
@@ -1362,26 +1363,89 @@
         .role-choice-card {
             position: relative;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             padding: 14px 16px;
-            border: 1px solid #d8e2ef;
+            border: 1.5px solid #d8e2ef; /* Slightly thicker default */
             border-radius: 14px;
             background: #ffffff;
             cursor: pointer;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            transition: all 0.2s ease;
         }
 
+        /* Admin Default Colors */
+        .role-choice-card.role-admin { border-color: #cbdcfc; } /* Light blue border */
+        .role-choice-card.role-admin .role-choice-indicator { border-color: #2563eb; }
+        .role-choice-card.role-admin .role-choice-desc { color: #4777e0; }
+
+        /* TM Default Colors */
+        .role-choice-card.role-tm { border-color: #fde6d7; } /* Light orange border */
+        .role-choice-card.role-tm .role-choice-indicator { border-color: #f97316; }
+        .role-choice-card.role-tm .role-choice-desc { color: #f28a41; }
+
+        /* Coach Default Colors */
+        .role-choice-card.role-coach { border-color: #fee2e2; } /* Light red border */
+        .role-choice-card.role-coach .role-choice-indicator { border-color: #ef4444; }
+        .role-choice-card.role-coach .role-choice-desc { color: #f06b6b; }
+
+        /* Participant Default Colors */
+        .role-choice-card.role-participant { border-color: #fef3c7; } /* Light yellow border */
+        .role-choice-card.role-participant .role-choice-indicator { border-color: #fbbf24; }
+        .role-choice-card.role-participant .role-choice-desc { color: #d9a41c; }
+
         .role-choice-card:hover {
-            border-color: #9fb6df;
             box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
             transform: translateY(-1px);
         }
 
         .role-choice-card.is-selected {
-            border-color: #002C76;
-            background: #f8fbff;
-            box-shadow: 0 12px 22px rgba(0, 44, 118, 0.12);
+            border-width: 2.5px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Role-specific selected states */
+        .role-choice-card.role-admin.is-selected {
+            border-color: #2563eb;
+            background: rgba(37, 99, 235, 0.04);
+        }
+        .role-choice-card.role-admin.is-selected .role-choice-indicator {
+            background: rgba(37, 99, 235, 0.1);
+        }
+        .role-choice-card.role-admin.is-selected .role-choice-indicator::after {
+            background: #2563eb;
+        }
+
+        .role-choice-card.role-tm.is-selected {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.04);
+        }
+        .role-choice-card.role-tm.is-selected .role-choice-indicator {
+            background: rgba(249, 115, 22, 0.1);
+        }
+        .role-choice-card.role-tm.is-selected .role-choice-indicator::after {
+            background: #f97316;
+        }
+
+        .role-choice-card.role-coach.is-selected {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.04);
+        }
+        .role-choice-card.role-coach.is-selected .role-choice-indicator {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .role-choice-card.role-coach.is-selected .role-choice-indicator::after {
+            background: #ef4444;
+        }
+
+        .role-choice-card.role-participant.is-selected {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.04);
+        }
+        .role-choice-card.role-participant.is-selected .role-choice-indicator {
+            background: rgba(251, 191, 36, 0.1);
+        }
+        .role-choice-card.role-participant.is-selected .role-choice-indicator::after {
+            background: #fbbf24;
         }
 
         .role-choice-input {
@@ -1399,6 +1463,7 @@
             align-items: center;
             justify-content: center;
             flex: 0 0 20px;
+            margin-top: 2px;
             transition: border-color 0.2s ease, background-color 0.2s ease;
         }
 
@@ -1409,15 +1474,6 @@
             border-radius: 999px;
             background: transparent;
             transition: background-color 0.2s ease;
-        }
-
-        .role-choice-card.is-selected .role-choice-indicator {
-            border-color: #002C76;
-            background: rgba(0, 44, 118, 0.08);
-        }
-
-        .role-choice-card.is-selected .role-choice-indicator::after {
-            background: #002C76;
         }
 
         .role-choice-copy {
@@ -1439,26 +1495,425 @@
             line-height: 1.4;
         }
 
-        .permissions-panel-shell {
+        /* Course View Details Section */
+        #course-view-details {
+            background: #f8fafc;
+            min-height: calc(100vh - 100px);
+        }
+
+        .course-view-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 32px 40px;
+            margin: -24px -32px 24px -32px;
+        }
+
+        .course-view-nav {
+            display: flex;
+            gap: 32px;
+            margin-top: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .course-nav-item {
+            padding: 12px 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .course-nav-item:hover { color: #0f172a; }
+        .course-nav-item.active { color: #2563eb; }
+        .course-nav-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #2563eb;
+            border-radius: 999px;
+        }
+
+        .course-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        .course-main-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .course-side-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .module-list-item {
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 14px;
-            background: #f8fafc;
-            padding: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
         }
 
-        .permissions-panel-shell label {
-            display: block;
-            margin-bottom: 8px;
-            color: #334155;
-            font-size: 0.78rem;
+        .module-list-item:hover {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+        }
+
+        .topic-badge {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: #475569;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .material-tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #e2e8f0;
         }
 
-        .permissions-panel-shell select {
-            min-height: 180px;
-            padding: 12px;
+        .permissions-panel-shell {
+            border: none;
+            background: transparent;
+            padding: 0;
+        }
+
+        .permissions-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #ffffff;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .permissions-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .permissions-header-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .permissions-header-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .permissions-header-badge {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .unsaved-badge {
+            background: #fff1f2;
+            color: #e11d48;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #fecdd3;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+
+        .permissions-header-desc {
+            margin: 0;
+            font-size: 0.88rem;
+            color: #64748b;
+        }
+
+        .permissions-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .select-all-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .select-all-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .permissions-grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .permission-group-card {
+            background: #ffffff;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .permission-group-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .permission-group-title {
+            margin: 0 0 16px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permission-group-title::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+
+        .group-admin .permission-group-title { color: #2563eb; }
+        .group-admin .permission-group-title::before { background: #2563eb; }
+        
+        .group-tm .permission-group-title { color: #f97316; }
+        .group-tm .permission-group-title::before { background: #f97316; }
+        
+        .group-coach .permission-group-title { color: #ef4444; }
+        .group-coach .permission-group-title::before { background: #ef4444; }
+        
+        .group-participant .permission-group-title { color: #fbbf24; }
+        .group-participant .permission-group-title::before { background: #fbbf24; }
+
+        /* Admin System (Blue) */
+        .group-admin .permission-option-input:checked + .permission-option-circle {
+            border-color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+        }
+        .group-admin .permission-option-input:checked + .permission-option-circle::after {
+            background: #2563eb;
+        }
+        .group-admin .permissions-save-btn {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .group-admin .permissions-save-btn:hover { background: #1d4ed8; }
+
+        /* TM System (Orange) */
+        .group-tm .permission-option-input:checked + .permission-option-circle {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+        }
+        .group-tm .permission-option-input:checked + .permission-option-circle::after {
+            background: #f97316;
+        }
+        .group-tm .permissions-save-btn {
+            background: #f97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+        .group-tm .permissions-save-btn:hover { background: #ea580c; }
+
+        /* Coach System (Red) */
+        .group-coach .permission-option-input:checked + .permission-option-circle {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .group-coach .permission-option-input:checked + .permission-option-circle::after {
+            background: #ef4444;
+        }
+        .group-coach .permissions-save-btn {
+            background: #ef4444;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+        .group-coach .permissions-save-btn:hover { background: #dc2626; }
+
+        /* Participant System (Yellow) */
+        .group-participant .permission-option-input:checked + .permission-option-circle {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+        .group-participant .permission-option-input:checked + .permission-option-circle::after {
+            background: #fbbf24;
+        }
+        .group-participant .permissions-save-btn {
+            background: #fbbf24;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+        }
+        .group-participant .permissions-save-btn:hover { background: #f59e0b; }
+
+        .permission-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .permission-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 4px 0;
+            transition: opacity 0.2s ease;
+            user-select: none;
+        }
+
+        .permission-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .permission-option-input {
+            position: absolute;
+            opacity: 0;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            z-index: 2;
+            margin: 0;
+        }
+
+        .select-all-box.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .permission-option-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .permission-option-circle::after {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+
+        .permission-option-input:checked + .permission-option-circle {
+            border-color: #f97316; /* Orange like in the picture */
+            background: rgba(249, 115, 22, 0.1);
+        }
+
+        .permission-option-input:checked + .permission-option-circle::after {
+            background: #f97316;
+        }
+
+        .permission-option-label {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #334155;
+            transition: color 0.2s ease;
+        }
+
+        .permission-option-input:checked ~ .permission-option-label {
+            color: #0f172a;
+        }
+
+        .permissions-save-btn {
+            background: #f97316;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+
+        .permissions-save-btn:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+        }
+
+        .permissions-save-btn:active {
+            transform: translateY(0);
+        }
+
+        .permissions-save-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.5;
         }
 
         @media (max-width: 1100px) {
@@ -2973,7 +3428,7 @@
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
-                <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
@@ -4448,6 +4903,17 @@
                         </div>
                         <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
                     </div>
+                    <div class="course-stat-card library"
+                         role="button"
+                         tabindex="0"
+                         onclick="showContent('course-library', document.querySelector('.menu-item[onclick*=\'course-management\']'))"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Course Library</p>
+                            <p class="course-stat-value">View</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-layer-group"></i></span>
+                    </div>
                 </div>
                 
                 @if(session('success_course'))
@@ -4925,6 +5391,176 @@
                 </div>
             </section>
 
+            <!-- Course Library Section -->
+            <section id="course-library" class="content-section {{ request('tab') == 'course-library' ? 'active' : '' }}">
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
+                                <i class="fas fa-layer-group" style="color: #10b981;"></i> Course Library
+                            </h2>
+                            <div style="position: relative; width: 350px;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                <input type="text" id="librarySearchInput" onkeyup="filterLibraryCourses()" placeholder="Search library..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                            </div>
+                        </div>
+                        <button type="button" class="btn" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']'))" style="background: #f1f5f9; color: #475569; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-left"></i> Back to Management
+                        </button>
+                    </div>
+                    <div style="padding: 24px; min-height: 60vh; background: #f8fafc;">
+                        <div id="courseLibraryContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+                            @foreach($courses as $course)
+                                @php
+                                    $img = null;
+                                    if (!empty($course->image_path)) {
+                                        $path = public_path('storage/' . $course->image_path);
+                                        if (file_exists($path)) { $img = asset('storage/' . $course->image_path); }
+                                    }
+                                    if (!$img) {
+                                        $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><text x="150" y="80" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
+                                    }
+                                @endphp
+                                <div class="library-course-item" data-name="{{ strtolower($course->name) }}" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})">
+                                    <div style="position: relative;">
+                                        <img src="{{ $img }}" style="width: 100%; height: 160px; object-fit: cover;">
+                                        <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #10b981; border: 1px solid #10b981;">
+                                            ACTIVE
+                                        </div>
+                                    </div>
+                                    <div style="padding: 16px;">
+                                        <h3 style="margin: 0; font-size: 1rem; color: #1e293b; font-weight: 800; line-height: 1.4;">{{ $course->name }}</h3>
+                                        <p style="margin: 8px 0 0; font-size: 0.85rem; color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
+                                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">{{ optional($course->created_at)->format('M Y') }}</span>
+                                            <span style="font-size: 0.8rem; color: #2563eb; font-weight: 700;">View Details <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Course View Details Section -->
+            <section id="course-view-details" class="content-section">
+                <div class="course-view-header">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span id="view_course_category_badge" style="background: #eef2ff; color: #2563eb; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Category</span>
+                                <span id="view_course_status_badge" style="background: #ecfdf5; color: #10b981; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Active</span>
+                            </div>
+                            <h1 id="pro_view_course_name" style="margin: 0; font-size: 2.25rem; font-weight: 800; color: #0f172a; line-height: 1.2;">Course Title</h1>
+                            <div style="display: flex; align-items: center; gap: 24px; margin-top: 16px; color: #64748b; font-size: 0.9rem; font-weight: 500;">
+                                <span style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-user-edit"></i> <span id="pro_view_course_creator">Admin</span></span>
+                                <span style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-calendar-alt"></i> <span id="pro_view_course_date">Mar 18, 2026</span></span>
+                                <span style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-certificate" style="color: #f59e0b;"></i> <span id="pro_view_course_cert">Certificate Enabled</span></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" class="btn" onclick="showContent('course-library')" style="background: #ffffff; border: 1.5px solid #e2e8f0; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button id="pro_view_edit_btn" type="button" class="btn" style="background: #2563eb; color: #fff; padding: 10px 20px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-edit"></i> Edit Course
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-view-nav">
+                        <div class="course-nav-item active" onclick="switchCourseViewTab('overview', this)">Overview</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('modules', this)">Curriculum</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('exams', this)">Exams & Assessments</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('certificate', this)">Certificate</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('settings', this)">Settings</div>
+                    </div>
+                </div>
+
+                <div style="padding: 0 40px 40px;">
+                    <!-- Overview Tab -->
+                    <div id="course-tab-overview" class="course-tab-content">
+                        <div class="course-content-grid">
+                            <div class="course-main-card">
+                                <h3 style="margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">About this Course</h3>
+                                <div id="pro_view_course_desc" style="font-size: 1.05rem; color: #475569; line-height: 1.7; white-space: pre-wrap;"></div>
+                                
+                                <div style="margin-top: 40px;">
+                                    <h3 style="margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Course Materials</h3>
+                                    <div id="pro_view_materials_list" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                        <!-- Materials tags injected here -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="course-side-card">
+                                <img id="pro_view_course_image" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; flex-direction: column; gap: 16px;">
+                                    <div style="padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                        <p style="margin: 0; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Subject Area</p>
+                                        <p id="pro_view_course_subject" style="margin: 4px 0 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;"></p>
+                                    </div>
+                                    <div style="padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                        <p style="margin: 0; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Certification</p>
+                                        <p id="pro_view_course_certification" style="margin: 4px 0 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modules Tab -->
+                    <div id="course-tab-modules" class="course-tab-content" style="display: none;">
+                        <div style="max-width: 900px; margin: 0 auto;">
+                            <div id="pro_view_modules_container">
+                                <!-- Modules injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exams Tab -->
+                    <div id="course-tab-exams" class="course-tab-content" style="display: none;">
+                        <div class="course-main-card" style="max-width: 900px; margin: 0 auto;">
+                            <div id="pro_view_exams_container">
+                                <div style="text-align: center; padding: 40px; color: #64748b;">
+                                    <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
+                                    <p style="font-weight: 600;">Course assessments and final exams will appear here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificate Tab -->
+                    <div id="course-tab-certificate" class="course-tab-content" style="display: none;">
+                        <div class="course-main-card" style="max-width: 900px; margin: 0 auto; text-align: center;">
+                            <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Course Certificate</h3>
+                            <div id="pro_view_certificate_preview" style="padding: 40px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px;">
+                                <i class="fas fa-certificate" style="font-size: 4rem; color: #f59e0b; margin-bottom: 20px;"></i>
+                                <h4 id="pro_view_cert_name" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #0f172a;">Certificate of Completion</h4>
+                                <p style="color: #64748b; margin-top: 12px; font-weight: 500;">Awarded upon successful completion of all course modules and assessments.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="course-tab-settings" class="course-tab-content" style="display: none;">
+                        <div class="course-main-card" style="max-width: 900px; margin: 0 auto;">
+                            <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Advanced Settings</h3>
+                            <!-- Add settings like visibility, archive, etc. -->
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div>
+                                        <p style="margin: 0; font-weight: 700; color: #1e293b;">Course Visibility</p>
+                                        <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Control whether participants can find this course.</p>
+                                    </div>
+                                    <span style="background: #ecfdf5; color: #10b981; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">PUBLIC</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Profile Section -->
             <section id="profile-section" class="content-section">
                 <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
@@ -5338,63 +5974,177 @@
                     </p>
                     <input type="hidden" id="view_role" name="role" value="{{ $coachAccessRole }}">
                     <div class="role-choice-grid">
-                        <label class="role-choice-card" data-role-value="{{ $adminAccessRole }}">
+                        <label class="role-choice-card role-admin" data-role-value="{{ $adminAccessRole }}">
                             <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $adminAccessRole }}" disabled>
                             <span class="role-choice-indicator" aria-hidden="true"></span>
                             <span class="role-choice-copy">
                                 <span class="role-choice-title">Admin</span>
-                                <span class="role-choice-desc">Handles account administration and operational controls.</span>
+                                <span class="role-choice-desc">
+                                    • Manage users and access levels<br>
+                                    • Configure system settings and security<br>
+                                    • Monitor platform activity and audit logs<br>
+                                    • Handle data backups and maintenance
+                                </span>
                             </span>
                         </label>
-                        <label class="role-choice-card" data-role-value="{{ $managerAccessRole }}">
+                        <label class="role-choice-card role-tm" data-role-value="{{ $managerAccessRole }}">
                             <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $managerAccessRole }}" disabled>
                             <span class="role-choice-indicator" aria-hidden="true"></span>
                             <span class="role-choice-copy">
                                 <span class="role-choice-title">Training Manager</span>
-                                <span class="role-choice-desc">Oversees course readiness, training flow, and approvals.</span>
+                                <span class="role-choice-desc">
+                                    • Create and manage course content<br>
+                                    • Assign coaches and participants<br>
+                                    • Review and approve training modules<br>
+                                    • Generate progress and impact reports
+                                </span>
                             </span>
                         </label>
-                        <label class="role-choice-card" data-role-value="{{ $coachAccessRole }}">
+                        <label class="role-choice-card role-coach" data-role-value="{{ $coachAccessRole }}">
                             <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $coachAccessRole }}" disabled>
                             <span class="role-choice-indicator" aria-hidden="true"></span>
                             <span class="role-choice-copy">
                                 <span class="role-choice-title">Coach</span>
-                                <span class="role-choice-desc">Guides learners, facilitates modules, and checks progress.</span>
+                                <span class="role-choice-desc">
+                                    • Guide learners and facilitate modules<br>
+                                    • Grade assessments and provide feedback<br>
+                                    • Track individual participant progress<br>
+                                    • Moderate learning discussions
+                                </span>
                             </span>
                         </label>
-                        <label class="role-choice-card" data-role-value="{{ $participantAccessRole }}">
+                        <label class="role-choice-card role-participant" data-role-value="{{ $participantAccessRole }}">
                             <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $participantAccessRole }}" disabled>
                             <span class="role-choice-indicator" aria-hidden="true"></span>
                             <span class="role-choice-copy">
                                 <span class="role-choice-title">Participant</span>
-                                <span class="role-choice-desc">Consumes assigned training content and completes requirements.</span>
+                                <span class="role-choice-desc">
+                                    • Access and complete training modules<br>
+                                    • Participate in assessments and exercises<br>
+                                    • Track personal learning achievements<br>
+                                    • Engage with coaches and peers
+                                </span>
                             </span>
                         </label>
                     </div>
                 </div>
 
                 <div id="section-permissions" class="profile-section" style="display:none;">
-                    <p class="profile-section-title">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 7h16M4 12h16M4 17h10"></path>
-                        </svg>
-                        Permissions
-                    </p>
-                    <div class="permissions-panel-shell">
-                        <label for="view_permissions">Permissions</label>
-                        <select id="view_permissions" name="permissions[]" multiple disabled>
-                            @if(isset($permissions) && $permissions->count())
-                                @foreach($permissions as $perm)
-                                    <option value="{{ $perm->id }}">{{ $perm->name }}</option>
+                    @php
+                        $systemGroups = [
+                            'admin' => [
+                                'id' => 'system-admin',
+                                'title' => 'Admin System',
+                                'badge' => 'Admin',
+                                'class' => 'group-admin',
+                                'desc' => 'Manage user accounts, courses, and overall system security.',
+                                'groups' => [
+                                    'User Management' => ['create_users', 'approve_reject_registrations', 'assign_roles', 'activate_deactivate_accounts', 'block_unblock_users'],
+                                    'Course Management' => ['create_courses', 'edit_course_details', 'archive_delete_courses', 'assign_trainers'],
+                                    'Certification Management' => ['create_certificate_templates', 'edit_templates', 'issue_certificates'],
+                                    'System Monitoring' => ['view_dashboard_analytics', 'monitor_active_users', 'track_system_activity'],
+                                    'Access Control' => ['manage_permissions', 'control_role_access']
+                                ]
+                            ],
+                            'tm' => [
+                                'id' => 'system-tm',
+                                'title' => 'Training Manager System',
+                                'badge' => 'TM',
+                                'class' => 'group-tm',
+                                'desc' => 'Oversee training enrollments, course status, and activity reports.',
+                                'groups' => [
+                                    'User Management' => ['approve_users', 'reject_users', 'view_user_list'],
+                                    'Training Management' => ['enroll_participants', 'remove_participants', 'assign_users_to_courses'],
+                                    'Course Monitoring' => ['view_course_status', 'track_course_readiness'],
+                                    'Reports & Logs' => ['view_activity_logs', 'monitor_user_actions']
+                                ]
+                            ],
+                            'coach' => [
+                                'id' => 'system-coach',
+                                'title' => 'Coach System',
+                                'badge' => 'Coach',
+                                'class' => 'group-coach',
+                                'desc' => 'Manage assigned courses, upload materials, and track student progress.',
+                                'groups' => [
+                                    'Course Management' => ['create_courses_coach', 'edit_assigned_courses', 'upload_materials'],
+                                    'Class Management' => ['manage_class_schedules', 'handle_sessions'],
+                                    'Student Monitoring' => ['track_student_progress', 'view_enrolled_students'],
+                                    'Communication' => ['post_announcements', 'notify_students']
+                                ]
+                            ],
+                            'participant' => [
+                                'id' => 'system-participant',
+                                'title' => 'Participant System',
+                                'badge' => 'Participant',
+                                'class' => 'group-participant',
+                                'desc' => 'Access training modules, complete assessments, and track learning progress.',
+                                'groups' => [
+                                    'Module Access' => ['access_training_modules', 'complete_exercises'],
+                                    'Assessments' => ['take_assessments', 'view_results'],
+                                    'Learning Progress' => ['track_personal_achievements', 'view_course_status'],
+                                    'Engagement' => ['engage_coaches_peers', 'post_discussions']
+                                ]
+                            ]
+                        ];
+                    @endphp
+
+                    @foreach($systemGroups as $sysKey => $system)
+                        <div class="permission-system-block {{ $system['class'] }}" id="{{ $system['id'] }}" style="margin-bottom: 40px;">
+                            <div class="permissions-header-row">
+                                <div class="permissions-header-info">
+                                    <div class="permissions-header-title-row">
+                                        <h2 class="permissions-header-title">{{ $system['title'] }}</h2>
+                                        <span class="permissions-header-badge">{{ $system['badge'] }}</span>
+                                        <span class="unsaved-badge" id="unsaved-{{ $system['id'] }}">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                            </svg>
+                                            Unsaved
+                                        </span>
+                                    </div>
+                                    <p class="permissions-header-desc">{{ $system['desc'] }}</p>
+                                </div>
+                                <div class="permissions-header-actions">
+                                    <div class="select-all-box" onclick="toggleSystemPermissions('{{ $system['id'] }}')">
+                                        <div class="permission-option-circle select-all-circle"></div>
+                                        <span class="select-all-text">Select All</span>
+                                    </div>
+                                    <button type="button" class="permissions-save-btn" onclick="submitUpdate()">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                            <polyline points="7 3 7 8 15 8"></polyline>
+                                        </svg>
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="permissions-grid-layout">
+                                @foreach($system['groups'] as $groupTitle => $permsInGroup)
+                                    <div class="permission-group-card {{ $system['class'] }}">
+                                        <h3 class="permission-group-title">{{ $groupTitle }}</h3>
+                                        <div class="permission-list">
+                                            @foreach($permsInGroup as $pName)
+                                                @php 
+                                                    $pId = $pName;
+                                                    if(isset($permissions)) {
+                                                        $found = $permissions->firstWhere('name', $pName);
+                                                        if($found) $pId = $found->id;
+                                                    }
+                                                @endphp
+                                                <label class="permission-option" data-perm-name="{{ $pName }}" style="position: relative;">
+                                                    <input type="checkbox" name="permissions[]" value="{{ $pId }}" class="permission-option-input" disabled>
+                                                    <div class="permission-option-circle" style="position: relative; z-index: 1;"></div>
+                                                    <span class="permission-option-label" style="position: relative; z-index: 1;">{{ ucwords(str_replace('_', ' ', $pName)) }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 @endforeach
-                            @else
-                                @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
-                                @foreach($fallbackPerms as $p)
-                                    <option value="{{ $p }}">{{ $p }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
 
                 <div id="section-location" class="profile-section" style="display:none;">
@@ -5622,28 +6372,6 @@
         </div>
     </div>
 
-    <!-- View Course Modal -->
-    <div id="viewCourseModal" class="modal">
-        <div class="modal-content">
-            <div class="course-view-modal-header">
-                <div class="course-view-modal-title-wrap">
-                    <h2 id="view_course_name" class="course-view-modal-title">Course Details</h2>
-                    <p id="view_course_creator" style="margin: 4px 0 0; color: #64748b; font-size: 0.85rem;">Created by: N/A</p>
-                    <p id="view_course_created" style="margin: 0; color: #64748b; font-size: 0.85rem;">Created: N/A</p>
-                </div>
-                <button type="button" class="course-view-close" onclick="closeViewCourseModal()" aria-label="Close">
-                    &times;
-                </button>
-            </div>
-            <div class="course-view-modal-body">
-                <div id="viewCourseLoading" class="course-view-loading">
-                    <span>Loading course details...</span>
-                </div>
-                <iframe id="view_course_iframe" title="Course details"></iframe>
-            </div>
-        </div>
-    </div>
-
     <!-- Draft Courses Modal -->
     <div id="draftCoursesModal" class="modal">
         <div class="modal-content" style="width: min(1000px, 95vw); max-height: 85vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
@@ -5762,6 +6490,11 @@
     @endif
 
     <script>
+        // System Constants and Data
+        const CAN_MANAGE_ACCESS = {{ (auth()->check() && in_array(auth()->user()->role, ['super_admin', 'admin', 'registrar', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'])) ? 'true' : 'false' }};
+        const ALL_ROLE_PERMISSIONS = @json($rolePermissions);
+        const ALL_ROLES = @json($roles);
+
         // Profile Edit Logic
         let isProfileEditing = false;
 
@@ -7347,6 +8080,7 @@
                 'user-management': 'User Management',
                 'user-details-section': 'User Details',
                 'course-management': 'Course Management',
+                'course-library': 'Course Library',
                 'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
                 'system-settings': 'System Settings',
@@ -7367,6 +8101,7 @@
                     'user-management': 'User Management',
                     'user-details-section': 'User Details',
                     'course-management': 'Course Management',
+                    'course-library': 'Course Library',
                     'roles-management': 'Roles Management',
                     'certification-management': 'Certifications',
                     'access-management': 'Access Control'
@@ -7473,14 +8208,20 @@
             modal.setAttribute('aria-hidden', 'true');
         }
 
+        let currentViewingUser = null;
+
         function openViewModal(user) {
+            currentViewingUser = user;
             const form = document.getElementById('viewUserForm');
             const formatLabel = (value) => {
                 const raw = String(value || '').trim();
                 if (!raw) return '-';
-                if (raw.toLowerCase() === 'freeze') return 'Blocked';
-                if (raw.toLowerCase() === 'trainer') return 'Coach';
-                if (raw.toLowerCase() === 'training_manager') return 'Training Manager';
+                const lower = raw.toLowerCase();
+                if (lower === 'freeze') return 'Blocked';
+                if (lower === 'trainer' || lower === 'coach' || lower.endsWith('_coach')) return 'Coach';
+                if (lower === 'training_manager' || lower.endsWith('_training_manager')) return 'Training Manager';
+                if (lower === 'admin' || lower.endsWith('_admin')) return 'Admin';
+                if (lower === 'participant' || lower === 'trainee' || lower.endsWith('_participants')) return 'Participant';
                 return raw.charAt(0).toUpperCase() + raw.slice(1);
             };
              
@@ -7498,7 +8239,7 @@
                 initial.textContent = name ? name.charAt(0).toUpperCase() : 'U';
             }
             const modalEmail = document.getElementById('modalUserEmail');
-            if (modalEmail) modalEmail.textContent = user.email || '-';
+            if (modalEmail) modalEmail.textContent = formatLabel(user.role);
 
             const roleBadge = document.getElementById('modalRoleBadge');
             if (roleBadge) {
@@ -7519,6 +8260,39 @@
 
             // Reset UI to View Mode
             disableEditMode();
+
+            // Update Permissions UI
+            const permCheckboxes = document.querySelectorAll('.permission-option-input');
+            permCheckboxes.forEach(cb => cb.checked = false);
+            
+            // 1. Check permissions based on the user's role block
+            const role = String(user.role || '').toLowerCase();
+            let targetSystemId = null;
+            if (role === 'admin' || role === 'registrar' || role.includes('_admin')) targetSystemId = 'system-admin';
+            else if (role === 'training_manager' || role.includes('_training_manager')) targetSystemId = 'system-tm';
+            else if (role === 'trainer' || role === 'coach' || role.includes('_coach')) targetSystemId = 'system-coach';
+            else if (role === 'participant' || role === 'trainee' || role.includes('_participants')) targetSystemId = 'system-participant';
+
+            if (targetSystemId) {
+                const systemBlock = document.getElementById(targetSystemId);
+                if (systemBlock) {
+                    systemBlock.querySelectorAll('.permission-option-input').forEach(cb => cb.checked = true);
+                }
+            }
+
+            // 2. Also check permissions that are specifically assigned to this role in the database
+            const roleObj = ALL_ROLES.find(r => r.name === user.role);
+            const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
+            permCheckboxes.forEach(cb => {
+                if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
+                    cb.checked = true;
+                }
+            });
+
+            // 3. Reset all "Unsaved" badges for initial load
+            document.querySelectorAll('.unsaved-badge').forEach(badge => badge.style.display = 'none');
+            updateAllSystemSelectStates();
+
             (function setInitialOfficeLevel(){
                 const lvl = document.getElementById('view_office_level');
                 let guess = null;
@@ -7588,14 +8362,28 @@
         });
 
         function enableEditMode() {
+            console.log("Entering Edit Mode...");
             document.getElementById('modalTitle').innerText = 'Edit User';
             document.getElementById('modalSubtitle').innerText = 'Modify fields below, then click Update User to apply changes.';
             
             // Enable inputs
             const inputs = document.querySelectorAll('#viewUserForm input, #viewUserForm select');
             inputs.forEach(input => input.disabled = false);
-            const permSel = document.getElementById('view_permissions');
-            if (permSel) permSel.disabled = !CAN_MANAGE_ACCESS;
+            
+            const canManage = typeof CAN_MANAGE_ACCESS !== 'undefined' ? CAN_MANAGE_ACCESS : true;
+            console.log("Can manage access:", canManage);
+            
+            const permOptions = document.querySelectorAll('.permission-option');
+            permOptions.forEach(opt => {
+                const input = opt.querySelector('.permission-option-input');
+                if (input) input.disabled = !canManage;
+                opt.classList.toggle('disabled', !canManage);
+            });
+
+            const selectAllBoxes = document.querySelectorAll('.select-all-box');
+            selectAllBoxes.forEach(box => {
+                box.classList.toggle('disabled', !canManage);
+            });
              
             // Buttons
             document.getElementById('btnEdit').style.display = 'none';
@@ -7605,14 +8393,24 @@
         }
 
         function disableEditMode() {
-            document.getElementById('modalTitle').innerText = 'User Details';
+            document.getElementById('modalTitle').innerText = currentViewingUser ? currentViewingUser.name : 'User Details';
             document.getElementById('modalSubtitle').innerText = 'Switch to edit mode to update account information and access settings.';
             
             // Disable inputs
             const inputs = document.querySelectorAll('#viewUserForm input, #viewUserForm select');
             inputs.forEach(input => input.disabled = true);
-            const permSel = document.getElementById('view_permissions');
-            if (permSel) permSel.disabled = true;
+            
+            const permOptions = document.querySelectorAll('.permission-option');
+            permOptions.forEach(opt => {
+                const input = opt.querySelector('.permission-option-input');
+                if (input) input.disabled = true;
+                opt.classList.add('disabled');
+            });
+
+            const selectAllBoxes = document.querySelectorAll('.select-all-box');
+            selectAllBoxes.forEach(box => {
+                box.classList.add('disabled');
+            });
 
             const passwordInput = document.getElementById('view_password');
             const eyeIcon = document.getElementById('eyeIcon');
@@ -7644,9 +8442,103 @@
             }
         }
 
+        function toggleSystemPermissions(systemBlockId) {
+            const block = document.getElementById(systemBlockId);
+            if (!block) return;
+            const inputs = block.querySelectorAll('.permission-option-input');
+            if (inputs.length === 0 || inputs[0].disabled) return;
+            
+            const allChecked = Array.from(inputs).every(i => i.checked);
+            inputs.forEach(i => i.checked = !allChecked);
+            updateSystemSelectState(systemBlockId);
+            
+            // Show unsaved badge
+            const badge = document.getElementById(`unsaved-${systemBlockId}`);
+            if (badge) badge.style.display = 'inline-flex';
+        }
+
+        function updateSystemSelectState(systemBlockId) {
+            const block = document.getElementById(systemBlockId);
+            if (!block) return;
+            const inputs = block.querySelectorAll('.permission-option-input');
+            const selectAllCircle = block.querySelector('.select-all-circle');
+            if (!selectAllCircle || inputs.length === 0) return;
+            
+            const systemColors = {
+                'system-admin': '#2563eb',
+                'system-tm': '#f97316',
+                'system-coach': '#ef4444',
+                'system-participant': '#fbbf24'
+            };
+            const color = systemColors[systemBlockId] || '#f97316';
+            const bgColor = color.startsWith('#') ? hexToRgb(color, 0.1) : 'rgba(249, 115, 22, 0.1)';
+            
+            const allChecked = Array.from(inputs).every(i => i.checked);
+            if (allChecked) {
+                selectAllCircle.style.borderColor = color;
+                selectAllCircle.style.background = bgColor;
+                selectAllCircle.classList.add('checked-all');
+                // Dynamically update the ::after color
+                selectAllCircle.setAttribute('data-color', color);
+            } else {
+                selectAllCircle.style.borderColor = '';
+                selectAllCircle.style.background = '';
+                selectAllCircle.classList.remove('checked-all');
+                selectAllCircle.removeAttribute('data-color');
+            }
+        }
+
+        function hexToRgb(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function updateAllSystemSelectStates() {
+            const systemBlocks = document.querySelectorAll('.permission-system-block');
+            systemBlocks.forEach(block => updateSystemSelectState(block.id));
+        }
+
+        // Add a style rule for checked-all using data-color attribute
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .permission-option-circle.checked-all[data-color="#2563eb"]::after { background: #2563eb; }
+            .permission-option-circle.checked-all[data-color="#f97316"]::after { background: #f97316; }
+            .permission-option-circle.checked-all[data-color="#ef4444"]::after { background: #ef4444; }
+            .permission-option-circle.checked-all[data-color="#fbbf24"]::after { background: #fbbf24; }
+        `;
+        document.head.appendChild(style);
+
+        // Update Select All state and Unsaved badge when any permission is toggled
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('permission-option-input')) {
+                const block = e.target.closest('.permission-system-block');
+                if (block) {
+                    updateSystemSelectState(block.id);
+                    // Show unsaved badge for this block
+                    const badge = document.getElementById(`unsaved-${block.id}`);
+                    if (badge) badge.style.display = 'inline-flex';
+                }
+            }
+        });
+
         function submitUpdate() {
             if (confirm('Are you sure you want to update this user?')) {
-                document.getElementById('viewUserForm').submit();
+                const form = document.getElementById('viewUserForm');
+                
+                // Show a success message if it's an AJAX submit or before traditional submit
+                // Since this is a traditional form submit, we can show the message briefly
+                const originalBtn = event.target.closest('.permissions-save-btn');
+                if (originalBtn) {
+                    const originalContent = originalBtn.innerHTML;
+                    originalBtn.innerHTML = '<i class="fas fa-check"></i> Save Complete!';
+                    originalBtn.style.background = '#10b981'; // Green
+                }
+
+                setTimeout(() => {
+                    form.submit();
+                }, 800);
             }
         }
 
@@ -7709,7 +8601,6 @@
         const ROLE_ID_BY_NAME = @json(isset($roles) ? $roles->pluck('id','name') : []);
         const ROLE_PERMS = @json(isset($rolePermissions) ? $rolePermissions : []);
         const PERM_LOOKUP = @json(isset($permissions) ? $permissions->pluck('name','id') : []);
-        const CAN_MANAGE_ACCESS = {{ (auth()->check() && auth()->user()->role === 'super_admin') ? 'true' : 'false' }};
 
         const ACCESS_ROLE_VALUES = {
             admin: @json($adminAccessRole ?? 'admin'),
@@ -7859,6 +8750,19 @@
         }
 
         // Archived Courses Modal
+        function filterLibraryCourses() {
+            const query = document.getElementById('librarySearchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.library-course-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-name');
+                if (name.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
         function openDraftCoursesModal() {
             const modal = document.getElementById('draftCoursesModal');
             if (modal) {
@@ -8002,63 +8906,155 @@
             }
         }
 
-        function openViewCourseModal(course) {
-            if (!course || !course.id) return;
+        function switchCourseViewTab(tabId, el) {
+            // Update nav items
+            document.querySelectorAll('.course-nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
 
-            const modal = document.getElementById('viewCourseModal');
-            const title = document.getElementById('view_course_name');
-            const creator = document.getElementById('view_course_creator');
-            const created = document.getElementById('view_course_created');
-            const loader = document.getElementById('viewCourseLoading');
-            const iframe = document.getElementById('view_course_iframe');
-            const courseUrlBase = courseShowUrlTemplate.replace('__COURSE_ID__', encodeURIComponent(course.id));
-            const activeSection = document.querySelector('.content-section.active');
-            const isReadonlyContext = !!(activeSection && (activeSection.id === 'archived-courses' || activeSection.id === 'draft-courses'));
-            const courseUrl = `${courseUrlBase}?embedded=1${isReadonlyContext ? '&readonly=1' : ''}`;
+            // Update tab contents
+            document.querySelectorAll('.course-tab-content').forEach(tab => tab.style.display = 'none');
+            const targetTab = document.getElementById(`course-tab-${tabId}`);
+            if (targetTab) {
+                targetTab.style.display = 'block';
+            }
+        }
 
-            if (title) {
-                title.innerText = course.name ? course.name : 'Course Details';
-            }
-            if (creator) {
-                creator.innerText = `Created by: ${course.creator_name ? course.creator_name : 'N/A'}`;
-            }
-            if (created) {
-                created.innerText = `Created: ${course.created_at ? course.created_at : 'N/A'}`;
-            }
-            if (loader) {
-                loader.style.display = 'flex';
-            }
-            if (iframe) {
-                iframe.style.visibility = 'hidden';
-                iframe.onload = function () {
-                    if (loader) loader.style.display = 'none';
-                    iframe.style.visibility = 'visible';
-                };
-                iframe.src = courseUrl;
-            }
+        async function openViewCourseModal(courseData) {
+            // Instead of a modal, we now use the main content section
+            showContent('course-view-details', document.querySelector('.menu-item[onclick*=\'course-management\']'));
+            
+            // Reset to Overview tab
+            const firstTab = document.querySelector('.course-nav-item');
+            if (firstTab) switchCourseViewTab('overview', firstTab);
 
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            setCourseModalClickLock(isCourseManagementTabActive());
+            // Populate initial basic data
+            document.getElementById('pro_view_course_name').innerText = courseData.name || 'Untitled Course';
+            document.getElementById('pro_view_course_creator').innerText = courseData.creator_name || 'Admin';
+            document.getElementById('pro_view_course_date').innerText = courseData.created_at || 'N/A';
+            
+            // Show loading states
+            document.getElementById('pro_view_course_desc').innerHTML = '<p style="color:#94a3b8;">Loading course details...</p>';
+            document.getElementById('pro_view_modules_container').innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#2563eb;"></i></div>';
+            
+            try {
+                const response = await fetch(`/courses/${courseData.id}/details-ajax`);
+                const result = await response.json();
+                
+                if (result.ok) {
+                    const c = result.course;
+                    
+                    // Update badges
+                    document.getElementById('view_course_category_badge').innerText = c.subject_area || 'General';
+                    document.getElementById('pro_view_course_subject').innerText = c.subject_area || 'General';
+                    document.getElementById('pro_view_course_certification').innerText = c.certification || 'None';
+                    document.getElementById('pro_view_course_cert').innerText = c.certification ? 'Certification Enabled' : 'No Certification';
+                    document.getElementById('pro_view_cert_name').innerText = c.certification || 'Certificate of Completion';
+                    
+                    // Description
+                    document.getElementById('pro_view_course_desc').innerText = c.description || 'No description provided.';
+                    
+                    // Image
+                    const imgEl = document.getElementById('pro_view_course_image');
+                    if (c.image_path) {
+                        imgEl.src = c.image_path;
+                    } else {
+                        imgEl.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><text x="150" y="80" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="700">No Preview</text></svg>');
+                    }
+
+                    // Edit Button Link
+                    const editBtn = document.getElementById('pro_view_edit_btn');
+                    if (editBtn) {
+                        editBtn.onclick = () => window.location.href = `/courses/${c.id}/edit`;
+                    }
+
+                    // Materials
+                    const materialsContainer = document.getElementById('pro_view_materials_list');
+                    materialsContainer.innerHTML = '';
+                    if (c.materials && c.materials.length > 0) {
+                        c.materials.forEach(m => {
+                            const ext = m.split('.').pop().toLowerCase();
+                            let icon = 'fa-file';
+                            if (ext === 'pdf') icon = 'fa-file-pdf';
+                            else if (['doc', 'docx'].includes(ext)) icon = 'fa-file-word';
+                            
+                            const tag = document.createElement('div');
+                            tag.className = 'material-tag';
+                            tag.innerHTML = `<i class="fas ${icon}"></i> ${m.split('/').pop()}`;
+                            materialsContainer.appendChild(tag);
+                        });
+                    } else {
+                        materialsContainer.innerHTML = '<p style="color:#94a3b8;font-size:0.9rem;font-weight:500;">No additional materials provided.</p>';
+                    }
+
+                    // Modules (Curriculum)
+                    const modulesContainer = document.getElementById('pro_view_modules_container');
+                    modulesContainer.innerHTML = '';
+                    if (c.modules && c.modules.length > 0) {
+                        c.modules.forEach((mod, idx) => {
+                            const modItem = document.createElement('div');
+                            modItem.className = 'module-list-item';
+                            
+                            let topicsHtml = '';
+                            if (mod.topics && mod.topics.length > 0) {
+                                topicsHtml = `
+                                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
+                                        ${mod.topics.map(t => `<span class="topic-badge"><i class="fas fa-play-circle" style="color:#2563eb;font-size:0.8rem;"></i> ${t.title}</span>`).join('')}
+                                    </div>
+                                `;
+                            }
+
+                            modItem.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <div>
+                                        <span style="font-size:0.75rem; font-weight:800; color:#2563eb; text-transform:uppercase;">Module ${idx + 1}</span>
+                                        <h4 style="margin:4px 0 0; font-size:1.15rem; font-weight:800; color:#0f172a;">${mod.title}</h4>
+                                    </div>
+                                    <span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700; color:#64748b;">${mod.topics ? mod.topics.length : 0} TOPICS</span>
+                                </div>
+                                ${topicsHtml}
+                            `;
+                            modulesContainer.appendChild(modItem);
+                        });
+                    } else {
+                        modulesContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;"><p>No modules have been added to this curriculum yet.</p></div>';
+                    }
+
+                    // Assessments
+                    const examsContainer = document.getElementById('pro_view_exams_container');
+                    examsContainer.innerHTML = '';
+                    if (c.assessments && c.assessments.length > 0) {
+                        c.assessments.forEach(a => {
+                            const examItem = document.createElement('div');
+                            examItem.style.cssText = 'padding:20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;';
+                            examItem.innerHTML = `
+                                <div>
+                                    <h4 style="margin:0; font-weight:800; color:#1e293b;">${a.title}</h4>
+                                    <div style="margin-top:4px; display:flex; gap:16px; font-size:0.8rem; color:#64748b; font-weight:600;">
+                                        <span><i class="fas fa-tasks"></i> ${a.type.toUpperCase()}</span>
+                                        <span><i class="fas fa-question-circle"></i> ${a.question_count} Questions</span>
+                                        <span><i class="fas fa-clock"></i> ${a.due_date}</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn" style="background:#f1f5f9; color:#2563eb; font-weight:700; font-size:0.8rem; padding:6px 12px; border-radius:6px;">View Result</button>
+                            `;
+                            examsContainer.appendChild(examItem);
+                        });
+                    } else {
+                        examsContainer.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
+                                <p style="font-weight: 600;">No assessments found for this course.</p>
+                            </div>`;
+                    }
+
+                }
+            } catch (err) {
+                console.error("Failed to load course details:", err);
+            }
         }
 
         function closeViewCourseModal() {
-            const modal = document.getElementById('viewCourseModal');
-            const loader = document.getElementById('viewCourseLoading');
-            const iframe = document.getElementById('view_course_iframe');
-
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            setCourseModalClickLock(false);
-
-            if (iframe) {
-                iframe.onload = null;
-                iframe.removeAttribute('src');
-                iframe.style.visibility = 'hidden';
-            }
-            if (loader) {
-                loader.style.display = 'flex';
-            }
+            showContent('course-library', document.querySelector('.menu-item[onclick*=\'course-management\']'));
         }
 
 
@@ -8066,7 +9062,6 @@
         // Close modal when clicking outside
         window.onclick = function(event) {
             const editUserModal = document.getElementById('editUserModal');
-            const viewCourseModal = document.getElementById('viewCourseModal');
             const draftCoursesModal = document.getElementById('draftCoursesModal');
             const archivedCoursesModal = document.getElementById('archivedCoursesModal');
 
@@ -8083,7 +9078,7 @@
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                closeViewCourseModal();
+                // closeViewCourseModal(); // No longer needed for main content view
             }
         });
     </script>

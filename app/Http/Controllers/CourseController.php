@@ -1432,6 +1432,50 @@ class CourseController extends Controller
         if (!is_array($mods)) $mods = [];
         return response()->json(['ok' => true, 'modules' => $mods]);
     }
+
+    public function getCourseDetailsAjax(\App\Models\Course $course)
+    {
+        $course->load(['certification', 'assessments']);
+        $creator = \App\Models\User::find($course->created_by);
+        
+        $modules = is_array($course->modules) ? $course->modules : [];
+        if (is_string($course->modules)) {
+            $modules = json_decode($course->modules, true) ?: [];
+        }
+
+        // Add index to modules for easier rendering
+        foreach ($modules as $idx => &$mod) {
+            $mod['index'] = $idx;
+        }
+
+        return response()->json([
+            'ok' => true,
+            'course' => [
+                'id' => $course->id,
+                'name' => $course->name,
+                'description' => $course->description,
+                'subject_area' => $course->subject_area,
+                'image_path' => $course->image_path ? asset('storage/' . $course->image_path) : null,
+                'video_url' => $course->video_url,
+                'created_at' => optional($course->created_at)->format('M d, Y'),
+                'creator_name' => $creator ? $creator->name : 'N/A',
+                'certification' => $course->certification ? $course->certification->name : null,
+                'modules' => $modules,
+                'materials' => $course->materials ?: [],
+                'status' => $course->status,
+                'assessments' => $course->assessments->map(function($a) {
+                    return [
+                        'id' => $a->id,
+                        'title' => $a->title,
+                        'type' => $a->type,
+                        'due_date' => $a->due_date ? $a->due_date->format('M d, Y') : 'No deadline',
+                        'question_count' => is_array($a->questions_json) ? count($a->questions_json) : 0,
+                    ];
+                })
+            ]
+        ]);
+    }
+
     public function saveExamAjax(Request $request, \App\Models\Course $course)
     {
         $this->authorize('update', $course);

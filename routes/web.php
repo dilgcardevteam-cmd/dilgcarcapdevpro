@@ -135,6 +135,7 @@ Route::post('/trainer/courses/{course}/modules/{index}/status', [CourseControlle
 Route::get('/courses/{course}/modules-status', [CourseController::class, 'modulesStatus'])->middleware(['auth'])->name('courses.modules.status');
 // Full modules JSON for fallback rendering
 Route::get('/courses/{course}/modules-json', [CourseController::class, 'modulesJson'])->middleware(['auth'])->name('courses.modules.json');
+Route::get('/courses/{course}/details-ajax', [CourseController::class, 'getCourseDetailsAjax'])->middleware(['auth'])->name('courses.details.ajax');
 // AJAX save for Course Exam editor
 Route::post('/courses/{course}/exam', [CourseController::class, 'saveExamAjax'])->middleware(['auth'])->name('courses.exam.save');
 // Test bank endpoints
