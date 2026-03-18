@@ -1353,6 +1353,114 @@
             margin-top: 6px;
         }
 
+        .role-choice-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .role-choice-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1px solid #d8e2ef;
+            border-radius: 14px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .role-choice-card:hover {
+            border-color: #9fb6df;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .role-choice-card.is-selected {
+            border-color: #002C76;
+            background: #f8fbff;
+            box-shadow: 0 12px 22px rgba(0, 44, 118, 0.12);
+        }
+
+        .role-choice-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .role-choice-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 2px solid #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 20px;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .role-choice-indicator::after {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: transparent;
+            transition: background-color 0.2s ease;
+        }
+
+        .role-choice-card.is-selected .role-choice-indicator {
+            border-color: #002C76;
+            background: rgba(0, 44, 118, 0.08);
+        }
+
+        .role-choice-card.is-selected .role-choice-indicator::after {
+            background: #002C76;
+        }
+
+        .role-choice-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .role-choice-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .role-choice-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .permissions-panel-shell {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 14px;
+        }
+
+        .permissions-panel-shell label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .permissions-panel-shell select {
+            min-height: 180px;
+            padding: 12px;
+        }
+
         @media (max-width: 1100px) {
             #profile-section .profile-page-grid {
                 grid-template-columns: 1fr;
@@ -1540,8 +1648,31 @@
             transition: all 0.2s ease;
         }
 
+        #userDetailsMount .close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            float: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.45rem;
+            color: #64748b;
+            background: #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
         #viewUserModal .close:hover,
         #viewUserModal .close:focus {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        #userDetailsMount .close:hover,
+        #userDetailsMount .close:focus {
             color: #0f172a;
             background: #e2e8f0;
         }
@@ -1732,6 +1863,10 @@
             margin-bottom: 0;
         }
 
+        #userDetailsMount .form-group {
+            margin-bottom: 0;
+        }
+
         .field-with-icon {
             position: relative;
         }
@@ -1760,8 +1895,30 @@
             letter-spacing: 0.03em;
         }
 
+        #userDetailsMount .form-group label {
+            margin-bottom: 6px;
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
         #viewUserModal .form-group input,
         #viewUserModal .form-group select {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #d5deea;
+            border-radius: 10px;
+            box-sizing: border-box;
+            background: #ffffff;
+            color: #0f172a;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #userDetailsMount .form-group input,
+        #userDetailsMount .form-group select {
             width: 100%;
             height: 42px;
             padding: 0 12px;
@@ -1778,7 +1935,16 @@
             padding-left: 36px;
         }
 
+        #userDetailsMount .field-with-icon input,
+        #userDetailsMount .field-with-icon select {
+            padding-left: 36px;
+        }
+
         #viewUserModal .field-with-icon select {
+            padding-right: 34px;
+        }
+
+        #userDetailsMount .field-with-icon select {
             padding-right: 34px;
         }
 
@@ -1789,8 +1955,23 @@
             box-shadow: 0 0 0 3px rgba(47, 90, 168, 0.15);
         }
 
+        #userDetailsMount .form-group input:focus,
+        #userDetailsMount .form-group select:focus {
+            outline: none;
+            border-color: #2f5aa8;
+            box-shadow: 0 0 0 3px rgba(47, 90, 168, 0.15);
+        }
+
         #viewUserModal .form-group input:disabled,
         #viewUserModal .form-group select:disabled {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        #userDetailsMount .form-group input:disabled,
+        #userDetailsMount .form-group select:disabled {
             background: #f8fafc;
             border-color: #e2e8f0;
             color: #475569;
@@ -2398,6 +2579,55 @@
             font-weight: 600;
         }
 
+        .user-details-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .user-details-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-details-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #d6dde8;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #1f3f78;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .user-details-back:hover {
+            background: #f8fbff;
+            border-color: #9fb1cf;
+        }
+
+        .user-details-note {
+            color: #64748b;
+            font-size: 0.92rem;
+        }
+
+        #userDetailsMount .profile-edit-modal {
+            width: 100%;
+            max-width: none;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        #userDetailsMount .profile-edit-form {
+            padding-bottom: 24px;
+        }
+
         @media (max-width: 640px) {
             .lms-pill-btn,
             .focus-action {
@@ -2739,7 +2969,7 @@
                     <div class="menu-icon"><i class="fas fa-home"></i></div>
                     <span class="menu-text">Dashboard</span>
                 </li>
-                <li class="menu-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
+                <li class="menu-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
@@ -3979,6 +4209,19 @@
                 </div>
             </section>
 
+            <section id="user-details-section" class="content-section {{ request('tab') == 'user-details-section' ? 'active' : '' }}">
+                <div class="user-details-shell">
+                    <div class="user-details-topbar">
+                        <button type="button" class="user-details-back" onclick="closeViewModal()">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to User Management
+                        </button>
+                        <div class="user-details-note">Manage the selected account directly in the main workspace.</div>
+                    </div>
+                    <div id="userDetailsMount"></div>
+                </div>
+            </section>
+
             <!-- Access Management Section (Super Admin) -->
             <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
                 @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
@@ -5016,9 +5259,25 @@
                 @csrf
                 @method('PUT')
 
+                @php
+                    $roleNamesForAccess = isset($roles) ? $roles->pluck('name')->all() : [];
+                    $pickAccessRole = function (array $candidates, string $fallback) use ($roleNamesForAccess) {
+                        foreach ($candidates as $candidate) {
+                            if (in_array($candidate, $roleNamesForAccess, true)) {
+                                return $candidate;
+                            }
+                        }
+                        return $fallback;
+                    };
+                    $adminAccessRole = $pickAccessRole(['admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin', 'registrar'], 'admin');
+                    $managerAccessRole = $pickAccessRole(['training_manager', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'], 'training_manager');
+                    $coachAccessRole = $pickAccessRole(['trainer', 'coach', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'], 'trainer');
+                    $participantAccessRole = $pickAccessRole(['participant', 'trainee', 'central_office_participants', 'regional_office_participants', 'provincial_office_participants'], 'participant');
+                @endphp
                 <div class="modal-tabs" role="tablist" style="display:flex;gap:8px;border-bottom:1px solid #e5e7eb;margin:8px 0 14px;">
                     <button type="button" class="modal-tab active" data-target="section-core" aria-selected="true" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid var(--primary-blue);color:var(--primary-blue);font-weight:700;border-radius:8px 8px 0 0;">Core Profile</button>
-                    <button type="button" class="modal-tab" data-target="section-access" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Roles & Permissions</button>
+                    <button type="button" class="modal-tab" data-target="section-roles" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Roles</button>
+                    <button type="button" class="modal-tab" data-target="section-permissions" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Permissions</button>
                     <button type="button" class="modal-tab" data-target="section-location" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Location Details</button>
                     <button type="button" class="modal-tab" data-target="section-security" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Security</button>
                 </div>
@@ -5070,56 +5329,71 @@
                     </div>
                 </div>
 
-                <div id="section-access" class="profile-section" style="display:none;">
+                <div id="section-roles" class="profile-section" style="display:none;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         </svg>
-                        Roles & Permissions
+                        Roles
                     </p>
-                    <div class="profile-edit-grid">
-                        <div class="form-group">
-                            <label>Role</label>
-                            <div class="field-with-icon">
-                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                </svg>
-                                <select id="view_role" name="role" required disabled>
-                                    @if(isset($roles) && $roles->count())
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role->name }}">
-                                                {{ $role->display_name ?? ucfirst(str_replace('_',' ', $role->name)) }}
-                                            </option>
-                                        @endforeach
-                                    @else
-                                        <option value="admin">Admin</option>
-                                        <option value="registrar">Registrar</option>
-                                        <option value="trainer">Coach</option>
-                                        <option value="trainee">Trainee</option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Permissions</label>
-                            <div class="field-with-icon">
-                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M4 7h16M4 12h16M4 17h10"></path>
-                                </svg>
-                                <select id="view_permissions" name="permissions[]" multiple disabled style="height:42px">
-                                    @if(isset($permissions) && $permissions->count())
-                                        @foreach($permissions as $perm)
-                                            <option value="{{ $perm->id }}">{{ $perm->name }}</option>
-                                        @endforeach
-                                    @else
-                                        @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
-                                        @foreach($fallbackPerms as $p)
-                                            <option value="{{ $p }}">{{ $p }}</option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
+                    <input type="hidden" id="view_role" name="role" value="{{ $coachAccessRole }}">
+                    <div class="role-choice-grid">
+                        <label class="role-choice-card" data-role-value="{{ $adminAccessRole }}">
+                            <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $adminAccessRole }}" disabled>
+                            <span class="role-choice-indicator" aria-hidden="true"></span>
+                            <span class="role-choice-copy">
+                                <span class="role-choice-title">Admin</span>
+                                <span class="role-choice-desc">Handles account administration and operational controls.</span>
+                            </span>
+                        </label>
+                        <label class="role-choice-card" data-role-value="{{ $managerAccessRole }}">
+                            <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $managerAccessRole }}" disabled>
+                            <span class="role-choice-indicator" aria-hidden="true"></span>
+                            <span class="role-choice-copy">
+                                <span class="role-choice-title">Training Manager</span>
+                                <span class="role-choice-desc">Oversees course readiness, training flow, and approvals.</span>
+                            </span>
+                        </label>
+                        <label class="role-choice-card" data-role-value="{{ $coachAccessRole }}">
+                            <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $coachAccessRole }}" disabled>
+                            <span class="role-choice-indicator" aria-hidden="true"></span>
+                            <span class="role-choice-copy">
+                                <span class="role-choice-title">Coach</span>
+                                <span class="role-choice-desc">Guides learners, facilitates modules, and checks progress.</span>
+                            </span>
+                        </label>
+                        <label class="role-choice-card" data-role-value="{{ $participantAccessRole }}">
+                            <input type="radio" class="role-choice-input" name="view_role_choice" value="{{ $participantAccessRole }}" disabled>
+                            <span class="role-choice-indicator" aria-hidden="true"></span>
+                            <span class="role-choice-copy">
+                                <span class="role-choice-title">Participant</span>
+                                <span class="role-choice-desc">Consumes assigned training content and completes requirements.</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="section-permissions" class="profile-section" style="display:none;">
+                    <p class="profile-section-title">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 7h16M4 12h16M4 17h10"></path>
+                        </svg>
+                        Permissions
+                    </p>
+                    <div class="permissions-panel-shell">
+                        <label for="view_permissions">Permissions</label>
+                        <select id="view_permissions" name="permissions[]" multiple disabled>
+                            @if(isset($permissions) && $permissions->count())
+                                @foreach($permissions as $perm)
+                                    <option value="{{ $perm->id }}">{{ $perm->name }}</option>
+                                @endforeach
+                            @else
+                                @php $fallbackPerms = ['manage_users','manage_courses','manage_roles','manage_certificates','access_system_settings']; @endphp
+                                @foreach($fallbackPerms as $p)
+                                    <option value="{{ $p }}">{{ $p }}</option>
+                                @endforeach
+                            @endif
+                        </select>
                     </div>
                 </div>
 
@@ -7071,6 +7345,7 @@
             const titles = {
                 'dashboard-home': 'Dashboard',
                 'user-management': 'User Management',
+                'user-details-section': 'User Details',
                 'course-management': 'Course Management',
                 'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
@@ -7090,6 +7365,7 @@
                 const titles = {
                     'dashboard-home': 'Dashboard',
                     'user-management': 'User Management',
+                    'user-details-section': 'User Details',
                     'course-management': 'Course Management',
                     'roles-management': 'Roles Management',
                     'certification-management': 'Certifications',
@@ -7183,8 +7459,21 @@
             form.submit();
         }
 
-        function openViewModal(user) {
+        function getUserManagementMenuItem() {
+            return document.querySelector('.menu-item[onclick*=\'user-management\']');
+        }
+
+        function initializeUserDetailsSection() {
+            const mount = document.getElementById('userDetailsMount');
             const modal = document.getElementById('viewUserModal');
+            const content = modal ? modal.querySelector('.modal-content.profile-edit-modal') : null;
+            if (!mount || !modal || !content || mount.contains(content)) return;
+            mount.appendChild(content);
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function openViewModal(user) {
             const form = document.getElementById('viewUserForm');
             const formatLabel = (value) => {
                 const raw = String(value || '').trim();
@@ -7198,10 +7487,10 @@
             // Populate fields
             document.getElementById('view_name').value = user.name;
             document.getElementById('view_email').value = user.email;
-            document.getElementById('view_role').value = user.role;
+            document.getElementById('view_role').value = normalizeAccessRole(user.role);
             document.getElementById('view_status').value = user.status;
             document.getElementById('view_password').value = ''; // Reset password field
-            setPermissionsForRole(user.role || '');
+            applyAccessRole(user.role || '');
 
             const initial = document.getElementById('modalUserInitial');
             if (initial) {
@@ -7260,18 +7549,13 @@
                 user.city || '',
                 user.barangay || ''
             );
-
-            modal.style.display = 'flex';
-            const roleSelect = document.getElementById('view_role');
-            if (roleSelect) {
-                roleSelect.addEventListener('change', function(){
-                    const curRegion = document.getElementById('view_region')?.value || '';
-                    const curProvince = document.getElementById('view_province')?.value || '';
-                    const curCity = document.getElementById('view_city')?.value || '';
-                    const curBarangay = document.getElementById('view_barangay')?.value || '';
-                    initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
-                    setPermissionsForRole(this.value || '');
-                });
+            initializeUserDetailsSection();
+            showContent('user-details-section', getUserManagementMenuItem());
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
             const officeSel = document.getElementById('view_office_level');
             if (officeSel) {
@@ -7291,13 +7575,14 @@
         }
 
         function closeViewModal() {
-            document.getElementById('viewUserModal').style.display = 'none';
+            disableEditMode();
+            showContent('user-management', getUserManagementMenuItem());
         }
 
         document.addEventListener('keydown', function(event) {
             if (event.key !== 'Escape') return;
-            const modal = document.getElementById('viewUserModal');
-            if (modal && modal.style.display === 'flex') {
+            const detailsSection = document.getElementById('user-details-section');
+            if (detailsSection && detailsSection.classList.contains('active')) {
                 closeViewModal();
             }
         });
@@ -7366,6 +7651,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            initializeUserDetailsSection();
             const params = new URLSearchParams(window.location.search);
             const requestedTab = params.get('tab');
             if (requestedTab === 'profile-section') {
@@ -7386,7 +7672,7 @@
             }
 
             const tabs = document.querySelectorAll('.modal-tab');
-            const sections = ['section-core','section-access','section-location','section-security'];
+            const sections = ['section-core','section-roles','section-permissions','section-location','section-security'];
             tabs.forEach(btn => {
                 btn.addEventListener('click', function(){
                     const target = this.getAttribute('data-target');
@@ -7404,6 +7690,18 @@
                     });
                 });
             });
+
+            document.querySelectorAll('.role-choice-input').forEach(input => {
+                input.addEventListener('change', function(){
+                    if (this.disabled) return;
+                    applyAccessRole(this.value || '');
+                    const curRegion = document.getElementById('view_region')?.value || '';
+                    const curProvince = document.getElementById('view_province')?.value || '';
+                    const curCity = document.getElementById('view_city')?.value || '';
+                    const curBarangay = document.getElementById('view_barangay')?.value || '';
+                    initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
+                });
+            });
         });
 
         const courseCreateEmbeddedUrl = @json(route('admin.courses.create', ['embedded' => 1]));
@@ -7413,10 +7711,48 @@
         const PERM_LOOKUP = @json(isset($permissions) ? $permissions->pluck('name','id') : []);
         const CAN_MANAGE_ACCESS = {{ (auth()->check() && auth()->user()->role === 'super_admin') ? 'true' : 'false' }};
 
+        const ACCESS_ROLE_VALUES = {
+            admin: @json($adminAccessRole ?? 'admin'),
+            training_manager: @json($managerAccessRole ?? 'training_manager'),
+            coach: @json($coachAccessRole ?? 'trainer'),
+            participant: @json($participantAccessRole ?? 'participant')
+        };
+
+        function normalizeAccessRole(roleName) {
+            const raw = String(roleName || '').trim().toLowerCase();
+            if (!raw) return '';
+            if (raw === 'admin' || raw === 'registrar' || raw.endsWith('_admin')) return ACCESS_ROLE_VALUES.admin;
+            if (raw === 'training_manager' || raw.endsWith('_training_manager')) return ACCESS_ROLE_VALUES.training_manager;
+            if (raw === 'trainer' || raw === 'coach' || raw.endsWith('_coach')) return ACCESS_ROLE_VALUES.coach;
+            if (raw === 'participant' || raw === 'trainee' || raw.endsWith('_participants')) return ACCESS_ROLE_VALUES.participant;
+            return raw;
+        }
+
+        function syncRoleOptionSelection(roleName) {
+            const normalized = normalizeAccessRole(roleName);
+            const roleInput = document.getElementById('view_role');
+            if (roleInput && normalized) roleInput.value = normalized;
+            document.querySelectorAll('.role-choice-card').forEach(card => {
+                const selected = card.getAttribute('data-role-value') === normalized;
+                card.classList.toggle('is-selected', selected);
+                const radio = card.querySelector('.role-choice-input');
+                if (radio) radio.checked = selected;
+            });
+        }
+
+        function applyAccessRole(roleName) {
+            const normalized = normalizeAccessRole(roleName);
+            const roleInput = document.getElementById('view_role');
+            if (roleInput) roleInput.value = normalized;
+            syncRoleOptionSelection(normalized);
+            setPermissionsForRole(normalized);
+        }
+
         function setPermissionsForRole(roleName) {
             const sel = document.getElementById('view_permissions');
             if (!sel) return;
-            const rid = ROLE_ID_BY_NAME && roleName ? ROLE_ID_BY_NAME[roleName] : null;
+            const normalized = normalizeAccessRole(roleName);
+            const rid = ROLE_ID_BY_NAME && normalized ? ROLE_ID_BY_NAME[normalized] : null;
             const ids = (rid && ROLE_PERMS && ROLE_PERMS[rid]) ? ROLE_PERMS[rid].map(String) : [];
             Array.from(sel.options).forEach(opt => {
                 opt.selected = ids.includes(String(opt.value));

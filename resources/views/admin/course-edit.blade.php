@@ -50,6 +50,11 @@
         @media (max-width: 900px){ .two-col { grid-template-columns: 1fr; } }
         .module-wrapper { background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05); }
         .module-header { display:flex;align-items:center;justify-content:space-between;padding:12px 14px; }
+        .exam-meta-row { display:flex; justify-content:space-between; align-items:center; gap:16px; width:100%; }
+        .exam-meta-timer { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; margin:0; }
+        .exam-meta-timer-label { font-weight:700; color:#111827; white-space:nowrap; }
+        .exam-meta-timer-input { width:110px; padding:8px; border:1px solid #e5e7eb; border-radius:8px; }
+        .exam-meta-title { margin-left:auto; font-weight:800; color:#0B2C74; text-align:right; }
         .module-title { display:flex;align-items:center;gap:12px;margin:0;color:#001f54;font-size:1rem; flex: 1; min-width: 0; }
         .module-index { width:28px;height:28px;border-radius:50%;background:#00a859;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700; }
         .module-number-label { white-space: nowrap; font-weight: 600; color: #001f54; }
@@ -82,7 +87,11 @@
         .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
         .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
         .step.done .step-index { background: #10b981; color: #ffffff; }
-        @media (max-width: 640px){ .progress-steps { grid-template-columns: 1fr; } }
+        @media (max-width: 640px){
+            .progress-steps { grid-template-columns: 1fr; }
+            .exam-meta-row { flex-wrap:wrap; align-items:flex-start; }
+            .exam-meta-title { width:100%; margin-left:0; text-align:left; }
+        }
         .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         .summary-section { margin-bottom: 24px; }
         .summary-section:last-child { margin-bottom: 0; }
@@ -2627,12 +2636,12 @@
             host.dataset.bound = '1';
             host.innerHTML = `
                 <div class="q-block">
-                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Exam</div>
-                        <label style="display:flex;align-items:center;gap:8px">
-                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
-                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                    <div class="q-header exam-meta-row">
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <div class="exam-meta-title">Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
                         <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
@@ -2904,12 +2913,12 @@
                         <input class="exam-title" type="text" placeholder="Exam title (required)" style="padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                         <textarea class="exam-desc" rows="2" placeholder="Exam description (optional)" style="resize:vertical;padding:10px;border:1px solid #e5e7eb;border-radius:8px"></textarea>
                     </div>
-                    <div class="q-header" style="display:flex;align-items:end;gap:12px;justify-content:space-between">
-                        <div style="font-weight:800;color:#0B2C74">Module Exam</div>
-                        <label style="display:flex;align-items:center;gap:8px">
-                            <span style="font-weight:700;color:#111827">Timer (minutes)</span>
-                            <input type="number" min="1" max="600" class="exam-duration" placeholder="e.g., 30" style="width:110px;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                    <div class="q-header exam-meta-row">
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Timer (minutes)</span>
+                            <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <div class="exam-meta-title">Module Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
                         <div class="exam-nav" style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;">
