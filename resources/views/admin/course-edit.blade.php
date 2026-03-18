@@ -1969,21 +1969,38 @@
         }
         function serializeModules() {
             const modules = [];
-            document.querySelectorAll('.module-wrapper').forEach((m, i) => {
-                const title = m.querySelector('.module-title-input').value;
-                const topics = [];
-                m.querySelectorAll('.topic-row').forEach((t, j) => {
-                    const tTitle = t.querySelector('input[name*="[title]"]').value;
-                    const subtopics = [];
-                    t.querySelectorAll('.subtopic-row').forEach((s, k) => {
-                        const sTitle = s.querySelector('input[name*="[title]"]').value;
-                        const fieldsJson = s.querySelector('textarea[name*="[fields_json]"]').value;
-                        subtopics.push({ title: sTitle, fields_json: fieldsJson });
-                    });
-                    topics.push({ title: tTitle, subtopics: subtopics });
-                });
-                const examJson = m.querySelector('.module-exam-json').value;
-                modules.push({ title: title, topics: topics, exam_json: examJson });
+            const container = document.getElementById('modulesContainer');
+            if(!container) return modules;
+            Array.from(container.children).forEach((m, i) => {
+                try {
+                    if (m.classList.contains('module-wrapper')) {
+                        const titleInput = m.querySelector('.module-title-input');
+                        const title = titleInput ? titleInput.value : '';
+                        const topics = [];
+                        m.querySelectorAll('.topic-row').forEach((t, j) => {
+                            const tTitleInput = t.querySelector('input[name*="[title]"]');
+                            const tTitle = tTitleInput ? tTitleInput.value : '';
+                            const subtopics = [];
+                            t.querySelectorAll('.subtopic-row').forEach((s, k) => {
+                                const sTitleInput = s.querySelector('input[name*="[title]"]');
+                                const sTitle = sTitleInput ? sTitleInput.value : '';
+                                const fieldsArea = s.querySelector('textarea[name*="[fields_json]"]');
+                                const fieldsJson = fieldsArea ? fieldsArea.value : '';
+                                subtopics.push({ title: sTitle, fields_json: fieldsJson });
+                            });
+                            topics.push({ title: tTitle, subtopics: subtopics });
+                        });
+                        const examJsonArea = m.querySelector('.module-exam-json');
+                        const examJson = examJsonArea ? examJsonArea.value : '';
+                        modules.push({ type: 'module', title: title, topics: topics, exam_json: examJson });
+                    } else if (m.classList.contains('exam-wrapper')) {
+                        const examJsonArea = m.querySelector('.exam-json');
+                        const examJson = examJsonArea ? examJsonArea.value : '';
+                        modules.push({ type: 'exam', exam_json: examJson });
+                    }
+                } catch (err) {
+                    console.error('Error serializing module/exam at index ' + i, err);
+                }
             });
             return modules;
         }
@@ -1995,84 +2012,109 @@
             if (!modules || !Array.isArray(modules)) return;
 
             modules.forEach((m, i) => {
-                createModule(); // Adds a blank module at the end
-                const wrapper = container.lastElementChild;
-                wrapper.querySelector('.module-title-input').value = m.title || '';
-                if (m.exam_json) {
-                    wrapper.querySelector('.module-exam-json').value = m.exam_json;
-                }
+                if (m.type === 'exam' || (!m.type && m.exam_json && !m.topics)) {
+                    // Restore standalone exam
+                    let examData = null;
+                    try { examData = typeof m.exam_json === 'string' ? JSON.parse(m.exam_json) : m.exam_json; } catch(e) {}
+                    createCourseExam(null, examData);
+                } else {
+                    // Restore module
+                    createModule(); 
+                    const wrapper = container.lastElementChild;
+                    wrapper.querySelector('.module-title-input').value = m.title || '';
+                    if (m.exam_json) {
+                        wrapper.querySelector('.module-exam-json').value = m.exam_json;
+                        // For nested module exams, ensure UI is initialized if it has data
+                        let examData = null;
+                        try { examData = typeof m.exam_json === 'string' ? JSON.parse(m.exam_json) : m.exam_json; } catch(e) {}
+                        if (examData && examData.questions && examData.questions.length > 0) {
+                            ensureModuleExam(wrapper, examData);
+                        }
+                    }
 
-                const topicsContainer = wrapper.querySelector('.topics');
-                if (m.topics && Array.isArray(m.topics)) {
-                    m.topics.forEach((t, j) => {
-                        addTopicInput(topicsContainer);
-                        const topicRow = topicsContainer.lastElementChild;
-                        topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
-                        
-                        const subtopicsContainer = topicRow.querySelector('.subtopics');
-                        if (t.subtopics && Array.isArray(t.subtopics)) {
-                            t.subtopics.forEach((s, k) => {
-                                addSubtopicRow(topicRow); // Adds blank subtopic
-                                const subRow = subtopicsContainer.lastElementChild;
-                                subRow.querySelector('input[name*="[title]"]').value = s.title || '';
-                                const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
-                                fieldsArea.value = s.fields_json || '';
-                                
-                                // Restore fields visual
-                                const panel = subRow.querySelector('.fields-panel');
-                                if (s.fields_json) {
-                                    try {
-                                        const fields = JSON.parse(s.fields_json);
-                                        if (Array.isArray(fields)) {
-                                            fields.forEach(f => {
-                                                if (f.type === 'text') {
-                                                    addTextField(panel);
-                                                    const block = panel.querySelector('.field-block:last-child');
-                                                    const editor = block.querySelector('.editor');
-                                                    if (editor) editor.innerHTML = f.html || '';
-                                                } else if (f.type === 'question') {
-                                                    addQuestionField(panel);
-                                                    const block = panel.querySelector('.field-block:last-child');
-                                                    const qTitle = block.querySelector('.q-title');
-                                                    const qType = block.querySelector('.q-type');
-                                                    if (qTitle) qTitle.value = f.question.title || '';
-                                                    if (qType) {
-                                                        qType.value = f.question.type || 'multiple_choice';
-                                                        setupDefaultOptions(block); // Reset options based on type
-                                                        // Restore options/answers
-                                                        if (f.question.type === 'multiple_choice' && f.question.options) {
-                                                            const optsDiv = block.querySelector('.q-options');
-                                                            optsDiv.innerHTML = '';
-                                                            f.question.options.forEach(opt => {
-                                                                const div = document.createElement('div');
-                                                                div.className = 'q-option-row';
-                                                                div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" value="${opt.replace(/"/g, '&quot;')}" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                optsDiv.appendChild(div);
-                                                            });
-                                                            // Add "Add Option" button back
-                                                            const addBtn = document.createElement('button');
-                                                            addBtn.type = 'button';
-                                                            addBtn.className = 'btn-add-option';
-                                                            addBtn.innerText = '+ Add Option';
-                                                            addBtn.onclick = function() {
-                                                                const div = document.createElement('div');
-                                                                div.className = 'q-option-row';
-                                                                div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                optsDiv.insertBefore(div, addBtn);
-                                                            };
-                                                            optsDiv.appendChild(addBtn);
+                    const topicsContainer = wrapper.querySelector('.topics');
+                    if (m.topics && Array.isArray(m.topics)) {
+                        m.topics.forEach((t, j) => {
+                            addTopicInput(topicsContainer);
+                            const topicRow = topicsContainer.lastElementChild;
+                            topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
+                            
+                            const subtopicsContainer = topicRow.querySelector('.subtopics');
+                            if (t.subtopics && Array.isArray(t.subtopics)) {
+                                t.subtopics.forEach((s, k) => {
+                                    addSubtopicRow(topicRow); 
+                                    const subRow = subtopicsContainer.lastElementChild;
+                                    subRow.querySelector('input[name*="[title]"]').value = s.title || '';
+                                    const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
+                                    fieldsArea.value = s.fields_json || '';
+                                    
+                                    const panel = subRow.querySelector('.fields-panel');
+                                    if (s.fields_json) {
+                                        try {
+                                            const fields = JSON.parse(s.fields_json);
+                                            if (Array.isArray(fields)) {
+                                                fields.forEach(f => {
+                                                    if (f.type === 'text') {
+                                                        addTextField(panel);
+                                                        const block = panel.querySelector('.field-block:last-child');
+                                                        const editor = block.querySelector('.editor');
+                                                        if (editor) editor.innerHTML = f.html || '';
+                                                    } else if (f.type === 'question') {
+                                                        addQuestionField(panel);
+                                                        const block = panel.querySelector('.field-block:last-child');
+                                                        const qTitle = block.querySelector('.q-title');
+                                                        const qType = block.querySelector('.q-type');
+                                                        if (qTitle) qTitle.value = f.question.title || '';
+                                                        if (qType) {
+                                                            qType.value = f.question.type || 'multiple_choice';
+                                                            setupDefaultOptions(block); 
+                                                            if (f.question.type === 'multiple_choice' && f.question.options) {
+                                                                const optsDiv = block.querySelector('.q-options');
+                                                                optsDiv.innerHTML = '';
+                                                                f.question.options.forEach((opt, optIdx) => {
+                                                                    const div = document.createElement('div');
+                                                                    div.className = 'q-option-row';
+                                                                    const isCorrect = f.question.correct_answer == optIdx;
+                                                                    div.innerHTML = `<input type="radio" name="q-opt-${Date.now()}-${i}-${j}-${k}" ${isCorrect ? 'checked' : ''} disabled><input type="text" class="q-option" value="${opt.replace(/"/g, '&quot;')}" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
+                                                                    optsDiv.appendChild(div);
+                                                                });
+                                                                const addBtn = document.createElement('button');
+                                                                addBtn.type = 'button';
+                                                                addBtn.className = 'btn-add-option';
+                                                                addBtn.innerText = '+ Add Option';
+                                                                addBtn.onclick = function() {
+                                                                    const div = document.createElement('div');
+                                                                    div.className = 'q-option-row';
+                                                                    div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
+                                                                    optsDiv.insertBefore(div, addBtn);
+                                                                };
+                                                                optsDiv.appendChild(addBtn);
+                                                            } else if (f.question.type === 'true_false') {
+                                                                const optsDiv = block.querySelector('.q-options');
+                                                                if (optsDiv) {
+                                                                    optsDiv.querySelectorAll('input[type="radio"]').forEach((r, rIdx) => {
+                                                                        if ((f.question.answer === 'true' && rIdx === 0) || (f.question.answer === 'false' && rIdx === 1)) {
+                                                                            r.checked = true;
+                                                                        }
+                                                                    });
+                                                                }
+                                                            } else if (f.question.type === 'identification') {
+                                                                const ansInput = block.querySelector('.q-id-answer');
+                                                                if (ansInput) ansInput.value = f.question.answer || '';
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            });
-                                        }
-                                    } catch (e) {}
-                                }
-                            });
-                        }
-                    });
+                                                });
+                                            }
+                                        } catch (e) {}
+                                    }
+                                });
+                            }
+                        });
+                    }
                 }
             });
+            reindexModules();
         }
 
         // In case scripts load late in embedded iframe, ensure binding after load
@@ -2109,23 +2151,45 @@
             document.getElementById('confirmCertModal').style.display = 'none';
         }
         function saveDraft(){
-            const form = document.getElementById('courseForm');
-            const data = new FormData(form);
-            const obj = {};
-            data.forEach((v,k)=>{ if(!(v instanceof File)) obj[k]=v; });
-            
-            // Save image draft if present
-            const imgPreview = document.getElementById('imagePreview');
-            const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
-            if(imgTag && imgTag.src.startsWith('data:image')) {
-                obj['image_draft_data'] = imgTag.src;
+            try {
+                const form = document.getElementById('courseForm');
+                const data = new FormData(form);
+                const obj = {};
+                
+                // Collect only non-module fields to avoid duplication
+                data.forEach((v, k) => {
+                    if (!(v instanceof File) && !k.startsWith('modules[')) {
+                        obj[k] = v;
+                    }
+                });
+                
+                // Save image draft if present
+                const imgPreview = document.getElementById('imagePreview');
+                const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
+                if(imgTag && imgTag.src.startsWith('data:image')) {
+                    obj['image_draft_data'] = imgTag.src;
+                }
+                
+                // Save modules correctly via serialization
+                obj['modules'] = serializeModules();
+                
+                const key = draftKey();
+                const json = JSON.stringify(obj);
+                
+                try {
+                    localStorage.setItem(key, json);
+                    document.getElementById('draftSavedModal').style.display = 'flex';
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                        alert('Puno na ang storage ng iyong browser. Subukang magbura ng ibang drafts sa dashboard.');
+                    } else {
+                        throw e;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to save draft:', err);
+                alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
             }
-            
-            // Save modules
-            obj['modules'] = serializeModules();
-            
-            localStorage.setItem(draftKey(), JSON.stringify(obj));
-            document.getElementById('draftSavedModal').style.display = 'flex';
         }
         function closeDraftSavedModal() {
             document.getElementById('draftSavedModal').style.display = 'none';
@@ -2555,7 +2619,7 @@
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
         }
-        function ensureModuleExam(wrapper){
+        function ensureModuleExam(wrapper, prefill){
             const body = wrapper.querySelector('.module-body');
             const host = body.querySelector('.module-exam');
             const hidden = body.querySelector('.module-exam-json');
@@ -2695,7 +2759,60 @@
                 setActiveExamIndex(listEl.children.length);
             });
             syncBuilderBoxes(); syncExamJSON();
+
+            if(prefill){
+                try{
+                    host.querySelector('.exam-duration').value = prefill.timer_minutes || '';
+                    const listEl = host.querySelector('.exam-q-list');
+                    listEl.innerHTML = '';
+                    (prefill.questions||[]).forEach((q, i2)=>{
+                        const node = document.createElement('div');
+                        node.className = 'q-item';
+                        node.setAttribute('data-question-index', String(i2));
+                        node.innerHTML = '<div class="qi-title" style="font-weight:700">'+(i2+1)+'. '+(q.text||q.title||'')+'</div>'
+                            + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>'
+                            + '<button type="button" class="btn btn-small" style="background:#dc3545;margin-top:6px" onclick="removeExamItem(this)">Delete</button>';
+                        node.dataset.payload = JSON.stringify(q);
+                        listEl.appendChild(node);
+                    });
+                    if(typeof updateExamNavigator === 'function'){
+                        updateExamNavigator.call(wrapper);
+                    }
+                    syncExamJSON();
+                    if(prefill.questions && prefill.questions.length > 0) setActiveExamIndex(0);
+                }catch(e){}
+            }
             return host;
+        }
+
+        function removeExamItem(btn){
+            const node = btn.closest('.q-item');
+            const listEl = node.parentElement;
+            const wrap = btn.closest('.exam-wrapper') || btn.closest('.module-wrapper');
+            node.remove();
+            Array.from(listEl.children).forEach((n,i)=>{
+                const t = n.querySelector('.qi-title');
+                if(t){
+                    const payload = JSON.parse(n.dataset.payload||'{}');
+                    t.textContent = (i+1)+'. '+(payload.text||'');
+                    n.setAttribute('data-question-index', String(i));
+                }
+            });
+            if(typeof updateExamNavigator === 'function'){
+                updateExamNavigator.call(wrap);
+            }
+            // Trigger sync
+            const host = wrap.querySelector('.module-exam') || wrap;
+            if(host.dataset.bound==='1'){
+                const hidden = host.querySelector('.module-exam-json') || wrap.querySelector('.exam-json');
+                const duration = parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const qs = [];
+                listEl.querySelectorAll('.q-item').forEach(it=>{
+                    try{ const obj = JSON.parse(it.dataset.payload||'{}'); if(obj.text) qs.push(obj); }catch(e){}
+                });
+                if(hidden) hidden.value = JSON.stringify({ timer_minutes: duration, questions: qs });
+            }
+            setActiveExamIndex(0);
         }
         function openCorrectAnswerModal(wrap, proceed){
             window.__correctWrap = wrap;
