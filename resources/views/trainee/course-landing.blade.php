@@ -1233,11 +1233,13 @@
                             </div>
                             @php
                                 $currentUserId = \Illuminate\Support\Facades\Auth::id();
+                                $currentUserRole = \Illuminate\Support\Facades\Auth::user()->role ?? null;
+                                $isCoachRole = in_array($currentUserRole, ['trainer', 'coach'], true) || \Illuminate\Support\Str::endsWith((string) $currentUserRole, '_coach');
                                 $canPostAnnouncement = !empty($asTrainer)
-                                    || (\Illuminate\Support\Facades\Auth::check() && in_array((\Illuminate\Support\Facades\Auth::user()->role ?? null), ['trainer', 'coach'], true))
+                                    || (\Illuminate\Support\Facades\Auth::check() && $isCoachRole)
                                     || ($course->users && $course->users->contains(function ($u) use ($currentUserId) {
                                         return (int) $u->id === (int) $currentUserId
-                                            && in_array(($u->role ?? null), ['trainer', 'coach'], true);
+                                            && (in_array(($u->role ?? null), ['trainer', 'coach'], true) || \Illuminate\Support\Str::endsWith((string) ($u->role ?? null), '_coach'));
                                     }));
                             @endphp
                             @if($canPostAnnouncement)
@@ -1380,7 +1382,7 @@
                     </div>
                     @php
                         $role = \Illuminate\Support\Facades\Auth::user()->role ?? null;
-                        $coachCtx = !empty($asTrainer) || in_array($role, ['trainer','coach'], true);
+                        $coachCtx = !empty($asTrainer) || in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
                         $outlineUrl = $coachCtx
                             ? route('trainer.courses.view', $course)
                             : route('trainee.courses.outline', $course);
@@ -1390,7 +1392,8 @@
 
                 <!-- Container 2: Materials and Assessments -->
                 @php
-                    $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && ((\Illuminate\Support\Facades\Auth::user()->role ?? null) === 'trainer'));
+                    $currentRole = \Illuminate\Support\Facades\Auth::user()->role ?? null;
+                    $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && (in_array($currentRole, ['trainer', 'coach'], true) || \Illuminate\Support\Str::endsWith((string) $currentRole, '_coach')));
                 @endphp
                 @if(!empty($asTrainer))
                 <div class="container-box" id="progressContainer" style="margin-bottom:12px;">

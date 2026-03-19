@@ -223,7 +223,7 @@
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
             @php
                 $role = auth()->user()->role ?? null;
-                $isCoach = in_array($role, ['trainer','coach'], true);
+                $isCoach = in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
                 $backUrl = $isCoach ? route('trainer.courses.enter', $course) : route('trainee.courses.show', $course);
             @endphp
             <a href="{{ $backUrl }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
