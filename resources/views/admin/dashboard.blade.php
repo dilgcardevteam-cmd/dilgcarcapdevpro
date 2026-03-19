@@ -3299,50 +3299,337 @@
         .user-details-shell {
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 22px;
+            padding: 8px 0 22px;
         }
 
         .user-details-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
         }
 
         .user-details-back {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            border: 1px solid #d6dde8;
-            border-radius: 10px;
-            background: #ffffff;
-            color: #1f3f78;
-            padding: 10px 14px;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid rgba(11, 44, 118, 0.12);
+            border-radius: 18px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            color: #123b85;
+            padding: 14px 18px;
             cursor: pointer;
-            font-weight: 700;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+            font-weight: 800;
+            font-size: 0.96rem;
+            letter-spacing: -0.01em;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
         }
 
         .user-details-back:hover {
-            background: #f8fbff;
-            border-color: #9fb1cf;
+            transform: translateY(-1px);
+            border-color: rgba(11, 44, 118, 0.28);
+            box-shadow: 0 20px 38px rgba(15, 23, 42, 0.12);
+        }
+
+        .user-details-hero {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(11, 44, 118, 0.08);
+            border-radius: 26px;
+            padding: 24px 28px;
+            background:
+                radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 34%),
+                radial-gradient(circle at bottom left, rgba(11, 44, 118, 0.10), transparent 30%),
+                linear-gradient(135deg, #ffffff 0%, #f6f9ff 52%, #eef4ff 100%);
+            box-shadow: 0 28px 60px rgba(15, 23, 42, 0.10);
+        }
+
+        .user-details-hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -60px -80px auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(11, 44, 118, 0.10), rgba(59, 130, 246, 0.04));
+            pointer-events: none;
+        }
+
+        .user-details-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(11, 44, 118, 0.08);
+            color: #0b3b8f;
+            font-size: 0.76rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .user-details-headline {
+            margin: 0;
+            color: #0f172a;
+            font-size: clamp(1.55rem, 2vw, 2.15rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.02;
+            max-width: 560px;
         }
 
         .user-details-note {
-            color: #64748b;
-            font-size: 0.92rem;
+            margin-top: 10px;
+            color: #52627a;
+            font-size: 1rem;
+            line-height: 1.65;
+            max-width: 680px;
         }
 
         #userDetailsMount .profile-edit-modal {
             width: 100%;
             max-width: none;
-            border-radius: 18px;
-            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.08);
+            border-radius: 30px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(248,250,252,0.98) 100%);
+            box-shadow: 0 32px 70px rgba(2, 6, 23, 0.12);
+            overflow: hidden;
+        }
+
+        #userDetailsMount .close {
+            top: 22px;
+            right: 24px;
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(203, 213, 225, 0.85);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        #userDetailsMount .profile-edit-header {
+            position: relative;
+            padding: 34px 34px 20px;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),
+                linear-gradient(135deg, #0b2c76 0%, #123f92 52%, #1d4fa8 100%);
+            border-bottom: none;
+        }
+
+        #userDetailsMount .profile-edit-header::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            top: -36px;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 65%);
+            pointer-events: none;
+        }
+
+        #userDetailsMount .profile-user-brief {
+            position: relative;
+            z-index: 1;
+            align-items: center;
+            gap: 18px;
+        }
+
+        #userDetailsMount .profile-user-avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 14px 28px rgba(2, 6, 23, 0.18);
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+
+        #userDetailsMount .profile-edit-title,
+        #userDetailsMount .profile-user-email,
+        #userDetailsMount .profile-edit-subtitle {
+            color: #ffffff;
+        }
+
+        #userDetailsMount .profile-edit-title {
+            font-size: clamp(1.7rem, 2vw, 2.35rem);
+            letter-spacing: -0.04em;
+        }
+
+        #userDetailsMount .profile-user-email {
+            opacity: 0.82;
+            font-size: 0.98rem;
+        }
+
+        #userDetailsMount .profile-edit-subrow {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(10px);
+        }
+
+        #userDetailsMount .profile-edit-subtitle {
+            color: rgba(255,255,255,0.88);
+            max-width: 760px;
+        }
+
+        #userDetailsMount .profile-header-actions {
+            gap: 12px;
+        }
+
+        #userDetailsMount .modal-action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.14);
         }
 
         #userDetailsMount .profile-edit-form {
-            padding-bottom: 24px;
+            padding: 0 28px 30px;
+        }
+
+        #userDetailsMount .modal-tabs {
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 12px !important;
+            margin: 0;
+            padding: 18px 2px 4px;
+            border-bottom: none !important;
+        }
+
+        #userDetailsMount .modal-tab {
+            border: 1px solid #dbe5f2 !important;
+            border-bottom: 1px solid #dbe5f2 !important;
+            background: #ffffff !important;
+            color: #52627a !important;
+            padding: 11px 16px !important;
+            border-radius: 999px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.01em;
+            transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+        }
+
+        #userDetailsMount .modal-tab:hover {
+            transform: translateY(-1px);
+            border-color: #b9cbeb !important;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        #userDetailsMount .modal-tab.active {
+            background: linear-gradient(180deg, #0f3b8f 0%, #123b85 100%) !important;
+            color: #ffffff !important;
+            border-color: #0f3b8f !important;
+            box-shadow: 0 14px 24px rgba(15, 59, 143, 0.18);
+        }
+
+        #userDetailsMount .profile-section {
+            margin-top: 12px;
+            padding: 24px;
+            border: 1px solid #e8eef7;
+            border-radius: 24px;
+            background:
+                linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+        }
+
+        #userDetailsMount .profile-section-title {
+            margin-bottom: 20px;
+            font-size: 0.94rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #173b83;
+        }
+
+        #userDetailsMount .profile-section-title svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        #userDetailsMount .profile-edit-grid,
+        #userDetailsMount .profile-location-grid {
+            gap: 18px 20px;
+        }
+
+        #userDetailsMount .form-group label {
+            font-size: 0.82rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+        }
+
+        #userDetailsMount .field-with-icon input,
+        #userDetailsMount .field-with-icon select {
+            min-height: 58px;
+            border-radius: 16px;
+            border: 1px solid #dbe4f0;
+            background: #f8fbff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        #userDetailsMount .field-with-icon {
+            border-radius: 18px;
+        }
+
+        #userDetailsMount .role-choice-grid {
+            gap: 16px;
+        }
+
+        #userDetailsMount .role-choice-card {
+            border-radius: 22px;
+            padding: 20px 18px;
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+        }
+
+        #userDetailsMount .permission-accordion {
+            border-radius: 22px;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+        }
+
+        #userDetailsMount .permission-accordion-header {
+            padding: 18px 20px;
+        }
+
+        #userDetailsMount .permission-accordion-content {
+            padding: 0 18px 18px;
+        }
+
+        #userDetailsMount .profile-password-wrap {
+            max-width: 760px;
+        }
+
+        @media (max-width: 980px) {
+            .user-details-topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .user-details-hero {
+                padding: 22px 22px 24px;
+            }
+
+            #userDetailsMount .profile-edit-header {
+                padding: 28px 22px 18px;
+            }
+
+            #userDetailsMount .profile-edit-form {
+                padding: 0 18px 22px;
+            }
         }
 
         @media (max-width: 640px) {
@@ -4933,7 +5220,14 @@
                             <i class="fas fa-arrow-left"></i>
                             Back to User Management
                         </button>
-                        <div class="user-details-note">Manage the selected account directly in the main workspace.</div>
+                        <div class="user-details-hero">
+                            <div class="user-details-kicker">
+                                <i class="fas fa-user-shield"></i>
+                                Account Workspace
+                            </div>
+                            <h2 class="user-details-headline">Review identity, access, and security in one focused admin workspace.</h2>
+                            <div class="user-details-note">Manage the selected account directly in the main workspace with a cleaner profile flow for updates, role assignment, permissions, and security review.</div>
+                        </div>
                     </div>
                     <div id="userDetailsMount"></div>
                 </div>

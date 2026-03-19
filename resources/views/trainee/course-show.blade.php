@@ -861,6 +861,26 @@
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>
                         <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
                     </div>`;
+                }else if(kind==='enumeration'){
+                    const answers = Array.isArray(q.answers) ? q.answers : [];
+                    const maxPoints = Number(q.max_points || 1) || 1;
+                    if(showTrainerAnswer){
+                        const list = answers.length
+                            ? `<div style="display:grid;gap:6px;margin-top:8px">${answers.map((answer, index)=>`<div><span class="chip">Answer ${index + 1}</span> ${esc(answer)}</div>`).join('')}</div>`
+                            : '<div class="muted">No correct answers configured.</div>';
+                        return `<div class="field question" data-kind="enum">
+                            <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Enumeration')}</div>
+                            ${list}
+                            <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
+                        </div>`;
+                    }
+                    return `<div class="field question" data-kind="enum">
+                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Enumeration')}</div>
+                        <div class="muted" style="margin-bottom:8px">Provide one answer per field. Order does not matter.</div>
+                        <div class="enum-list" style="display:grid;gap:10px">
+                            ${answers.map((_, index)=>`<input class="q-input input enum-input" type="text" placeholder="Answer ${index + 1}" data-enum-index="${index}">`).join('')}
+                        </div>
+                    </div>`;
                 }else if(kind==='essay'){
                     const maxPoints = Number(q.max_points || 1) || 1;
                     if(showTrainerAnswer){
@@ -973,6 +993,7 @@
                     max_points: q.max_points ?? null,
                     answer_index: q.answer_index ?? null,
                     answer: q.answer ?? null,
+                    answers: Array.isArray(q.answers) ? q.answers : [],
                     choices: Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : [])
                 })));
                 try{
@@ -999,6 +1020,8 @@
                             return sel ? parseInt(sel.getAttribute('data-idx'),10) : null;
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
+                        }else if(kind==='enum'){
+                            return Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim());
                         }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
                         }else if(kind==='tf'){
@@ -1023,6 +1046,11 @@
                             }
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
+                        }else if(kind==='enum'){
+                            const arr = Array.isArray(val) ? val : [];
+                            b.querySelectorAll('.enum-input').forEach((inp, idx)=>{
+                                inp.value = arr[idx] || '';
+                            });
                         }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='tf'){
@@ -1035,34 +1063,61 @@
                     blocks.forEach(b=>{
                         if(val){
                             b.style.pointerEvents='none';
-                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
+                            b.querySelectorAll('.q-input').forEach(inp=>{ inp.disabled = true; });
                         }else{
                             b.style.pointerEvents='auto';
-                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=false; }
+                            b.querySelectorAll('.q-input').forEach(inp=>{ inp.disabled = false; });
                         }
                     });
                 }
+                function normalizeEnumAnswers(values){
+                    const arr = Array.isArray(values) ? values : [];
+                    const seen = new Set();
+                    const out = [];
+                    arr.forEach(value=>{
+                        const cleaned = String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+                        if(!cleaned || seen.has(cleaned)) return;
+                        seen.add(cleaned);
+                        out.push(cleaned);
+                    });
+                    return out;
+                }
                 function computeGrade(){
                     const answers = JSON.parse(localStorage.getItem(keyBase+'_answers')||'[]') || [];
-                    let total = qs.length, correct = 0;
+                    let total = 0, correct = 0;
                     for(let i=0;i<qs.length;i++){
                         const q = qs[i]||{};
                         const kind = q.type || 'multiple_choice';
                         const a = answers[i];
                         if(kind==='multiple_choice'){
-                            if(Number.isInteger(q.answer_index) && Number.isInteger(a) && a===q.answer_index) correct++;
+                            const maxPoints = Number(q.max_points || 1) || 1;
+                            total += maxPoints;
+                            if(Number.isInteger(q.answer_index) && Number.isInteger(a) && a===q.answer_index) correct += maxPoints;
                         }else if(kind==='true_false'){
+                            const maxPoints = Number(q.max_points || 1) || 1;
+                            total += maxPoints;
                             const val = q.answer===true?'true':(q.answer===false?'false':'');
-                            if(a && String(a).toLowerCase()===val) correct++;
+                            if(a && String(a).toLowerCase()===val) correct += maxPoints;
                         }else if(kind==='identification'){
+                            const maxPoints = Number(q.max_points || 1) || 1;
+                            total += maxPoints;
                             const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
                             const ok = ansList.some(x=> String(x||'').trim().toLowerCase() === String(a||'').trim().toLowerCase());
-                            if(ok) correct++;
+                            if(ok) correct += maxPoints;
+                        }else if(kind==='enumeration'){
+                            const maxPoints = Number(q.max_points || 1) || 1;
+                            total += maxPoints;
+                            const correctAnswers = normalizeEnumAnswers(q.answers || []);
+                            const submittedAnswers = normalizeEnumAnswers(a);
+                            const matchCount = submittedAnswers.filter(value => correctAnswers.includes(value)).length;
+                            if(correctAnswers.length){
+                                correct += (matchCount / correctAnswers.length) * maxPoints;
+                            }
                         }
                     }
                     const pct = total ? Math.round((correct/total)*100) : 0;
                     const essayTotal = qs.filter(q => (q.type||'')==='essay').length;
-                    return {correct,total,pct,essayTotal};
+                    return {correct:Number(correct.toFixed(2)),total:Number(total.toFixed(2)),pct,essayTotal};
                 }
                 bodyEl.querySelectorAll('.field.question[data-kind="mc"] .mc .mc-option').forEach(opt=>{
                     opt.addEventListener('click', ()=>{
@@ -1088,6 +1143,9 @@
                     inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
                 });
                 bodyEl.querySelectorAll('.field.question[data-kind="essay"] .q-input').forEach(inp=>{
+                    inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
+                });
+                bodyEl.querySelectorAll('.field.question[data-kind="enum"] .q-input').forEach(inp=>{
                     inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
                 });
                 const submitAll = bodyEl.querySelector('#examSubmitAll');
@@ -1198,7 +1256,7 @@
                             <div style="font-size:0.95rem;font-weight:800;color:${statusColor}">${statusLabel}</div>
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} objective correct</span>
+                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} objective score</span>
                               ${essayPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${essayPending} essay pending</span>` : ``}
                               ${essayChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${essayChecked} essay checked</span>` : ``}
                               ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
@@ -1326,6 +1384,26 @@
                                 b.appendChild(info);
                             }
                             const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
+                        } else if(kind==='enumeration'){
+                            const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'enumeration') || null;
+                            const inputs = Array.from(b.querySelectorAll('.enum-input'));
+                            const yourAnswers = Array.isArray(ua?.[i]) ? ua[i] : [];
+                            inputs.forEach((input, idx)=>{
+                                input.disabled = true;
+                                input.value = yourAnswers[idx] || '';
+                            });
+                            const info = document.createElement('div');
+                            info.className='muted';
+                            info.style.marginTop='8px';
+                            const submitted = Array.isArray(response?.answer_texts) ? response.answer_texts : yourAnswers.filter(Boolean);
+                            const correctAnswers = Array.isArray(response?.correct_answers) ? response.correct_answers : (Array.isArray(q.answers) ? q.answers : []);
+                            const scoreLine = response
+                                ? `<div><span class="chip">Score</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
+                                : '';
+                            const yourLine = submitted.length ? `<div style="margin-top:6px"><b>Your answers:</b> ${submitted.join(', ')}</div>` : '<div style="margin-top:6px"><b>Your answers:</b> None</div>';
+                            const correctLine = correctAnswers.length ? `<div style="margin-top:6px"><b>Correct answers:</b> ${correctAnswers.join(', ')}</div>` : '';
+                            info.innerHTML = `${scoreLine}${yourLine}${correctLine}`;
+                            b.appendChild(info);
                         } else if(kind==='essay'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'essay') || null;
                             const textarea = b.querySelector('.q-input');
@@ -1372,6 +1450,9 @@
                             const sel=b.querySelector('.mc .mc-option.selected'); if(sel) answered++;
                         }else if(kind==='id'){
                             const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
+                        }else if(kind==='enum'){
+                            const vals = Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim()).filter(Boolean);
+                            if(vals.length) answered++;
                         }else if(kind==='essay'){
                             const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
                         }else if(kind==='tf'){

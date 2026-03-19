@@ -3124,6 +3124,7 @@
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
                                         <option value="essay">Essay</option>
+                                        <option value="enumeration">Enumeration</option>
                                     </select>
                                 </label>
                             </div>
@@ -3140,9 +3141,20 @@
                                     <option value="false">False</option>
                                 </select>
                             </div>
+                            <div class="eq-points" style="margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Points</label>
+                                <input class="eq-common-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
                             <div class="eq-essay" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
                                 <input class="eq-essay-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
+                            <div class="eq-enum" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Correct Answers</label>
+                                <div class="eq-enum-answers" style="display:grid;gap:8px"></div>
+                                <button type="button" class="btn btn-small eq-enum-add" style="margin-top:8px;background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px">Add Answer</button>
+                                <label class="q-label" style="margin:10px 0 6px">Points</label>
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
@@ -3175,6 +3187,7 @@
                 host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
                 host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                host.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
                 host.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
             }
@@ -3272,13 +3285,36 @@
                     if(ai!=null && radios[ai]) radios[ai].checked=true;
                 }else if(type==='identification'){
                     const ans = String(payload.answer||''); const a = host.querySelector('.eq-id-answer'); if(a) a.value = ans;
+                    const commonPoints = host.querySelector('.eq-common-points');
+                    if(commonPoints){
+                        const maxPoints = Number(payload.max_points ?? 1);
+                        commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                    }
                 }else if(type==='true_false'){
                     const a = host.querySelector('.eq-tf-answer'); if(a) a.value = payload.answer===false ? 'false' : 'true';
+                    const commonPoints = host.querySelector('.eq-common-points');
+                    if(commonPoints){
+                        const maxPoints = Number(payload.max_points ?? 1);
+                        commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                    }
+                }else if(type==='multiple_choice'){
+                    const commonPoints = host.querySelector('.eq-common-points');
+                    if(commonPoints){
+                        const maxPoints = Number(payload.max_points ?? 1);
+                        commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                    }
                 }else if(type==='essay'){
                     const essayPoints = host.querySelector('.eq-essay-points');
                     if(essayPoints){
                         const maxPoints = Number(payload.max_points ?? 1);
                         essayPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                    }
+                }else if(type==='enumeration'){
+                    renderEnumerationAnswers(Array.isArray(payload.answers) ? payload.answers : []);
+                    const enumPoints = host.querySelector('.eq-enum-points');
+                    if(enumPoints){
+                        const maxPoints = Number(payload.max_points ?? 1);
+                        enumPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
                     }
                 }
             }
@@ -3288,7 +3324,10 @@
                 host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 const id = host.querySelector('.eq-id-answer'); if(id) id.value='';
                 const tf = host.querySelector('.eq-tf-answer'); if(tf) tf.value='';
+                const commonPoints = host.querySelector('.eq-common-points'); if(commonPoints) commonPoints.value='1';
                 const essayPoints = host.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='1';
+                renderEnumerationAnswers();
+                const enumPoints = host.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='1';
                 const focus = host.querySelector('.eq-text'); if(focus) focus.focus();
             }
             function getActiveIndex(){
@@ -3455,16 +3494,18 @@
                 // Create a brand-new blank question object (independent state)
                 let obj = null;
                 if(t==='multiple_choice'){
-                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
+                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: 1 };
                 }else if(t==='identification'){
-                    obj = { type:'identification', text:'', answer: '' };
-                    }else if(t==='true_false'){
-                        obj = { type:'true_false', text:'', answer: null };
-                    }else if(t==='essay'){
-                        obj = { type:'essay', text:'', max_points: 1 };
-                    } else {
-                        obj = { type:String(t||'multiple_choice'), text:'' };
-                    }
+                    obj = { type:'identification', text:'', answer: '', max_points: 1 };
+                }else if(t==='true_false'){
+                    obj = { type:'true_false', text:'', answer: null, max_points: 1 };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text:'', max_points: 1 };
+                }else if(t==='enumeration'){
+                    obj = { type:'enumeration', text:'', answers:['', ''], max_points: 1 };
+                } else {
+                    obj = { type:String(t||'multiple_choice'), text:'' };
+                }
                 const listEl = host.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
                 const node = document.createElement('div');
@@ -3479,7 +3520,10 @@
                 host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 host.querySelector('.eq-id-answer').value='';
                 const tfSel = host.querySelector('.eq-tf-answer'); if(tfSel){ tfSel.value=''; }
+                const commonPoints = host.querySelector('.eq-common-points'); if(commonPoints){ commonPoints.value='1'; }
                 const essayPoints = host.querySelector('.eq-essay-points'); if(essayPoints){ essayPoints.value='1'; }
+                renderEnumerationAnswers();
+                const enumPoints = host.querySelector('.eq-enum-points'); if(enumPoints){ enumPoints.value='1'; }
                 addGroupFor(obj.type);
                 syncExamJSON();
                 updateNav();
@@ -3495,21 +3539,28 @@
                     const t = host.querySelector('.eq-type').value;
                     const text = (host.querySelector('.eq-text').value||'').trim();
                     let obj = null;
-                    if(t==='multiple_choice'){
-                        const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim());
-                        const checked = host.querySelector('.eq-correct:checked');
-                        const ans = checked ? parseInt(checked.value,10) : null;
-                        obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                if(t==='multiple_choice'){
+                    const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim());
+                    const checked = host.querySelector('.eq-correct:checked');
+                    const ans = checked ? parseInt(checked.value,10) : null;
+                    const maxPoints = Number(host.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='identification'){
                         const ans = (host.querySelector('.eq-id-answer').value||'').trim();
-                        obj = { type:'identification', text, answer: ans };
+                        const maxPoints = Number(host.querySelector('.eq-common-points')?.value || 1);
+                        obj = { type:'identification', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='true_false'){
                         const val = host.querySelector('.eq-tf-answer').value;
                         const ans = val === '' ? null : (val === 'true');
-                        obj = { type:'true_false', text, answer: ans };
+                        const maxPoints = Number(host.querySelector('.eq-common-points')?.value || 1);
+                        obj = { type:'true_false', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='essay'){
                         const maxPoints = Number(host.querySelector('.eq-essay-points')?.value || 1);
                         obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                    }else if(t==='enumeration'){
+                        const answers = Array.from(host.querySelectorAll('.eq-enum-answer')).map(i=>i.value.trim());
+                        const maxPoints = Number(host.querySelector('.eq-enum-points')?.value || 1);
+                        obj = { type:'enumeration', text, answers, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3540,10 +3591,12 @@
                 let answerIndex = null;
                 if(typeof q.answer_index === 'number' && !isNaN(q.answer_index)) answerIndex = q.answer_index;
                 else if(q.correct_answer !== undefined && q.correct_answer !== null && q.correct_answer !== '' && !isNaN(Number(q.correct_answer))) answerIndex = Number(q.correct_answer);
-                return { type:'multiple_choice', text, choices, answer_index: answerIndex };
+                const maxPoints = Number(q.max_points ?? 1);
+                return { type:'multiple_choice', text, choices, answer_index: answerIndex, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
             }
             if(type === 'identification'){
-                return { type:'identification', text, answer: String(q.answer ?? q.correct_answer ?? '') };
+                const maxPoints = Number(q.max_points ?? 1);
+                return { type:'identification', text, answer: String(q.answer ?? q.correct_answer ?? ''), max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
             }
             if(type === 'true_false'){
                 let answer = null;
@@ -3552,11 +3605,17 @@
                 else if(String(q.answer).toLowerCase() === 'false') answer = false;
                 else if(String(q.correct_answer).toLowerCase() === 'true') answer = true;
                 else if(String(q.correct_answer).toLowerCase() === 'false') answer = false;
-                return { type:'true_false', text, answer };
+                const maxPoints = Number(q.max_points ?? 1);
+                return { type:'true_false', text, answer, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
             }
             if(type === 'essay'){
                 const maxPoints = Number(q.max_points ?? 1);
                 return { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+            }
+            if(type === 'enumeration'){
+                const answers = Array.isArray(q.answers) ? q.answers : (Array.isArray(q.correct_answers) ? q.correct_answers : []);
+                const maxPoints = Number(q.max_points ?? 1);
+                return { type:'enumeration', text, answers: answers.map(function(answer){ return String(answer ?? ''); }), max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
             }
             return { type, text, answer: String(q.answer ?? '') };
         }
@@ -3616,6 +3675,7 @@
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
                                         <option value="essay">Essay</option>
+                                        <option value="enumeration">Enumeration</option>
                                     </select>
                                 </label>
                             </div>
@@ -3632,9 +3692,20 @@
                                     <option value="false">False</option>
                                 </select>
                             </div>
+                            <div class="eq-points" style="margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Points</label>
+                                <input class="eq-common-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
                             <div class="eq-essay" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
                                 <input class="eq-essay-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
+                            <div class="eq-enum" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Correct Answers</label>
+                                <div class="eq-enum-answers" style="display:grid;gap:8px"></div>
+                                <button type="button" class="btn btn-small eq-enum-add" style="margin-top:8px;background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px">Add Answer</button>
+                                <label class="q-label" style="margin:10px 0 6px">Points</label>
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
@@ -3714,14 +3785,53 @@
                     wrapChoices.appendChild(row);
                 });
             }
+            function renderEnumerationAnswers(values){
+                const answerWrap = wrap.querySelector('.eq-enum-answers');
+                if(!answerWrap) return;
+                answerWrap.innerHTML = '';
+                const entries = Array.isArray(values) && values.length ? values : ['', ''];
+                entries.forEach(value=>{
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.innerHTML = `
+                        <input type="text" class="eq-enum-answer" placeholder="Correct answer" value="${String(value || '').replace(/"/g,'&quot;')}" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                        <button type="button" class="btn btn-small eq-enum-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px">Remove</button>
+                    `;
+                    answerWrap.appendChild(row);
+                });
+            }
             function syncBuilderBoxes(){
                 const t = wrap.querySelector('.eq-type').value;
                 wrap.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
                 wrap.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 wrap.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                wrap.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
                 wrap.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
+                wrap.querySelector('.eq-enum').style.display = (t==='enumeration') ? 'block':'none';
                 if(t==='multiple_choice' && wrap.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                if(t==='enumeration' && wrap.querySelectorAll('.eq-enum-answer').length===0){ renderEnumerationAnswers(); }
             }
+            wrap.addEventListener('click', function(e){
+                const addBtn = e.target.closest('.eq-enum-add');
+                if(addBtn){
+                    e.preventDefault();
+                    const current = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> i.value);
+                    current.push('');
+                    renderEnumerationAnswers(current);
+                    return;
+                }
+                const removeBtn = e.target.closest('.eq-enum-remove');
+                if(removeBtn){
+                    e.preventDefault();
+                    const rows = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> i.value);
+                    const row = removeBtn.closest('.q-option-row');
+                    const idx = Array.from(wrap.querySelectorAll('.eq-enum-answers .q-option-row')).indexOf(row);
+                    const next = rows.filter((_, i)=> i !== idx);
+                    renderEnumerationAnswers(next.length ? next : ['', '']);
+                    const ev = new Event('input', { bubbles:true });
+                    wrap.dispatchEvent(ev);
+                }
+            });
             function syncExamJSON(){
                 const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
@@ -3745,7 +3855,10 @@
                 // Clear identification and true/false answers
                 const idAns = wrap.querySelector('.eq-id-answer'); if(idAns) idAns.value = '';
                 const tfSel = wrap.querySelector('.eq-tf-answer'); if(tfSel) tfSel.value = '';
+                const commonPoints = wrap.querySelector('.eq-common-points'); if(commonPoints) commonPoints.value = '1';
                 const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value = '1';
+                renderEnumerationAnswers();
+                const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value = '1';
                 // Update payload for active item to a blank object of the selected type
                 const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
                 const idx = getActiveExamIndex(wrap);
@@ -3753,14 +3866,20 @@
                     const text = (wrap.querySelector('.eq-text').value||'').trim();
                     let obj = null;
                     if(t==='multiple_choice'){
-                        obj = { type:'multiple_choice', text, choices:['','','',''], answer_index: null };
+                        const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                        obj = { type:'multiple_choice', text, choices:['','','',''], answer_index: null, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='identification'){
-                        obj = { type:'identification', text, answer: '' };
+                        const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                        obj = { type:'identification', text, answer: '', max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='true_false'){
-                        obj = { type:'true_false', text, answer: null };
+                        const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                        obj = { type:'true_false', text, answer: null, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     }else if(t==='essay'){
                         const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
                         obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                    }else if(t==='enumeration'){
+                        const maxPoints = Number(wrap.querySelector('.eq-enum-points')?.value || 1);
+                        obj = { type:'enumeration', text, answers:['', ''], max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3875,17 +3994,24 @@
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
                     const checked = wrap.querySelector('.eq-correct:checked');
                     const ans = checked ? parseInt(checked.value,10) : null;
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
-                    obj = { type:'identification', text, answer: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'identification', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
-                    obj = { type:'true_false', text, answer: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'true_false', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='essay'){
                     const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
                     obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                }else if(t==='enumeration'){
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=>i.value.trim());
+                    const maxPoints = Number(wrap.querySelector('.eq-enum-points')?.value || 1);
+                    obj = { type:'enumeration', text, answers, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 } else {
                     obj = { type:String(t||'multiple_choice'), text };
                 }
@@ -3906,6 +4032,10 @@
                     obj = { type:'identification', text:'', answer: '' };
                 }else if(t==='true_false'){
                     obj = { type:'true_false', text:'', answer: null };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text:'', max_points: 1 };
+                }else if(t==='enumeration'){
+                    obj = { type:'enumeration', text:'', answers:['', ''], max_points: 1 };
                 } else {
                     obj = { type:String(t||'multiple_choice'), text:'' };
                 }
@@ -3939,6 +4069,7 @@
                 else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '' }; }
                 else if(tVal==='true_false'){ obj = { type:'true_false', text:'', answer: null }; }
                 else if(tVal==='essay'){ obj = { type:'essay', text:'', max_points: 1 }; }
+                else if(tVal==='enumeration'){ obj = { type:'enumeration', text:'', answers:['', ''], max_points: 1 }; }
                 else { obj = { type:String(tVal||'multiple_choice'), text:'' }; }
                 const node = document.createElement('div');
                 node.className = 'q-item';
@@ -4203,16 +4334,44 @@
                 radios.forEach(r=> r.checked = false);
                 const ai = typeof payload.answer_index==='number' ? payload.answer_index : 0;
                 if(radios[ai]) radios[ai].checked = true;
+                const commonPoints = wrap.querySelector('.eq-common-points');
+                if(commonPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
             }else if(type==='identification'){
                 const ans = String(payload.answer||'');
                 wrap.querySelector('.eq-id-answer').value = ans;
+                const commonPoints = wrap.querySelector('.eq-common-points');
+                if(commonPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
             }else if(type==='true_false'){
                 wrap.querySelector('.eq-tf-answer').value = payload.answer===false ? 'false' : 'true';
+                const commonPoints = wrap.querySelector('.eq-common-points');
+                if(commonPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
+            }else if(type==='multiple_choice'){
+                const commonPoints = wrap.querySelector('.eq-common-points');
+                if(commonPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    commonPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
             }else if(type==='essay'){
                 const essayPoints = wrap.querySelector('.eq-essay-points');
                 if(essayPoints){
                     const maxPoints = Number(payload.max_points ?? 1);
                     essayPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
+            }else if(type==='enumeration'){
+                ensureEnumerationRows(wrap, Array.isArray(payload.answers) ? payload.answers : []);
+                const enumPoints = wrap.querySelector('.eq-enum-points');
+                if(enumPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    enumPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
                 }
             }
         }
@@ -4221,14 +4380,21 @@
             const boxChoices = wrap.querySelector('.eq-choices');
             const boxId = wrap.querySelector('.eq-id');
             const boxTf = wrap.querySelector('.eq-tf');
+            const boxPoints = wrap.querySelector('.eq-points');
             const boxEssay = wrap.querySelector('.eq-essay');
+            const boxEnum = wrap.querySelector('.eq-enum');
             if(boxChoices) boxChoices.style.display = (t==='multiple_choice') ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
+            if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration') ? 'none' : 'block';
             if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
+            if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
             if(t==='multiple_choice'){
                 const rows = wrap.querySelectorAll('.eq-choices .q-option-row');
                 if(rows.length===0) ensureChoiceRows(wrap);
+            }
+            if(t==='enumeration' && wrap.querySelectorAll('.eq-enum-answer').length===0){
+                ensureEnumerationRows(wrap);
             }
         }
         function ensureChoiceRows(wrap){
@@ -4248,6 +4414,46 @@
                 wrapChoices.appendChild(row);
             });
         }
+        function ensureEnumerationRows(wrap, values){
+            const answerWrap = wrap.querySelector('.eq-enum-answers');
+            if(!answerWrap) return;
+            answerWrap.innerHTML = '';
+            const entries = Array.isArray(values) && values.length ? values : ['', ''];
+            entries.forEach(value=>{
+                const row = document.createElement('div');
+                row.className = 'q-option-row';
+                row.innerHTML = `
+                    <input type="text" class="eq-enum-answer" placeholder="Correct answer" value="${String(value || '').replace(/"/g,'&quot;')}" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                    <button type="button" class="btn btn-small eq-enum-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px">Remove</button>
+                `;
+                answerWrap.appendChild(row);
+            });
+        }
+        document.addEventListener('click', function(e){
+            const wrap = e.target.closest('.exam-wrapper');
+            if(!wrap) return;
+            const addBtn = e.target.closest('.eq-enum-add');
+            if(addBtn){
+                e.preventDefault();
+                const current = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> i.value);
+                current.push('');
+                ensureEnumerationRows(wrap, current);
+                const ev = new Event('input', { bubbles:true });
+                wrap.dispatchEvent(ev);
+                return;
+            }
+            const removeBtn = e.target.closest('.eq-enum-remove');
+            if(removeBtn){
+                e.preventDefault();
+                const rows = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> i.value);
+                const row = removeBtn.closest('.q-option-row');
+                const idx = Array.from(wrap.querySelectorAll('.eq-enum-answers .q-option-row')).indexOf(row);
+                const next = rows.filter((_, i)=> i !== idx);
+                ensureEnumerationRows(wrap, next.length ? next : ['', '']);
+                const ev = new Event('input', { bubbles:true });
+                wrap.dispatchEvent(ev);
+            }
+        });
         function clearBuilder(wrap){
             wrap.querySelector('.eq-text').value='';
             const rows = Array.from(wrap.querySelectorAll('.eq-choices .q-option-row'));
@@ -4255,7 +4461,10 @@
             wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
             wrap.querySelector('.eq-id-answer').value='';
             wrap.querySelector('.eq-tf-answer').value='true';
+            const commonPoints = wrap.querySelector('.eq-common-points'); if(commonPoints) commonPoints.value='1';
             const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='1';
+            ensureEnumerationRows(wrap);
+            const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='1';
             const builder = wrap.querySelector('.eq-text'); if(builder) builder.focus();
         }
         (function bindBuilderLiveUpdate(){
@@ -4271,17 +4480,24 @@
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
                     const checked = wrap.querySelector('.eq-correct:checked');
                     const ans = checked ? parseInt(checked.value,10) : null;
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
-                    obj = { type:'identification', text, answer: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'identification', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
-                    obj = { type:'true_false', text, answer: ans };
+                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
+                    obj = { type:'true_false', text, answer: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }else if(t==='essay'){
                     const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
                     obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                }else if(t==='enumeration'){
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=>i.value.trim());
+                    const maxPoints = Number(wrap.querySelector('.eq-enum-points')?.value || 1);
+                    obj = { type:'enumeration', text, answers, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);

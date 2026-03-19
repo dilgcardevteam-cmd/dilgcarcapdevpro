@@ -129,6 +129,9 @@ class CourseController extends Controller
                 'text' => $text,
                 'choices' => $choices,
                 'answer_index' => $answerIndex,
+                'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0,
             ];
         }
 
@@ -142,6 +145,9 @@ class CourseController extends Controller
                 'type' => 'identification',
                 'text' => $text,
                 'answer' => $answer,
+                'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0,
             ];
         }
 
@@ -159,6 +165,9 @@ class CourseController extends Controller
                 'type' => 'true_false',
                 'text' => $text,
                 'answer' => $answer,
+                'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0,
             ];
         }
 
@@ -172,7 +181,135 @@ class CourseController extends Controller
             ];
         }
 
+        if ($type === 'enumeration') {
+            $answers = $this->normalizeEnumerationAnswers(
+                $question['answers'] ?? ($question['correct_answers'] ?? [])
+            );
+            if (count($answers) === 0) {
+                return null;
+            }
+
+            return [
+                'type' => 'enumeration',
+                'text' => $text,
+                'answers' => $answers,
+                'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0,
+            ];
+        }
+
         return null;
+    }
+
+    protected function normalizeComparableAnswer($value): string
+    {
+        $value = preg_replace('/\s+/u', ' ', trim((string) $value));
+        return mb_strtolower($value, 'UTF-8');
+    }
+
+    protected function normalizeEnumerationAnswers($answers): array
+    {
+        if (!is_array($answers)) {
+            $answers = is_string($answers)
+                ? preg_split("/\r\n|\n|\r/", $answers)
+                : [];
+        }
+
+        $normalized = [];
+        $seen = [];
+
+        foreach ((array) $answers as $answer) {
+            $trimmed = trim((string) $answer);
+            if ($trimmed === '') {
+                continue;
+            }
+
+            $key = $this->normalizeComparableAnswer($trimmed);
+            if ($key === '' || isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $normalized[] = $trimmed;
+        }
+
+        return array_values($normalized);
+    }
+
+    protected function scoreObjectiveQuestion(array $question, $answer): array
+    {
+        $type = (string) ($question['type'] ?? 'multiple_choice');
+        $maxPoints = 1.0;
+        $score = 0.0;
+        $isCorrect = false;
+        $meta = [];
+
+        if ($type === 'multiple_choice') {
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+            $isCorrect = is_numeric($answer)
+                && isset($question['answer_index'])
+                && (int) $answer === (int) $question['answer_index'];
+            $score = $isCorrect ? $maxPoints : 0.0;
+        } elseif ($type === 'true_false') {
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+            $expected = $question['answer'] === true ? 'true' : 'false';
+            $isCorrect = $answer !== null && strtolower((string) $answer) === $expected;
+            $score = $isCorrect ? $maxPoints : 0.0;
+        } elseif ($type === 'identification') {
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+            $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
+                ? $question['answers']
+                : [($question['answer'] ?? '')];
+            $normalizedAnswer = $this->normalizeComparableAnswer($answer);
+            $isCorrect = collect($expectedAnswers)->contains(function ($expectedAnswer) use ($normalizedAnswer) {
+                return $this->normalizeComparableAnswer($expectedAnswer) === $normalizedAnswer;
+            });
+            $score = $isCorrect ? $maxPoints : 0.0;
+        } elseif ($type === 'enumeration') {
+            $correctAnswers = $this->normalizeEnumerationAnswers($question['answers'] ?? []);
+            $submittedAnswers = $this->normalizeEnumerationAnswers($answer);
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+
+            $correctLookup = [];
+            foreach ($correctAnswers as $correctAnswer) {
+                $correctLookup[$this->normalizeComparableAnswer($correctAnswer)] = $correctAnswer;
+            }
+
+            $matchedKeys = [];
+            foreach ($submittedAnswers as $submittedAnswer) {
+                $key = $this->normalizeComparableAnswer($submittedAnswer);
+                if ($key !== '' && isset($correctLookup[$key])) {
+                    $matchedKeys[$key] = true;
+                }
+            }
+
+            $matchedCount = count($matchedKeys);
+            $correctCount = count($correctAnswers);
+            $score = $correctCount > 0 ? ($matchedCount / $correctCount) * $maxPoints : 0.0;
+            $isCorrect = $correctCount > 0 && $matchedCount === $correctCount;
+            $meta = [
+                'submitted_answers' => $submittedAnswers,
+                'correct_answers' => $correctAnswers,
+                'matched_count' => $matchedCount,
+                'answer_count' => $correctCount,
+            ];
+        }
+
+        return [
+            'score' => round($score, 2),
+            'max_points' => round($maxPoints, 2),
+            'is_correct' => $isCorrect,
+            'meta' => $meta,
+        ];
     }
 
     protected function getCourseModuleExam(Course $course, int $moduleIndex): ?array
@@ -289,8 +426,8 @@ class CourseController extends Controller
             ->get()
             ->keyBy('question_index');
 
-        $objectiveTotal = 0;
-        $objectiveCorrect = 0;
+        $objectiveTotal = 0.0;
+        $objectiveCorrect = 0.0;
         $essayTotal = 0.0;
         $essayCheckedScore = 0.0;
         $pendingEssayCount = 0;
@@ -331,34 +468,28 @@ class CourseController extends Controller
                 continue;
             }
 
-            $objectiveTotal++;
-            $isCorrect = false;
-            if ($type === 'multiple_choice') {
-                $isCorrect = is_numeric($answer) && isset($question['answer_index']) && (int) $answer === (int) $question['answer_index'];
-            } elseif ($type === 'true_false') {
-                $expected = $question['answer'] === true ? 'true' : 'false';
-                $isCorrect = $answer !== null && strtolower((string) $answer) === $expected;
-            } elseif ($type === 'identification') {
-                $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
-                    ? $question['answers']
-                    : [($question['answer'] ?? '')];
-                $normalizedAnswer = strtolower(trim((string) $answer));
-                $isCorrect = collect($expectedAnswers)->contains(function ($expectedAnswer) use ($normalizedAnswer) {
-                    return strtolower(trim((string) $expectedAnswer)) === $normalizedAnswer;
-                });
-            }
+            $scored = $this->scoreObjectiveQuestion($question, $answer);
+            $objectiveTotal += (float) ($scored['max_points'] ?? 0);
+            $objectiveCorrect += (float) ($scored['score'] ?? 0);
 
-            if ($isCorrect) {
-                $objectiveCorrect++;
-            }
-
-            $items[] = [
+            $item = [
                 'question_index' => $questionIndex,
                 'type' => $type,
                 'text' => (string) ($question['text'] ?? ''),
                 'answer' => $answer,
-                'is_correct' => $isCorrect,
+                'is_correct' => (bool) ($scored['is_correct'] ?? false),
+                'score' => (float) ($scored['score'] ?? 0),
+                'max_points' => (float) ($scored['max_points'] ?? 1),
             ];
+            if ($type === 'enumeration') {
+                $item['answer'] = $scored['meta']['submitted_answers'] ?? [];
+                $item['answer_texts'] = $scored['meta']['submitted_answers'] ?? [];
+                $item['correct_answers'] = $scored['meta']['correct_answers'] ?? [];
+                $item['matched_count'] = (int) ($scored['meta']['matched_count'] ?? 0);
+                $item['answer_count'] = (int) ($scored['meta']['answer_count'] ?? 0);
+            }
+
+            $items[] = $item;
         }
 
         $objectivePct = $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0;
@@ -378,8 +509,8 @@ class CourseController extends Controller
             'user_id' => $userId,
             'module_index' => $moduleIndex,
             'submitted_at' => $submission['submitted_at'] ?? null,
-            'objective_correct' => $objectiveCorrect,
-            'objective_total' => $objectiveTotal,
+            'objective_correct' => round($objectiveCorrect, 2),
+            'objective_total' => round($objectiveTotal, 2),
             'objective_pct' => $objectivePct,
             'essay_checked_score' => round($essayCheckedScore, 2),
             'essay_total_points' => round($essayTotal, 2),
@@ -562,7 +693,7 @@ class CourseController extends Controller
                     }
                     // Optional: strip essay types if present
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
                     }));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
@@ -591,7 +722,7 @@ class CourseController extends Controller
                         ->withInput();
                 }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
                 }));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
@@ -769,7 +900,7 @@ class CourseController extends Controller
                             ->withInput();
                     }
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
                     }));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
@@ -798,7 +929,7 @@ class CourseController extends Controller
                         ->withInput();
                 }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
                 }));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
@@ -1457,7 +1588,7 @@ class CourseController extends Controller
                     $examDecoded = json_decode($examRaw, true);
                     if (is_array($examDecoded)) {
                         $examQuestions = array_values(array_filter(($examDecoded['questions'] ?? []), function ($q) {
-                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false', 'essay'], true);
+                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false', 'essay', 'enumeration'], true);
                         }));
                         $mArr['exam'] = [
                             'title' => (string) ($examDecoded['title'] ?? ''),
@@ -1682,8 +1813,8 @@ class CourseController extends Controller
                 }
             }
 
-            $objectiveTotal = 0;
-            $objectiveCorrect = 0;
+            $objectiveTotal = 0.0;
+            $objectiveCorrect = 0.0;
             foreach ($questions as $index => $question) {
                 $type = (string) ($question['type'] ?? 'multiple_choice');
                 $answer = $answers[$index] ?? null;
@@ -1691,28 +1822,9 @@ class CourseController extends Controller
                     continue;
                 }
 
-                $objectiveTotal++;
-                if ($type === 'multiple_choice') {
-                    if (is_numeric($answer) && isset($question['answer_index']) && (int) $answer === (int) $question['answer_index']) {
-                        $objectiveCorrect++;
-                    }
-                } elseif ($type === 'true_false') {
-                    $expected = $question['answer'] === true ? 'true' : 'false';
-                    if ($answer !== null && strtolower((string) $answer) === $expected) {
-                        $objectiveCorrect++;
-                    }
-                } elseif ($type === 'identification') {
-                    $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
-                        ? $question['answers']
-                        : [($question['answer'] ?? '')];
-                    $normalizedAnswer = strtolower(trim((string) $answer));
-                    foreach ($expectedAnswers as $expectedAnswer) {
-                        if (strtolower(trim((string) $expectedAnswer)) === $normalizedAnswer) {
-                            $objectiveCorrect++;
-                            break;
-                        }
-                    }
-                }
+                $scored = $this->scoreObjectiveQuestion($question, $answer);
+                $objectiveTotal += (float) ($scored['max_points'] ?? 0);
+                $objectiveCorrect += (float) ($scored['score'] ?? 0);
             }
 
             $submittedAt = now()->toIso8601String();
@@ -1720,8 +1832,8 @@ class CourseController extends Controller
                 'course_id' => $course->id,
                 'user_id' => $user->id,
                 'module_index' => $data['mi'],
-                'correct' => $objectiveCorrect,
-                'total' => $objectiveTotal,
+                'correct' => round($objectiveCorrect, 2),
+                'total' => round($objectiveTotal, 2),
                 'pct' => $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0,
                 'answers' => $answers,
                 'duration_ms' => $data['duration_ms'] ?? null,
@@ -1786,8 +1898,8 @@ class CourseController extends Controller
                         'name' => $u?->name ?? 'User '.$j['user_id'],
                         'email' => $u?->email ?? null,
                         'pct' => (int) ($summary['final_pct'] ?? ($j['pct'] ?? 0)),
-                        'correct' => (int) ($summary['objective_correct'] ?? ($j['correct'] ?? 0)),
-                        'total' => (int) ($summary['objective_total'] ?? ($j['total'] ?? 0)),
+                        'correct' => round((float) ($summary['objective_correct'] ?? ($j['correct'] ?? 0)), 2),
+                        'total' => round((float) ($summary['objective_total'] ?? ($j['total'] ?? 0)), 2),
                         'objective_pct' => (int) ($summary['objective_pct'] ?? ($j['pct'] ?? 0)),
                         'essay_pending_count' => (int) ($summary['essay_pending_count'] ?? 0),
                         'essay_checked_count' => (int) ($summary['essay_checked_count'] ?? 0),
@@ -2208,7 +2320,10 @@ class CourseController extends Controller
                     $errors[] = "Question #".($i+1)." answer is required for Identification";
                     continue;
                 }
-                $norm[] = ['type'=>'identification','text'=>$text,'answer'=>$ans];
+                $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
+                    ? max(1, (float) $q['max_points'])
+                    : 1.0;
+                $norm[] = ['type'=>'identification','text'=>$text,'answer'=>$ans,'max_points'=>$maxPoints];
             } elseif ($type === 'multiple_choice') {
                 $choices = $q['choices'] ?? ($q['options'] ?? []);
                 $choices = array_values(array_filter(array_map('strval', (array) $choices), fn($v)=>trim($v)!==''));
@@ -2221,16 +2336,36 @@ class CourseController extends Controller
                     $errors[] = "Question #".($i+1)." must specify a valid correct choice";
                     continue;
                 }
-                $norm[] = ['type'=>'multiple_choice','text'=>$text,'choices'=>$choices,'answer_index'=>$ai];
+                $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
+                    ? max(1, (float) $q['max_points'])
+                    : 1.0;
+                $norm[] = ['type'=>'multiple_choice','text'=>$text,'choices'=>$choices,'answer_index'=>$ai,'max_points'=>$maxPoints];
             } elseif ($type === 'true_false') {
                 $ans = isset($q['answer']) ? (bool)$q['answer'] : null;
                 if (!is_bool($ans)) { $ans = ($q['answer']==='true'); }
-                $norm[] = ['type'=>'true_false','text'=>$text,'answer'=>$ans===true];
+                $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
+                    ? max(1, (float) $q['max_points'])
+                    : 1.0;
+                $norm[] = ['type'=>'true_false','text'=>$text,'answer'=>$ans===true,'max_points'=>$maxPoints];
             } elseif ($type === 'essay') {
                 $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
                     ? max(1, (float) $q['max_points'])
                     : 1.0;
                 $norm[] = ['type'=>'essay','text'=>$text,'max_points'=>$maxPoints];
+            } elseif ($type === 'enumeration') {
+                $answers = $this->normalizeEnumerationAnswers($q['answers'] ?? ($q['correct_answers'] ?? []));
+                if (count($answers) === 0) {
+                    $errors[] = "Question #".($i+1)." must have at least one correct answer for Enumeration";
+                    continue;
+                }
+                if (count($answers) < 2) {
+                    $errors[] = "Question #".($i+1)." should have at least two answers for Enumeration";
+                    continue;
+                }
+                $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
+                    ? max(1, (float) $q['max_points'])
+                    : 1.0;
+                $norm[] = ['type'=>'enumeration','text'=>$text,'answers'=>$answers,'max_points'=>$maxPoints];
             } else {
                 // Skip unsupported types
             }
