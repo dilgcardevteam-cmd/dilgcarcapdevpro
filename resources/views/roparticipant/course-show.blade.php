@@ -320,7 +320,7 @@
                     let html = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
                         <span class="title">${num}. ${titleTxt}</span>
-                        <span class="count" id="cnt_${mi}_${ti}"></span>
+                     <!--   <span class="count" id="cnt_${mi}_${ti}"></span> -->
                         <button class="toggle" aria-label="Toggle subtopics"><i class="fas fa-chevron-down"></i></button>
                     </div>`;
                     if (Array.isArray(t.subtopics) && t.subtopics.length){
