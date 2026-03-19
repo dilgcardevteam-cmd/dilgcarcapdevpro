@@ -371,20 +371,23 @@
                 el.appendChild(mod);
                 if(!viewOnly){ updateProgressFor(mi); }
             });
-            document.getElementById('outlineSearch').addEventListener('input', (e)=>{
-                const q=e.target.value.trim().toLowerCase();
-                el.querySelectorAll('.module').forEach(mod=>{
-                    const title = mod.querySelector('.module-title').textContent.toLowerCase();
-                    let any=false;
-                    mod.querySelectorAll('.topic').forEach(t=>{
-                        const txt=t.textContent.toLowerCase();
-                        const show = !q || txt.includes(q) || title.includes(q);
-                        t.style.display = show?'block':'none';
-                        any = any || show;
+            const outlineSearch = document.getElementById('outlineSearch');
+            if(outlineSearch){
+                outlineSearch.addEventListener('input', (e)=>{
+                    const q=e.target.value.trim().toLowerCase();
+                    el.querySelectorAll('.module').forEach(mod=>{
+                        const title = mod.querySelector('.module-title').textContent.toLowerCase();
+                        let any=false;
+                        mod.querySelectorAll('.topic').forEach(t=>{
+                            const txt=t.textContent.toLowerCase();
+                            const show = !q || txt.includes(q) || title.includes(q);
+                            t.style.display = show?'block':'none';
+                            any = any || show;
+                        });
+                        mod.style.display = any?'block':'none';
                     });
-                    mod.style.display = any?'block':'none';
                 });
-            });
+            }
         }
         function doneKey(mi,ti,si){ return `c_${course.id||'x'}_${mi}_${ti}_${si}`; }
         function isSubtopicDone(mi,ti,si){

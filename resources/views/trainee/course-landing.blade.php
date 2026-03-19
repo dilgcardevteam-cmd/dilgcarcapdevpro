@@ -2153,11 +2153,28 @@
                 if(saveBtn){
                     saveBtn.onclick = async ()=>{
                         const reviewCards = Array.from(bodyEl.querySelectorAll('[data-question-index]'));
-                        const reviews = reviewCards.map(card => ({
-                            question_index: Number(card.getAttribute('data-question-index')),
-                            score: Number(card.querySelector('.essay-score-input')?.value || 0),
-                            feedback: card.querySelector('.essay-feedback-input')?.value || ''
-                        }));
+                        const reviews = [];
+                        for (const card of reviewCards) {
+                            const scoreInput = card.querySelector('.essay-score-input');
+                            const rawValue = scoreInput?.value ?? '';
+                            const score = Number(rawValue || 0);
+                            const max = Number(scoreInput?.getAttribute('max') || 1);
+                            if (!Number.isFinite(score) || score < 0) {
+                                alert('Essay score must be 0 or higher.');
+                                scoreInput?.focus();
+                                return;
+                            }
+                            if (Number.isFinite(max) && score > max) {
+                                alert(`Essay score cannot exceed ${max}.`);
+                                scoreInput?.focus();
+                                return;
+                            }
+                            reviews.push({
+                                question_index: Number(card.getAttribute('data-question-index')),
+                                score,
+                                feedback: card.querySelector('.essay-feedback-input')?.value || ''
+                            });
+                        }
                         saveBtn.disabled = true;
                         saveBtn.textContent = 'Saving...';
                         try{
@@ -2167,7 +2184,7 @@
                                 credentials:'same-origin',
                                 body: JSON.stringify({mi: moduleIndex, user_id: userId, reviews})
                             });
-                            const saved = saveRes.ok ? await saveRes.json() : null;
+                            const saved = await saveRes.json().catch(()=>null);
                             if(saved && saved.ok){
                                 await openEssayReviewModal(userId, moduleIndex, examTitle);
                                 renderParticipantProgress();

@@ -569,20 +569,23 @@
                     el.appendChild(modEx);
                 }
             });
-            document.getElementById('outlineSearch').addEventListener('input', (e)=>{
-                const q=e.target.value.trim().toLowerCase();
-                el.querySelectorAll('.module').forEach(mod=>{
-                    const title = mod.querySelector('.module-title').textContent.toLowerCase();
-                    let any=false;
-                    mod.querySelectorAll('.topic').forEach(t=>{
-                        const txt=t.textContent.toLowerCase();
-                        const show = !q || txt.includes(q) || title.includes(q);
-                        t.style.display = show?'block':'none';
-                        any = any || show;
+            const outlineSearch = document.getElementById('outlineSearch');
+            if(outlineSearch){
+                outlineSearch.addEventListener('input', (e)=>{
+                    const q=e.target.value.trim().toLowerCase();
+                    el.querySelectorAll('.module').forEach(mod=>{
+                        const title = mod.querySelector('.module-title').textContent.toLowerCase();
+                        let any=false;
+                        mod.querySelectorAll('.topic').forEach(t=>{
+                            const txt=t.textContent.toLowerCase();
+                            const show = !q || txt.includes(q) || title.includes(q);
+                            t.style.display = show?'block':'none';
+                            any = any || show;
+                        });
+                        mod.style.display = any?'block':'none';
                     });
-                    mod.style.display = any?'block':'none';
                 });
-            });
+            }
         }
         // Progress (client-side only)
         function doneKey(mi,ti,si){ return `c_${course.id||'x'}_${mi}_${ti}_${si}`; }
@@ -1558,11 +1561,29 @@
                                                 const saveBtn = panel.querySelector('.essay-review-save');
                                                 if(saveBtn){
                                                     saveBtn.addEventListener('click', ()=>{
-                                                        const reviews = Array.from(panel.querySelectorAll('[data-question-index]')).map(card => ({
-                                                            question_index: Number(card.getAttribute('data-question-index')),
-                                                            score: Number(card.querySelector('.essay-score-input')?.value || 0),
-                                                            feedback: card.querySelector('.essay-feedback-input')?.value || ''
-                                                        }));
+                                                        const reviewCards = Array.from(panel.querySelectorAll('[data-question-index]'));
+                                                        const reviews = [];
+                                                        for (const card of reviewCards) {
+                                                            const scoreInput = card.querySelector('.essay-score-input');
+                                                            const rawValue = scoreInput?.value ?? '';
+                                                            const score = Number(rawValue || 0);
+                                                            const max = Number(scoreInput?.getAttribute('max') || 1);
+                                                            if (!Number.isFinite(score) || score < 0) {
+                                                                alert('Essay score must be 0 or higher.');
+                                                                scoreInput?.focus();
+                                                                return;
+                                                            }
+                                                            if (Number.isFinite(max) && score > max) {
+                                                                alert(`Essay score cannot exceed ${max}.`);
+                                                                scoreInput?.focus();
+                                                                return;
+                                                            }
+                                                            reviews.push({
+                                                                question_index: Number(card.getAttribute('data-question-index')),
+                                                                score,
+                                                                feedback: card.querySelector('.essay-feedback-input')?.value || ''
+                                                            });
+                                                        }
                                                         saveBtn.disabled = true;
                                                         saveBtn.textContent = 'Saving...';
                                                         fetch("{{ url('/courses/'.$course->id.'/module-exam/review') }}", {
@@ -1570,7 +1591,8 @@
                                                             credentials:'same-origin',
                                                             headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
                                                             body: JSON.stringify({mi: mi, user_id: Number(targetUserId), reviews})
-                                                        }).then(r=>r.json()).then(saved=>{
+                                                        }).then(async r=>{
+                                                            const saved = await r.json().catch(()=>null);
                                                             if(saved && saved.ok){
                                                                 panel.insertAdjacentHTML('afterbegin', '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800">Essay review saved.</div>');
                                                                 btn.click();

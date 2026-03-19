@@ -3140,6 +3140,10 @@
                                     <option value="false">False</option>
                                 </select>
                             </div>
+                            <div class="eq-essay" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Points</label>
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
                                 <button type="button" class="btn btn-ghost eq-del" disabled>Delete</button>
@@ -3171,6 +3175,7 @@
                 host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
                 host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                host.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
             }
             function syncExamJSON(){
@@ -3269,6 +3274,12 @@
                     const ans = String(payload.answer||''); const a = host.querySelector('.eq-id-answer'); if(a) a.value = ans;
                 }else if(type==='true_false'){
                     const a = host.querySelector('.eq-tf-answer'); if(a) a.value = payload.answer===false ? 'false' : 'true';
+                }else if(type==='essay'){
+                    const essayPoints = host.querySelector('.eq-essay-points');
+                    if(essayPoints){
+                        const maxPoints = Number(payload.max_points ?? 1);
+                        essayPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                    }
                 }
             }
             function clearBuilderBox(){
@@ -3277,6 +3288,7 @@
                 host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 const id = host.querySelector('.eq-id-answer'); if(id) id.value='';
                 const tf = host.querySelector('.eq-tf-answer'); if(tf) tf.value='';
+                const essayPoints = host.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='1';
                 const focus = host.querySelector('.eq-text'); if(focus) focus.focus();
             }
             function getActiveIndex(){
@@ -3467,6 +3479,7 @@
                 host.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 host.querySelector('.eq-id-answer').value='';
                 const tfSel = host.querySelector('.eq-tf-answer'); if(tfSel){ tfSel.value=''; }
+                const essayPoints = host.querySelector('.eq-essay-points'); if(essayPoints){ essayPoints.value='1'; }
                 addGroupFor(obj.type);
                 syncExamJSON();
                 updateNav();
@@ -3495,7 +3508,8 @@
                         const ans = val === '' ? null : (val === 'true');
                         obj = { type:'true_false', text, answer: ans };
                     }else if(t==='essay'){
-                        obj = { type:'essay', text, max_points: 1 };
+                        const maxPoints = Number(host.querySelector('.eq-essay-points')?.value || 1);
+                        obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3618,6 +3632,10 @@
                                     <option value="false">False</option>
                                 </select>
                             </div>
+                            <div class="eq-essay" style="display:none;margin-top:8px">
+                                <label class="q-label" style="margin-bottom:6px">Points</label>
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" value="1" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                            </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
                                 <button type="button" class="btn btn-small eq-del" style="background:#dc3545;color:#fff;border:none;border-radius:8px;padding:8px 12px;opacity:.45;cursor:default" disabled onclick="deleteActiveExamQuestion(this)">Delete</button>
@@ -3701,6 +3719,7 @@
                 wrap.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
                 wrap.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 wrap.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
+                wrap.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 if(t==='multiple_choice' && wrap.querySelectorAll('.eq-option').length===0){ renderChoices(); }
             }
             function syncExamJSON(){
@@ -3726,6 +3745,7 @@
                 // Clear identification and true/false answers
                 const idAns = wrap.querySelector('.eq-id-answer'); if(idAns) idAns.value = '';
                 const tfSel = wrap.querySelector('.eq-tf-answer'); if(tfSel) tfSel.value = '';
+                const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value = '1';
                 // Update payload for active item to a blank object of the selected type
                 const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
                 const idx = getActiveExamIndex(wrap);
@@ -3739,7 +3759,8 @@
                     }else if(t==='true_false'){
                         obj = { type:'true_false', text, answer: null };
                     }else if(t==='essay'){
-                        obj = { type:'essay', text, max_points: 1 };
+                        const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
+                        obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3863,7 +3884,8 @@
                     const ans = val === '' ? null : (val === 'true');
                     obj = { type:'true_false', text, answer: ans };
                 }else if(t==='essay'){
-                    obj = { type:'essay', text, max_points: 1 };
+                    const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
+                    obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 } else {
                     obj = { type:String(t||'multiple_choice'), text };
                 }
@@ -4186,6 +4208,12 @@
                 wrap.querySelector('.eq-id-answer').value = ans;
             }else if(type==='true_false'){
                 wrap.querySelector('.eq-tf-answer').value = payload.answer===false ? 'false' : 'true';
+            }else if(type==='essay'){
+                const essayPoints = wrap.querySelector('.eq-essay-points');
+                if(essayPoints){
+                    const maxPoints = Number(payload.max_points ?? 1);
+                    essayPoints.value = (!isNaN(maxPoints) && maxPoints > 0) ? String(maxPoints) : '1';
+                }
             }
         }
         function showBuilderBoxes(wrap){
@@ -4193,9 +4221,11 @@
             const boxChoices = wrap.querySelector('.eq-choices');
             const boxId = wrap.querySelector('.eq-id');
             const boxTf = wrap.querySelector('.eq-tf');
+            const boxEssay = wrap.querySelector('.eq-essay');
             if(boxChoices) boxChoices.style.display = (t==='multiple_choice') ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
+            if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
             if(t==='multiple_choice'){
                 const rows = wrap.querySelectorAll('.eq-choices .q-option-row');
                 if(rows.length===0) ensureChoiceRows(wrap);
@@ -4225,6 +4255,7 @@
             wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
             wrap.querySelector('.eq-id-answer').value='';
             wrap.querySelector('.eq-tf-answer').value='true';
+            const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='1';
             const builder = wrap.querySelector('.eq-text'); if(builder) builder.focus();
         }
         (function bindBuilderLiveUpdate(){
@@ -4249,7 +4280,8 @@
                     const ans = val === '' ? null : (val === 'true');
                     obj = { type:'true_false', text, answer: ans };
                 }else if(t==='essay'){
-                    obj = { type:'essay', text, max_points: 1 };
+                    const maxPoints = Number(wrap.querySelector('.eq-essay-points')?.value || 1);
+                    obj = { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);
