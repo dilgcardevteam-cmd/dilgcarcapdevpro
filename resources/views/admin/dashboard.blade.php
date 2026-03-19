@@ -3299,62 +3299,64 @@
         .user-details-shell {
             display: flex;
             flex-direction: column;
-            gap: 22px;
-            padding: 8px 0 22px;
+            gap: 8px;
+            padding: 2px 0 12px;
         }
 
         .user-details-topbar {
-            display: grid;
-            grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
-            gap: 18px;
-            align-items: stretch;
+            position: relative;
+            display: block;
         }
 
         .user-details-back {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 2;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 10px;
-            border: 1px solid rgba(11, 44, 118, 0.12);
-            border-radius: 18px;
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-            color: #123b85;
-            padding: 14px 18px;
+            min-height: 44px;
+            border: 1px solid #d9e3f2;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #163f8a;
+            padding: 0 16px;
             cursor: pointer;
             font-weight: 800;
-            font-size: 0.96rem;
+            font-size: 0.9rem;
             letter-spacing: -0.01em;
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
-            transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+            white-space: nowrap;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
         }
 
         .user-details-back:hover {
             transform: translateY(-1px);
-            border-color: rgba(11, 44, 118, 0.28);
-            box-shadow: 0 20px 38px rgba(15, 23, 42, 0.12);
+            border-color: #b8cae6;
+            box-shadow: 0 12px 22px rgba(15, 23, 42, 0.07);
         }
 
         .user-details-hero {
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(11, 44, 118, 0.08);
-            border-radius: 26px;
-            padding: 24px 28px;
-            background:
-                radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 34%),
-                radial-gradient(circle at bottom left, rgba(11, 44, 118, 0.10), transparent 30%),
-                linear-gradient(135deg, #ffffff 0%, #f6f9ff 52%, #eef4ff 100%);
-            box-shadow: 0 28px 60px rgba(15, 23, 42, 0.10);
+            border: 1px solid #dfe9fb;
+            border-radius: 16px;
+            padding: 68px 18px 14px;
+            background: linear-gradient(135deg, #ffffff 0%, #f9fbff 54%, #edf4ff 100%);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.045);
         }
 
         .user-details-hero::after {
             content: "";
             position: absolute;
-            inset: auto -60px -80px auto;
-            width: 220px;
-            height: 220px;
+            right: -24px;
+            bottom: -46px;
+            width: 210px;
+            height: 210px;
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(11, 44, 118, 0.10), rgba(59, 130, 246, 0.04));
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.12), rgba(96, 165, 250, 0.02) 66%, transparent 70%);
             pointer-events: none;
         }
 
@@ -3362,229 +3364,240 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 7px 12px;
+            padding: 6px 10px;
             border-radius: 999px;
-            background: rgba(11, 44, 118, 0.08);
-            color: #0b3b8f;
-            font-size: 0.76rem;
-            font-weight: 900;
+            background: #eaf1ff;
+            color: #0f3b8f;
+            font-size: 0.7rem;
+            font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .user-details-headline {
             margin: 0;
             color: #0f172a;
-            font-size: clamp(1.55rem, 2vw, 2.15rem);
-            font-weight: 900;
+            font-size: clamp(1.2rem, 1.45vw, 1.55rem);
+            font-weight: 800;
             letter-spacing: -0.04em;
-            line-height: 1.02;
-            max-width: 560px;
+            line-height: 1.12;
+            max-width: 640px;
         }
 
         .user-details-note {
-            margin-top: 10px;
-            color: #52627a;
-            font-size: 1rem;
-            line-height: 1.65;
+            margin-top: 8px;
+            color: #5b6b82;
+            font-size: 0.9rem;
+            line-height: 1.45;
             max-width: 680px;
         }
 
         #userDetailsMount .profile-edit-modal {
             width: 100%;
             max-width: none;
-            border-radius: 30px;
-            border: 1px solid rgba(226, 232, 240, 0.95);
-            background:
-                linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(248,250,252,0.98) 100%);
-            box-shadow: 0 32px 70px rgba(2, 6, 23, 0.12);
+            margin-top: -2px;
+            border-radius: 16px;
+            border: 1px solid #e2eaf5;
+            background: #ffffff;
+            box-shadow: 0 20px 46px rgba(15, 23, 42, 0.08);
             overflow: hidden;
         }
 
         #userDetailsMount .close {
             top: 22px;
             right: 24px;
-            width: 46px;
-            height: 46px;
+            width: 38px;
+            height: 38px;
             border-radius: 999px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.88);
-            border: 1px solid rgba(203, 213, 225, 0.85);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            background: #f8fbff;
+            border: 1px solid #d8e2ef;
+            box-shadow: none;
         }
 
         #userDetailsMount .profile-edit-header {
             position: relative;
-            padding: 34px 34px 20px;
-            background:
-                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),
-                linear-gradient(135deg, #0b2c76 0%, #123f92 52%, #1d4fa8 100%);
-            border-bottom: none;
+            padding: 22px 24px 14px;
+            background: #ffffff;
+            border-bottom: 1px solid #e8eef6;
         }
 
         #userDetailsMount .profile-edit-header::after {
-            content: "";
-            position: absolute;
-            right: -40px;
-            top: -36px;
-            width: 180px;
-            height: 180px;
-            border-radius: 999px;
-            background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 65%);
-            pointer-events: none;
+            display: none;
+        }
+
+        #userDetailsMount .profile-edit-headline {
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
         }
 
         #userDetailsMount .profile-user-brief {
-            position: relative;
-            z-index: 1;
             align-items: center;
-            gap: 18px;
+            gap: 16px;
         }
 
         #userDetailsMount .profile-user-avatar {
-            width: 76px;
-            height: 76px;
-            border-radius: 24px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
-            border: 1px solid rgba(255,255,255,0.22);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 14px 28px rgba(2, 6, 23, 0.18);
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #1d4fa8 0%, #0b2c76 100%);
+            border: none;
+            box-shadow: none;
             color: #ffffff;
-            font-size: 1.8rem;
-            font-weight: 900;
+            font-size: 1.65rem;
+            font-weight: 800;
         }
 
         #userDetailsMount .profile-edit-title,
         #userDetailsMount .profile-user-email,
         #userDetailsMount .profile-edit-subtitle {
-            color: #ffffff;
+            color: inherit;
         }
 
         #userDetailsMount .profile-edit-title {
-            font-size: clamp(1.7rem, 2vw, 2.35rem);
-            letter-spacing: -0.04em;
+            font-size: clamp(1.45rem, 1.7vw, 1.9rem);
+            letter-spacing: -0.03em;
+            color: #0f172a;
         }
 
         #userDetailsMount .profile-user-email {
-            opacity: 0.82;
-            font-size: 0.98rem;
+            margin-top: 6px;
+            color: #64748b;
+            opacity: 1;
+            font-size: 0.94rem;
+        }
+
+        #userDetailsMount .profile-meta-badges {
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        #userDetailsMount .profile-meta-chip {
+            padding: 7px 12px;
+            border-radius: 999px;
+            border-width: 1px;
+            font-size: 0.78rem;
+            box-shadow: none;
         }
 
         #userDetailsMount .profile-edit-subrow {
-            position: relative;
-            z-index: 1;
-            margin-top: 18px;
-            padding: 16px 18px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.14);
-            backdrop-filter: blur(10px);
+            margin-top: 14px;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            backdrop-filter: none;
+            align-items: center;
         }
 
         #userDetailsMount .profile-edit-subtitle {
-            color: rgba(255,255,255,0.88);
-            max-width: 760px;
+            color: #64748b;
+            max-width: 780px;
+            font-size: 0.96rem;
         }
 
         #userDetailsMount .profile-header-actions {
-            gap: 12px;
+            gap: 10px;
         }
 
         #userDetailsMount .modal-action-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 16px;
-            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.14);
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            box-shadow: none;
+            background: #ffffff;
         }
 
         #userDetailsMount .profile-edit-form {
-            padding: 0 28px 30px;
+            padding: 0 24px 22px;
+            background: #ffffff;
         }
 
         #userDetailsMount .modal-tabs {
             display: flex !important;
             flex-wrap: wrap;
-            gap: 12px !important;
+            gap: 14px !important;
             margin: 0;
-            padding: 18px 2px 4px;
-            border-bottom: none !important;
+            padding: 0 0 2px;
+            border-bottom: 1px solid #e8eef6 !important;
         }
 
         #userDetailsMount .modal-tab {
-            border: 1px solid #dbe5f2 !important;
-            border-bottom: 1px solid #dbe5f2 !important;
-            background: #ffffff !important;
-            color: #52627a !important;
-            padding: 11px 16px !important;
-            border-radius: 999px !important;
-            font-weight: 800 !important;
-            letter-spacing: -0.01em;
-            transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+            border: none !important;
+            border-bottom: 2px solid transparent !important;
+            background: transparent !important;
+            color: #6b7a90 !important;
+            padding: 14px 0 12px !important;
+            border-radius: 0 !important;
+            font-weight: 700 !important;
+            transition: color 0.14s ease, border-color 0.14s ease;
+            box-shadow: none !important;
         }
 
         #userDetailsMount .modal-tab:hover {
-            transform: translateY(-1px);
-            border-color: #b9cbeb !important;
-            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+            transform: none;
+            border-color: rgba(15, 59, 143, 0.28) !important;
+            color: #173b83 !important;
         }
 
         #userDetailsMount .modal-tab.active {
-            background: linear-gradient(180deg, #0f3b8f 0%, #123b85 100%) !important;
-            color: #ffffff !important;
+            background: transparent !important;
+            color: #0f3b8f !important;
             border-color: #0f3b8f !important;
-            box-shadow: 0 14px 24px rgba(15, 59, 143, 0.18);
+            box-shadow: none;
         }
 
         #userDetailsMount .profile-section {
-            margin-top: 12px;
-            padding: 24px;
-            border: 1px solid #e8eef7;
-            border-radius: 24px;
-            background:
-                linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+            margin-top: 16px;
+            padding: 20px;
+            border: 1px solid #e6edf7;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
         }
 
         #userDetailsMount .profile-section-title {
-            margin-bottom: 20px;
-            font-size: 0.94rem;
-            font-weight: 900;
+            margin-bottom: 16px;
+            font-size: 0.92rem;
+            font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #173b83;
         }
 
         #userDetailsMount .profile-section-title svg {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
         }
 
         #userDetailsMount .profile-edit-grid,
         #userDetailsMount .profile-location-grid {
-            gap: 18px 20px;
+            gap: 14px 18px;
         }
 
         #userDetailsMount .form-group label {
-            font-size: 0.82rem;
-            font-weight: 900;
+            font-size: 0.8rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #475569;
+            color: #4b5d74;
         }
 
         #userDetailsMount .field-with-icon input,
         #userDetailsMount .field-with-icon select {
-            min-height: 58px;
-            border-radius: 16px;
-            border: 1px solid #dbe4f0;
-            background: #f8fbff;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+            min-height: 56px;
+            border-radius: 14px;
+            border: 1px solid #dce5f1;
+            background: #fbfdff;
+            box-shadow: none;
         }
 
         #userDetailsMount .field-with-icon {
-            border-radius: 18px;
+            border-radius: 14px;
         }
 
         #userDetailsMount .role-choice-grid {
@@ -3592,14 +3605,17 @@
         }
 
         #userDetailsMount .role-choice-card {
-            border-radius: 22px;
+            border-radius: 16px;
             padding: 20px 18px;
-            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+            box-shadow: none;
+            border: 1px solid #e2eaf5;
+            background: #fbfdff;
         }
 
         #userDetailsMount .permission-accordion {
-            border-radius: 22px;
-            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+            border-radius: 16px;
+            box-shadow: none;
+            border: 1px solid #e2eaf5;
         }
 
         #userDetailsMount .permission-accordion-header {
@@ -3620,15 +3636,34 @@
             }
 
             .user-details-hero {
-                padding: 22px 22px 24px;
+                padding: 12px 14px 14px;
+            }
+
+            .user-details-back {
+                top: 10px;
+                left: 10px;
+            }
+
+            .user-details-hero {
+                padding: 58px 14px 14px;
             }
 
             #userDetailsMount .profile-edit-header {
-                padding: 28px 22px 18px;
+                padding: 18px 18px 12px;
+            }
+
+            #userDetailsMount .profile-edit-headline,
+            #userDetailsMount .profile-edit-subrow {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #userDetailsMount .profile-meta-badges {
+                justify-content: flex-start;
             }
 
             #userDetailsMount .profile-edit-form {
-                padding: 0 18px 22px;
+                padding: 0 16px 18px;
             }
         }
 
@@ -6423,6 +6458,16 @@
                             <p id="modalUserEmail" class="profile-user-email">-</p>
                         </div>
                     </div>
+                    <div class="profile-meta-badges">
+                        <span id="modalRoleBadge" class="profile-meta-chip role" data-role="">
+                            <span class="chip-label">Role</span>
+                            <span class="chip-value">-</span>
+                        </span>
+                        <span id="modalStatusBadge" class="profile-meta-chip status" data-status="">
+                            <span class="chip-label">Status</span>
+                            <span class="chip-value">-</span>
+                        </span>
+                    </div>
                 </div>
                 <div class="profile-edit-subrow">
                     <p id="modalSubtitle" class="profile-edit-subtitle">Switch to edit mode to update account information and access settings.</p>
@@ -6469,14 +6514,14 @@
                     $participantAccessRole = $pickAccessRole(['participant', 'trainee', 'central_office_participants', 'regional_office_participants', 'provincial_office_participants'], 'participant');
                 @endphp
                 <div class="modal-tabs" role="tablist" style="display:flex;gap:8px;border-bottom:1px solid #e5e7eb;margin:8px 0 14px;">
-                    <button type="button" class="modal-tab active" data-target="section-core" aria-selected="true" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid var(--primary-blue);color:var(--primary-blue);font-weight:700;border-radius:8px 8px 0 0;">Core Profile</button>
-                    <button type="button" class="modal-tab" data-target="section-roles" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Roles</button>
+                    <button type="button" class="modal-tab" data-target="section-core" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Core Profile</button>
+                    <button type="button" class="modal-tab active" data-target="section-roles" aria-selected="true" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid var(--primary-blue);color:var(--primary-blue);font-weight:700;border-radius:8px 8px 0 0;">Roles</button>
                     <button type="button" class="modal-tab" data-target="section-permissions" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Permissions</button>
                     <button type="button" class="modal-tab" data-target="section-location" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Location Details</button>
                     <button type="button" class="modal-tab" data-target="section-security" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Security</button>
                 </div>
 
-                <div id="section-core" class="profile-section" style="display:block;">
+                <div id="section-core" class="profile-section" style="display:none;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="12" cy="7" r="4"></circle>
@@ -6523,7 +6568,7 @@
                     </div>
                 </div>
 
-                <div id="section-roles" class="profile-section" style="display:none;">
+                <div id="section-roles" class="profile-section" style="display:block;">
                     <p class="profile-section-title">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -8935,7 +8980,7 @@
                 initial.textContent = name ? name.charAt(0).toUpperCase() : 'U';
             }
             const modalEmail = document.getElementById('modalUserEmail');
-            if (modalEmail) modalEmail.textContent = formatLabel(user.role);
+            if (modalEmail) modalEmail.textContent = user.email || '-';
 
             const roleBadge = document.getElementById('modalRoleBadge');
             if (roleBadge) {
@@ -9065,8 +9110,8 @@
                     initViewLocationDropdowns(curRegion, curProvince, curCity, curBarangay);
                 });
             }
-            (function resetTabsToCore(){
-                const trigger = document.querySelector('.modal-tab[data-target="section-core"]');
+            (function resetTabsToRoles(){
+                const trigger = document.querySelector('.modal-tab[data-target="section-roles"]');
                 if (trigger) trigger.click();
             })();
         }
@@ -9307,10 +9352,12 @@
                     const target = this.getAttribute('data-target');
                     document.querySelectorAll('.modal-tab').forEach(b => {
                         b.classList.remove('active');
+                        b.setAttribute('aria-selected', 'false');
                         b.style.color = '#64748b';
                         b.style.borderBottomColor = 'transparent';
                     });
                     this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
                     this.style.color = 'var(--primary-blue)';
                     this.style.borderBottomColor = 'var(--primary-blue)';
                     sections.forEach(id => {
