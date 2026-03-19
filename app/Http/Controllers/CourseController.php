@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\ExamEssayResponse;
 use App\Models\Notification;
 use App\Models\User;
 use App\Traits\HandlesCertification;
@@ -101,6 +102,299 @@ class CourseController extends Controller
                 throw $e;
             }
         }
+    }
+
+    protected function normalizeExamQuestion(array $question): ?array
+    {
+        $type = (string) ($question['type'] ?? '');
+        $text = trim((string) ($question['text'] ?? $question['title'] ?? ''));
+
+        if ($text === '') {
+            return null;
+        }
+
+        if ($type === 'multiple_choice') {
+            $choices = $question['choices'] ?? ($question['options'] ?? []);
+            $choices = array_values(array_filter(array_map(fn ($value) => trim((string) $value), (array) $choices), fn ($value) => $value !== ''));
+            $answerIndex = isset($question['answer_index']) && is_numeric($question['answer_index'])
+                ? (int) $question['answer_index']
+                : null;
+
+            if (count($choices) < 2 || $answerIndex === null || $answerIndex < 0 || $answerIndex >= count($choices)) {
+                return null;
+            }
+
+            return [
+                'type' => 'multiple_choice',
+                'text' => $text,
+                'choices' => $choices,
+                'answer_index' => $answerIndex,
+            ];
+        }
+
+        if ($type === 'identification') {
+            $answer = trim((string) ($question['answer'] ?? ''));
+            if ($answer === '') {
+                return null;
+            }
+
+            return [
+                'type' => 'identification',
+                'text' => $text,
+                'answer' => $answer,
+            ];
+        }
+
+        if ($type === 'true_false') {
+            $rawAnswer = $question['answer'] ?? null;
+            $answer = filter_var($rawAnswer, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($answer === null && is_bool($rawAnswer)) {
+                $answer = $rawAnswer;
+            }
+            if ($answer === null) {
+                return null;
+            }
+
+            return [
+                'type' => 'true_false',
+                'text' => $text,
+                'answer' => $answer,
+            ];
+        }
+
+        if ($type === 'essay') {
+            return [
+                'type' => 'essay',
+                'text' => $text,
+                'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0,
+            ];
+        }
+
+        return null;
+    }
+
+    protected function getCourseModuleExam(Course $course, int $moduleIndex): ?array
+    {
+        $modules = is_array($course->modules) ? $course->modules : [];
+        if (is_string($course->modules)) {
+            $modules = json_decode($course->modules, true) ?: [];
+        }
+
+        $module = $modules[$moduleIndex] ?? null;
+        $exam = is_array($module['exam'] ?? null) ? $module['exam'] : null;
+        if (!$exam) {
+            $nextModule = $modules[$moduleIndex + 1] ?? null;
+            $nextTopics = isset($nextModule['topics']) && is_array($nextModule['topics']) ? $nextModule['topics'] : [];
+            $nextExam = is_array($nextModule['exam'] ?? null) ? $nextModule['exam'] : null;
+            if ($nextExam && empty($nextTopics)) {
+                $exam = $nextExam;
+            }
+        }
+        if (!$exam) {
+            return null;
+        }
+
+        $questions = [];
+        foreach ((array) ($exam['questions'] ?? []) as $question) {
+            if (!is_array($question)) {
+                continue;
+            }
+            $normalized = $this->normalizeExamQuestion($question);
+            if ($normalized) {
+                $questions[] = $normalized;
+            }
+        }
+
+        $exam['questions'] = $questions;
+        return $exam;
+    }
+
+    protected function syncEssayResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
+    {
+        $essayIndexes = [];
+
+        foreach ($questions as $questionIndex => $question) {
+            if (($question['type'] ?? '') !== 'essay') {
+                continue;
+            }
+
+            $essayIndexes[] = $questionIndex;
+            $answerText = trim((string) ($answers[$questionIndex] ?? ''));
+
+            ExamEssayResponse::updateOrCreate(
+                [
+                    'course_id' => $course->id,
+                    'trainee_id' => $trainee->id,
+                    'module_index' => $moduleIndex,
+                    'question_index' => $questionIndex,
+                ],
+                [
+                    'question_text' => (string) ($question['text'] ?? ''),
+                    'answer_text' => $answerText,
+                    'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
+                        ? max(1, (float) $question['max_points'])
+                        : 1,
+                    'score' => null,
+                    'feedback' => null,
+                    'checked_by_trainer' => null,
+                    'checked_at' => null,
+                    'status' => 'pending',
+                    'submitted_at' => $submittedAt,
+                ]
+            );
+        }
+
+        if (!empty($essayIndexes)) {
+            ExamEssayResponse::where('course_id', $course->id)
+                ->where('trainee_id', $trainee->id)
+                ->where('module_index', $moduleIndex)
+                ->whereNotIn('question_index', $essayIndexes)
+                ->delete();
+        } else {
+            ExamEssayResponse::where('course_id', $course->id)
+                ->where('trainee_id', $trainee->id)
+                ->where('module_index', $moduleIndex)
+                ->delete();
+        }
+
+        return $essayIndexes;
+    }
+
+    protected function buildModuleExamAttemptSummary(Course $course, int $moduleIndex, int $userId, ?array $submission = null): ?array
+    {
+        $exam = $this->getCourseModuleExam($course, $moduleIndex);
+        if (!$exam) {
+            return null;
+        }
+
+        if ($submission === null) {
+            $file = storage_path('app/exam_submissions/course_'.$course->id.DIRECTORY_SEPARATOR.'mi_'.$moduleIndex.'_u_'.$userId.'.json');
+            if (!is_file($file)) {
+                return null;
+            }
+            $submission = json_decode((string) @file_get_contents($file), true) ?: null;
+        }
+
+        if (!$submission) {
+            return null;
+        }
+
+        $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+        $answers = is_array($submission['answers'] ?? null) ? $submission['answers'] : [];
+        $essayRows = ExamEssayResponse::where('course_id', $course->id)
+            ->where('trainee_id', $userId)
+            ->where('module_index', $moduleIndex)
+            ->get()
+            ->keyBy('question_index');
+
+        $objectiveTotal = 0;
+        $objectiveCorrect = 0;
+        $essayTotal = 0.0;
+        $essayCheckedScore = 0.0;
+        $pendingEssayCount = 0;
+        $checkedEssayCount = 0;
+        $items = [];
+
+        foreach ($questions as $questionIndex => $question) {
+            $type = (string) ($question['type'] ?? 'multiple_choice');
+            $answer = $answers[$questionIndex] ?? null;
+
+            if ($type === 'essay') {
+                $row = $essayRows->get($questionIndex);
+                $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                    ? max(1, (float) $question['max_points'])
+                    : 1.0;
+                $essayTotal += $maxPoints;
+
+                $status = $row?->status ?? 'pending';
+                if ($status === 'checked' && $row?->score !== null) {
+                    $checkedEssayCount++;
+                    $essayCheckedScore += (float) $row->score;
+                } else {
+                    $pendingEssayCount++;
+                }
+
+                $items[] = [
+                    'question_index' => $questionIndex,
+                    'type' => 'essay',
+                    'text' => (string) ($question['text'] ?? ''),
+                    'answer_text' => trim((string) $answer),
+                    'score' => $row?->score !== null ? (float) $row->score : null,
+                    'max_points' => $maxPoints,
+                    'feedback' => $row?->feedback,
+                    'status' => $status,
+                    'checked_by_trainer' => $row?->checked_by_trainer,
+                    'checked_at' => optional($row?->checked_at)->toIso8601String(),
+                ];
+                continue;
+            }
+
+            $objectiveTotal++;
+            $isCorrect = false;
+            if ($type === 'multiple_choice') {
+                $isCorrect = is_numeric($answer) && isset($question['answer_index']) && (int) $answer === (int) $question['answer_index'];
+            } elseif ($type === 'true_false') {
+                $expected = $question['answer'] === true ? 'true' : 'false';
+                $isCorrect = $answer !== null && strtolower((string) $answer) === $expected;
+            } elseif ($type === 'identification') {
+                $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
+                    ? $question['answers']
+                    : [($question['answer'] ?? '')];
+                $normalizedAnswer = strtolower(trim((string) $answer));
+                $isCorrect = collect($expectedAnswers)->contains(function ($expectedAnswer) use ($normalizedAnswer) {
+                    return strtolower(trim((string) $expectedAnswer)) === $normalizedAnswer;
+                });
+            }
+
+            if ($isCorrect) {
+                $objectiveCorrect++;
+            }
+
+            $items[] = [
+                'question_index' => $questionIndex,
+                'type' => $type,
+                'text' => (string) ($question['text'] ?? ''),
+                'answer' => $answer,
+                'is_correct' => $isCorrect,
+            ];
+        }
+
+        $objectivePct = $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0;
+        $totalPossiblePoints = $objectiveTotal + $essayTotal;
+        $earnedPoints = $objectiveCorrect + $essayCheckedScore;
+        $finalPct = $totalPossiblePoints > 0 ? (int) round(($earnedPoints / $totalPossiblePoints) * 100) : 0;
+
+        $status = 'completed';
+        if ($pendingEssayCount > 0 && $checkedEssayCount === 0) {
+            $status = 'pending_review';
+        } elseif ($pendingEssayCount > 0) {
+            $status = 'partially_graded';
+        }
+
+        return [
+            'course_id' => $course->id,
+            'user_id' => $userId,
+            'module_index' => $moduleIndex,
+            'submitted_at' => $submission['submitted_at'] ?? null,
+            'objective_correct' => $objectiveCorrect,
+            'objective_total' => $objectiveTotal,
+            'objective_pct' => $objectivePct,
+            'essay_checked_score' => round($essayCheckedScore, 2),
+            'essay_total_points' => round($essayTotal, 2),
+            'essay_pending_count' => $pendingEssayCount,
+            'essay_checked_count' => $checkedEssayCount,
+            'final_pct' => $finalPct,
+            'status' => $status,
+            'status_label' => match ($status) {
+                'pending_review' => 'Pending Trainer Review',
+                'partially_graded' => 'Partially Graded',
+                default => 'Completed',
+            },
+            'items' => $items,
+            'contains_essay' => ($pendingEssayCount + $checkedEssayCount) > 0,
+        ];
     }
 
     /**
@@ -268,7 +562,7 @@ class CourseController extends Controller
                     }
                     // Optional: strip essay types if present
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
                     }));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
@@ -281,7 +575,7 @@ class CourseController extends Controller
             $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
-                'status' => 'locked',
+                'status' => 'unlocked',
             ];
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
@@ -297,7 +591,7 @@ class CourseController extends Controller
                         ->withInput();
                 }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
                 }));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
@@ -475,7 +769,7 @@ class CourseController extends Controller
                             ->withInput();
                     }
                     $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
                     }));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
@@ -488,7 +782,7 @@ class CourseController extends Controller
             $mArr = [
                 'title' => $module['title'] ?? '',
                 'topics' => $topics,
-                'status' => 'locked',
+                'status' => 'unlocked',
             ];
             if ($exam) { $mArr['exam'] = $exam; }
             $modules[] = $mArr;
@@ -504,7 +798,7 @@ class CourseController extends Controller
                         ->withInput();
                 }
                 $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false'], true);
+                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay'], true);
                 }));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
@@ -1163,7 +1457,7 @@ class CourseController extends Controller
                     $examDecoded = json_decode($examRaw, true);
                     if (is_array($examDecoded)) {
                         $examQuestions = array_values(array_filter(($examDecoded['questions'] ?? []), function ($q) {
-                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false'], true);
+                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false', 'essay'], true);
                         }));
                         $mArr['exam'] = [
                             'title' => (string) ($examDecoded['title'] ?? ''),
@@ -1351,34 +1645,121 @@ class CourseController extends Controller
     {
         $user = auth()->user();
         if (!$user) return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
-        $data = $request->validate([
-            'mi' => 'required|integer|min:0',
-            'correct' => 'required|integer|min:0',
-            'total' => 'required|integer|min:0',
-            'pct' => 'required|integer|min:0|max:100',
-            'answers' => 'nullable|array',
-            'duration_ms' => 'nullable|integer|min:0',
-        ]);
-        $payload = [
-            'course_id' => $course->id,
-            'user_id' => $user->id,
-            'module_index' => $data['mi'],
-            'correct' => $data['correct'],
-            'total' => $data['total'],
-            'pct' => $data['pct'],
-            'answers' => $data['answers'] ?? [],
-            'duration_ms' => $data['duration_ms'] ?? null,
-            'submitted_at' => now()->toIso8601String(),
-        ];
-        $dir = storage_path('app/exam_submissions/course_'.$course->id);
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$data['mi'].'_u_'.$user->id.'.json';
-        file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT));
+        try {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'mi' => 'required|integer|min:0',
+                'answers' => 'nullable|array',
+                'duration_ms' => 'nullable|integer|min:0',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => $validator->errors()->first() ?: 'Invalid exam submission.',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
 
-        // Check if course is now 100% complete and issue certificate
-        $completed = $this->issueCertificateIfCompleted($user, $course);
+            $data = $validator->validated();
+            $exam = $this->getCourseModuleExam($course, (int) $data['mi']);
+            if (!$exam) {
+                return response()->json(['ok' => false, 'error' => 'Module exam not found.'], 404);
+            }
 
-        return response()->json(['ok'=>true, 'completed' => $completed]);
+            $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+            $answers = array_values($data['answers'] ?? []);
+            $essayIndexes = [];
+            foreach ($questions as $index => $question) {
+                if (($question['type'] ?? '') !== 'essay') {
+                    continue;
+                }
+                $essayIndexes[] = $index;
+                if (trim((string) ($answers[$index] ?? '')) === '') {
+                    return response()->json([
+                        'ok' => false,
+                        'error' => 'Essay answers cannot be empty.',
+                        'question_index' => $index,
+                    ], 422);
+                }
+            }
+
+            $objectiveTotal = 0;
+            $objectiveCorrect = 0;
+            foreach ($questions as $index => $question) {
+                $type = (string) ($question['type'] ?? 'multiple_choice');
+                $answer = $answers[$index] ?? null;
+                if ($type === 'essay') {
+                    continue;
+                }
+
+                $objectiveTotal++;
+                if ($type === 'multiple_choice') {
+                    if (is_numeric($answer) && isset($question['answer_index']) && (int) $answer === (int) $question['answer_index']) {
+                        $objectiveCorrect++;
+                    }
+                } elseif ($type === 'true_false') {
+                    $expected = $question['answer'] === true ? 'true' : 'false';
+                    if ($answer !== null && strtolower((string) $answer) === $expected) {
+                        $objectiveCorrect++;
+                    }
+                } elseif ($type === 'identification') {
+                    $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
+                        ? $question['answers']
+                        : [($question['answer'] ?? '')];
+                    $normalizedAnswer = strtolower(trim((string) $answer));
+                    foreach ($expectedAnswers as $expectedAnswer) {
+                        if (strtolower(trim((string) $expectedAnswer)) === $normalizedAnswer) {
+                            $objectiveCorrect++;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $submittedAt = now()->toIso8601String();
+            $payload = [
+                'course_id' => $course->id,
+                'user_id' => $user->id,
+                'module_index' => $data['mi'],
+                'correct' => $objectiveCorrect,
+                'total' => $objectiveTotal,
+                'pct' => $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0,
+                'answers' => $answers,
+                'duration_ms' => $data['duration_ms'] ?? null,
+                'submitted_at' => $submittedAt,
+            ];
+            $dir = storage_path('app/exam_submissions/course_'.$course->id);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            if (!is_dir($dir)) {
+                return response()->json(['ok' => false, 'error' => 'Unable to prepare exam submission storage.'], 500);
+            }
+            $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$data['mi'].'_u_'.$user->id.'.json';
+            if (file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT)) === false) {
+                return response()->json(['ok' => false, 'error' => 'Unable to save exam submission file.'], 500);
+            }
+
+            $this->syncEssayResponsesForSubmission($course, $user, (int) $data['mi'], $questions, $answers, $submittedAt);
+            $summary = $this->buildModuleExamAttemptSummary($course, (int) $data['mi'], $user->id, $payload);
+
+            $completed = false;
+            if (($summary['status'] ?? 'completed') === 'completed') {
+                $completed = $this->issueCertificateIfCompleted($user, $course);
+            }
+
+            return response()->json(['ok'=>true, 'completed' => $completed, 'summary' => $summary]);
+        } catch (\Throwable $e) {
+            \Log::error('submitModuleExam failed', [
+                'course_id' => $course->id,
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'ok' => false,
+                'error' => 'Exam submission failed on the server.',
+                'detail' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -1399,13 +1780,19 @@ class CourseController extends Controller
                 $j = json_decode(@file_get_contents($p), true) ?: [];
                 if (!empty($j['user_id'])) {
                     $u = \App\Models\User::find($j['user_id']);
+                    $summary = $this->buildModuleExamAttemptSummary($course, $mi, (int) $j['user_id'], $j);
                     $items[] = [
                         'user_id' => $j['user_id'],
                         'name' => $u?->name ?? 'User '.$j['user_id'],
                         'email' => $u?->email ?? null,
-                        'pct' => (int)($j['pct'] ?? 0),
-                        'correct' => (int)($j['correct'] ?? 0),
-                        'total' => (int)($j['total'] ?? 0),
+                        'pct' => (int) ($summary['final_pct'] ?? ($j['pct'] ?? 0)),
+                        'correct' => (int) ($summary['objective_correct'] ?? ($j['correct'] ?? 0)),
+                        'total' => (int) ($summary['objective_total'] ?? ($j['total'] ?? 0)),
+                        'objective_pct' => (int) ($summary['objective_pct'] ?? ($j['pct'] ?? 0)),
+                        'essay_pending_count' => (int) ($summary['essay_pending_count'] ?? 0),
+                        'essay_checked_count' => (int) ($summary['essay_checked_count'] ?? 0),
+                        'status' => (string) ($summary['status'] ?? 'completed'),
+                        'status_label' => (string) ($summary['status_label'] ?? 'Completed'),
                         'submitted_at' => $j['submitted_at'] ?? null,
                     ];
                 }
@@ -1414,6 +1801,115 @@ class CourseController extends Controller
         // Sort latest first
         usort($items, fn($a,$b)=>strcmp($b['submitted_at']??'', $a['submitted_at']??''));
         return response()->json(['ok'=>true,'items'=>$items]);
+    }
+
+    public function moduleExamAttempt(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $moduleIndex = (int) $request->query('mi', -1);
+        if ($moduleIndex < 0) {
+            return response()->json(['ok' => false, 'error' => 'Missing module index'], 422);
+        }
+
+        $targetUserId = (int) $request->query('user_id', $user->id);
+        $isTrainer = in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true);
+        if (!$isTrainer && $targetUserId !== $user->id) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $targetUserId);
+        if (!$summary) {
+            return response()->json(['ok' => false, 'error' => 'Attempt not found'], 404);
+        }
+
+        $targetUser = User::find($targetUserId);
+        return response()->json([
+            'ok' => true,
+            'attempt' => array_merge($summary, [
+                'user_name' => $targetUser?->name ?? ('User '.$targetUserId),
+                'user_email' => $targetUser?->email,
+            ]),
+        ]);
+    }
+
+    public function reviewModuleExamEssay(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $data = $request->validate([
+            'mi' => 'required|integer|min:0',
+            'user_id' => 'required|integer|min:1',
+            'reviews' => 'required|array|min:1',
+            'reviews.*.question_index' => 'required|integer|min:0',
+            'reviews.*.score' => 'required|numeric|min:0',
+            'reviews.*.feedback' => 'nullable|string',
+        ]);
+
+        $exam = $this->getCourseModuleExam($course, (int) $data['mi']);
+        if (!$exam) {
+            return response()->json(['ok' => false, 'error' => 'Module exam not found.'], 404);
+        }
+
+        $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+        $rows = ExamEssayResponse::where('course_id', $course->id)
+            ->where('trainee_id', (int) $data['user_id'])
+            ->where('module_index', (int) $data['mi'])
+            ->get()
+            ->keyBy('question_index');
+
+        foreach ($data['reviews'] as $review) {
+            $questionIndex = (int) $review['question_index'];
+            $question = $questions[$questionIndex] ?? null;
+            if (!is_array($question) || ($question['type'] ?? '') !== 'essay') {
+                return response()->json(['ok' => false, 'error' => 'One of the selected items is not an essay question.'], 422);
+            }
+
+            $row = $rows->get($questionIndex);
+            if (!$row) {
+                return response()->json(['ok' => false, 'error' => 'Essay response not found for one of the questions.'], 404);
+            }
+
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+            $score = (float) $review['score'];
+            if ($score > $maxPoints) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Essay score cannot exceed the maximum points.',
+                    'question_index' => $questionIndex,
+                ], 422);
+            }
+        }
+
+        foreach ($data['reviews'] as $review) {
+            $questionIndex = (int) $review['question_index'];
+            $row = $rows->get($questionIndex);
+            $row->update([
+                'score' => (float) $review['score'],
+                'feedback' => isset($review['feedback']) ? trim((string) $review['feedback']) : null,
+                'status' => 'checked',
+                'checked_by_trainer' => $user->id,
+                'checked_at' => now(),
+            ]);
+        }
+
+        $summary = $this->buildModuleExamAttemptSummary($course, (int) $data['mi'], (int) $data['user_id']);
+        $completed = false;
+        if (($summary['status'] ?? null) === 'completed') {
+            $trainee = User::find((int) $data['user_id']);
+            if ($trainee) {
+                $completed = $this->issueCertificateIfCompleted($trainee, $course);
+            }
+        }
+        return response()->json(['ok' => true, 'attempt' => $summary, 'completed' => $completed]);
     }
 
     /**
@@ -1426,6 +1922,35 @@ class CourseController extends Controller
             return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
         }
         $mods = is_array($course->modules) ? $course->modules : [];
+        if (!empty($mods)) {
+            $normalized = [];
+            foreach ($mods as $mi => $m) {
+                $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
+                $exam = isset($m['exam']) && is_array($m['exam']) ? $m['exam'] : null;
+                $hasTopics = !empty($topics);
+                $hasExam = $exam && !empty($exam['questions'] ?? []);
+
+                if ($hasTopics) {
+                    $normalized[] = $m;
+                    continue;
+                }
+
+                if ($hasExam && !empty($normalized)) {
+                    $prevIndex = count($normalized) - 1;
+                    $prevTopics = isset($normalized[$prevIndex]['topics']) && is_array($normalized[$prevIndex]['topics'])
+                        ? $normalized[$prevIndex]['topics']
+                        : [];
+                    $prevHasExam = !empty($normalized[$prevIndex]['exam']['questions'] ?? []);
+                    if (!empty($prevTopics) && !$prevHasExam) {
+                        $normalized[$prevIndex]['exam'] = $exam;
+                        continue;
+                    }
+                }
+
+                $normalized[] = $m;
+            }
+            $mods = array_values($normalized);
+        }
         // Normalize modules meta and totals
         $modulesMeta = [];
         $totals = [];
@@ -1491,7 +2016,13 @@ class CourseController extends Controller
                 $done = $doneSetByModule[$mi] ?? 0;
                 $modulePct = $total ? (int) round(($done / $total) * 100) : null;
                 $examPct = $examIndex[$u->id.'_'.$mi] ?? null;
-                $scores[] = ['module_pct' => $modulePct, 'exam_pct' => $examPct];
+                $examSummary = $examPct !== null ? $this->buildModuleExamAttemptSummary($course, $mi, $u->id) : null;
+                $scores[] = [
+                    'module_pct' => $modulePct,
+                    'exam_pct' => $examSummary['final_pct'] ?? $examPct,
+                    'exam_status' => $examSummary['status'] ?? null,
+                    'essay_pending_count' => $examSummary['essay_pending_count'] ?? 0,
+                ];
             }
             $outUsers[] = [
                 'user_id' => $u->id,
@@ -1695,6 +2226,11 @@ class CourseController extends Controller
                 $ans = isset($q['answer']) ? (bool)$q['answer'] : null;
                 if (!is_bool($ans)) { $ans = ($q['answer']==='true'); }
                 $norm[] = ['type'=>'true_false','text'=>$text,'answer'=>$ans===true];
+            } elseif ($type === 'essay') {
+                $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
+                    ? max(1, (float) $q['max_points'])
+                    : 1.0;
+                $norm[] = ['type'=>'essay','text'=>$text,'max_points'=>$maxPoints];
             } else {
                 // Skip unsupported types
             }

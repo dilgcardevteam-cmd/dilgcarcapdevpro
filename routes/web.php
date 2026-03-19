@@ -112,6 +112,8 @@ Route::put('/trainer/courses/{course}/enrollment-schedule', [CourseController::c
 // Module Exam submissions and results
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
+Route::get('/courses/{course}/module-exam/attempt', [CourseController::class, 'moduleExamAttempt'])->middleware(['auth'])->name('courses.module-exam.attempt');
+Route::post('/courses/{course}/module-exam/review', [CourseController::class, 'reviewModuleExamEssay'])->middleware(['auth'])->name('courses.module-exam.review');
 // Participants progress (trainer gradebook)
 Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.participants-progress');
 Route::post('/trainer/courses/{course}/notify-incomplete', [CourseController::class, 'notifyIncompleteParticipants'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.notify-incomplete');

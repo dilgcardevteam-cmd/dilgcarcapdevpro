@@ -2059,9 +2059,151 @@
             let bg='#eef7ee', color='#166534', border='#bbf7d0';
             if(pass!=null){
                 if(pct>=pass){ bg='#ecfdf5'; color='#065f46'; border='#bbf7d0'; }
-                else{ bg='#fef2f2'; color:'#991b1b'; border='#fecaca'; }
+                else{ bg='#fef2f2'; color='#991b1b'; border='#fecaca'; }
             }
-            return `<td style="text-align:center;background:${bg};color:${color};border-bottom:1px solid #e5e7eb">${pct}/100</td>`;
+            return `<td style="text-align:center;background:${bg};color:${color};border-bottom:1px solid #e5e7eb;border-left:1px solid ${border};border-right:1px solid ${border}">${pct}/100</td>`;
+        }
+        function ensureEssayReviewModal(){
+            let modal = document.getElementById('essayReviewModal');
+            if(modal) return modal;
+            modal = document.createElement('div');
+            modal.id = 'essayReviewModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:5000;padding:20px';
+            modal.innerHTML = `
+                <div style="width:min(980px,96vw);max-height:90vh;overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 30px 60px rgba(2,6,23,.28)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #e5e7eb">
+                        <div>
+                            <div style="font-weight:900;color:#0f172a" id="essayReviewTitle">Exam Submission</div>
+                            <div class="muted" id="essayReviewMeta"></div>
+                        </div>
+                        <button type="button" id="essayReviewClose" class="btn btn-ghost" style="border-radius:12px">Close</button>
+                    </div>
+                    <div id="essayReviewBody" style="padding:18px"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('#essayReviewClose').onclick = ()=>{ modal.style.display = 'none'; };
+            modal.addEventListener('click', (e)=>{ if(e.target === modal){ modal.style.display = 'none'; } });
+            return modal;
+        }
+        async function openEssayReviewModal(userId, moduleIndex, examTitle){
+            const modal = ensureEssayReviewModal();
+            const titleEl = modal.querySelector('#essayReviewTitle');
+            const metaEl = modal.querySelector('#essayReviewMeta');
+            const bodyEl = modal.querySelector('#essayReviewBody');
+            titleEl.textContent = examTitle || 'Exam Submission';
+            metaEl.textContent = 'Loading submission...';
+            bodyEl.innerHTML = '<div class="muted">Loading submission...</div>';
+            modal.style.display = 'flex';
+            try{
+                const res = await fetch("{{ route('courses.module-exam.attempt', $course) }}?mi="+encodeURIComponent(moduleIndex)+"&user_id="+encodeURIComponent(userId), {credentials:'same-origin'});
+                const data = res.ok ? await res.json() : null;
+                if(!data || !data.ok || !data.attempt){
+                    metaEl.textContent = '';
+                    bodyEl.innerHTML = '<div class="muted">Failed to load submission.</div>';
+                    return;
+                }
+                const attempt = data.attempt;
+                titleEl.textContent = `${examTitle || 'Module Exam'} - ${attempt.user_name || 'Participant'}`;
+                metaEl.textContent = `${attempt.status_label || 'Completed'} | Submitted ${attempt.submitted_at ? String(attempt.submitted_at).replace('T',' ').replace('Z','') : 'N/A'}`;
+                bodyEl.innerHTML = `
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+                        <span class="chip">${attempt.final_pct ?? 0}%</span>
+                        <span class="chip">${attempt.objective_correct ?? 0}/${attempt.objective_total ?? 0} objective</span>
+                        ${attempt.essay_pending_count ? `<span class="chip" style="background:#fff7ed;border-color:#fdba74;color:#b45309">${attempt.essay_pending_count} essay pending</span>` : ''}
+                    </div>
+                    <div style="display:grid;gap:14px">
+                        ${(attempt.items || []).map(item=>{
+                            if(item.type === 'essay'){
+                                return `
+                                    <div class="forum-card" data-question-index="${item.question_index}">
+                                        <div style="font-size:0.78rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">Essay</div>
+                                        <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:10px">${item.text || 'Essay Question'}</div>
+                                        <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;white-space:pre-wrap;margin-bottom:12px">${item.answer_text || 'No answer submitted.'}</div>
+                                        <div style="display:grid;grid-template-columns:minmax(150px,180px) 1fr;gap:12px">
+                                            <label style="display:grid;gap:6px">
+                                                <span class="muted" style="font-weight:700">Score / ${item.max_points ?? 1}</span>
+                                                <input type="number" min="0" max="${item.max_points ?? 1}" step="0.01" class="essay-score-input" value="${item.score ?? ''}" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+                                            </label>
+                                            <label style="display:grid;gap:6px">
+                                                <span class="muted" style="font-weight:700">Feedback</span>
+                                                <textarea class="essay-feedback-input" rows="3" style="padding:10px;border:1px solid #e5e7eb;border-radius:10px">${item.feedback || ''}</textarea>
+                                            </label>
+                                        </div>
+                                        <div style="margin-top:8px;font-size:0.82rem;font-weight:800;color:${item.status === 'checked' ? '#166534' : '#b45309'}">${item.status === 'checked' ? 'Checked' : 'Pending Review'}</div>
+                                    </div>
+                                `;
+                            }
+                            const answerText = item.answer == null ? 'No answer' : String(item.answer);
+                            return `
+                                <div class="forum-card">
+                                    <div style="font-size:0.78rem;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:6px">${String(item.type || 'question').replace(/_/g,' ')}</div>
+                                    <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:8px">${item.text || 'Question'}</div>
+                                    <div class="muted">Answer: ${answerText}</div>
+                                    <div style="margin-top:6px;font-weight:800;color:${item.is_correct ? '#166534' : '#b91c1c'}">${item.is_correct ? 'Correct' : 'Incorrect'}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+                        <button type="button" id="essayReviewSaveBtn" class="btn btn-blue" style="border-radius:12px">Save Review</button>
+                    </div>
+                `;
+                const saveBtn = bodyEl.querySelector('#essayReviewSaveBtn');
+                if(saveBtn){
+                    saveBtn.onclick = async ()=>{
+                        const reviewCards = Array.from(bodyEl.querySelectorAll('[data-question-index]'));
+                        const reviews = reviewCards.map(card => ({
+                            question_index: Number(card.getAttribute('data-question-index')),
+                            score: Number(card.querySelector('.essay-score-input')?.value || 0),
+                            feedback: card.querySelector('.essay-feedback-input')?.value || ''
+                        }));
+                        saveBtn.disabled = true;
+                        saveBtn.textContent = 'Saving...';
+                        try{
+                            const saveRes = await fetch("{{ route('courses.module-exam.review', $course) }}", {
+                                method:'POST',
+                                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+                                credentials:'same-origin',
+                                body: JSON.stringify({mi: moduleIndex, user_id: userId, reviews})
+                            });
+                            const saved = saveRes.ok ? await saveRes.json() : null;
+                            if(saved && saved.ok){
+                                await openEssayReviewModal(userId, moduleIndex, examTitle);
+                                renderParticipantProgress();
+                            }else{
+                                alert(saved && saved.error ? saved.error : 'Failed to save review.');
+                            }
+                        }catch(e){
+                            alert('Failed to save review.');
+                        }finally{
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = 'Save Review';
+                        }
+                    };
+                }
+            }catch(e){
+                metaEl.textContent = '';
+                bodyEl.innerHTML = '<div class="muted">Failed to load submission.</div>';
+            }
+        }
+        function renderExamProgressCell(user, plan, score){
+            const pct = score?.exam_pct;
+            const statusLabel = score?.exam_status === 'pending_review'
+                ? 'Pending Review'
+                : score?.exam_status === 'partially_graded'
+                    ? 'Partially Graded'
+                    : score?.exam_status === 'completed'
+                        ? 'Completed'
+                        : 'No Submission';
+            const pendingBadge = (score?.essay_pending_count || 0) > 0
+                ? `<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#b45309">${score.essay_pending_count} essay pending</div>`
+                : '';
+            const canReview = score?.exam_status || score?.exam_pct != null;
+            const reviewBtn = canReview
+                ? `<button type="button" class="btn btn-ghost js-review-attempt-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" data-exam-title="${String(plan.title || 'Module Exam').replace(/"/g, '&quot;')}" style="margin-top:8px;border-radius:10px;padding:6px 10px;cursor:pointer;position:relative;z-index:2">View Attempt</button>`
+                : `<button type="button" class="btn btn-ghost" style="margin-top:8px;border-radius:10px;padding:6px 10px;opacity:.55;cursor:not-allowed" disabled title="The trainee has not submitted this exam yet.">No Attempt Yet</button>`;
+            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#0f3b8f">${statusLabel}</div>${reviewBtn}</td>`);
         }
         async function renderParticipantProgress(){
             const info = document.getElementById('progressInfo');
@@ -2087,7 +2229,7 @@
                     const examTitle = (m && m.exam_title) ? m.exam_title : '';
                     if(examTitle){
                         h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Module Exam: ${examTitle}</th>`);
-                        colPlan.push({type:'exam', mi: idx, pass: m?.passing_score ?? null});
+                        colPlan.push({type:'exam', mi: idx, pass: m?.passing_score ?? null, title: examTitle});
                     }
                 });
                 h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Notify</th>`);
@@ -2103,7 +2245,7 @@
                             if(pct===null) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--%</td>`;
                             return `<td style="text-align:center;background:#eef7ee;color:#166534;border-bottom:1px solid #e5e7eb">${pct}%</td>`;
                         }else{
-                            return gradeCell(s.exam_pct, plan.pass ?? null);
+                            return renderExamProgressCell(u, plan, s);
                         }
                     }).join('');
                     const notifyBtn = `<td style="text-align:center;border-bottom:1px solid #e5e7eb">
@@ -2119,6 +2261,14 @@
                         tbody.innerHTML = `<tr><td colspan="${span}" style="text-align:center;padding:16px;color:#64748b;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;background:#ffffff">No Participants Yet</td></tr>`;
                     } else {
                         tbody.innerHTML = rows;
+                        tbody.querySelectorAll('.js-review-attempt-btn').forEach(btn => {
+                            btn.addEventListener('click', ()=>{
+                                const userId = Number(btn.getAttribute('data-user-id'));
+                                const moduleIndex = Number(btn.getAttribute('data-module-index'));
+                                const examTitle = btn.getAttribute('data-exam-title') || 'Module Exam';
+                                openEssayReviewModal(userId, moduleIndex, examTitle);
+                            });
+                        });
                     }
                 }
                 if(info){ info.textContent=''; }

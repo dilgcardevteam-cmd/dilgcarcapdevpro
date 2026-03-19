@@ -438,8 +438,7 @@
             mods.forEach((m,mi)=>{
                 const mod = document.createElement('div');
                 mod.className='module';
-                const st = (m && m.status) ? String(m.status) : 'unlocked';
-                const isLocked = (!IS_TRAINEE_USER && st === 'locked');
+                const isLocked = false;
                 const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
                 const baseTitle = m.title || (isExamOnly ? 'Module Exam' : 'Untitled');
                 const titleStr = isExamOnly ? (m.exam && m.exam.title ? `Module Exam: ${m.exam.title}` : baseTitle) : `Module ${mi+1}: ${baseTitle}`;
@@ -491,11 +490,6 @@
                         });
                     }
                     head.addEventListener('click', (e)=>{
-                        if (isLocked) { 
-                            showLockedContent(mi);
-                            e.stopPropagation(); 
-                            return; 
-                        }
                         document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
                         tEl.classList.add('active');
                         openTopic(mi,ti);
@@ -504,11 +498,6 @@
                     if(!viewOnly){
                         tEl.querySelectorAll('.sub-item').forEach(n=>{
                             n.addEventListener('click',(e)=>{
-                                if (isLocked) { 
-                                    showLockedContent(mi);
-                                    e.stopPropagation(); 
-                                    return; 
-                                }
                                 const si = parseInt(n.getAttribute('data-si'),10);
                                 document.querySelectorAll('.sub-item').forEach(x=>x.classList.remove('active'));
                                 n.classList.add('active');
@@ -523,10 +512,6 @@
                 });
                 mod.querySelector('.module-header').addEventListener('click',()=>{
                     // Locks disabled
-                    if (isLocked) { 
-                        showLockedContent(mi);
-                        return;
-                    }
                     const open = topicsCt.style.display==='block';
                     topicsCt.style.display = open?'none':'block';
                     const chev = mod.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
@@ -570,11 +555,6 @@
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
                     head.addEventListener('click', (e)=>{
-                        if (isLocked) { 
-                            showLockedContent(mi);
-                            e.stopPropagation(); 
-                            return; 
-                        }
                         document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
                         tEl.classList.add('active');
                         openExam(mi);
@@ -582,10 +562,6 @@
                     });
                     exTopics.appendChild(tEl);
                     exHead.addEventListener('click',()=>{
-                        if (isLocked) { 
-                            showLockedContent(mi);
-                            return;
-                        }
                         const open = exTopics.style.display==='block';
                         exTopics.style.display = open?'none':'block';
                         const chev = modEx.querySelector('.toggle-icon i'); if(chev){ chev.style.transform = open?'rotate(0deg)':'rotate(180deg)'; }
@@ -652,11 +628,6 @@
             const m = (course.modules||[])[mi]||{};
             const t = (m.topics||[])[ti]||{};
             document.getElementById('contentTitle').textContent = `${mi+1}.${ti}. ${(typeof t==='string')?t:(t.title||'Topic')}`;
-            const currentStatus = (course.modules && course.modules[mi] && course.modules[mi].status) ? String(course.modules[mi].status) : 'unlocked';
-            if (!IS_TRAINEE_USER && ((ENFORCE_LOCKS_ALL || !IS_TRAINER) && currentStatus === 'locked')) {
-                showLockedContent(mi);
-                return;
-            }
             const subs = Array.isArray(t.subtopics) ? t.subtopics : null;
             if(subs && subs.length){
                 const body = document.getElementById('contentBody');
@@ -886,6 +857,20 @@
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>
                         <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
                     </div>`;
+                }else if(kind==='essay'){
+                    const maxPoints = Number(q.max_points || 1) || 1;
+                    if(showTrainerAnswer){
+                        return `<div class="field question" data-kind="essay">
+                            <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Essay')}</div>
+                            <div class="muted">Essay question. Review trainee submissions in the results panel.</div>
+                            <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
+                        </div>`;
+                    }
+                    return `<div class="field question" data-kind="essay">
+                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Essay')}</div>
+                        <textarea class="q-input input" rows="6" placeholder="Write your answer here" style="width:100%;resize:vertical"></textarea>
+                        <div class="muted" style="margin-top:8px">This item will be checked by your trainer.</div>
+                    </div>`;
                 }else if(kind==='true_false'){
                     const val = (q.answer===true)?'true':(q.answer===false?'false':'');
                     if(showTrainerAnswer){
@@ -975,6 +960,24 @@
             }
             if(!IS_TRAINER){
                 const keyBase = `exam_${course.id}_${mi}`;
+                const examSignature = JSON.stringify(qs.map(q => ({
+                    type: String(q.type || ''),
+                    text: String(q.text || q.title || ''),
+                    max_points: q.max_points ?? null,
+                    answer_index: q.answer_index ?? null,
+                    answer: q.answer ?? null,
+                    choices: Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : [])
+                })));
+                try{
+                    const prevSignature = localStorage.getItem(keyBase+'_signature');
+                    if(prevSignature !== examSignature){
+                        localStorage.removeItem(keyBase+'_answers');
+                        localStorage.removeItem(keyBase+'_submitted');
+                        localStorage.removeItem(keyBase+'_start');
+                        localStorage.removeItem(keyBase+'_started');
+                        localStorage.setItem(keyBase+'_signature', examSignature);
+                    }
+                }catch(e){}
                 const resultBox = document.getElementById('examResult');
                 const prefaceBox = document.getElementById('examPreface');
                 const bodyBox = document.getElementById('examBody');
@@ -987,6 +990,8 @@
                             const sel = b.querySelector('.mc .mc-option.selected');
                             return sel ? parseInt(sel.getAttribute('data-idx'),10) : null;
                         }else if(kind==='id'){
+                            const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
+                        }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
                         }else if(kind==='tf'){
                             const sel = b.querySelector('.tf .tf-option.selected'); return sel ? sel.getAttribute('data-val') : null;
@@ -1009,6 +1014,8 @@
                                 if(opt){ opt.classList.add('selected'); }
                             }
                         }else if(kind==='id'){
+                            const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
+                        }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='tf'){
                             const opt = b.querySelector(`.tf .tf-option[data-val="${val}"]`); if(opt){ opt.classList.add('selected'); }
@@ -1046,7 +1053,8 @@
                         }
                     }
                     const pct = total ? Math.round((correct/total)*100) : 0;
-                    return {correct,total,pct};
+                    const essayTotal = qs.filter(q => (q.type||'')==='essay').length;
+                    return {correct,total,pct,essayTotal};
                 }
                 bodyEl.querySelectorAll('.field.question[data-kind="mc"] .mc .mc-option').forEach(opt=>{
                     opt.addEventListener('click', ()=>{
@@ -1071,29 +1079,50 @@
                 bodyEl.querySelectorAll('.field.question[data-kind="id"] .q-input').forEach(inp=>{
                     inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
                 });
+                bodyEl.querySelectorAll('.field.question[data-kind="essay"] .q-input').forEach(inp=>{
+                    inp.addEventListener('input', ()=>{ if(localStorage.getItem(keyBase+'_submitted')!=='1'){ saveAnswers(); } });
+                });
                 const submitAll = bodyEl.querySelector('#examSubmitAll');
                 const resetBtn = null;
                 let timerIv = null;
-                function handleSubmit(){
+                let latestExamSummary = null;
+                async function handleSubmit(){
                     saveAnswers();
-                    const {correct,total,pct} = computeGrade();
-                    // Persist trainee result to server
+                    const {correct,total,pct,essayTotal} = computeGrade();
+                    if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitting...'; }
+                    let serverSummary = null;
+                    let serverCompleted = false;
                     if(!IS_TRAINER){
                         try{
                             const answersStr = localStorage.getItem(keyBase+'_answers')||'[]';
-                            fetch("{{ url('/courses/'.$course->id.'/module-exam/submit') }}", {
+                            const resp = await fetch("{{ url('/courses/'.$course->id.'/module-exam/submit') }}", {
                                 method:'POST',
-                                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
-                                body: JSON.stringify({mi: mi, correct: correct, total: total, pct: pct, answers: JSON.parse(answersStr), duration_ms: 0})
-                            })
-                            .then(r=>r.json())
-                            .then(j=>{
-                                if(j && j.completed) {
-                                    showCongrats();
-                                }
-                            })
-                            .catch(()=>{});
-                        }catch(_){}
+                                headers:{
+                                    'Content-Type':'application/json',
+                                    'Accept':'application/json',
+                                    'X-CSRF-TOKEN':'{{ csrf_token() }}'
+                                },
+                                credentials:'same-origin',
+                                body: JSON.stringify({mi: mi, answers: JSON.parse(answersStr), duration_ms: 0})
+                            });
+                            const raw = await resp.text();
+                            let j = null;
+                            try{ j = raw ? JSON.parse(raw) : null; }catch(e){ j = null; }
+                            if(!j || !j.ok){
+                                const msg = j && j.error
+                                    ? j.error
+                                    : `Exam submission failed. HTTP ${resp.status}${raw && !j ? ' - ' + raw.slice(0, 180) : ''}`;
+                                if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
+                                alert(msg);
+                                return;
+                            }
+                            serverSummary = j.summary || null;
+                            serverCompleted = !!j.completed;
+                        }catch(_){
+                            if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
+                            alert('Exam submission failed. Please check your connection and try again.');
+                            return;
+                        }
                     }
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
                     try{ localStorage.setItem(keyBase+'_submitted','1'); }catch(e){}
@@ -1104,9 +1133,44 @@
                     if(tElDone){ tElDone.textContent = 'Done'; }
                     // Show centered result panel and hide questions
                     if(resultBox){
-                        const passed = (typeof passPct === 'number') ? (pct >= passPct) : null;
-                        const statusTxt = passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.');
-                        const statusColor = passed===null ? '#334155' : (passed ? '#059669' : '#b91c1c');
+                        renderExamSummary(serverSummary || {
+                            final_pct: pct,
+                            objective_correct: correct,
+                            objective_total: total,
+                            objective_pct: pct,
+                            essay_pending_count: essayTotal,
+                            essay_checked_count: 0,
+                            status: essayTotal > 0 ? 'pending_review' : 'completed',
+                            status_label: essayTotal > 0 ? 'Pending Trainer Review' : 'Completed',
+                            items: []
+                        });
+                    }
+                    if(serverCompleted) {
+                        showCongrats();
+                    }
+                }
+                function renderExamSummary(summary){
+                    latestExamSummary = summary || null;
+                    if(!resultBox){ return; }
+                    const finalPct = Number(summary?.final_pct ?? 0) || 0;
+                    const objectiveCorrect = Number(summary?.objective_correct ?? 0) || 0;
+                    const objectiveTotal = Number(summary?.objective_total ?? 0) || 0;
+                    const essayPending = Number(summary?.essay_pending_count ?? 0) || 0;
+                    const essayChecked = Number(summary?.essay_checked_count ?? 0) || 0;
+                    const status = summary?.status || 'completed';
+                    const statusLabel = summary?.status_label || 'Completed';
+                    const allowPassFail = status === 'completed';
+                    const passed = allowPassFail && (typeof passPct === 'number') ? (finalPct >= passPct) : null;
+                    const statusTxt = status === 'pending_review'
+                        ? 'Your essay answers are waiting for trainer review.'
+                        : status === 'partially_graded'
+                            ? 'Your objective items are graded. Essay items are still under review.'
+                            : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'));
+                    const statusColor = status === 'pending_review'
+                        ? '#b45309'
+                        : status === 'partially_graded'
+                            ? '#0f3b8f'
+                            : (passed===null ? '#334155' : (passed ? '#059669' : '#b91c1c'));
                         resultBox.style.display='block';
                         resultBox.style.background = '#ffffff';
                         resultBox.style.border = '1px solid #e5e7eb';
@@ -1119,13 +1183,16 @@
                           <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px">
                             <svg viewBox="0 0 100 60" width="100%" height="auto" style="display:block;max-width:420px">
                               <path d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"></path>
-                              <path id="examGaugePath" d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="${passed===false ? '#ef4444' : '#002C76'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"></path>
-                              <text x="50" y="45" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a">${pct}%</text>
+                              <path id="examGaugePath" d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="${status==='pending_review' ? '#f59e0b' : (passed===false ? '#ef4444' : '#002C76')}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"></path>
+                              <text x="50" y="45" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a">${finalPct}%</text>
                             </svg>
-                            <div style="font-weight:800;color:#0f172a">You have scored <span>${pct}%</span>.</div>
+                            <div style="font-weight:800;color:#0f172a">Current score: <span>${finalPct}%</span>.</div>
+                            <div style="font-size:0.95rem;font-weight:800;color:${statusColor}">${statusLabel}</div>
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${correct}/${total} correct</span>
+                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} objective correct</span>
+                              ${essayPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${essayPending} essay pending</span>` : ``}
+                              ${essayChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${essayChecked} essay checked</span>` : ``}
                               ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
                             </div>
                             <div style="color:#334155;margin-top:6px">You can review your answers below.</div>
@@ -1136,7 +1203,7 @@
                         const gauge = resultBox.querySelector('#examGaugePath');
                         if(gauge && gauge.getTotalLength){
                             const L = gauge.getTotalLength();
-                            const frac = Math.max(0, Math.min(1, pct/100));
+                            const frac = Math.max(0, Math.min(1, finalPct/100));
                             gauge.setAttribute('stroke-dasharray', `${L} ${L}`);
                             gauge.setAttribute('stroke-dashoffset', String((1-frac)*L));
                         }
@@ -1171,7 +1238,6 @@
                             }
                           };
                         }
-                      }
                 }
                 function revealAnswers(){
                     // Show correct answers in-body and lock interactions
@@ -1252,6 +1318,24 @@
                                 b.appendChild(info);
                             }
                             const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
+                        } else if(kind==='essay'){
+                            const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'essay') || null;
+                            const textarea = b.querySelector('.q-input');
+                            if(textarea){
+                                textarea.disabled = true;
+                                if(Array.isArray(ua) && typeof ua[i] === 'string'){
+                                    textarea.value = ua[i];
+                                }
+                            }
+                            const info = document.createElement('div');
+                            info.className='muted';
+                            info.style.marginTop='8px';
+                            const feedback = response?.feedback ? `<div style="margin-top:6px"><b>Trainer feedback:</b> ${response.feedback}</div>` : '';
+                            const scoreInfo = response?.status === 'checked'
+                                ? `<div><span class="chip">Checked</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
+                                : '<div><span class="chip">Pending Review</span> Waiting for trainer grading.</div>';
+                            info.innerHTML = `${scoreInfo}${feedback}`;
+                            b.appendChild(info);
                         }
                     });
                 }
@@ -1279,6 +1363,8 @@
                         if(kind==='mc'){
                             const sel=b.querySelector('.mc .mc-option.selected'); if(sel) answered++;
                         }else if(kind==='id'){
+                            const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
+                        }else if(kind==='essay'){
                             const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
                         }else if(kind==='tf'){
                             const sel=b.querySelector('.tf .tf-option.selected'); if(sel) answered++;
@@ -1334,7 +1420,18 @@
                     };
                 }
                 if(localStorage.getItem(keyBase+'_submitted')==='1'){
-                    handleSubmit();
+                    fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
+                        .then(r=>r.json())
+                        .then(j=>{
+                            if(j && j.ok && j.attempt){
+                                if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
+                                setFrozen(true);
+                                renderExamSummary(j.attempt);
+                            }else{
+                                handleSubmit();
+                            }
+                        })
+                        .catch(()=>{ handleSubmit(); });
                 }
                 if(timerMins>0){
                     const tEl = document.getElementById('examTimer');
@@ -1394,12 +1491,107 @@
                                   <td>${esc(it.email||'')}</td>
                                   <td style="text-align:right;font-weight:800">${it.pct}%</td>
                                   <td>${esc((it.correct||0)+'/'+(it.total||0))}</td>
+                                  <td>${esc(it.status_label||'Completed')}</td>
                                   <td>${esc((it.submitted_at||'').replace('T',' ').replace('Z',''))}</td>
+                                  <td style="text-align:right"><button type="button" class="btn-ghost trainer-review-btn" data-user-id="${it.user_id}" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">Review</button></td>
                                 </tr>`).join('');
                                 wrap.innerHTML = '<div style="font-weight:800;margin-bottom:6px">Module Exam Results</div>'
                                   + '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse">'
-                                  + '<thead><tr style="text-align:left;border-bottom:1px solid #e5e7eb"><th>Name</th><th>Email</th><th>Score</th><th>Items</th><th>Submitted</th></tr></thead>'
+                                  + '<thead><tr style="text-align:left;border-bottom:1px solid #e5e7eb"><th>Name</th><th>Email</th><th>Score</th><th>Objective</th><th>Status</th><th>Submitted</th><th></th></tr></thead>'
                                   + '<tbody>'+rows+'</tbody></table></div>';
+                                wrap.querySelectorAll('.trainer-review-btn').forEach(reviewBtn=>{
+                                    reviewBtn.addEventListener('click', ()=>{
+                                        const targetUserId = reviewBtn.getAttribute('data-user-id');
+                                        const panelId = 'essayReviewPanel_'+targetUserId;
+                                        let panel = wrap.querySelector('#'+panelId);
+                                        if(panel){ panel.remove(); return; }
+                                        panel = document.createElement('div');
+                                        panel.id = panelId;
+                                        panel.style.cssText = 'margin-top:12px;padding:14px;border:1px solid #dbe4ef;border-radius:14px;background:#ffffff';
+                                        panel.innerHTML = '<div class="muted">Loading submission…</div>';
+                                        wrap.appendChild(panel);
+                                        fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi)+'&user_id='+encodeURIComponent(targetUserId), {credentials:'same-origin'})
+                                            .then(r=>r.json())
+                                            .then(detail=>{
+                                                if(!detail || !detail.ok || !detail.attempt){
+                                                    panel.innerHTML = '<div class="muted">Failed to load attempt.</div>';
+                                                    return;
+                                                }
+                                                const attempt = detail.attempt;
+                                                const essayItems = (attempt.items||[]).filter(item => item.type === 'essay');
+                                                if(!essayItems.length){
+                                                    panel.innerHTML = '<div class="muted">This attempt has no essay items.</div>';
+                                                    return;
+                                                }
+                                                panel.innerHTML = `
+                                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+                                                        <div>
+                                                            <div style="font-weight:800;color:#0f172a">${esc(attempt.user_name||'Trainee')}</div>
+                                                            <div class="muted">${esc(attempt.user_email||'')}</div>
+                                                        </div>
+                                                        <div style="font-weight:800;color:#0f3b8f">${esc(attempt.status_label||'Pending Trainer Review')}</div>
+                                                    </div>
+                                                    <div class="essay-review-list" style="display:grid;gap:12px;">
+                                                        ${essayItems.map(item=>`
+                                                            <div class="topic-detail-card" data-question-index="${item.question_index}">
+                                                                <div style="font-size:0.75rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">Essay Question ${Number(item.question_index)+1}</div>
+                                                                <div style="font-size:0.95rem;font-weight:700;color:#1e293b;margin-bottom:10px">${esc(item.text||'Essay question')}</div>
+                                                                <div style="margin-bottom:10px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;white-space:pre-wrap">${esc(item.answer_text||'No answer submitted.')}</div>
+                                                                <div style="display:grid;grid-template-columns:minmax(140px,180px) 1fr;gap:12px;align-items:start">
+                                                                    <label style="display:grid;gap:6px">
+                                                                        <span style="font-size:0.8rem;font-weight:700;color:#475569">Score / ${item.max_points ?? 1}</span>
+                                                                        <input type="number" min="0" max="${item.max_points ?? 1}" step="0.01" class="essay-score-input input" value="${item.score ?? ''}">
+                                                                    </label>
+                                                                    <label style="display:grid;gap:6px">
+                                                                        <span style="font-size:0.8rem;font-weight:700;color:#475569">Feedback</span>
+                                                                        <textarea class="essay-feedback-input input" rows="3" placeholder="Optional feedback">${esc(item.feedback||'')}</textarea>
+                                                                    </label>
+                                                                </div>
+                                                                <div style="margin-top:8px;font-size:0.82rem;font-weight:700;color:${item.status==='checked' ? '#166534' : '#b45309'}">${item.status==='checked' ? 'Checked' : 'Pending Review'}</div>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                    <div style="display:flex;justify-content:flex-end;margin-top:14px">
+                                                        <button type="button" class="btn-blue essay-review-save" style="padding:10px 16px;border-radius:12px">Save Essay Review</button>
+                                                    </div>
+                                                `;
+                                                const saveBtn = panel.querySelector('.essay-review-save');
+                                                if(saveBtn){
+                                                    saveBtn.addEventListener('click', ()=>{
+                                                        const reviews = Array.from(panel.querySelectorAll('[data-question-index]')).map(card => ({
+                                                            question_index: Number(card.getAttribute('data-question-index')),
+                                                            score: Number(card.querySelector('.essay-score-input')?.value || 0),
+                                                            feedback: card.querySelector('.essay-feedback-input')?.value || ''
+                                                        }));
+                                                        saveBtn.disabled = true;
+                                                        saveBtn.textContent = 'Saving...';
+                                                        fetch("{{ url('/courses/'.$course->id.'/module-exam/review') }}", {
+                                                            method:'POST',
+                                                            credentials:'same-origin',
+                                                            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},
+                                                            body: JSON.stringify({mi: mi, user_id: Number(targetUserId), reviews})
+                                                        }).then(r=>r.json()).then(saved=>{
+                                                            if(saved && saved.ok){
+                                                                panel.insertAdjacentHTML('afterbegin', '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800">Essay review saved.</div>');
+                                                                btn.click();
+                                                                btn.click();
+                                                            }else{
+                                                                alert(saved && saved.error ? saved.error : 'Failed to save essay review.');
+                                                            }
+                                                        }).catch(()=>{
+                                                            alert('Failed to save essay review.');
+                                                        }).finally(()=>{
+                                                            saveBtn.disabled = false;
+                                                            saveBtn.textContent = 'Save Essay Review';
+                                                        });
+                                                    });
+                                                }
+                                            })
+                                            .catch(()=>{
+                                                panel.innerHTML = '<div class="muted">Failed to load submission.</div>';
+                                            });
+                                    });
+                                });
                             }).catch(()=>{ wrap.innerHTML = '<div class="muted">Failed to load results.</div>'; });
                     });
                 }

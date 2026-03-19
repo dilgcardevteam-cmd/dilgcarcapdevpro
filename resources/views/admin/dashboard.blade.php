@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 ﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+=======
+<!DOCTYPE html>
+>>>>>>> Stashed changes
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +23,7 @@
             --bg-color: #f4f6f9;
             --sidebar-width: 250px;
             --sidebar-collapsed-width: 70px;
-            --header-height: 80px;
+            --header-height: 64px;
         }
         @media (max-width: 1000px){
             .insight-grid,.insight-grid.insight-grid-alt{grid-template-columns:1fr}
@@ -65,7 +69,7 @@
         /* Header Styles (from Landing) */
         .header {
             background-color: white;
-            padding: 15px 30px;
+            padding: 0 24px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
@@ -3396,7 +3400,7 @@
 
             .header {
                 height: auto;
-                padding: 12px 14px;
+                padding: 10px 14px;
                 flex-wrap: wrap;
                 gap: 10px;
             }
@@ -9701,6 +9705,13 @@
                                             <div style="margin-top:10px; padding:10px 12px; border:1px dashed #cbd5e1; border-radius:10px; background:#f8fafc;">
                                                 <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Expected Answer</div>
                                                 <div style="font-size:0.92rem; color:#1e293b; font-weight:700;">${q.answer || 'No answer set.'}</div>
+                                            </div>
+                                        `;
+                                    } else if ((q.type || '') === 'essay') {
+                                        answerHtml = `
+                                            <div style="margin-top:10px; padding:10px 12px; border:1px dashed #cbd5e1; border-radius:10px; background:#f8fafc;">
+                                                <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Manual Review</div>
+                                                <div style="font-size:0.92rem; color:#1e293b; font-weight:700;">Essay answer checked by trainer after submission.</div>
                                             </div>
                                         `;
                                     }

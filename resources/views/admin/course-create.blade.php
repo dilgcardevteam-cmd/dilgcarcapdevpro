@@ -3123,6 +3123,7 @@
                                         <option value="multiple_choice">Multiple Choice</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
+                                        <option value="essay">Essay</option>
                                     </select>
                                 </label>
                             </div>
@@ -3445,11 +3446,13 @@
                     obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
                 }else if(t==='identification'){
                     obj = { type:'identification', text:'', answer: '' };
-                }else if(t==='true_false'){
-                    obj = { type:'true_false', text:'', answer: null };
-                } else {
-                    obj = { type:String(t||'multiple_choice'), text:'' };
-                }
+                    }else if(t==='true_false'){
+                        obj = { type:'true_false', text:'', answer: null };
+                    }else if(t==='essay'){
+                        obj = { type:'essay', text:'', max_points: 1 };
+                    } else {
+                        obj = { type:String(t||'multiple_choice'), text:'' };
+                    }
                 const listEl = host.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
                 const node = document.createElement('div');
@@ -3491,6 +3494,8 @@
                         const val = host.querySelector('.eq-tf-answer').value;
                         const ans = val === '' ? null : (val === 'true');
                         obj = { type:'true_false', text, answer: ans };
+                    }else if(t==='essay'){
+                        obj = { type:'essay', text, max_points: 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3534,6 +3539,10 @@
                 else if(String(q.correct_answer).toLowerCase() === 'true') answer = true;
                 else if(String(q.correct_answer).toLowerCase() === 'false') answer = false;
                 return { type:'true_false', text, answer };
+            }
+            if(type === 'essay'){
+                const maxPoints = Number(q.max_points ?? 1);
+                return { type:'essay', text, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
             }
             return { type, text, answer: String(q.answer ?? '') };
         }
@@ -3592,6 +3601,7 @@
                                         <option value="multiple_choice">Multiple Choice</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
+                                        <option value="essay">Essay</option>
                                     </select>
                                 </label>
                             </div>
@@ -3728,6 +3738,8 @@
                         obj = { type:'identification', text, answer: '' };
                     }else if(t==='true_false'){
                         obj = { type:'true_false', text, answer: null };
+                    }else if(t==='essay'){
+                        obj = { type:'essay', text, max_points: 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3850,6 +3862,8 @@
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
                     obj = { type:'true_false', text, answer: ans };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text, max_points: 1 };
                 } else {
                     obj = { type:String(t||'multiple_choice'), text };
                 }
@@ -3902,6 +3916,7 @@
                 if(tVal==='multiple_choice'){ obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null }; }
                 else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '' }; }
                 else if(tVal==='true_false'){ obj = { type:'true_false', text:'', answer: null }; }
+                else if(tVal==='essay'){ obj = { type:'essay', text:'', max_points: 1 }; }
                 else { obj = { type:String(tVal||'multiple_choice'), text:'' }; }
                 const node = document.createElement('div');
                 node.className = 'q-item';
@@ -4233,6 +4248,8 @@
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
                     obj = { type:'true_false', text, answer: ans };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text, max_points: 1 };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);

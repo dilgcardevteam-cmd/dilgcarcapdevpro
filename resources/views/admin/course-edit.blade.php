@@ -2751,6 +2751,7 @@
                                         <option value="multiple_choice">Multiple Choice</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
+                                        <option value="essay">Essay</option>
                                     </select>
                                 </label>
                             </div>
@@ -2835,6 +2836,8 @@
                 }else if(t==='true_false'){
                     const ans = host.querySelector('.eq-tf-answer').value === 'true';
                     obj = { type:'true_false', text, answer: ans };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text, max_points: 1 };
                 }
                 const listEl = host.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
@@ -3031,6 +3034,7 @@
                                             <option value="multiple_choice">Multiple Choice</option>
                                             <option value="identification">Identification</option>
                                             <option value="true_false">True or False</option>
+                                            <option value="essay">Essay</option>
                                         </select>
                                     </label>
 
@@ -3166,6 +3170,8 @@
                         obj = { type:'identification', text, answer: '' };
                     }else if(t==='true_false'){
                         obj = { type:'true_false', text, answer: true };
+                    }else if(t==='essay'){
+                        obj = { type:'essay', text, max_points: 1 };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3203,6 +3209,8 @@
                 }else if(t==='true_false'){
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
                     obj = { type:'true_false', text, answer: ans };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text, max_points: 1 };
                 }
                 const currentNode = wrap.querySelectorAll('.exam-q-list .q-item')[activeIdx];
                 if (currentNode) {
@@ -3217,6 +3225,8 @@
                     blankObj = { type:'identification', text:'', answer: '' };
                 }else if(t==='true_false'){
                     blankObj = { type:'true_false', text:'', answer: true };
+                }else if(t==='essay'){
+                    blankObj = { type:'essay', text:'', max_points: 1 };
                 } else {
                     blankObj = { type:String(t||'multiple_choice'), text:'' };
                 }
@@ -3426,6 +3436,8 @@
                 }else if(t==='true_false'){
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
                     obj = { type:'true_false', text, answer: ans };
+                }else if(t==='essay'){
+                    obj = { type:'essay', text, max_points: 1 };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);
