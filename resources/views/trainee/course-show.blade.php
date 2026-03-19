@@ -913,7 +913,10 @@
                 </div>`;
             if(bodyEl){
                 const preface = IS_TRAINER ? '' : `
-                    <div id="examPreface" style="margin:12px 0;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:linear-gradient(180deg,#f8fbff 0%, #f5f7fb 100%);box-shadow:0 10px 22px rgba(15,23,42,.06)">
+                    <div id="examLoading" style="margin:12px 0;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:linear-gradient(180deg,#f8fbff 0%, #f5f7fb 100%);box-shadow:0 10px 22px rgba(15,23,42,.06);text-align:center;font-weight:800;color:#334155">
+                        Loading exam status...
+                    </div>
+                    <div id="examPreface" style="display:none;margin:12px 0;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:linear-gradient(180deg,#f8fbff 0%, #f5f7fb 100%);box-shadow:0 10px 22px rgba(15,23,42,.06)">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
                             <div style="display:flex;align-items:center;gap:10px">
                                 <div style="width:36px;height:36px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;border:1px solid #dbeafe"><i class="fas fa-circle-info" style="color:#0f3b8f"></i></div>
@@ -984,6 +987,7 @@
                 }catch(e){}
                 const resultBox = document.getElementById('examResult');
                 const prefaceBox = document.getElementById('examPreface');
+                const loadingBox = document.getElementById('examLoading');
                 const bodyBox = document.getElementById('examBody');
                 const closeBtn = document.getElementById('examClose');
                 function saveAnswers(){
@@ -1407,15 +1411,52 @@
                 }
                 restoreAnswers();
                 // Start gate
+                function hideExamLoading(){
+                    if(loadingBox){ loadingBox.style.display='none'; }
+                }
+                function showExamPreface(){
+                    hideExamLoading();
+                    if(resultBox){ resultBox.style.display='none'; }
+                    if(prefaceBox){ prefaceBox.style.display=''; }
+                    if(bodyBox){ bodyBox.style.display='none'; }
+                }
                 function showExamBody(){
+                    hideExamLoading();
                     if(prefaceBox) prefaceBox.style.display='none';
                     if(bodyBox) bodyBox.style.display='';
                 }
-                const started = localStorage.getItem(keyBase+'_started')==='1';
-                if(started){ showExamBody(); }
+                function markAttemptAsSubmitted(summary){
+                    try{
+                        localStorage.setItem(keyBase+'_submitted','1');
+                        localStorage.removeItem(keyBase+'_started');
+                        localStorage.removeItem(keyBase+'_start');
+                    }catch(e){}
+                    hideExamLoading();
+                    if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
+                    setFrozen(true);
+                    if(prefaceBox){ prefaceBox.style.display='none'; }
+                    if(bodyBox){ bodyBox.style.display='none'; }
+                    if(resultBox){ renderExamSummary(summary); }
+                    const tEl = document.getElementById('examTimer');
+                    if(tEl){ tEl.textContent = 'Done'; }
+                    if(timerIv){ clearInterval(timerIv); timerIv = null; }
+                }
+                function loadExistingAttempt(){
+                    return fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
+                        .then(r=>r.json())
+                        .then(j=>{
+                            if(j && j.ok && j.attempt){
+                                markAttemptAsSubmitted(j.attempt);
+                                return true;
+                            }
+                            return false;
+                        })
+                        .catch(()=>false);
+                }
                 const startBtn = document.getElementById('examStart');
                 if(startBtn){
                     startBtn.onclick = ()=>{
+                        if(localStorage.getItem(keyBase+'_submitted')==='1'){ return; }
                         showExamBody();
                         try{
                             localStorage.setItem(keyBase+'_started','1');
@@ -1423,28 +1464,19 @@
                         }catch(e){}
                     };
                 }
-                if(localStorage.getItem(keyBase+'_submitted')==='1'){
-                    fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
-                        .then(r=>r.json())
-                        .then(j=>{
-                            if(j && j.ok && j.attempt){
-                                if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
-                                setFrozen(true);
-                                renderExamSummary(j.attempt);
-                            }else{
-                                handleSubmit();
-                            }
-                        })
-                        .catch(()=>{ handleSubmit(); });
-                }
+                loadExistingAttempt().then(foundAttempt=>{
+                    if(foundAttempt){ return; }
+                    const started = localStorage.getItem(keyBase+'_started')==='1';
+                    if(started){ showExamBody(); }
+                    else { showExamPreface(); }
+                    if(localStorage.getItem(keyBase+'_submitted')==='1'){
+                        handleSubmit();
+                    }
+                }).catch(()=>{
+                    showExamPreface();
+                });
                 if(timerMins>0){
                     const tEl = document.getElementById('examTimer');
-                    // If already submitted, don't run timer; mark as Done
-                    if(localStorage.getItem(keyBase+'_submitted')==='1'){
-                        if(tEl){ tEl.textContent = 'Done'; }
-                        timerIv = null;
-                        return;
-                    }
                     function ensureStart(){
                         const started = localStorage.getItem(keyBase+'_started')==='1';
                         let start = 0;
@@ -1456,6 +1488,11 @@
                         return {started, start};
                     }
                     function tick(){
+                        if(localStorage.getItem(keyBase+'_submitted')==='1'){
+                            if(tEl){ tEl.textContent = 'Done'; }
+                            if(timerIv){ clearInterval(timerIv); timerIv = null; }
+                            return;
+                        }
                         const st = ensureStart();
                         const hasBegun = st.started && st.start>0;
                         const end = st.start + timerMins*60*1000;
