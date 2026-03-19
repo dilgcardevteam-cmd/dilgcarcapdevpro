@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1986,6 +1986,165 @@
 
         .permission-option-input:checked ~ .permission-option-label {
             color: #0f172a;
+        }
+
+        /* Permission Accordion & Table Styles */
+        .permission-accordion {
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            background: #ffffff;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .permission-accordion.active {
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+            border-color: #e2e8f0;
+        }
+
+        .permission-accordion-header {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+            gap: 20px;
+        }
+
+        .permission-accordion-header:hover {
+            background: #f8fafc;
+        }
+
+        .permission-role-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .permission-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            pointer-events: auto;
+        }
+
+        .permission-role-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .permission-dropdown-indicator {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: transform 0.3s ease, background 0.2s ease;
+            background: #f1f5f9;
+        }
+
+        .permission-accordion.active .permission-dropdown-indicator {
+            transform: rotate(180deg);
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .permission-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top: 1px solid transparent;
+        }
+
+        .permission-accordion.active .permission-accordion-content {
+            max-height: 2000px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .permission-accordion-inner {
+            padding: 24px;
+        }
+
+        .permission-table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 24px;
+        }
+
+        .permission-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .permission-table th {
+            padding: 12px 16px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .permission-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f8fafc;
+            vertical-align: middle;
+        }
+
+        .permission-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .permission-group-name {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .permission-group-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            line-height: 1.4;
+            max-width: 400px;
+        }
+
+        .permission-cell-na {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-align: center;
+            user-select: none;
+        }
+
+        .permission-cell-check {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .accordion-admin.active { border-left: 4px solid #2563eb; }
+        .accordion-tm.active { border-left: 4px solid #f97316; }
+        .accordion-coach.active { border-left: 4px solid #ef4444; }
+        .accordion-participant.active { border-left: 4px solid #fbbf24; }
+
+        .accordion-admin .permission-role-name { color: #2563eb; }
+        .accordion-tm .permission-role-name { color: #f97316; }
+        .accordion-coach .permission-role-name { color: #ef4444; }
+        .accordion-participant .permission-role-name { color: #f59e0b; }
+
+        .permission-table .permission-option {
+            justify-content: center;
+            padding: 0;
+            margin: 0;
         }
 
         .permissions-save-btn {
@@ -6144,24 +6303,83 @@
                                 'class' => 'group-admin',
                                 'desc' => 'Manage user accounts, courses, and overall system security.',
                                 'groups' => [
-                                    'User Management' => ['create_users', 'approve_reject_registrations', 'assign_roles', 'activate_deactivate_accounts', 'block_unblock_users'],
-                                    'Course Management' => ['create_courses', 'edit_course_details', 'archive_delete_courses', 'assign_trainers'],
-                                    'Certification Management' => ['create_certificate_templates', 'edit_templates', 'issue_certificates'],
-                                    'System Monitoring' => ['view_dashboard_analytics', 'monitor_active_users', 'track_system_activity'],
-                                    'Access Control' => ['manage_permissions', 'control_role_access']
+                                    'User Management' => [
+                                        'desc' => 'Manage users, approvals, roles, activation, and blocking',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_users', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'create_users', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'edit_users', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_users', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'Course Management' => [
+                                        'desc' => 'Manage course creation, editing, archiving, and trainer assignment',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_courses', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'create_courses', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'edit_courses', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_courses', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'Certification Management' => [
+                                        'desc' => 'Manage certificate templates and issuance',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_certifications', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'create_certifications', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'edit_certifications', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_certifications', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'System Monitoring' => [
+                                        'desc' => 'Monitor dashboards, active users, and system activity',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_monitoring', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Access Control' => [
+                                        'desc' => 'Manage permissions and role access control',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_access_control', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'edit_access_control', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
                                 ]
                             ],
                             'tm' => [
                                 'id' => 'system-tm',
                                 'title' => 'Training Manager System',
-                                'badge' => 'TM',
+                                'badge' => 'Training Manager',
                                 'class' => 'group-tm',
                                 'desc' => 'Oversee training enrollments, course status, and activity reports.',
                                 'groups' => [
-                                    'User Management' => ['approve_users', 'reject_users', 'view_user_list'],
-                                    'Training Management' => ['enroll_participants', 'remove_participants', 'assign_users_to_courses'],
-                                    'Course Monitoring' => ['view_course_status', 'track_course_readiness'],
-                                    'Reports & Logs' => ['view_activity_logs', 'monitor_user_actions']
+                                    'User Management' => [
+                                        'desc' => 'Approve, reject, and review users',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_users_tm', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_users_tm', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Training Management' => [
+                                        'desc' => 'Enroll participants, remove participants, and assign users to courses',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_training', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_training', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_training', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Course Monitoring' => [
+                                        'desc' => 'View course status and readiness tracking',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_course_monitoring', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Reports & Logs' => [
+                                        'desc' => 'View activity logs and monitor user actions',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_reports', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ]
                                 ]
                             ],
                             'coach' => [
@@ -6171,10 +6389,39 @@
                                 'class' => 'group-coach',
                                 'desc' => 'Manage assigned courses, upload materials, and track student progress.',
                                 'groups' => [
-                                    'Course Management' => ['create_courses_coach', 'edit_assigned_courses', 'upload_materials'],
-                                    'Class Management' => ['manage_class_schedules', 'handle_sessions'],
-                                    'Student Monitoring' => ['track_student_progress', 'view_enrolled_students'],
-                                    'Communication' => ['post_announcements', 'notify_students']
+                                    'Course Management' => [
+                                        'desc' => 'Create courses, edit assigned courses, and upload materials',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Class Management' => [
+                                        'desc' => 'Manage schedules and handle sessions',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_classes', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_classes', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_classes', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_classes', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Student Monitoring' => [
+                                        'desc' => 'Track student progress and view enrolled students',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_students', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_students', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Communication' => [
+                                        'desc' => 'Post announcements and notify students',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_communication', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_communication', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_communication', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_communication', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ]
                                 ]
                             ],
                             'participant' => [
@@ -6184,69 +6431,119 @@
                                 'class' => 'group-participant',
                                 'desc' => 'Access training modules, complete assessments, and track learning progress.',
                                 'groups' => [
-                                    'Module Access' => ['access_training_modules', 'complete_exercises'],
-                                    'Assessments' => ['take_assessments', 'view_results'],
-                                    'Learning Progress' => ['track_personal_achievements', 'view_course_status'],
-                                    'Engagement' => ['engage_coaches_peers', 'post_discussions']
+                                    'Module Access' => [
+                                        'desc' => 'Access training modules and complete exercises',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Assessments' => [
+                                        'desc' => 'Take assessments and view results',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_assessments', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_assessments', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Learning Progress' => [
+                                        'desc' => 'Track personal achievements and course status',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_progress', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ],
+                                    'Engagement' => [
+                                        'desc' => 'Engage with coaches/peers and post discussions',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_engagement', 'allowed' => true, 'chosen' => true],
+                                            'add' => ['perm' => 'add_engagement', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'update_engagement', 'allowed' => true, 'chosen' => true],
+                                            'delete' => ['perm' => 'delete_engagement', 'allowed' => true, 'chosen' => true]
+                                        ]
+                                    ]
                                 ]
                             ]
                         ];
                     @endphp
 
                     @foreach($systemGroups as $sysKey => $system)
-                        <div class="permission-system-block {{ $system['class'] }}" id="{{ $system['id'] }}" style="margin-bottom: 40px;">
-                            <div class="permissions-header-row">
-                                <div class="permissions-header-info">
-                                    <div class="permissions-header-title-row">
-                                        <h2 class="permissions-header-title">{{ $system['title'] }}</h2>
-                                        <span class="permissions-header-badge">{{ $system['badge'] }}</span>
-                                        <span class="unsaved-badge" id="unsaved-{{ $system['id'] }}">
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                            </svg>
-                                            Unsaved
-                                        </span>
-                                    </div>
-                                    <p class="permissions-header-desc">{{ $system['desc'] }}</p>
-                                </div>
-                                <div class="permissions-header-actions">
-                                    <div class="select-all-box" onclick="toggleSystemPermissions('{{ $system['id'] }}')">
-                                        <div class="permission-option-circle select-all-circle"></div>
-                                        <span class="select-all-text">Select All</span>
-                                    </div>
-                                    <button type="button" class="permissions-save-btn" onclick="submitUpdate()">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                            <polyline points="7 3 7 8 15 8"></polyline>
+                        <div class="permission-accordion accordion-{{ $sysKey }} {{ $system['class'] }}" id="{{ $system['id'] }}">
+                            <div class="permission-accordion-header" onclick="toggleAccordion('{{ $system['id'] }}')">
+                                <div class="permission-role-info">
+                                    <span class="permission-role-name">{{ $system['badge'] }}</span>
+                                    <span class="unsaved-badge" id="unsaved-{{ $system['id'] }}">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <circle cx="12" cy="12" r="10"></circle>
                                         </svg>
-                                        Save Changes
-                                    </button>
+                                        Unsaved
+                                    </span>
+                                </div>
+                                <div class="permission-dropdown-indicator">
+                                    <i class="fas fa-chevron-down"></i>
                                 </div>
                             </div>
 
-                            <div class="permissions-grid-layout">
-                                @foreach($system['groups'] as $groupTitle => $permsInGroup)
-                                    <div class="permission-group-card {{ $system['class'] }}">
-                                        <h3 class="permission-group-title">{{ $groupTitle }}</h3>
-                                        <div class="permission-list">
-                                            @foreach($permsInGroup as $pName)
-                                                @php 
-                                                    $pId = $pName;
-                                                    if(isset($permissions)) {
-                                                        $found = $permissions->firstWhere('name', $pName);
-                                                        if($found) $pId = $found->id;
-                                                    }
-                                                @endphp
-                                                <label class="permission-option" data-perm-name="{{ $pName }}" style="position: relative;">
-                                                    <input type="checkbox" name="permissions[]" value="{{ $pId }}" class="permission-option-input" disabled>
-                                                    <div class="permission-option-circle" style="position: relative; z-index: 1;"></div>
-                                                    <span class="permission-option-label" style="position: relative; z-index: 1;">{{ ucwords(str_replace('_', ' ', $pName)) }}</span>
-                                                </label>
-                                            @endforeach
+                            <div class="permission-accordion-content">
+                                <div class="permission-accordion-inner">
+                                    <div class="permissions-header-actions" style="margin-bottom: 20px; display: flex; justify-content: flex-end; gap: 24px; align-items: center;">
+                                        <div class="select-all-box" onclick="toggleSystemPermissions('{{ $system['id'] }}')">
+                                            <div class="permission-option-circle select-all-circle"></div>
+                                            <span class="select-all-text">Select All</span>
                                         </div>
+                                        <button type="button" class="permissions-save-btn" onclick="submitUpdate()">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                                <polyline points="7 3 7 8 15 8"></polyline>
+                                            </svg>
+                                            Save Changes
+                                        </button>
                                     </div>
-                                @endforeach
+                                    <div class="permission-table-wrapper">
+                                        <table class="permission-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Permission Group</th>
+                                                    <th style="width: 40%;">Description</th>
+                                                    <th style="text-align: center;">View</th>
+                                                    <th style="text-align: center;">Add</th>
+                                                    <th style="text-align: center;">Update</th>
+                                                    <th style="text-align: center;">Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($system['groups'] as $groupTitle => $groupData)
+                                                    <tr>
+                                                        <td><div class="permission-group-name">{{ $groupTitle }}</div></td>
+                                                        <td><div class="permission-group-desc">{{ $groupData['desc'] }}</div></td>
+                                                        @foreach(['view', 'add', 'update', 'delete'] as $action)
+                                                            <td class="permission-cell">
+                                                                @if(isset($groupData['actions'][$action]))
+                                                                    @php 
+                                                                        $actionInfo = $groupData['actions'][$action];
+                                                                        $pName = $actionInfo['perm'];
+                                                                        $pId = $pName;
+                                                                        if(isset($permissions)) {
+                                                                            $found = $permissions->firstWhere('name', $pName);
+                                                                            if($found) $pId = $found->id;
+                                                                        }
+                                                                        $isChosen = $actionInfo['chosen'] ?? true;
+                                                                    @endphp
+                                                                    <div class="permission-cell-check">
+                                                                        <label class="permission-option" data-perm-name="{{ $pName }}" style="position: relative;">
+                                                                            <input type="checkbox" name="permissions[]" value="{{ $pId }}" class="permission-option-input" {{ $isChosen ? 'checked' : '' }} disabled>
+                                                                            <div class="permission-option-circle" style="position: relative; z-index: 1;"></div>
+                                                                        </label>
+                                                                    </div>
+                                                                @else
+                                                                    <div class="permission-cell-na">N/A</div>
+                                                                @endif
+                                                            </td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -8378,21 +8675,48 @@
             else if (role === 'trainer' || role === 'coach' || role.includes('_coach')) targetSystemId = 'system-coach';
             else if (role === 'participant' || role === 'trainee' || role.includes('_participants')) targetSystemId = 'system-participant';
 
+            // Reset all accordions first
+            document.querySelectorAll('.permission-accordion').forEach(acc => acc.classList.remove('active'));
+
             if (targetSystemId) {
                 const systemBlock = document.getElementById(targetSystemId);
                 if (systemBlock) {
+                    // Find all checkboxes in this block and check them by default
+                    // (But wait, the user wants it to be data-driven from the saved state, 
+                    // so we should rely on the database permissions primarily)
                     systemBlock.querySelectorAll('.permission-option-input').forEach(cb => cb.checked = true);
+                    toggleAccordion(targetSystemId); // Expand the relevant accordion
                 }
             }
 
             // 2. Also check permissions that are specifically assigned to this role in the database
+            // This is the source of truth
             const roleObj = ALL_ROLES.find(r => r.name === user.role);
             const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
-            permCheckboxes.forEach(cb => {
-                if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
-                    cb.checked = true;
-                }
-            });
+            
+            // First, if it's Admin, we have a specific matrix to enforce as a baseline
+            if (targetSystemId === 'system-admin') {
+                const adminMatrix = {
+                    'view_users': true, 'create_users': false, 'edit_users': true, 'delete_users': false,
+                    'view_courses': true, 'create_courses': true, 'edit_courses': true, 'delete_courses': false,
+                    'view_certifications': true, 'create_certifications': true, 'edit_certifications': false, 'delete_certifications': true
+                };
+                
+                permCheckboxes.forEach(cb => {
+                    const permName = cb.closest('.permission-option').getAttribute('data-perm-name');
+                    if (adminMatrix.hasOwnProperty(permName)) {
+                        cb.checked = adminMatrix[permName];
+                    } else if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
+                        cb.checked = true;
+                    }
+                });
+            } else {
+                permCheckboxes.forEach(cb => {
+                    if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
+                        cb.checked = true;
+                    }
+                });
+            }
 
             // 3. Reset all "Unsaved" badges for initial load
             document.querySelectorAll('.unsaved-badge').forEach(badge => badge.style.display = 'none');
@@ -8547,6 +8871,20 @@
             }
         }
 
+        function toggleAccordion(id) {
+            const accordion = document.getElementById(id);
+            if (!accordion) return;
+            
+            // Close other accordions
+            document.querySelectorAll('.permission-accordion').forEach(acc => {
+                if (acc.id !== id) {
+                    acc.classList.remove('active');
+                }
+            });
+            
+            accordion.classList.toggle('active');
+        }
+
         function toggleSystemPermissions(systemBlockId) {
             const block = document.getElementById(systemBlockId);
             if (!block) return;
@@ -8601,7 +8939,7 @@
         }
 
         function updateAllSystemSelectStates() {
-            const systemBlocks = document.querySelectorAll('.permission-system-block');
+            const systemBlocks = document.querySelectorAll('.permission-accordion');
             systemBlocks.forEach(block => updateSystemSelectState(block.id));
         }
 
@@ -8618,7 +8956,7 @@
         // Update Select All state and Unsaved badge when any permission is toggled
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('permission-option-input')) {
-                const block = e.target.closest('.permission-system-block');
+                const block = e.target.closest('.permission-accordion');
                 if (block) {
                     updateSystemSelectState(block.id);
                     // Show unsaved badge for this block
