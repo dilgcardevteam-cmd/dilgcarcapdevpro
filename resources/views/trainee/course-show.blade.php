@@ -222,7 +222,7 @@
         .mod-badges{display:flex;align-items:center;gap:8px}
         .module-left{flex:1;display:flex;flex-direction:column;gap:6px}
         .progress-mini{width:100%;height:4px;border-radius:999px;background:#e5e7eb;overflow:hidden;border:0}
-        .progress-mini > span{display:block;height:100%;background:#22c55e}
+        .progress-mini > span{display:block;height:100%;background:#22c55e;width:0%}
         .lock-ico{color:#64748b;margin-right:6px}
         .module.locked .module-title{color:#0f172a}
         .module.locked .progress-mini{background:#e5e7eb;border-color:#e5e7eb}
@@ -548,7 +548,7 @@
                     tEl.setAttribute('data-ti','exam');
                     const num = `${mi+1}.E`;
                     const qCount = m.exam.questions.length;
-                    const badge = `<span class="count" style="display:inline-block">${qCount} Qs</span>`;
+                    const badge = `<span class="count" style="display:inline-block">$</span>`;
                     tEl.innerHTML = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
                         <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
@@ -609,6 +609,18 @@
         function updateProgressFor(mi){
             const mod = document.querySelectorAll('.module')[mi];
             if(!mod) return;
+            // Special case: exam-only modules should use exam score for the progress mini-bar
+            const m = (course.modules||[])[mi]||{};
+            const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length)
+                && (!Array.isArray(m.topics) || m.topics.length===0);
+            if(isExamOnly){
+                // Default empty until we confirm a submitted attempt
+                const bar = mod.querySelector(`#bar_${mi}`); if(bar) bar.style.width = '0%';
+                const kpi = mod.querySelector(`#kpi_${mi}`); if(kpi) kpi.textContent = '';
+                updateExamBarFor(mi, `bar_${mi}`, `kpi_${mi}`, m.exam);
+                return;
+            }
+
             const topics = mod.querySelectorAll('.topic');
             let total=topics.length, done=0;
             topics.forEach((tEl)=>{
@@ -620,6 +632,58 @@
             const bar = mod.querySelector(`#bar_${mi}`); if(bar) bar.style.width = pct+'%';
             const kpi = mod.querySelector(`#kpi_${mi}`); if(kpi) kpi.textContent = total ? `${pct}%` : '';
             if(pct===100){ /* no catch-up for topics */ }
+        }
+
+        // Exam progress bars:
+        // - Keep at 0% until there is a submitted attempt
+        // - Only fill when score >= 75% (or >= passing_score if defined)
+        const examAttemptCache = {};
+        async function fetchExamAttempt(mi){
+            if(Object.prototype.hasOwnProperty.call(examAttemptCache, mi)) return examAttemptCache[mi];
+            try{
+                const r = await fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'});
+                const j = r.ok ? await r.json() : null;
+                examAttemptCache[mi] = (j && j.ok && j.attempt) ? j.attempt : null;
+                return examAttemptCache[mi];
+            }catch(e){
+                examAttemptCache[mi] = null;
+                return null;
+            }
+        }
+        async function updateExamBarFor(mi, barId, kpiId, examCfg){
+            const bar = document.getElementById(barId);
+            const kpi = document.getElementById(kpiId);
+            if(bar) bar.style.width = '0%';
+            if(kpi) kpi.textContent = '';
+
+            const attempt = await fetchExamAttempt(mi);
+            if(!attempt) return;
+
+            // module-exam/attempt returns summary fields at the top-level of attempt
+            const finalPct = Number(attempt?.final_pct ?? attempt?.pct ?? attempt?.objective_pct ?? 0) || 0;
+            const passCfg = (examCfg && examCfg.passing_score!=null && examCfg.passing_score!=='')
+                ? (parseInt(examCfg.passing_score,10) || 0)
+                : 75;
+            const isPassed = finalPct >= passCfg;
+            if(kpi) kpi.textContent = `${finalPct}%`;
+            if(bar) bar.style.width = isPassed ? `${finalPct}%` : '0%';
+        }
+
+        async function updateAllExamBars(){
+            const mods = Array.isArray(course.modules)?course.modules:[];
+            for(let mi=0; mi<mods.length; mi++){
+                const m = mods[mi]||{};
+                const hasExam = m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length;
+                const hasTopics = Array.isArray(m.topics) && m.topics.length>0;
+                // Embedded exams create bar_ex_* elements
+                if(hasExam && hasTopics){
+                    updateExamBarFor(mi, `bar_ex_${mi}`, `kpi_ex_${mi}`, m.exam);
+                }
+                // Exam-only modules are handled by updateProgressFor(), but we also call here as a safety net
+                if(hasExam && !hasTopics){
+                    updateExamBarFor(mi, `bar_${mi}`, `kpi_${mi}`, m.exam);
+                }
+            }
         }
         function updateAllProgress(){
             const modules = document.querySelectorAll('.module');
@@ -2242,7 +2306,9 @@
             if(!viewOnly){
                 try{ await loadReflectionMap(); }catch(e){}
             }
-            renderOutline();
+            await renderOutline();
+            // Ensure exam progress bars are not full by default and only fill on pass (>= 75 or passing_score)
+            try{ await updateAllExamBars(); }catch(e){}
             let mi = parseInt(getQueryParam('mi')||'0', 10);
             if(!Number.isFinite(mi) || mi<0) mi = 0;
             const mods = Array.isArray(course.modules)?course.modules:[];
