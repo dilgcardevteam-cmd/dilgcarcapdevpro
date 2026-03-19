@@ -1587,6 +1587,60 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .topic-badge:hover,
+        .topic-badge:focus {
+            border-color: #2563eb;
+            color: #1d4ed8;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+            outline: none;
+        }
+
+        .topic-badge.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #1d4ed8;
+        }
+
+        .topic-detail-panel {
+            margin-top: 16px;
+            padding: 18px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        }
+
+        .topic-detail-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .topic-field-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .topic-choice-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #ffffff;
+        }
+
+        .topic-choice-item.correct {
+            border-color: #86efac;
+            background: #f0fdf4;
+            color: #166534;
         }
 
         .material-tag {
@@ -1600,6 +1654,55 @@
             align-items: center;
             gap: 6px;
             border: 1px solid #e2e8f0;
+            text-decoration: none;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .material-tag:hover {
+            background: #e0ecff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .exam-detail-panel {
+            margin-top: 16px;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+        }
+
+        .exam-question-item {
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .exam-choice-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .exam-choice-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .exam-choice-item.correct {
+            border-color: #86efac;
+            background: #f0fdf4;
+            color: #166534;
         }
 
         .permissions-panel-shell {
@@ -5535,9 +5638,11 @@
                         <div class="course-main-card" style="max-width: 900px; margin: 0 auto; text-align: center;">
                             <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Course Certificate</h3>
                             <div id="pro_view_certificate_preview" style="padding: 40px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px;">
-                                <i class="fas fa-certificate" style="font-size: 4rem; color: #f59e0b; margin-bottom: 20px;"></i>
-                                <h4 id="pro_view_cert_name" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #0f172a;">Certificate of Completion</h4>
-                                <p style="color: #64748b; margin-top: 12px; font-weight: 500;">Awarded upon successful completion of all course modules and assessments.</p>
+                                <div id="pro_view_certificate_body">
+                                    <i class="fas fa-certificate" style="font-size: 4rem; color: #f59e0b; margin-bottom: 20px;"></i>
+                                    <h4 id="pro_view_cert_name" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #0f172a;">Certificate of Completion</h4>
+                                    <p style="color: #64748b; margin-top: 12px; font-weight: 500;">Awarded upon successful completion of all course modules and assessments.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -8942,13 +9047,161 @@
                 
                 if (result.ok) {
                     const c = result.course;
+                    const escapeAdminHtml = (value) => String(value ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                    const parseTopicFields = (fieldsValue) => {
+                        if (!fieldsValue) return [];
+                        if (Array.isArray(fieldsValue)) return fieldsValue;
+                        if (typeof fieldsValue === 'string') {
+                            try {
+                                const parsed = JSON.parse(fieldsValue);
+                                return Array.isArray(parsed) ? parsed : [];
+                            } catch (error) {
+                                return [];
+                            }
+                        }
+                        return [];
+                    };
+                    const renderAdminTopicFields = (fieldsValue) => {
+                        const fields = parseTopicFields(fieldsValue);
+                        if (!fields.length) {
+                            return '<div class="topic-field-card" style="color:#64748b; font-weight:600;">No content added for this topic yet.</div>';
+                        }
+
+                        return fields.map((field, fieldIndex) => {
+                            if (field.type === 'text') {
+                                return `
+                                    <div class="topic-field-card">
+                                        ${field.html || '<div style="color:#64748b; font-weight:600;">No text content provided.</div>'}
+                                    </div>
+                                `;
+                            }
+
+                            if (field.type === 'question' && field.question) {
+                                const question = field.question;
+                                const options = Array.isArray(question.options) ? question.options : [];
+                                const answerIndex = Number.isInteger(question.answer_index)
+                                    ? question.answer_index
+                                    : Number.parseInt(question.answer_index, 10);
+                                const optionsHtml = options.length
+                                    ? options.map((option, optionIndex) => `
+                                        <div class="topic-choice-item ${optionIndex === answerIndex ? 'correct' : ''}">
+                                            <span style="font-weight:800; min-width:22px;">${String.fromCharCode(65 + optionIndex)}.</span>
+                                            <span>${escapeAdminHtml(option || '(Empty option)')}</span>
+                                            ${optionIndex === answerIndex ? '<span style="margin-left:auto; font-size:0.75rem; font-weight:800;">CORRECT</span>' : ''}
+                                        </div>
+                                    `).join('')
+                                    : '<div style="color:#64748b; font-weight:600;">No options added.</div>';
+
+                                return `
+                                    <div class="topic-field-card">
+                                        <div style="font-size:0.75rem; font-weight:800; color:#2563eb; text-transform:uppercase; margin-bottom:8px;">Question ${fieldIndex + 1}</div>
+                                        <div style="font-size:0.95rem; color:#1e293b; font-weight:700; margin-bottom:12px;">${escapeAdminHtml(question.title || 'Untitled question')}</div>
+                                        <div style="display:grid; gap:10px;">
+                                            ${optionsHtml}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <div class="topic-field-card">
+                                    <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:8px;">Field Data</div>
+                                    <pre style="margin:0; white-space:pre-wrap; color:#334155; font-size:0.85rem;">${escapeAdminHtml(JSON.stringify(field, null, 2))}</pre>
+                                </div>
+                            `;
+                        }).join('');
+                    };
+                    const renderAdminTopicDetail = (moduleIndex, topicIndex, topic) => {
+                        const subtopics = Array.isArray(topic?.subtopics) ? topic.subtopics : [];
+                        if (subtopics.length > 0) {
+                            return `
+                                <div class="topic-detail-panel">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                                        <div>
+                                            <div style="font-size:0.75rem; font-weight:800; color:#2563eb; text-transform:uppercase;">Topic ${moduleIndex + 1}.${topicIndex + 1}</div>
+                                            <div style="font-size:1rem; font-weight:800; color:#0f172a;">${escapeAdminHtml(topic?.title || 'Untitled Topic')}</div>
+                                        </div>
+                                        <span style="background:#eff6ff; color:#1d4ed8; font-size:0.75rem; font-weight:800; border-radius:999px; padding:6px 10px;">${subtopics.length} SUBTOPIC${subtopics.length === 1 ? '' : 'S'}</span>
+                                    </div>
+                                    <div style="display:grid; gap:12px;">
+                                        ${subtopics.map((subtopic, subtopicIndex) => `
+                                            <div class="topic-detail-card">
+                                                <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">Subtopic ${moduleIndex + 1}.${topicIndex + 1}.${subtopicIndex + 1}</div>
+                                                <div style="font-size:0.95rem; color:#1e293b; font-weight:700; margin-bottom:12px;">${escapeAdminHtml(subtopic?.title || 'Untitled Subtopic')}</div>
+                                                <div style="display:grid; gap:10px;">
+                                                    ${renderAdminTopicFields(subtopic?.fields ?? subtopic?.fields_json ?? null)}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        return `
+                            <div class="topic-detail-panel">
+                                <div style="margin-bottom:16px;">
+                                    <div style="font-size:0.75rem; font-weight:800; color:#2563eb; text-transform:uppercase;">Topic ${moduleIndex + 1}.${topicIndex + 1}</div>
+                                    <div style="font-size:1rem; font-weight:800; color:#0f172a;">${escapeAdminHtml(topic?.title || 'Untitled Topic')}</div>
+                                </div>
+                                <div style="display:grid; gap:10px;">
+                                    ${renderAdminTopicFields(topic?.fields ?? topic?.fields_json ?? null)}
+                                </div>
+                            </div>
+                        `;
+                    };
                     
                     // Update badges
                     document.getElementById('view_course_category_badge').innerText = c.subject_area || 'General';
                     document.getElementById('pro_view_course_subject').innerText = c.subject_area || 'General';
-                    document.getElementById('pro_view_course_certification').innerText = c.certification || 'None';
-                    document.getElementById('pro_view_course_cert').innerText = c.certification ? 'Certification Enabled' : 'No Certification';
-                    document.getElementById('pro_view_cert_name').innerText = c.certification || 'Certificate of Completion';
+                    const cert = c.certification || null;
+                    document.getElementById('pro_view_course_certification').innerText = cert?.name || 'None';
+                    document.getElementById('pro_view_course_cert').innerText = cert ? 'Certification Enabled' : 'No Certification';
+                    document.getElementById('pro_view_cert_name').innerText = cert?.name || 'Certificate of Completion';
+                    const certificateBody = document.getElementById('pro_view_certificate_body');
+                    if (certificateBody) {
+                        if (cert?.file_url) {
+                            const certExt = (cert.file_path || '').split('.').pop().toLowerCase();
+                            const isPdf = certExt === 'pdf';
+                            const previewHtml = isPdf
+                                ? `
+                                    <div style="display:grid; gap:16px;">
+                                        <iframe src="${cert.file_url}" style="width:100%; min-height:520px; border:1px solid #dbe2ee; border-radius:12px; background:#fff;" title="${cert.name} preview"></iframe>
+                                        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+                                            <a href="${cert.file_url}" target="_blank" rel="noopener noreferrer" class="material-tag" style="justify-content:center;">
+                                                <i class="fas fa-up-right-from-square"></i> Open Certificate
+                                            </a>
+                                        </div>
+                                    </div>
+                                `
+                                : `
+                                    <div style="display:grid; gap:16px;">
+                                        <img src="${cert.file_url}" alt="${cert.name}" style="width:100%; max-height:520px; object-fit:contain; border:1px solid #dbe2ee; border-radius:12px; background:#fff; padding:12px;">
+                                        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+                                            <a href="${cert.file_url}" target="_blank" rel="noopener noreferrer" class="material-tag" style="justify-content:center;">
+                                                <i class="fas fa-up-right-from-square"></i> Open Certificate
+                                            </a>
+                                        </div>
+                                    </div>
+                                `;
+                            certificateBody.innerHTML = `
+                                <h4 id="pro_view_cert_name" style="margin: 0 0 16px; font-size: 1.5rem; font-weight: 800; color: #0f172a;">${cert.name}</h4>
+                                ${previewHtml}
+                                <p style="color: #64748b; margin-top: 4px; font-weight: 500;">Awarded upon successful completion of all course modules and assessments.</p>
+                            `;
+                        } else {
+                            certificateBody.innerHTML = `
+                                <i class="fas fa-certificate" style="font-size: 4rem; color: #f59e0b; margin-bottom: 20px;"></i>
+                                <h4 id="pro_view_cert_name" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #0f172a;">${cert?.name || 'Certificate of Completion'}</h4>
+                                <p style="color: #64748b; margin-top: 12px; font-weight: 500;">Awarded upon successful completion of all course modules and assessments.</p>
+                            `;
+                        }
+                    }
                     
                     // Description
                     document.getElementById('pro_view_course_desc').innerText = c.description || 'No description provided.';
@@ -8964,7 +9217,7 @@
                     // Edit Button Link
                     const editBtn = document.getElementById('pro_view_edit_btn');
                     if (editBtn) {
-                        editBtn.onclick = () => window.location.href = `/courses/${c.id}/edit`;
+                        editBtn.onclick = () => window.location.href = `/admin/courses/${c.id}/edit`;
                     }
 
                     // Materials
@@ -8972,14 +9225,21 @@
                     materialsContainer.innerHTML = '';
                     if (c.materials && c.materials.length > 0) {
                         c.materials.forEach(m => {
-                            const ext = m.split('.').pop().toLowerCase();
+                            const fileName = m.file_name || (m.file_path ? m.file_path.split('/').pop() : (m.title || 'Material'));
+                            const ext = (fileName.split('.').pop() || '').toLowerCase();
                             let icon = 'fa-file';
                             if (ext === 'pdf') icon = 'fa-file-pdf';
                             else if (['doc', 'docx'].includes(ext)) icon = 'fa-file-word';
                             
-                            const tag = document.createElement('div');
+                            const tag = document.createElement('a');
+                            const fileUrl = m.file_url || (m.file_path ? `/storage/${m.file_path}` : '#');
                             tag.className = 'material-tag';
-                            tag.innerHTML = `<i class="fas ${icon}"></i> ${m.split('/').pop()}`;
+                            tag.href = fileUrl;
+                            tag.target = '_blank';
+                            tag.rel = 'noopener noreferrer';
+                            tag.download = fileName;
+                            tag.title = `Open ${fileName}`;
+                            tag.innerHTML = `<i class="fas ${icon}"></i> ${fileName}`;
                             materialsContainer.appendChild(tag);
                         });
                     } else {
@@ -8998,7 +9258,12 @@
                             if (mod.topics && mod.topics.length > 0) {
                                 topicsHtml = `
                                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
-                                        ${mod.topics.map(t => `<span class="topic-badge"><i class="fas fa-play-circle" style="color:#2563eb;font-size:0.8rem;"></i> ${t.title}</span>`).join('')}
+                                        ${mod.topics.map((t, topicIdx) => `
+                                            <button type="button" class="topic-badge" data-topic-index="${topicIdx}" aria-label="Open topic ${escapeAdminHtml(t.title || 'Topic')}">
+                                                <i class="fas fa-play-circle" style="color:#2563eb;font-size:0.8rem;"></i>
+                                                <span>${escapeAdminHtml(t.title || 'Untitled Topic')}</span>
+                                            </button>
+                                        `).join('')}
                                     </div>
                                 `;
                             }
@@ -9012,7 +9277,29 @@
                                     <span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700; color:#64748b;">${mod.topics ? mod.topics.length : 0} TOPICS</span>
                                 </div>
                                 ${topicsHtml}
+                                <div class="module-topic-detail-slot"></div>
                             `;
+                            const topicDetailSlot = modItem.querySelector('.module-topic-detail-slot');
+                            modItem.querySelectorAll('[data-topic-index]').forEach((topicBtn) => {
+                                topicBtn.addEventListener('click', () => {
+                                    const topicIndex = Number.parseInt(topicBtn.getAttribute('data-topic-index'), 10);
+                                    const topic = Array.isArray(mod.topics) ? mod.topics[topicIndex] : null;
+                                    if (!topic || !topicDetailSlot) {
+                                        return;
+                                    }
+
+                                    const isAlreadyActive = topicBtn.classList.contains('active');
+                                    modItem.querySelectorAll('[data-topic-index]').forEach((btn) => btn.classList.remove('active'));
+
+                                    if (isAlreadyActive) {
+                                        topicDetailSlot.innerHTML = '';
+                                        return;
+                                    }
+
+                                    topicBtn.classList.add('active');
+                                    topicDetailSlot.innerHTML = renderAdminTopicDetail(idx, topicIndex, topic);
+                                });
+                            });
                             modulesContainer.appendChild(modItem);
                         });
                     } else {
@@ -9023,20 +9310,107 @@
                     const examsContainer = document.getElementById('pro_view_exams_container');
                     examsContainer.innerHTML = '';
                     if (c.assessments && c.assessments.length > 0) {
-                        c.assessments.forEach(a => {
+                        c.assessments.forEach((a, examIndex) => {
+                            const typeLabel = (a.type || 'assessment').replace(/_/g, ' ').toUpperCase();
+                            const metaBits = [
+                                `<span><i class="fas fa-tasks"></i> ${typeLabel}</span>`,
+                                `<span><i class="fas fa-question-circle"></i> ${a.question_count} Questions</span>`,
+                                `<span><i class="fas fa-clock"></i> ${a.due_date}</span>`
+                            ];
+                            if (a.module_title) {
+                                metaBits.push(`<span><i class="fas fa-layer-group"></i> ${a.module_title}</span>`);
+                            }
+                            const questions = Array.isArray(a.questions) ? a.questions : [];
+                            const detailId = `pro-view-exam-detail-${examIndex}`;
+                            const detailHtml = questions.length > 0
+                                ? questions.map((q, qIdx) => {
+                                    const text = q.text || q.question || q.title || `Question ${qIdx + 1}`;
+                                    const qType = (q.type || 'question').replace(/_/g, ' ').toUpperCase();
+                                    const choices = Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : []);
+                                    const answerIndex = Number.isInteger(q.answer_index) ? q.answer_index : Number.parseInt(q.answer_index, 10);
+                                    let answerHtml = '';
+                                    if ((q.type || '') === 'multiple_choice' && choices.length > 0) {
+                                        answerHtml = `
+                                            <div class="exam-choice-list">
+                                                ${choices.map((choice, choiceIdx) => `
+                                                    <div class="exam-choice-item ${choiceIdx === answerIndex ? 'correct' : ''}">
+                                                        <span style="font-weight:800; min-width:22px;">${String.fromCharCode(65 + choiceIdx)}.</span>
+                                                        <span>${choice || '(Empty choice)'}</span>
+                                                        ${choiceIdx === answerIndex ? '<span style="margin-left:auto; font-size:0.75rem; font-weight:800;">CORRECT</span>' : ''}
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        `;
+                                    } else if ((q.type || '') === 'true_false') {
+                                        const tfAnswer = q.answer === true ? 'True' : (q.answer === false ? 'False' : 'Not set');
+                                        answerHtml = `
+                                            <div class="exam-choice-list">
+                                                <div class="exam-choice-item ${q.answer === true ? 'correct' : ''}">
+                                                    <span style="font-weight:800; min-width:22px;">A.</span>
+                                                    <span>True</span>
+                                                    ${q.answer === true ? '<span style="margin-left:auto; font-size:0.75rem; font-weight:800;">CORRECT</span>' : ''}
+                                                </div>
+                                                <div class="exam-choice-item ${q.answer === false ? 'correct' : ''}">
+                                                    <span style="font-weight:800; min-width:22px;">B.</span>
+                                                    <span>False</span>
+                                                    ${q.answer === false ? '<span style="margin-left:auto; font-size:0.75rem; font-weight:800;">CORRECT</span>' : ''}
+                                                </div>
+                                            </div>
+                                            <div style="margin-top:10px; font-size:0.85rem; color:#64748b; font-weight:700;">Answer: ${tfAnswer}</div>
+                                        `;
+                                    } else if ((q.type || '') === 'identification') {
+                                        answerHtml = `
+                                            <div style="margin-top:10px; padding:10px 12px; border:1px dashed #cbd5e1; border-radius:10px; background:#f8fafc;">
+                                                <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Expected Answer</div>
+                                                <div style="font-size:0.92rem; color:#1e293b; font-weight:700;">${q.answer || 'No answer set.'}</div>
+                                            </div>
+                                        `;
+                                    }
+                                    return `
+                                        <div class="exam-question-item">
+                                            <div style="font-size:0.75rem; font-weight:800; color:#2563eb; text-transform:uppercase; margin-bottom:6px;">${qType}</div>
+                                            <div style="font-size:0.95rem; color:#1e293b; font-weight:600;">${qIdx + 1}. ${text}</div>
+                                            ${answerHtml}
+                                        </div>
+                                    `;
+                                }).join('')
+                                : '<p style="margin:0; color:#64748b;">No questions found for this exam.</p>';
                             const examItem = document.createElement('div');
-                            examItem.style.cssText = 'padding:20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;';
+                            examItem.style.cssText = 'padding:20px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:12px;';
                             examItem.innerHTML = `
-                                <div>
-                                    <h4 style="margin:0; font-weight:800; color:#1e293b;">${a.title}</h4>
-                                    <div style="margin-top:4px; display:flex; gap:16px; font-size:0.8rem; color:#64748b; font-weight:600;">
-                                        <span><i class="fas fa-tasks"></i> ${a.type.toUpperCase()}</span>
-                                        <span><i class="fas fa-question-circle"></i> ${a.question_count} Questions</span>
-                                        <span><i class="fas fa-clock"></i> ${a.due_date}</span>
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                                    <div>
+                                        <h4 style="margin:0; font-weight:800; color:#1e293b;">${a.title}</h4>
+                                        <div style="margin-top:4px; display:flex; gap:16px; font-size:0.8rem; color:#64748b; font-weight:600; flex-wrap:wrap;">
+                                            ${metaBits.join('')}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn" data-exam-toggle="${detailId}" style="background:#f1f5f9; color:#2563eb; font-weight:700; font-size:0.8rem; padding:6px 12px; border-radius:6px;">View Details</button>
+                                </div>
+                                <div id="${detailId}" class="exam-detail-panel" style="display:none;">
+                                    <div style="display:grid; gap:12px;">
+                                        <div>
+                                            <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">Description</div>
+                                            <div style="color:#475569; font-size:0.92rem;">${a.description || 'No description provided.'}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:10px;">Questions</div>
+                                            <div style="display:grid; gap:10px;">
+                                                ${detailHtml}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn" style="background:#f1f5f9; color:#2563eb; font-weight:700; font-size:0.8rem; padding:6px 12px; border-radius:6px;">View Result</button>
                             `;
+                            const toggleBtn = examItem.querySelector('[data-exam-toggle]');
+                            const detailEl = examItem.querySelector(`#${detailId}`);
+                            if (toggleBtn && detailEl) {
+                                toggleBtn.addEventListener('click', () => {
+                                    const isOpen = detailEl.style.display !== 'none';
+                                    detailEl.style.display = isOpen ? 'none' : 'block';
+                                    toggleBtn.textContent = isOpen ? 'View Details' : 'Hide Details';
+                                });
+                            }
                             examsContainer.appendChild(examItem);
                         });
                     } else {
@@ -9052,6 +9426,21 @@
                 console.error("Failed to load course details:", err);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            const courseId = params.get('course_id');
+
+            if (tab === 'course-view-details' && courseId) {
+                openViewCourseModal({
+                    id: courseId,
+                    name: 'Loading...',
+                    creator_name: 'Admin',
+                    created_at: 'N/A'
+                });
+            }
+        });
 
         function closeViewCourseModal() {
             showContent('course-library', document.querySelector('.menu-item[onclick*=\'course-management\']'));

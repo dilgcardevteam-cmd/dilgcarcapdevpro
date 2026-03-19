@@ -3882,16 +3882,16 @@
                 node.dataset.payload = JSON.stringify(obj);
                 listEl.appendChild(node);
                 addExamInputGroupFor(obj.type);
-                // Reset builder to blank
-                wrap.querySelector('.eq-text').value='';
-                wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
-                wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
-                wrap.querySelector('.eq-id-answer').value='';
-                const tfSel2 = wrap.querySelector('.eq-tf-answer'); if(tfSel2){ tfSel2.value=''; }
-                syncExamJSON();
+                const newIndex = Math.max(0, listEl.children.length - 1);
                 updateExamNavigator.call(wrap);
-                // Focus editor on the newly added blank question
-                setActiveExamIndex(wrap, Math.max(0, listEl.children.length - 1));
+                setActiveExamIndex(wrap, newIndex);
+                clearBuilder(wrap);
+                const freshNode = listEl.children[newIndex];
+                if (freshNode) {
+                    freshNode.dataset.payload = JSON.stringify(obj);
+                }
+                updateExamInputGroup(newIndex, obj);
+                recalcExamJSON(wrap);
             });
             function ensureInitialQuestion(){
                 const listEl = wrap.querySelector('.exam-q-list');

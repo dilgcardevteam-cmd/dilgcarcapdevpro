@@ -54,6 +54,56 @@ class CourseController extends Controller
     }
 
     /**
+     * Persist uploaded course-level materials to the canonical materials table.
+     */
+    protected function storeUploadedMaterials(Request $request, Course $course): void
+    {
+        if (!$request->hasFile('materials')) {
+            return;
+        }
+
+        Storage::disk('public')->makeDirectory('materials');
+
+        foreach (array_filter((array) $request->file('materials')) as $file) {
+            if (!$file || !$file->isValid()) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'materials' => 'One of the uploaded materials is invalid or incomplete.',
+                ]);
+            }
+
+            $storedPath = null;
+
+            try {
+                $storedPath = $file->store('materials', 'public');
+                $originalName = $file->getClientOriginalName() ?: basename($storedPath);
+
+                $material = $course->materials()->create([
+                    'title' => $originalName,
+                    'description' => null,
+                    'file_path' => $storedPath,
+                    'type' => 'file',
+                ]);
+
+                if ((int) ($material->course_id ?? 0) !== (int) $course->id) {
+                    throw new \RuntimeException('Saved material is not linked to the expected course.');
+                }
+            } catch (\Throwable $e) {
+                if ($storedPath) {
+                    Storage::disk('public')->delete($storedPath);
+                }
+
+                \Log::error('Course material upload linkage failed', [
+                    'course_id' => $course->id,
+                    'original_name' => $file->getClientOriginalName(),
+                    'error' => $e->getMessage(),
+                ]);
+
+                throw $e;
+            }
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function create(Request $request)
@@ -96,6 +146,7 @@ class CourseController extends Controller
             'image' => 'required_without:image_draft_data|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'image_draft_data' => 'nullable|string',
             'certification_id' => 'nullable|exists:certifications,id',
+            'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
         // Ensure DB columns that may be NOT NULL receive safe defaults
@@ -283,13 +334,26 @@ class CourseController extends Controller
             $validated['trainer_id'] = auth()->id();
         }
 
-        $course = Course::create($validated);
+        try {
+            $course = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+                $course = Course::create($validated);
 
-        // Link the creator to the course so we can display "Created by"
-        if (auth()->check()) {
-            if (!$course->users()->where('user_id', auth()->id())->exists()) {
-                $course->users()->attach(auth()->id(), ['status' => 'active']);
-            }
+                // Link the creator to the course so we can display "Created by"
+                if (auth()->check() && !$course->users()->where('user_id', auth()->id())->exists()) {
+                    $course->users()->attach(auth()->id(), ['status' => 'active']);
+                }
+
+                $this->storeUploadedMaterials($request, $course);
+
+                return $course;
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Course creation failed', ['error' => $e->getMessage()]);
+            return back()
+                ->withErrors(['materials' => 'Course materials could not be saved. Please try again.'], 'create_course')
+                ->withInput();
         }
 
         if ($request->boolean('embedded')) {
@@ -316,6 +380,7 @@ class CourseController extends Controller
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
+            'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
         if (!$request->filled('video_url')) {
@@ -478,17 +543,29 @@ class CourseController extends Controller
             $validated['trainer_id'] = auth()->id();
         }
 
-        $course = Course::create($validated);
+        try {
+            $course = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+                $course = Course::create($validated);
 
-        if (auth()->check()) {
-            // Ensure the creator is attached as a user with active status
-            if (!$course->users()->where('user_id', auth()->id())->exists()) {
-                $course->users()->attach(auth()->id(), ['status' => 'active']);
-            }
+                if (auth()->check() && !$course->users()->where('user_id', auth()->id())->exists()) {
+                    $course->users()->attach(auth()->id(), ['status' => 'active']);
+                }
+
+                $this->storeUploadedMaterials($request, $course);
+
+                // Soft-archive until admin approval
+                $course->delete();
+
+                return $course;
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Trainer course creation failed', ['error' => $e->getMessage()]);
+            return back()
+                ->withErrors(['materials' => 'Course materials could not be saved. Please try again.'], 'create_course')
+                ->withInput();
         }
-
-        // Soft-archive until admin approval
-        $course->delete();
 
         // Notify admins
         $admins = User::where('role', 'admin')->get();
@@ -976,6 +1053,7 @@ class CourseController extends Controller
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
+            'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
         if ($request->hasFile('image')) {
@@ -1079,7 +1157,23 @@ class CourseController extends Controller
             if (isset($existingModule['status']) && !isset($mArr['status'])) {
                 $mArr['status'] = $existingModule['status'];
             }
-            if (isset($existingModule['exam']) && is_array($existingModule['exam'])) {
+            if (isset($module['exam_json'])) {
+                $examRaw = is_string($module['exam_json']) ? trim($module['exam_json']) : '';
+                if ($examRaw !== '') {
+                    $examDecoded = json_decode($examRaw, true);
+                    if (is_array($examDecoded)) {
+                        $examQuestions = array_values(array_filter(($examDecoded['questions'] ?? []), function ($q) {
+                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false'], true);
+                        }));
+                        $mArr['exam'] = [
+                            'title' => (string) ($examDecoded['title'] ?? ''),
+                            'description' => (string) ($examDecoded['description'] ?? ''),
+                            'timer_minutes' => (int) ($examDecoded['timer_minutes'] ?? 0),
+                            'questions' => $examQuestions,
+                        ];
+                    }
+                }
+            } elseif (isset($existingModule['exam']) && is_array($existingModule['exam'])) {
                 $mArr['exam'] = $existingModule['exam'];
             }
             $modules[] = $mArr;
@@ -1088,9 +1182,27 @@ class CourseController extends Controller
             $validated['modules'] = $modules;
         }
 
-        $course->update($validated);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($course, $validated, $request) {
+                $course->update($validated);
+                $this->storeUploadedMaterials($request, $course);
+            });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Course update failed', [
+                'course_id' => $course->id,
+                'error' => $e->getMessage(),
+            ]);
+            return back()
+                ->withErrors(['materials' => 'Course materials could not be saved. Please try again.'], 'update_course')
+                ->withInput();
+        }
 
-        return redirect()->route('dashboard', ['tab' => 'course-management'])
+        return redirect()->route('dashboard', [
+                'tab' => 'course-view-details',
+                'course_id' => $course->id,
+            ])
             ->with('success_course', 'Course updated successfully.');
     }
 
@@ -1435,7 +1547,7 @@ class CourseController extends Controller
 
     public function getCourseDetailsAjax(\App\Models\Course $course)
     {
-        $course->load(['certification', 'assessments']);
+        $course->load(['certification', 'assessments', 'materials']);
         $creator = \App\Models\User::find($course->created_by);
         
         $modules = is_array($course->modules) ? $course->modules : [];
@@ -1448,6 +1560,50 @@ class CourseController extends Controller
             $mod['index'] = $idx;
         }
 
+        $moduleExams = collect($modules)->map(function ($mod, $idx) {
+            $exam = isset($mod['exam']) && is_array($mod['exam']) ? $mod['exam'] : null;
+            $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
+
+            if (!$exam || empty($questions)) {
+                return null;
+            }
+
+            $moduleTitle = trim((string) ($mod['title'] ?? '')) ?: ('Module ' . ($idx + 1));
+            $examTitle = trim((string) ($exam['title'] ?? '')) ?: 'Module Exam';
+
+            return [
+                'id' => null,
+                'title' => $examTitle,
+                'type' => 'module_exam',
+                'due_date' => 'No deadline',
+                'question_count' => count($questions),
+                'module_index' => $idx,
+                'module_title' => $moduleTitle,
+                'source' => 'module',
+                'description' => (string) ($exam['description'] ?? ''),
+                'questions' => $questions,
+            ];
+        })->filter()->values();
+
+        $dbAssessments = $course->assessments->map(function($a) {
+            $questions = is_array($a->questions_json)
+                ? $a->questions_json
+                : (json_decode($a->questions_json ?? '[]', true) ?: []);
+
+            return [
+                'id' => $a->id,
+                'title' => $a->title,
+                'type' => $a->type,
+                'due_date' => $a->due_date ? $a->due_date->format('M d, Y') : 'No deadline',
+                'question_count' => count($questions),
+                'module_index' => null,
+                'module_title' => null,
+                'source' => 'assessment',
+                'description' => (string) ($a->description ?? ''),
+                'questions' => $questions,
+            ];
+        })->values();
+
         return response()->json([
             'ok' => true,
             'course' => [
@@ -1459,19 +1615,29 @@ class CourseController extends Controller
                 'video_url' => $course->video_url,
                 'created_at' => optional($course->created_at)->format('M d, Y'),
                 'creator_name' => $creator ? $creator->name : 'N/A',
-                'certification' => $course->certification ? $course->certification->name : null,
+                'certification' => $course->certification ? [
+                    'id' => $course->certification->id,
+                    'name' => $course->certification->name,
+                    'category' => $course->certification->category,
+                    'file_path' => $course->certification->file_path,
+                    'file_url' => $course->certification->file_path
+                        ? route('certifications.download', ['certification' => $course->certification->id, 'inline' => 1])
+                        : null,
+                ] : null,
                 'modules' => $modules,
-                'materials' => $course->materials ?: [],
-                'status' => $course->status,
-                'assessments' => $course->assessments->map(function($a) {
+                'materials' => $course->materials->map(function ($material) {
                     return [
-                        'id' => $a->id,
-                        'title' => $a->title,
-                        'type' => $a->type,
-                        'due_date' => $a->due_date ? $a->due_date->format('M d, Y') : 'No deadline',
-                        'question_count' => is_array($a->questions_json) ? count($a->questions_json) : 0,
+                        'id' => $material->id,
+                        'title' => $material->title,
+                        'description' => $material->description,
+                        'file_path' => $material->file_path,
+                        'file_name' => $material->file_path ? basename($material->file_path) : null,
+                        'file_url' => $material->file_path ? asset('storage/' . $material->file_path) : null,
+                        'type' => $material->type,
                     ];
-                })
+                })->values(),
+                'status' => $course->status,
+                'assessments' => $dbAssessments->concat($moduleExams)->values(),
             ]
         ]);
     }

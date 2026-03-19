@@ -290,7 +290,8 @@
                                 @if($course->materials && count($course->materials) > 0)
                                     @foreach($course->materials as $material)
                                         @php
-                                            $ext = pathinfo($material, PATHINFO_EXTENSION);
+                                            $fileName = $material->file_path ? basename($material->file_path) : ($material->title ?: 'Material');
+                                            $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                                             $icon = 'fa-file';
                                             $color = '#64748b';
                                             if($ext == 'pdf') { $icon = 'fa-file-pdf'; $color = '#ef4444'; }
@@ -301,7 +302,7 @@
                                         <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.88rem; color: #1e293b; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                                             <i class="fas {{ $icon }}" style="color: {{ $color }}; font-size: 1.1rem;"></i>
                                             <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: left;">
-                                                <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ basename($material) }}</span>
+                                                <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $fileName }}</span>
                                                 <span style="color: #0d6efd; font-size: 0.7rem; font-weight: 500;">Existing Material</span>
                                             </div>
                                         </div>
@@ -3184,6 +3185,7 @@
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
                 if(!text) return;
+                const activeIdx = getActiveExamIndex(wrap);
                 let obj = null;
                 if(t==='multiple_choice'){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
@@ -3202,22 +3204,37 @@
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
                     obj = { type:'true_false', text, answer: ans };
                 }
+                const currentNode = wrap.querySelectorAll('.exam-q-list .q-item')[activeIdx];
+                if (currentNode) {
+                    currentNode.dataset.payload = JSON.stringify(obj);
+                }
                 const listEl = wrap.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
+                let blankObj = null;
+                if(t==='multiple_choice'){
+                    blankObj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null };
+                }else if(t==='identification'){
+                    blankObj = { type:'identification', text:'', answer: '' };
+                }else if(t==='true_false'){
+                    blankObj = { type:'true_false', text:'', answer: true };
+                } else {
+                    blankObj = { type:String(t||'multiple_choice'), text:'' };
+                }
                 const node = document.createElement('div');
                 node.className = 'q-item';
-                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. '+obj.text+'</div>'
-                    + '<div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
-                node.dataset.payload = JSON.stringify(obj);
+                node.innerHTML = '<div class="qi-title" style="font-weight:700">'+idx+'. </div>'
+                    + '<div class="muted" style="margin-top:6px">'+blankObj.type.replace('_',' ').toUpperCase()+'</div>';
+                node.dataset.payload = JSON.stringify(blankObj);
                 listEl.appendChild(node);
                 wrap.querySelector('.eq-text').value='';
                 wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
                 wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 wrap.querySelector('.eq-id-answer').value='';
                 wrap.querySelector('.eq-tf-answer').value='true';
+                syncBuilderBoxes();
                 syncExamJSON();
                 updateExamNavigator.call(wrap);
-                setActiveExamIndex(Math.max(0, listEl.children.length-1));
+                setActiveExamIndex(wrap, Math.max(0, listEl.children.length-1));
             });
             renderChoices(); syncBuilderBoxes(); syncExamJSON();
             if(prefill){
@@ -3240,7 +3257,7 @@
                         try{ updateExamNavigator.call(ctx); }catch(e){}
                     }
                     syncExamJSON();
-                    try{ setActiveExamIndex(0); }catch(e){}
+                    try{ setActiveExamIndex(wrap, 0); }catch(e){}
                 }catch(e){}
             }
             reindexModules();
@@ -3260,12 +3277,12 @@
                 b.className = 'nav-block';
                 b.textContent = (i+1);
                 b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-                b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(i); });
+                b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
                 track.appendChild(b);
             }
-            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(Math.max(0, getActiveExamIndex(wrap)-1));
-            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(Math.min(count-1, getActiveExamIndex(wrap)+1));
-            setActiveExamIndex(getActiveExamIndex(wrap)); 
+            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(wrap, Math.max(0, getActiveExamIndex(wrap)-1));
+            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(wrap, Math.min(count-1, getActiveExamIndex(wrap)+1));
+            setActiveExamIndex(wrap, getActiveExamIndex(wrap)); 
         }
         function getActiveExamIndex(wrap){
             const track = wrap.querySelector('.nav-track');
@@ -3273,8 +3290,11 @@
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
         }
-        function setActiveExamIndex(i){
-            const wrap = document.querySelector('.exam-wrapper') || document;
+        function setActiveExamIndex(wrapOrIndex, maybeIndex){
+            const wrap = wrapOrIndex && wrapOrIndex.classList && wrapOrIndex.classList.contains('exam-wrapper')
+                ? wrapOrIndex
+                : (document.querySelector('.exam-wrapper') || document);
+            const i = wrap === wrapOrIndex ? maybeIndex : wrapOrIndex;
             const nav = wrap.querySelector('.exam-nav');
             const track = nav.querySelector('.nav-track');
             const blocks = Array.from(track.children);
