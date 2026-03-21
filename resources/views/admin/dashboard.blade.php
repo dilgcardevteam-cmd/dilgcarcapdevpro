@@ -4008,24 +4008,30 @@
                     <div class="menu-icon"><i class="fas fa-home"></i></div>
                     <span class="menu-text">Dashboard</span>
                 </li>
+                @if(Auth::user()->hasPermission('view_users'))
                 <li class="menu-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_courses'))
                 <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
                     <div class="menu-icon"><i class="fas fa-book"></i></div>
                     <span class="menu-text">Course Management</span>
                 </li>
-                @if(Auth::check() && Auth::user()->role === 'super_admin')
+                @endif
+                @if(Auth::user()->hasPermission('view_access_control'))
                     <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
                         <div class="menu-icon"><i class="fas fa-key"></i></div>
                         <span class="menu-text">Access Control</span>
                     </li>
                 @endif
+                @if(Auth::user()->hasPermission('view_certifications'))
                 <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
                     <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                     <span class="menu-text">Certifications</span>
                 </li>
+                @endif
                 @if(Auth::check() && Auth::user()->role === 'super_admin')
                     <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
                         <div class="menu-icon"><i class="fas fa-cogs"></i></div>
@@ -4073,6 +4079,7 @@
                             </div>
                         </div>
                         <div class="admin-hero-stats-grid">
+                        @if(Auth::user()->hasPermission('view_users'))
                         <div class="admin-hero-stat-card clickable"
                             role="button"
                             tabindex="0"
@@ -4087,7 +4094,9 @@
                                 <div class="admin-hero-stat-meta">Active: {{ $activeUsersSafe }} | Pending: {{ $pendingUsersSafe }} | Blocked: {{ $frozenUsersSafe }}</div>
                             </div>
                         </div>
+                        @endif
 
+                        @if(Auth::user()->hasPermission('view_courses'))
                         <div class="admin-hero-stat-card tone-green clickable"
                             role="button"
                             tabindex="0"
@@ -4116,7 +4125,9 @@
                                 <span class="admin-hero-stat-label">Pending Course Reviews</span>
                             </div>
                         </div>
+                        @endif
 
+                        @if(Auth::user()->hasPermission('view_certifications'))
                         <div class="admin-hero-stat-card tone-slate clickable"
                             role="button"
                             tabindex="0"
@@ -4131,6 +4142,7 @@
                                 <div class="admin-hero-stat-meta">Ready for issuance</div>
                             </div>
                         </div>
+                        @endif
                     </div>
                     </div>
 
@@ -5514,10 +5526,12 @@
                 @endif
 
                 <div class="course-grid">
+                    @if(Auth::user()->hasPermission('create_courses'))
                     <button type="button" class="course-card add-course-card" onclick="openAddCourseModal()" aria-label="Add Course" style="border:0;">
                         <span class="add-course-plus"><i class="fas fa-plus"></i></span>
                         <p class="add-course-title">Add Course</p>
                     </button>
+                    @endif
                     @foreach($courses as $course)
                         @php
                             $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
@@ -6827,14 +6841,7 @@
                                             <div class="permission-option-circle select-all-circle"></div>
                                             <span class="select-all-text">Select All</span>
                                         </div>
-                                        <button type="button" class="permissions-save-btn" onclick="submitUpdate()">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                                <polyline points="7 3 7 8 15 8"></polyline>
-                                            </svg>
-                                            Save Changes
-                                        </button>
+                                        {{-- Global Save handled by Update User --}}
                                     </div>
                                     <div class="permission-table-wrapper">
                                         <table class="permission-table">
@@ -8953,6 +8960,8 @@
 
         function openViewModal(user) {
             currentViewingUser = user;
+            // Persist for refresh
+            sessionStorage.setItem('current_viewing_user', JSON.stringify(user));
             const form = document.getElementById('viewUserForm');
             const formatLabel = (value) => {
                 const raw = String(value || '').trim();
@@ -9006,11 +9015,11 @@
             const permCheckboxes = document.querySelectorAll('.permission-option-input');
             permCheckboxes.forEach(cb => cb.checked = false);
             
-            // 1. Check permissions based on the user's role block
+            // 1. Determine the relevant system block and expand it
             const role = String(user.role || '').toLowerCase();
             let targetSystemId = null;
-            if (role === 'admin' || role === 'registrar' || role.includes('_admin')) targetSystemId = 'system-admin';
-            else if (role === 'training_manager' || role.includes('_training_manager')) targetSystemId = 'system-tm';
+            if (role === 'admin' || role.includes('_admin')) targetSystemId = 'system-admin';
+            else if (role === 'training_manager' || role === 'registrar' || role.includes('_training_manager')) targetSystemId = 'system-tm';
             else if (role === 'trainer' || role === 'coach' || role.includes('_coach')) targetSystemId = 'system-coach';
             else if (role === 'participant' || role === 'trainee' || role.includes('_participants')) targetSystemId = 'system-participant';
 
@@ -9018,44 +9027,30 @@
             document.querySelectorAll('.permission-accordion').forEach(acc => acc.classList.remove('active'));
 
             if (targetSystemId) {
-                const systemBlock = document.getElementById(targetSystemId);
-                if (systemBlock) {
-                    // Find all checkboxes in this block and check them by default
-                    // (But wait, the user wants it to be data-driven from the saved state, 
-                    // so we should rely on the database permissions primarily)
-                    systemBlock.querySelectorAll('.permission-option-input').forEach(cb => cb.checked = true);
-                    toggleAccordion(targetSystemId); // Expand the relevant accordion
-                }
+                toggleAccordion(targetSystemId); // Expand the relevant accordion
             }
 
-            // 2. Also check permissions that are specifically assigned to this role in the database
-            // This is the source of truth
+            // 2. Check permissions based on the database source of truth
             const roleObj = ALL_ROLES.find(r => r.name === user.role);
             const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
             
-            // First, if it's Admin, we have a specific matrix to enforce as a baseline
-            if (targetSystemId === 'system-admin') {
-                const adminMatrix = {
-                    'view_users': true, 'create_users': false, 'edit_users': true, 'delete_users': false,
-                    'view_courses': true, 'create_courses': true, 'edit_courses': true, 'delete_courses': false,
-                    'view_certifications': true, 'create_certifications': true, 'edit_certifications': false, 'delete_certifications': true
-                };
+            permCheckboxes.forEach(cb => {
+                const val = cb.value;
+                const isNumeric = !isNaN(val) && !isNaN(parseFloat(val));
                 
-                permCheckboxes.forEach(cb => {
-                    const permName = cb.closest('.permission-option').getAttribute('data-perm-name');
-                    if (adminMatrix.hasOwnProperty(permName)) {
-                        cb.checked = adminMatrix[permName];
-                    } else if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
+                if (isNumeric) {
+                    const permId = parseInt(val);
+                    if (rolePermIds.includes(permId)) {
                         cb.checked = true;
                     }
-                });
-            } else {
-                permCheckboxes.forEach(cb => {
-                    if (rolePermIds.includes(parseInt(cb.value)) || rolePermIds.includes(cb.value)) {
+                } else {
+                    // Fallback: if value is a string name, resolve it using PERM_LOOKUP
+                    const resolvedId = Object.keys(PERM_LOOKUP).find(id => PERM_LOOKUP[id] === val);
+                    if (resolvedId && rolePermIds.includes(parseInt(resolvedId))) {
                         cb.checked = true;
                     }
-                });
-            }
+                }
+            });
 
             // 3. Reset all "Unsaved" badges for initial load
             document.querySelectorAll('.unsaved-badge').forEach(badge => badge.style.display = 'none');
@@ -9228,10 +9223,13 @@
             const block = document.getElementById(systemBlockId);
             if (!block) return;
             const inputs = block.querySelectorAll('.permission-option-input');
-            if (inputs.length === 0 || inputs[0].disabled) return;
+            if (inputs.length === 0) return;
             
-            const allChecked = Array.from(inputs).every(i => i.checked);
-            inputs.forEach(i => i.checked = !allChecked);
+            // Check if ANY are unchecked
+            const anyUnchecked = Array.from(inputs).some(i => !i.checked);
+            // If any are unchecked, we check them all. Otherwise, we uncheck them all.
+            inputs.forEach(i => i.checked = anyUnchecked);
+            
             updateSystemSelectState(systemBlockId);
             
             // Show unsaved badge
@@ -9309,18 +9307,39 @@
             if (confirm('Are you sure you want to update this user?')) {
                 const form = document.getElementById('viewUserForm');
                 
-                // Show a success message if it's an AJAX submit or before traditional submit
-                // Since this is a traditional form submit, we can show the message briefly
-                const originalBtn = event.target.closest('.permissions-save-btn');
-                if (originalBtn) {
-                    const originalContent = originalBtn.innerHTML;
-                    originalBtn.innerHTML = '<i class="fas fa-check"></i> Save Complete!';
-                    originalBtn.style.background = '#10b981'; // Green
+                // Collect all checked permissions
+                const checkedPerms = Array.from(document.querySelectorAll('.permission-option-input:checked')).map(cb => cb.value);
+                // Collect all possible permissions shown in the UI
+                const allUIPerms = Array.from(document.querySelectorAll('.permission-option-input')).map(cb => cb.value);
+                
+                let permInput = form.querySelector('input[name="permissions_data"]');
+                if (!permInput) {
+                    permInput = document.createElement('input');
+                    permInput.type = 'hidden';
+                    permInput.name = 'permissions_data';
+                    form.appendChild(permInput);
+                }
+                
+                let allPermInput = form.querySelector('input[name="all_ui_permissions"]');
+                if (!allPermInput) {
+                    allPermInput = document.createElement('input');
+                    allPermInput.type = 'hidden';
+                    allPermInput.name = 'all_ui_permissions';
+                    form.appendChild(allPermInput);
+                }
+
+                permInput.value = JSON.stringify(checkedPerms);
+                allPermInput.value = JSON.stringify(allUIPerms);
+
+                const btn = document.getElementById('btnUpdate');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                    btn.disabled = true;
                 }
 
                 setTimeout(() => {
                     form.submit();
-                }, 800);
+                }, 500);
             }
         }
 
@@ -9328,6 +9347,23 @@
             initializeUserDetailsSection();
             const params = new URLSearchParams(window.location.search);
             const requestedTab = params.get('tab');
+            
+            if (requestedTab === 'user-details-section') {
+                const stored = sessionStorage.getItem('current_viewing_user');
+                if (stored) {
+                    try {
+                        const user = JSON.parse(stored);
+                        currentViewingUser = user; // Ensure global state is set
+                        // Small delay to ensure initializeUserDetailsSection and DOM are stable
+                        setTimeout(() => {
+                            openViewModal(user);
+                        }, 100);
+                    } catch (e) {
+                        console.error('Failed to restore user from session storage', e);
+                    }
+                }
+            }
+
             if (requestedTab === 'profile-section') {
                 showProfile();
             }
@@ -9396,8 +9432,8 @@
         function normalizeAccessRole(roleName) {
             const raw = String(roleName || '').trim().toLowerCase();
             if (!raw) return '';
-            if (raw === 'admin' || raw === 'registrar' || raw.endsWith('_admin')) return ACCESS_ROLE_VALUES.admin;
-            if (raw === 'training_manager' || raw.endsWith('_training_manager')) return ACCESS_ROLE_VALUES.training_manager;
+            if (raw === 'admin' || raw.endsWith('_admin')) return ACCESS_ROLE_VALUES.admin;
+            if (raw === 'training_manager' || raw === 'registrar' || raw.endsWith('_training_manager')) return ACCESS_ROLE_VALUES.training_manager;
             if (raw === 'trainer' || raw === 'coach' || raw.endsWith('_coach')) return ACCESS_ROLE_VALUES.coach;
             if (raw === 'participant' || raw === 'trainee' || raw.endsWith('_participants')) return ACCESS_ROLE_VALUES.participant;
             return raw;

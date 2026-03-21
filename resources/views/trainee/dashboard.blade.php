@@ -1095,24 +1095,30 @@
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
+                @if(Auth::user()->hasPermission('view_modules'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('classroom', this)">
                         <i class="fas fa-chalkboard-teacher nav-icon"></i>
                         <span class="nav-text">Classroom</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_training'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('calendar', this)">
                         <i class="fas fa-calendar-alt nav-icon"></i>
                         <span class="nav-text">Calendar</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_communication'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('announcements', this)">
                         <i class="fas fa-bullhorn nav-icon"></i>
                         <span class="nav-text">Announcements</span>
                     </a>
                 </li>
+                @endif
                 @if(in_array(Auth::user()->role, ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach']))
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}" class="nav-link">

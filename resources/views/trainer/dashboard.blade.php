@@ -1476,9 +1476,11 @@
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
+                    @if(Auth::user()->hasPermission('add_courses_coach'))
                     <a class="dropdown-item" href="{{ route('trainer.courses.create') }}">
                         <i class="fas fa-plus-circle"></i> <span>Create Course</span>
                     </a>
+                    @endif
                     <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
@@ -1506,24 +1508,30 @@
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
+                @if(Auth::user()->hasPermission('view_courses_coach'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('my-courses', this)">
                         <i class="fas fa-chalkboard-teacher nav-icon"></i>
                         <span class="nav-text">My Courses</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_classes'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('calendar', this)">
                         <i class="fas fa-calendar-alt nav-icon"></i>
                         <span class="nav-text">Calendar</span>
                     </a>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_communication'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('announcements', this)">
                         <i class="fas fa-bullhorn nav-icon"></i>
                         <span class="nav-text">Announcements</span>
                     </a>
                 </li>
+                @endif
                 <li class="nav-item">
                     <a href="{{ route('participant.dashboard.preview') }}" class="nav-link">
                         <i class="fas fa-user-graduate nav-icon"></i>

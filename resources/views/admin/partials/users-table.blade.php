@@ -56,12 +56,14 @@
                         <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>
                         <td>
                             <div class="actions-inline">
+                                @if(Auth::user()->canUpdateUsers())
                                 <button type="button" onclick='openViewModal(@json($user))' class="btn-table-action btn-action-view btn-icon-only" title="Update user" aria-label="Update user">
                                     <svg class="icon-feather" viewBox="0 0 24 24" aria-hidden="true">
                                         <path d="M12 20h9"></path>
                                         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
                                     </svg>
                                 </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

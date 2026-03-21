@@ -73,6 +73,67 @@ class User extends Authenticatable
         // Removed auto-generation on creating as per requirement to generate only after approval
     }
 
+    public function hasPermission(string $permission): bool
+    {
+        $rawRole = strtolower($this->role ?? '');
+        // Admins have all permissions
+        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+
+        // Try to find the role by slug or display name
+        $roleModel = Role::where('name', $this->role)
+            ->orWhere('name', $rawRole)
+            ->first();
+            
+        if (!$roleModel) return false;
+
+        return $roleModel->permissions()->where('name', $permission)->exists();
+    }
+
+    public function canManageUsers(): bool
+    {
+        $rawRole = strtolower($this->role ?? '');
+        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+
+        if (str_contains($rawRole, 'training_manager') || $rawRole === 'registrar') {
+            return $this->hasPermission('view_users_tm');
+        }
+
+        return $this->hasPermission('view_users');
+    }
+
+    public function canUpdateUsers(): bool
+    {
+        $rawRole = strtolower($this->role ?? '');
+        // Admins have all permissions
+        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+
+        // For Training Managers / Registrars, they specifically need update_users_tm
+        if ($rawRole === 'training_manager' || $rawRole === 'registrar' || str_contains($rawRole, '_training_manager')) {
+            return $this->hasPermission('update_users_tm');
+        }
+
+        // Default for other roles
+        return $this->hasPermission('edit_users');
+    }
+
+    public function canManageTraining(): bool
+    {
+        $rawRole = strtolower($this->role ?? '');
+        // Admins always have access
+        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+
+        // Everyone else must strictly have the 'view_training' permission
+        return $this->hasPermission('view_training');
+    }
+
+    public function canViewReports(): bool
+    {
+        $rawRole = strtolower($this->role ?? '');
+        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+
+        return $this->hasPermission('view_reports');
+    }
+
     public static function generateAccountId(string $role): string
     {
         $yy = now()->format('y');

@@ -600,18 +600,24 @@
                     <div class="menu-icon"><i class="fas fa-home"></i></div>
                     <span class="menu-text">Dashboard</span>
                 </li>
+                @if(Auth::user()->hasPermission('view_users_tm'))
                 <li class="menu-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                     <div class="menu-icon"><i class="fas fa-users"></i></div>
                     <span class="menu-text">User Management</span>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_training'))
                 <li class="menu-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
                     <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                     <span class="menu-text">Training Management</span>
                 </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_reports'))
                 <li class="menu-item {{ request('tab') == 'activity-logs' ? 'active' : '' }}" onclick="showContent('activity-logs', this)">
                     <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
                     <span class="menu-text">Activity Logs</span>
                 </li>
+                @endif
             </ul>
         </aside>
         <main class="main-content">
@@ -627,6 +633,7 @@
                         </div>
                     </div>
                     <div class="hero-stats-grid">
+                        @if(Auth::user()->hasPermission('view_users_tm'))
                         <div class="hero-stat-card">
                             <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
                             <div class="hero-stat-info">
@@ -641,6 +648,8 @@
                                 <span class="hero-stat-label">Total Approved Users</span>
                             </div>
                         </div>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_training'))
                         <div class="hero-stat-card">
                             <div class="hero-stat-icon"><i class="fas fa-book"></i></div>
                             <div class="hero-stat-info">
@@ -655,13 +664,16 @@
                                 <span class="hero-stat-label">Pending Participants</span>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
                 @php
                     $pct = function($n,$t){ return $t>0 ? round(($n/$t)*100) : 0; };
                 @endphp
                 <div class="insight-grid" style="margin-top:14px">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px"><div class="insight-panel">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+                        @if(Auth::user()->hasPermission('view_users_tm'))
+                        <div class="insight-panel">
                     <div class="insight-panel-header">
                         <h2>Accounts & Courses Overview</h2>
                         <span>Totals</span>
@@ -698,6 +710,7 @@
                                 </div>
                             </div>
                         </div>
+                        @if(Auth::user()->hasPermission('view_course_monitoring'))
                         <div>
                             <div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px">
                                 <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Status</button>
@@ -717,7 +730,10 @@
                                 <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Classroom without Coach <span id="tm-course-legend-withoutcoach" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                         </div>
+                        @endif
                     </div>
+                        </div>
+                        @endif
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
                     <script>
                         (function(){

@@ -908,7 +908,11 @@ class DashboardController extends Controller
     {
         $actor = Auth::user();
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        
         if ($actor && (in_array($actor->role, $tmRoles) || $actor->role === 'registrar')) {
+            if (!$actor->canUpdateUsers()) {
+                abort(403, 'Unauthorized action.');
+            }
             // Determine managed roles based on the actor's level
             $managedRoles = [];
             if ($actor->role === 'central_office_training_manager') {
@@ -991,19 +995,46 @@ class DashboardController extends Controller
 
         $user->update($validated);
 
-        // Super Admin may update role permissions from the user modal
+        // Update User Role Permissions
         $actor = Auth::user();
-        if ($actor && $actor->role === 'super_admin') {
-            $permIds = (array) $request->input('permissions', []);
-            $permIds = array_values(array_unique(array_map('intval', $permIds)));
-            if (!empty($permIds)) {
-                $validIds = \App\Models\Permission::whereIn('id', $permIds)->pluck('id')->toArray();
-            } else {
-                $validIds = [];
-            }
+        if ($actor && in_array($actor->role, ['super_admin', 'admin'], true)) {
             $roleModel = \App\Models\Role::where('name', $user->role)->first();
             if ($roleModel) {
-                $roleModel->permissions()->sync($validIds);
+                if ($request->has('permissions_data')) {
+                    $checkedIds = json_decode($request->input('permissions_data'), true);
+                    $allUiIds = json_decode($request->input('all_ui_permissions', '[]'), true);
+                    
+                    if (is_array($checkedIds) && is_array($allUiIds)) {
+                        // Helper to resolve string names to IDs and filter valid IDs
+                        $resolveToValidIds = function($ids) {
+                            $numeric = array_filter($ids, 'is_numeric');
+                            $strings = array_filter($ids, function($v) { return !is_numeric($v); });
+                            $found = [];
+                            if (!empty($strings)) {
+                                $found = \App\Models\Permission::whereIn('name', $strings)->pluck('id')->toArray();
+                            }
+                            return array_unique(array_merge(array_map('intval', $numeric), $found));
+                        };
+
+                        $checkedIds = $resolveToValidIds($checkedIds);
+                        $allUiIds = $resolveToValidIds($allUiIds);
+
+                        // 1. Remove permissions that are in the UI list but NOT checked
+                        $toRemove = array_diff($allUiIds, $checkedIds);
+                        if (!empty($toRemove)) {
+                            $roleModel->permissions()->detach($toRemove);
+                        }
+                        
+                        // 2. Add permissions that are checked
+                        if (!empty($checkedIds)) {
+                            $roleModel->permissions()->syncWithoutDetaching($checkedIds);
+                        }
+                    }
+                } else if ($request->has('permissions')) {
+                    // Fallback to traditional multi-checkbox submit
+                    $permIds = (array) $request->input('permissions', []);
+                    $roleModel->permissions()->sync($permIds);
+                }
             }
         }
 

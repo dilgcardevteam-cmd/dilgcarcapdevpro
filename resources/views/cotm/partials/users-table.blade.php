@@ -44,12 +44,14 @@
                         <td class="muted-cell">{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
                         <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>
                         <td>
+                            @if(Auth::user()->canUpdateUsers())
                             <div class="actions-inline">
                                 <button type="button" onclick='openEditModal(@json($user))' class="btn-table-action btn-action-manage">
                                     <i class="fas fa-cog"></i>
                                     Manage
                                 </button>
                             </div>
+                            @endif
                         </td>
                     </tr>
                 @empty
