@@ -244,17 +244,66 @@
         .mc-actions{gap:10px}
         .btn-ghost{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;background:#fff;font-weight:700}
         .pane{
-            border-radius:16px;
-            box-shadow:0 14px 30px rgba(15,23,42,.14);
+            border-radius:24px;
+            box-shadow:0 20px 44px rgba(15,23,42,.08);
             border:1px solid #e6edf5;
+            background:linear-gradient(180deg,#ffffff 0%, #fbfcff 100%);
+            padding:20px 22px 24px;
+        }
+        .pane h2{
+            margin:6px 0 18px;
+            font-size:2.35rem;
+            font-weight:900;
+            line-height:1.02;
+            letter-spacing:-0.045em;
+            color:#0f172a;
         }
         .field{
-            border-radius:14px;
-            box-shadow:0 1px 2px rgba(15,23,42,.04);
+            border-radius:20px;
+            box-shadow:0 8px 20px rgba(15,23,42,.05);
+            border:1px solid #e7edf6;
+            margin:14px 0;
+            background:linear-gradient(180deg,#ffffff 0%, #fbfdff 100%);
         }
-        .chip{padding:6px 12px;color:#0f3b8f;border:1px solid #dbeafe;background:#eef2ff}
+        .chip{padding:8px 14px;color:#0f3b8f;border:1px solid #dbeafe;background:#eef4ff;font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
         .btn-green{
             box-shadow:0 10px 20px rgba(37,99,235,.2);
+        }
+        .question .q-title{
+            font-size:1.55rem;
+            font-weight:900;
+            margin:4px 0 18px;
+            color:#111827;
+            letter-spacing:-0.03em;
+        }
+        .mc .mc-option,
+        .tf .tf-option{
+            border-radius:18px;
+            padding:18px 18px;
+            margin:12px 0;
+            background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%);
+            box-shadow:0 6px 16px rgba(15,23,42,.04);
+        }
+        .mc .mc-option:hover,
+        .tf .tf-option:hover{
+            border-color:#d6e4ff;
+            background:#f4f8ff;
+        }
+        .mc .mc-option.selected,
+        .tf .tf-option.selected{
+            background:linear-gradient(180deg,#eef4ff 0%, #e8f0ff 100%);
+            border-color:#c7d7ff;
+        }
+        .mc .mc-label,
+        .tf .mc-label{
+            font-size:1.05rem;
+            font-weight:700;
+            color:#172554;
+        }
+        .mc .mc-radio{
+            width:26px;
+            height:26px;
+            border:2px solid #b5c4da;
         }
         /* Pro input styling for Identification/Essay */
         .q-input{
@@ -267,12 +316,36 @@
             color:#0f172a;
             transition:border-color .15s ease, box-shadow .2s ease, background .2s ease;
         }
+        textarea.q-input{
+            min-height:152px;
+            resize:vertical;
+        }
         .q-input::placeholder{ color:#94a3b8; }
         .q-input:focus{
             outline:none;
             border-color:#60a5fa;
             box-shadow:0 0 0 3px rgba(96,165,250,.25), inset 0 1px 2px rgba(15,23,42,.06), 0 12px 24px rgba(15,23,42,.12);
             background:#fff;
+        }
+        .field .muted{
+            font-size:1rem;
+            line-height:1.6;
+            color:#5b6b82;
+        }
+        #contentBody{
+            display:grid;
+            gap:18px;
+            min-height:320px;
+        }
+        .subheader{
+            background:linear-gradient(180deg,#f8fbff 0%, #f1f6ff 100%);
+            border:1px solid #dfe9f8;
+            border-radius:16px;
+            padding:15px 18px;
+            font-size:1.08rem;
+            font-weight:800;
+            color:#173b83;
+            box-shadow:0 8px 18px rgba(15,23,42,.04);
         }
         .field.question[data-kind="id"] .mc-actions,
         .field.question[data-kind="essay"] .mc-actions{
@@ -281,22 +354,32 @@
             gap:10px;
             justify-content:flex-end;
         }
+        .field.question[data-kind="enum"] .q-input{
+            min-height:56px;
+        }
         .topbar > div:nth-child(2){
             display:none;
         }
         #videoWrap video{border-radius:14px;box-shadow:var(--shadow-sm)}
         .back-btn{
-            width:34px;height:34px;border-radius:999px;
+            min-width:98px;height:42px;border-radius:14px;
             border:1px solid #dbe2ee;background:#fff;color:#0f3b8f;
-            display:inline-flex;align-items:center;justify-content:center;
-            text-decoration:none;box-shadow:0 2px 6px rgba(15,23,42,.08);
+            display:inline-flex;align-items:center;justify-content:center;gap:8px;
+            padding:0 16px;text-decoration:none;box-shadow:0 8px 18px rgba(15,23,42,.06);font-weight:800;
         }
-        .back-btn:hover{background:#f8fafc}
+        .back-btn:hover{background:#f8fafc;border-color:#cfdceb}
         @media (max-width: 980px){
             .layout{height:auto}
             .sidebar{display:none}
             .topbar{left:0}
             .content{padding-top:64px}
+            .pane{
+                padding:16px 16px 20px;
+                border-radius:20px;
+            }
+            .pane h2{
+                font-size:1.9rem;
+            }
         }
     </style>
 </head>
@@ -1434,20 +1517,26 @@
                             }
                         } else if(kind==='identification'){
                             const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
+                            const inp=b.querySelector('.q-input');
+                            const your = (Array.isArray(ua) && ua[i]) ? String(ua[i]) : '';
+                            if(inp){
+                                inp.disabled = true;
+                                inp.value = your;
+                            }
                             if(ansList.length){
                                 const info = document.createElement('div');
                                 info.className='muted';
                                 info.style.marginTop='8px';
-                                const your = (Array.isArray(ua) && ua[i]) ? String(ua[i]) : '';
                                 let isOk = false;
                                 if(your){
                                     isOk = ansList.some(a => String(a||'').trim().toLowerCase() === your.trim().toLowerCase());
                                 }
-                                const yourLine = your ? `<div style="margin-top:6px;color:${isOk? '#059669':'#b91c1c'}"><b>Your answer:</b> ${your}</div>` : '';
-                                info.innerHTML = '<span class="chip">Correct:</span> '+ ansList.map(a=>String(a)).join(' / ') + yourLine;
+                                const statusLine = your
+                                    ? `<div style="margin-top:6px;color:${isOk? '#059669':'#b91c1c'}"><b>Status:</b> ${isOk ? 'Correct' : 'Incorrect'}</div>`
+                                    : '';
+                                info.innerHTML = '<span class="chip">Correct answer</span> '+ ansList.map(a=>String(a)).join(' / ') + statusLine;
                                 b.appendChild(info);
                             }
-                            const inp=b.querySelector('.q-input'); if(inp){ inp.disabled=true; }
                         } else if(kind==='enumeration'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'enumeration') || null;
                             const inputs = Array.from(b.querySelectorAll('.enum-input'));
@@ -1459,14 +1548,12 @@
                             const info = document.createElement('div');
                             info.className='muted';
                             info.style.marginTop='8px';
-                            const submitted = Array.isArray(response?.answer_texts) ? response.answer_texts : yourAnswers.filter(Boolean);
                             const correctAnswers = Array.isArray(response?.correct_answers) ? response.correct_answers : (Array.isArray(q.answers) ? q.answers : []);
                             const scoreLine = response
                                 ? `<div><span class="chip">Score</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
                                 : '';
-                            const yourLine = submitted.length ? `<div style="margin-top:6px"><b>Your answers:</b> ${submitted.join(', ')}</div>` : '<div style="margin-top:6px"><b>Your answers:</b> None</div>';
                             const correctLine = correctAnswers.length ? `<div style="margin-top:6px"><b>Correct answers:</b> ${correctAnswers.join(', ')}</div>` : '';
-                            info.innerHTML = `${scoreLine}${yourLine}${correctLine}`;
+                            info.innerHTML = `${scoreLine}${correctLine}`;
                             b.appendChild(info);
                         } else if(kind==='essay'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'essay') || null;

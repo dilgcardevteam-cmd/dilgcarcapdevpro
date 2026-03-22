@@ -54,6 +54,11 @@
             align-items: center;
         }
 
+        .header-toggle,
+        .sidebar-toggle{width:44px;height:44px;background:#fff;border:1px solid #d9e3f2;border-radius:14px;padding:0;cursor:pointer;color:var(--primary-blue);display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 8px 18px rgba(15,23,42,.04);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background-color .16s ease}
+        .header-toggle:hover,
+        .sidebar-toggle:hover{background:#f8fbff;border-color:#b8cae6;box-shadow:0 12px 22px rgba(15,23,42,.07);transform:translateY(-1px)}
+
         .header-logo {
             height: 50px;
             margin-right: 20px;
@@ -1006,7 +1011,7 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <button class="sidebar-toggle" onclick="toggleSidebar()" style="color: var(--primary-blue); padding: 10px 14px; font-size: 1.2rem;">
+            <button class="header-toggle" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
             </button>
             <div id="headerSectionTitle" class="header-section-title">Dashboard</div>
