@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             OfficeRoleUserSeeder::class,
             GenderSeeder::class,
+            UnifiedPermissionsSeeder::class
         ]);
     }
 }
