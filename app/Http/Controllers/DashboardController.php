@@ -626,6 +626,7 @@ class DashboardController extends Controller
             case in_array($user->role, $participantRoles, true):
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
+                $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'attempts_exhausted'];
                 $myCoachRoles = [];
                 if ($user->role === 'central_office_participants') {
                     $myCoachRoles = ['central_office_coach'];
@@ -637,7 +638,7 @@ class DashboardController extends Controller
                     $myCoachRoles = ['coach','trainer'];
                 }
                 $myCourses = $user->courses()
-                    ->wherePivot('status', 'active')
+                    ->wherePivotIn('status', $visibleJoinedStatuses)
                     ->where('courses.is_published', true)
                     ->orderBy('courses.created_at', 'desc')
                     ->with(['users' => function($q) use ($myCoachRoles) {
@@ -689,7 +690,7 @@ class DashboardController extends Controller
                 $availableCourses = $availableCourses->orderBy('created_at', 'desc')->get();
                 
                 $totalAvailableCourses = $availableCourses->count();
-                $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
+                $totalCoursesJoined = $user->courses()->wherePivotIn('status', $visibleJoinedStatuses)->count();
 
                 $completedByStatus = $user->courses()->wherePivot('status', 'completed')->count();
                 $completedByCertification = $user->certifications()
@@ -750,6 +751,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $coachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
+        $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'attempts_exhausted'];
         
         if (!in_array($user->role, $coachRoles, true)) {
             abort(403, 'Unauthorized access to participant preview.');
@@ -762,7 +764,7 @@ class DashboardController extends Controller
         $myCoachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
         
         $myCourses = $user->courses()
-            ->wherePivot('status', 'active')
+            ->wherePivotIn('status', $visibleJoinedStatuses)
             ->where('courses.is_published', true)
             ->orderBy('courses.created_at', 'desc')
             ->with(['users' => function($q) use ($myCoachRoles) {
@@ -800,7 +802,7 @@ class DashboardController extends Controller
         $availableCourses = $availableCourses->orderBy('created_at', 'desc')->get();
         
         $totalAvailableCourses = $availableCourses->count();
-        $totalCoursesJoined = $user->courses()->wherePivot('status', 'active')->count();
+        $totalCoursesJoined = $user->courses()->wherePivotIn('status', $visibleJoinedStatuses)->count();
         $completedCoursesCount = $user->courses()->wherePivot('status', 'completed')->count();
         $activeCoursesCount = $myCourses->count();
         $earnedCertificates = $user->certifications()->with('users')->get();

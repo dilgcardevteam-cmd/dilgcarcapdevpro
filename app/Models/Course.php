@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class Course extends Model
 {
@@ -112,7 +113,17 @@ class Course extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'course_user')->withPivot('status')->withTimestamps();
+        $pivotColumns = ['status'];
+        if (Schema::hasColumn('course_user', 'current_module')) {
+            $pivotColumns[] = 'current_module';
+        }
+        if (Schema::hasColumn('course_user', 'progress_percentage')) {
+            $pivotColumns[] = 'progress_percentage';
+        }
+
+        return $this->belongsToMany(User::class, 'course_user')
+            ->withPivot($pivotColumns)
+            ->withTimestamps();
     }
 
     public function materials()

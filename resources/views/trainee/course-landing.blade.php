@@ -2215,17 +2215,28 @@
                 ? 'Pending Review'
                 : score?.exam_status === 'partially_graded'
                     ? 'Partially Graded'
-                    : score?.exam_status === 'completed'
-                        ? 'Completed'
+                    : score?.exam_passed === true
+                        ? 'Passed'
+                        : score?.exam_passed === false
+                            ? 'Failed'
+                            : score?.exam_status === 'completed'
+                                ? (score?.exam_status_label || 'Completed')
                         : 'No Submission';
+            const statusColor = score?.exam_status === 'pending_review'
+                ? '#b45309'
+                : score?.exam_status === 'partially_graded'
+                    ? '#0f3b8f'
+                    : score?.exam_passed === false
+                        ? '#b91c1c'
+                        : '#166534';
             const pendingBadge = (score?.essay_pending_count || 0) > 0
                 ? `<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#b45309">${score.essay_pending_count} essay pending</div>`
                 : '';
-            const canReview = score?.exam_status || score?.exam_pct != null;
+            const canReview = score?.exam_has_submission === true || score?.exam_status || score?.exam_pct != null;
             const reviewBtn = canReview
                 ? `<button type="button" class="btn btn-ghost js-review-attempt-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" data-exam-title="${String(plan.title || 'Module Exam').replace(/"/g, '&quot;')}" style="margin-top:8px;border-radius:10px;padding:6px 10px;cursor:pointer;position:relative;z-index:2">View Attempt</button>`
                 : `<button type="button" class="btn btn-ghost" style="margin-top:8px;border-radius:10px;padding:6px 10px;opacity:.55;cursor:not-allowed" disabled title="The trainee has not submitted this exam yet.">No Attempt Yet</button>`;
-            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#0f3b8f">${statusLabel}</div>${reviewBtn}</td>`);
+            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:${statusColor}">${statusLabel}</div>${reviewBtn}</td>`);
         }
         async function renderParticipantProgress(){
             const info = document.getElementById('progressInfo');

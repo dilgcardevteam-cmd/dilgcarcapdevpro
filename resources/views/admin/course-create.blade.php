@@ -3652,6 +3652,14 @@
                             <span class="exam-meta-timer-label">Timer (minutes)</span>
                             <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Passing Rate (%)</span>
+                            <input type="number" min="1" max="100" class="exam-passing-score exam-meta-timer-input" placeholder="e.g., 75">
+                        </label>
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Max Attempts</span>
+                            <input type="number" min="1" class="exam-max-attempts exam-meta-timer-input" placeholder="e.g., 3">
+                        </label>
                         <div class="exam-meta-title">Module Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
@@ -3836,12 +3844,14 @@
                 const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
                 const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
+                const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
+                const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
                 const list = wrap.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
             }
             function resetTypeSpecificFields(){
                 // Clear type-specific inputs so they never carry over from other questions
@@ -4086,6 +4096,8 @@
                 try{
                     const normalizedPrefill = normalizeExamPrefill(prefill);
                     wrap.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
+                    const pass = wrap.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
+                    const attempts = wrap.querySelector('.exam-max-attempts'); if(attempts) attempts.value = normalizedPrefill?.max_attempts || normalizedPrefill?.attempt_limit || '';
                     if(normalizedPrefill?.title) wrap.querySelector('.exam-title').value = normalizedPrefill.title;
                     if(normalizedPrefill?.description) wrap.querySelector('.exam-desc').value = normalizedPrefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
@@ -4300,13 +4312,15 @@
             const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
             const title = (wrap.querySelector('.exam-title')?.value || '').trim();
             const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
+            const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
+            const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
             const list = wrap.querySelectorAll('.exam-q-list .q-item');
             const qs = [];
             list.forEach(node=>{
                 try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && (obj.text||obj.title)){ qs.push(obj); } }catch(e){}
             });
             const hidden = wrap.querySelector('.exam-json');
-            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, questions: qs });
+            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
         }
         function populateBuilderFromItem(wrap, idx){
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));

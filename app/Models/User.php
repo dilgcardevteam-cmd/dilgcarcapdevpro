@@ -179,8 +179,16 @@ class User extends Authenticatable
 
     public function courses()
     {
+        $pivotColumns = ['status'];
+        if (Schema::hasColumn('course_user', 'current_module')) {
+            $pivotColumns[] = 'current_module';
+        }
+        if (Schema::hasColumn('course_user', 'progress_percentage')) {
+            $pivotColumns[] = 'progress_percentage';
+        }
+
         return $this->belongsToMany(Course::class, 'course_user')
-            ->withPivot('status')
+            ->withPivot($pivotColumns)
             ->withTimestamps();
     }
 

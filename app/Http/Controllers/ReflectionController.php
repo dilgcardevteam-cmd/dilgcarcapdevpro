@@ -88,6 +88,44 @@ class ReflectionController extends Controller
         $user = Auth::user();
         $completed = false;
         if ($course && $user) {
+            $mods = is_array($course->modules) ? $course->modules : (json_decode((string) $course->modules, true) ?: []);
+            $contentIndexes = [];
+            foreach ((array) $mods as $moduleIndex => $module) {
+                $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+                if (!empty($topics)) {
+                    $contentIndexes[] = $moduleIndex;
+                }
+            }
+            $completedModules = 0;
+            foreach ($contentIndexes as $position => $moduleIndex) {
+                $module = $mods[$moduleIndex] ?? [];
+                $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+                $doneTopics = ReflectionResponse::where('user_id', $user->id)
+                    ->where('course_id', $courseId)
+                    ->where('module_index', $moduleIndex)
+                    ->get(['topic_index', 'answers_json'])
+                    ->filter(function ($response) {
+                        $answers = is_array($response->answers_json) ? $response->answers_json : [];
+                        return isset($answers['learned']) && trim((string) $answers['learned']) !== '';
+                    })
+                    ->pluck('topic_index')
+                    ->unique()
+                    ->count();
+                if ($doneTopics >= count($topics)) {
+                    $completedModules = $position + 1;
+                    continue;
+                }
+                break;
+            }
+            $totalModules = count($contentIndexes);
+            $currentModule = $totalModules > 0 ? min($completedModules + 1, $totalModules) : 1;
+            $progress = $totalModules > 0 ? round(($completedModules / $totalModules) * 100, 2) : 0;
+            $status = $completedModules >= $totalModules && $totalModules > 0 ? 'ready_for_exam' : 'in_progress';
+            $course->users()->updateExistingPivot($user->id, [
+                'current_module' => $currentModule,
+                'progress_percentage' => $progress,
+                'status' => $status,
+            ]);
             $completed = $this->issueCertificateIfCompleted($user, $course);
         }
 

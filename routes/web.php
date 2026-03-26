@@ -113,6 +113,7 @@ Route::put('/trainer/courses/{course}/enrollment-schedule', [CourseController::c
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 Route::get('/courses/{course}/module-exam/attempt', [CourseController::class, 'moduleExamAttempt'])->middleware(['auth'])->name('courses.module-exam.attempt');
+Route::post('/courses/{course}/module-exam/restart', [CourseController::class, 'restartModuleExamProgress'])->middleware(['auth'])->name('courses.module-exam.restart');
 Route::post('/courses/{course}/module-exam/review', [CourseController::class, 'reviewModuleExamEssay'])->middleware(['auth'])->name('courses.module-exam.review');
 // Participants progress (trainer gradebook)
 Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.participants-progress');
@@ -135,6 +136,7 @@ Route::get('/trainer/courses/{course}/assessments/create', [CourseController::cl
 Route::post('/trainer/courses/{course}/modules/{index}/status', [CourseController::class, 'setModuleStatus'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.modules.set-status');
 // Modules status snapshot (for auto-refresh on outline pages)
 Route::get('/courses/{course}/modules-status', [CourseController::class, 'modulesStatus'])->middleware(['auth'])->name('courses.modules.status');
+Route::get('/courses/{course}/access-state', [CourseController::class, 'accessState'])->middleware(['auth'])->name('courses.access-state');
 // Full modules JSON for fallback rendering
 Route::get('/courses/{course}/modules-json', [CourseController::class, 'modulesJson'])->middleware(['auth'])->name('courses.modules.json');
 Route::get('/courses/{course}/details-ajax', [CourseController::class, 'getCourseDetailsAjax'])->middleware(['auth'])->name('courses.details.ajax');

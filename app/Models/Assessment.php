@@ -13,11 +13,15 @@ class Assessment extends Model
         'description',
         'due_date',
         'questions_json',
+        'passing_score',
+        'max_attempts',
     ];
 
     protected $casts = [
         'due_date' => 'datetime',
         'questions_json' => 'array',
+        'passing_score' => 'integer',
+        'max_attempts' => 'integer',
     ];
 
     public function course()

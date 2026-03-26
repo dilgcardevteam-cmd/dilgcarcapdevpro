@@ -28,6 +28,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
   <div class="card">
     <div class="title">{{ $assessment->title }} <span class="muted">• {{ ucfirst($assessment->type) }}</span></div>
     @if(session('success'))<div class="muted" style="margin-bottom:8px">{{ session('success') }}</div>@endif
+    @if(session('error'))<div class="muted" style="margin-bottom:8px;color:#b91c1c;font-weight:700">{{ session('error') }}</div>@endif
     @php $hasQuestions = is_array($questions) && count($questions) > 0; @endphp
     @unless($hasQuestions)
       <div class="muted" style="margin:8px 0">No questions are available for this assessment. Please inform your coach.</div>
@@ -98,5 +99,4 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeCon
 </script>
 </body>
 </html>
-
 

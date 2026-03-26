@@ -68,7 +68,7 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
             <div class="row">
                 <div class="field">
                     <label class="label">Title</label>
-                    <input class="input" type="text" name="title" required value="{{ $assessment->title }}">
+                    <input class="input" type="text" name="title" required value="{{ old('title', $assessment->title ?? '') }}">
                 </div>
                 <div class="field">
                     <label class="label">Type</label>
@@ -80,12 +80,28 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
                 </div>
                 <div class="field">
                     <label class="label">Due Date</label>
-                    <input class="input" type="datetime-local" name="due_date" value="{{ $assessment->due_date ? \Carbon\Carbon::parse($assessment->due_date)->format('Y-m-d\TH:i') : '' }}">
+                    <input class="input" type="datetime-local" name="due_date" value="{{ old('due_date', $assessment->due_date ? \Carbon\Carbon::parse($assessment->due_date)->format('Y-m-d\TH:i') : '') }}">
                 </div>
             </div>
             <div class="field" style="margin-top:8px">
                 <label class="label">Description</label>
-                <textarea class="textarea" name="description" rows="3">{{ $assessment->description }}</textarea>
+                <textarea class="textarea" name="description" rows="3">{{ old('description', $assessment->description ?? '') }}</textarea>
+            </div>
+            <div class="card" style="margin-top:12px">
+                <div style="font-weight:800;color:#002C76;display:flex;align-items:center;justify-content:space-between">
+                    <span>Exam Settings</span>
+                    <span class="muted">Used for pass/fail and retake rules</span>
+                </div>
+                <div class="row" style="margin-top:8px">
+                    <div class="field">
+                        <label class="label">Passing Rate (%)</label>
+                        <input class="input" type="number" min="1" max="100" name="passing_score" value="{{ old('passing_score', $assessment->passing_score ?? '') }}" placeholder="e.g., 75">
+                    </div>
+                    <div class="field">
+                        <label class="label">Max Attempts</label>
+                        <input class="input" type="number" min="1" name="max_attempts" value="{{ old('max_attempts', $assessment->max_attempts ?? '') }}" placeholder="e.g., 3">
+                    </div>
+                </div>
             </div>
 
             <div class="card" style="margin-top:12px">

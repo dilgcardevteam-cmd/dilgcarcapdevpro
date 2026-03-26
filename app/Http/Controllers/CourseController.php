@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Assessment;
 use App\Models\ExamEssayResponse;
+use App\Models\Grade;
 use App\Models\Notification;
 use App\Models\User;
 use App\Traits\HandlesCertification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Mail\IncompleteActivityReminder;
 use Illuminate\Support\Facades\Mail;
@@ -319,16 +322,13 @@ class CourseController extends Controller
             $modules = json_decode($course->modules, true) ?: [];
         }
 
-        $module = $modules[$moduleIndex] ?? null;
-        $exam = is_array($module['exam'] ?? null) ? $module['exam'] : null;
-        if (!$exam) {
-            $nextModule = $modules[$moduleIndex + 1] ?? null;
-            $nextTopics = isset($nextModule['topics']) && is_array($nextModule['topics']) ? $nextModule['topics'] : [];
-            $nextExam = is_array($nextModule['exam'] ?? null) ? $nextModule['exam'] : null;
-            if ($nextExam && empty($nextTopics)) {
-                $exam = $nextExam;
-            }
+        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
+        if ($resolvedModuleIndex === null) {
+            return null;
         }
+
+        $module = $modules[$resolvedModuleIndex] ?? null;
+        $exam = is_array($module['exam'] ?? null) ? $module['exam'] : null;
         if (!$exam) {
             return null;
         }
@@ -346,6 +346,25 @@ class CourseController extends Controller
 
         $exam['questions'] = $questions;
         return $exam;
+    }
+
+    protected function resolveExamModuleIndex(Course $course, int $moduleIndex): ?int
+    {
+        $modules = $this->getNormalizedCourseModules($course);
+        $module = $modules[$moduleIndex] ?? null;
+        $examQuestions = is_array($module['exam']['questions'] ?? null) ? $module['exam']['questions'] : [];
+        if (!empty($examQuestions)) {
+            return $moduleIndex;
+        }
+
+        $nextModule = $modules[$moduleIndex + 1] ?? null;
+        $nextTopics = isset($nextModule['topics']) && is_array($nextModule['topics']) ? $nextModule['topics'] : [];
+        $nextExamQuestions = is_array($nextModule['exam']['questions'] ?? null) ? $nextModule['exam']['questions'] : [];
+        if (!empty($nextExamQuestions) && empty($nextTopics)) {
+            return $moduleIndex + 1;
+        }
+
+        return null;
     }
 
     protected function syncEssayResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
@@ -405,24 +424,28 @@ class CourseController extends Controller
         if (!$exam) {
             return null;
         }
+        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
+        if ($resolvedModuleIndex === null) {
+            return null;
+        }
 
         if ($submission === null) {
-            $file = storage_path('app/exam_submissions/course_'.$course->id.DIRECTORY_SEPARATOR.'mi_'.$moduleIndex.'_u_'.$userId.'.json');
+            $file = storage_path('app/exam_submissions/course_'.$course->id.DIRECTORY_SEPARATOR.'mi_'.$resolvedModuleIndex.'_u_'.$userId.'.json');
             if (!is_file($file)) {
-                return null;
+                return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex);
             }
             $submission = json_decode((string) @file_get_contents($file), true) ?: null;
         }
 
         if (!$submission) {
-            return null;
+            return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex);
         }
 
         $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
         $answers = is_array($submission['answers'] ?? null) ? $submission['answers'] : [];
         $essayRows = ExamEssayResponse::where('course_id', $course->id)
             ->where('trainee_id', $userId)
-            ->where('module_index', $moduleIndex)
+            ->where('module_index', $resolvedModuleIndex)
             ->get()
             ->keyBy('question_index');
 
@@ -496,6 +519,7 @@ class CourseController extends Controller
         $totalPossiblePoints = $objectiveTotal + $essayTotal;
         $earnedPoints = $objectiveCorrect + $essayCheckedScore;
         $finalPct = $totalPossiblePoints > 0 ? (int) round(($earnedPoints / $totalPossiblePoints) * 100) : 0;
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
 
         $status = 'completed';
         if ($pendingEssayCount > 0 && $checkedEssayCount === 0) {
@@ -503,6 +527,7 @@ class CourseController extends Controller
         } elseif ($pendingEssayCount > 0) {
             $status = 'partially_graded';
         }
+        $passed = $status === 'completed' ? ($finalPct >= $passingScore) : null;
 
         return [
             'course_id' => $course->id,
@@ -521,10 +546,402 @@ class CourseController extends Controller
             'status_label' => match ($status) {
                 'pending_review' => 'Pending Trainer Review',
                 'partially_graded' => 'Partially Graded',
-                default => 'Completed',
+                default => ($passed === false ? 'Failed' : 'Passed'),
             },
+            'passing_score' => $passingScore,
+            'max_attempts' => $maxAttempts,
+            'passed' => $passed,
             'items' => $items,
             'contains_essay' => ($pendingEssayCount + $checkedEssayCount) > 0,
+        ];
+    }
+
+    protected function getLatestFinalExamSummaryFromGrade(Course $course, int $moduleIndex, int $userId, ?int $resolvedModuleIndex = null): ?array
+    {
+        $exam = $this->getCourseModuleExam($course, $moduleIndex);
+        if (!$exam) {
+            return null;
+        }
+
+        if ($resolvedModuleIndex === null) {
+            $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
+        }
+
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
+        $grade = Grade::where('assessment_id', $assessment->id)
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->first();
+
+        if (!$grade) {
+            return null;
+        }
+
+        $meta = json_decode((string) ($grade->feedback ?? 'null'), true) ?: [];
+        $summary = is_array($meta['summary'] ?? null) ? $meta['summary'] : null;
+        if (!$summary) {
+            return null;
+        }
+
+        $storedModuleIndex = isset($meta['module_index']) ? (int) $meta['module_index'] : null;
+        if ($resolvedModuleIndex !== null && $storedModuleIndex !== null && $storedModuleIndex !== $resolvedModuleIndex) {
+            return null;
+        }
+
+        $summary['course_id'] = $course->id;
+        $summary['user_id'] = $userId;
+        $summary['module_index'] = $moduleIndex;
+        $summary['passing_score'] = $summary['passing_score'] ?? $passingScore;
+        $summary['max_attempts'] = $summary['max_attempts'] ?? $maxAttempts;
+        $summary['attempt_no'] = $summary['attempt_no'] ?? (int) ($grade->attempt_no ?? 0);
+        $summary['passed'] = array_key_exists('passed', $summary)
+            ? $summary['passed']
+            : (($summary['status'] ?? null) === 'completed'
+                ? ((float) ($summary['final_pct'] ?? 0) >= (float) ($summary['passing_score'] ?? $passingScore))
+                : null);
+        $summary['max_attempts_reached'] = $summary['max_attempts_reached']
+            ?? (($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
+        $summary['restart_required'] = $summary['restart_required']
+            ?? (($summary['passed'] === false) && !$summary['max_attempts_reached']);
+        $summary['status_label'] = $summary['status_label']
+            ?? match ($summary['status'] ?? 'completed') {
+                'pending_review' => 'Pending Trainer Review',
+                'partially_graded' => 'Partially Graded',
+                default => (($summary['passed'] ?? null) === false ? 'Failed' : 'Passed'),
+            };
+
+        return $summary;
+    }
+
+    protected function getNormalizedCourseModules(Course $course): array
+    {
+        $modules = $course->modules;
+        if (is_string($modules)) {
+            $modules = json_decode($modules, true) ?: [];
+        }
+
+        return is_array($modules) ? array_values($modules) : [];
+    }
+
+    protected function getSequentialContentModuleIndexes(Course $course): array
+    {
+        $indexes = [];
+        foreach ($this->getNormalizedCourseModules($course) as $index => $module) {
+            $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+            if (!empty($topics)) {
+                $indexes[] = $index;
+            }
+        }
+
+        return $indexes;
+    }
+
+    protected function getFinalExamModuleIndex(Course $course): ?int
+    {
+        $modules = $this->getNormalizedCourseModules($course);
+        foreach ($modules as $index => $module) {
+            $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+            $examQuestions = is_array($module['exam']['questions'] ?? null) ? $module['exam']['questions'] : [];
+            if (!empty($examQuestions)) {
+                if (empty($topics) && $index > 0) {
+                    $previousModule = $modules[$index - 1] ?? null;
+                    $previousTopics = isset($previousModule['topics']) && is_array($previousModule['topics']) ? $previousModule['topics'] : [];
+                    if (!empty($previousTopics)) {
+                        return $index - 1;
+                    }
+                }
+
+                return $index;
+            }
+
+            $nextModule = $modules[$index + 1] ?? null;
+            $nextTopics = isset($nextModule['topics']) && is_array($nextModule['topics']) ? $nextModule['topics'] : [];
+            $nextExamQuestions = is_array($nextModule['exam']['questions'] ?? null) ? $nextModule['exam']['questions'] : [];
+            if (!empty($nextExamQuestions) && empty($nextTopics)) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    protected function getCourseUserPivot(Course $course, int $userId)
+    {
+        return $course->users()->where('user_id', $userId)->first()?->pivot;
+    }
+
+    protected function getCurrentContentModulePosition(Course $course, int $userId): int
+    {
+        $pivot = $this->getCourseUserPivot($course, $userId);
+        $current = max(1, (int) ($pivot?->current_module ?? 1));
+        $count = count($this->getSequentialContentModuleIndexes($course));
+
+        if ($count === 0) {
+            return 1;
+        }
+
+        return min($current, $count);
+    }
+
+    protected function getAllowedModuleArrayIndex(Course $course, int $userId): ?int
+    {
+        $contentIndexes = $this->getSequentialContentModuleIndexes($course);
+        if (empty($contentIndexes)) {
+            return $this->getFinalExamModuleIndex($course);
+        }
+
+        $position = $this->getCurrentContentModulePosition($course, $userId);
+        return $contentIndexes[$position - 1] ?? end($contentIndexes);
+    }
+
+    protected function isModuleFullyReflected(Course $course, int $userId, int $moduleIndex): bool
+    {
+        $modules = $this->getNormalizedCourseModules($course);
+        $module = $modules[$moduleIndex] ?? null;
+        if (!is_array($module)) {
+            return false;
+        }
+
+        $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+        if (empty($topics)) {
+            return true;
+        }
+
+        $responses = \App\Models\ReflectionResponse::where('user_id', $userId)
+            ->where('course_id', $course->id)
+            ->where('module_index', $moduleIndex)
+            ->get(['topic_index', 'answers_json']);
+
+        $doneTopics = [];
+        foreach ($responses as $response) {
+            $answers = is_array($response->answers_json) ? $response->answers_json : [];
+            $learned = isset($answers['learned']) && is_string($answers['learned'])
+                ? trim($answers['learned'])
+                : '';
+            if ($learned !== '') {
+                $doneTopics[(int) $response->topic_index] = true;
+            }
+        }
+
+        foreach (array_keys($topics) as $topicIndex) {
+            if (empty($doneTopics[$topicIndex])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function areAllModulesCompleted(Course $course, int $userId): bool
+    {
+        foreach ($this->getSequentialContentModuleIndexes($course) as $moduleIndex) {
+            if (!$this->isModuleFullyReflected($course, $userId, $moduleIndex)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function syncSequentialProgress(Course $course, int $userId): array
+    {
+        $contentIndexes = $this->getSequentialContentModuleIndexes($course);
+        $totalModules = count($contentIndexes);
+        $completedModules = 0;
+
+        foreach ($contentIndexes as $position => $moduleIndex) {
+            if ($this->isModuleFullyReflected($course, $userId, $moduleIndex)) {
+                $completedModules = $position + 1;
+                continue;
+            }
+            break;
+        }
+
+        $currentModule = $totalModules > 0
+            ? min($completedModules + 1, $totalModules)
+            : 1;
+        $progress = $totalModules > 0
+            ? round(($completedModules / $totalModules) * 100, 2)
+            : 0.0;
+        $existingStatus = (string) ($this->getCourseUserPivot($course, $userId)?->status ?? '');
+        $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
+        $latestExamSummary = $finalExamModuleIndex !== null
+            ? $this->getLatestFinalExamSummaryFromGrade($course, $finalExamModuleIndex, $userId)
+            : null;
+
+        $status = $completedModules >= $totalModules && $totalModules > 0
+            ? 'ready_for_exam'
+            : 'in_progress';
+        if (($latestExamSummary['max_attempts_reached'] ?? false) === true) {
+            $status = 'attempts_exhausted';
+        }
+        if (in_array($existingStatus, ['attempts_exhausted', 'completed'], true)) {
+            $status = $existingStatus;
+        }
+
+        $course->users()->updateExistingPivot($userId, [
+            'current_module' => $currentModule,
+            'progress_percentage' => $progress,
+            'status' => $status,
+        ]);
+
+        return [
+            'current_module' => $currentModule,
+            'progress_percentage' => $progress,
+            'status' => $status,
+            'completed_modules' => $completedModules,
+            'total_modules' => $totalModules,
+        ];
+    }
+
+    protected function resetTraineeCourseProgress(Course $course, int $userId, int $moduleIndex): void
+    {
+        \App\Models\ReflectionResponse::where('user_id', $userId)
+            ->where('course_id', $course->id)
+            ->delete();
+
+        ExamEssayResponse::where('course_id', $course->id)
+            ->where('trainee_id', $userId)
+            ->delete();
+
+        $dir = storage_path('app/exam_submissions/course_'.$course->id);
+        if (is_dir($dir)) {
+            foreach (glob($dir.DIRECTORY_SEPARATOR.'mi_*_u_'.$userId.'.json') ?: [] as $path) {
+                @unlink($path);
+            }
+        }
+
+        $course->users()->updateExistingPivot($userId, [
+            'current_module' => 1,
+            'progress_percentage' => 0,
+            'status' => 'in_progress',
+        ]);
+    }
+
+    protected function markCourseCompleted(Course $course, int $userId): void
+    {
+        $totalModules = max(1, count($this->getSequentialContentModuleIndexes($course)));
+        $course->users()->updateExistingPivot($userId, [
+            'current_module' => $totalModules,
+            'progress_percentage' => 100,
+            'status' => 'completed',
+        ]);
+    }
+
+    protected function getOrCreateFinalExamAssessment(Course $course, array $exam, ?int $passingScore, ?int $maxAttempts): Assessment
+    {
+        $title = trim((string) ($exam['title'] ?? 'Final Exam'));
+        $assessment = Assessment::firstOrNew([
+            'course_id' => $course->id,
+            'type' => 'exam',
+            'title' => $title !== '' ? $title : 'Final Exam',
+        ]);
+
+        $assessment->description = (string) ($exam['description'] ?? $assessment->description);
+        $assessment->questions_json = $exam['questions'] ?? [];
+        $assessment->passing_score = $passingScore;
+        $assessment->max_attempts = $maxAttempts;
+        $assessment->save();
+
+        return $assessment;
+    }
+
+    protected function getExamConfigValues(array $exam): array
+    {
+        $passingScore = isset($exam['passing_score']) && $exam['passing_score'] !== ''
+            ? max(1, min(100, (int) $exam['passing_score']))
+            : 75;
+        $maxAttempts = isset($exam['max_attempts']) && $exam['max_attempts'] !== ''
+            ? max(1, (int) $exam['max_attempts'])
+            : (isset($exam['attempt_limit']) && $exam['attempt_limit'] !== '' ? max(1, (int) $exam['attempt_limit']) : 3);
+
+        return [$passingScore, $maxAttempts];
+    }
+
+    protected function evaluateFinalExamOutcome(Course $course, int $moduleIndex, int $userId, array $summary, array $exam): array
+    {
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
+        $latestGrade = Grade::where('assessment_id', $assessment->id)
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->first();
+        $latestMeta = json_decode((string) ($latestGrade?->feedback ?? 'null'), true) ?: [];
+        $reusePendingAttempt = $latestGrade
+            && in_array($latestMeta['status'] ?? null, ['pending_review', 'partially_graded'], true)
+            && (int) ($latestMeta['module_index'] ?? -1) === $moduleIndex;
+
+        $attemptNo = $reusePendingAttempt
+            ? (int) $latestGrade->attempt_no
+            : (Grade::where('assessment_id', $assessment->id)
+                ->where('user_id', $userId)
+                ->count() + 1);
+
+        $gradePayload = [
+            'score' => (float) ($summary['final_pct'] ?? 0),
+            'feedback' => json_encode([
+                'course_id' => $course->id,
+                'module_index' => $moduleIndex,
+                'status' => $summary['status'] ?? 'completed',
+                'summary' => $summary,
+            ]),
+            'attempt_no' => $attemptNo,
+            'is_retake' => $attemptNo > 1,
+        ];
+
+        if ($reusePendingAttempt) {
+            $latestGrade->update($gradePayload);
+        } else {
+            Grade::create(array_merge($gradePayload, [
+                'assessment_id' => $assessment->id,
+                'user_id' => $userId,
+            ]));
+        }
+
+        if (($summary['status'] ?? null) !== 'completed') {
+            return [
+                'attempt_no' => $attemptNo,
+                'passed' => null,
+                'pending_review' => true,
+                'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+            ];
+        }
+
+        $passed = (float) ($summary['final_pct'] ?? 0) >= $passingScore;
+        if ($passed) {
+            $this->markCourseCompleted($course, $userId);
+            return [
+                'attempt_no' => $attemptNo,
+                'passed' => true,
+                'pending_review' => false,
+                'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+            ];
+        }
+
+        if ($attemptNo >= $maxAttempts) {
+            $course->users()->updateExistingPivot($userId, ['status' => 'attempts_exhausted']);
+            return [
+                'attempt_no' => $attemptNo,
+                'passed' => false,
+                'pending_review' => false,
+                'max_attempts_reached' => true,
+                'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+            ];
+        }
+
+        $this->resetTraineeCourseProgress($course, $userId, $moduleIndex);
+
+        return [
+            'attempt_no' => $attemptNo,
+            'passed' => false,
+            'pending_review' => false,
+            'restart_required' => true,
+            'passing_score' => $passingScore,
+            'max_attempts' => $maxAttempts,
         ];
     }
 
@@ -1058,10 +1475,26 @@ class CourseController extends Controller
             ->latest()
             ->get();
         $status = null;
+        $allowedModuleIndex = null;
+        $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
+        $finalExamUnlocked = false;
         if (auth()->check()) {
             $pivot = $course->users()->where('user_id', auth()->id())->first();
             if ($pivot) {
-                $status = $pivot->pivot->status ?? 'active';
+                $this->syncSequentialProgress($course, auth()->id());
+                $pivot = $course->users()->where('user_id', auth()->id())->first();
+                $status = $pivot?->pivot->status ?? 'active';
+                $allowedModuleIndex = $this->getAllowedModuleArrayIndex($course, auth()->id());
+                $finalExamUnlocked = $this->areAllModulesCompleted($course, auth()->id());
+            }
+        }
+        $requestedMi = request()->query('mi');
+        if ($requestedMi !== null && auth()->check() && $allowedModuleIndex !== null) {
+            $requestedMi = max(0, (int) $requestedMi);
+            if (($finalExamModuleIndex !== null && $requestedMi === $finalExamModuleIndex && !$finalExamUnlocked)
+                || ($requestedMi > $allowedModuleIndex && $requestedMi !== $finalExamModuleIndex)) {
+                return redirect()->route('trainee.courses.show', ['course' => $course, 'mi' => $allowedModuleIndex])
+                    ->with('error', 'You can only access your current module.');
             }
         }
         // Compute overall completion for current user
@@ -1117,6 +1550,9 @@ class CourseController extends Controller
                 'completion' => $completion,
                 'coaches' => $coaches,
                 'classmates' => $classmates,
+                'allowedModuleIndex' => $allowedModuleIndex,
+                'finalExamModuleIndex' => $finalExamModuleIndex,
+                'finalExamUnlocked' => $finalExamUnlocked,
             ]);
         }
         return view('trainee.course-landing', [
@@ -1127,6 +1563,9 @@ class CourseController extends Controller
             'completion' => $completion,
             'coaches' => $coaches,
             'classmates' => $classmates,
+            'allowedModuleIndex' => $allowedModuleIndex,
+            'finalExamModuleIndex' => $finalExamModuleIndex,
+            'finalExamUnlocked' => $finalExamUnlocked,
         ]);
     }
     
@@ -1323,23 +1762,45 @@ class CourseController extends Controller
             $course->modules = $mods;
         }
         $status = null;
+        $allowedModuleIndex = null;
+        $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
+        $finalExamUnlocked = false;
         if (auth()->check()) {
             $pivot = $course->users()->where('user_id', auth()->id())->first();
             if ($pivot) {
-                $status = $pivot->pivot->status ?? 'active';
+                $this->syncSequentialProgress($course, auth()->id());
+                $pivot = $course->users()->where('user_id', auth()->id())->first();
+                $status = $pivot?->pivot->status ?? 'active';
+                $allowedModuleIndex = $this->getAllowedModuleArrayIndex($course, auth()->id());
+                $finalExamUnlocked = $this->areAllModulesCompleted($course, auth()->id());
+            }
+        }
+        $requestedMi = request()->query('mi');
+        if ($requestedMi !== null && auth()->check() && $allowedModuleIndex !== null) {
+            $requestedMi = max(0, (int) $requestedMi);
+            if (($finalExamModuleIndex !== null && $requestedMi === $finalExamModuleIndex && !$finalExamUnlocked)
+                || ($requestedMi > $allowedModuleIndex && $requestedMi !== $finalExamModuleIndex)) {
+                return redirect()->route('trainee.courses.outline', ['course' => $course, 'mi' => $allowedModuleIndex])
+                    ->with('error', 'You can only access your current module.');
             }
         }
         if (auth()->check() && strtolower(auth()->user()->email ?? '') === 'ro_participant@gmail.com') {
             return view('roparticipant.course-show', [
                 'course' => $course,
                 'status' => $status,
-                'viewOnly' => $status !== 'active',
+                'viewOnly' => !in_array($status, ['active', 'in_progress', 'ready_for_exam', 'completed'], true),
+                'allowedModuleIndex' => $allowedModuleIndex,
+                'finalExamModuleIndex' => $finalExamModuleIndex,
+                'finalExamUnlocked' => $finalExamUnlocked,
             ]);
         }
         return view('trainee.course-show', [
             'course' => $course,
             'status' => $status,
-            'viewOnly' => $status !== 'active',
+            'viewOnly' => !in_array($status, ['active', 'in_progress', 'ready_for_exam', 'completed'], true),
+            'allowedModuleIndex' => $allowedModuleIndex,
+            'finalExamModuleIndex' => $finalExamModuleIndex,
+            'finalExamUnlocked' => $finalExamUnlocked,
         ]);
     }
     public function setPublished(Request $request, Course $course)
@@ -1787,13 +2248,39 @@ class CourseController extends Controller
                     'ok' => false,
                     'error' => $validator->errors()->first() ?: 'Invalid exam submission.',
                     'errors' => $validator->errors(),
-                ], 422);
+                ]);
             }
 
             $data = $validator->validated();
-            $exam = $this->getCourseModuleExam($course, (int) $data['mi']);
+            $requestedModuleIndex = (int) $data['mi'];
+            $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $requestedModuleIndex);
+            $exam = $this->getCourseModuleExam($course, $requestedModuleIndex);
             if (!$exam) {
-                return response()->json(['ok' => false, 'error' => 'Module exam not found.'], 404);
+                return response()->json(['ok' => false, 'error' => 'Module exam not found.']);
+            }
+            if ($resolvedModuleIndex === null) {
+                return response()->json(['ok' => false, 'error' => 'Module exam mapping is invalid.']);
+            }
+            $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
+            if ($finalExamModuleIndex === null || $requestedModuleIndex !== $finalExamModuleIndex) {
+                return response()->json(['ok' => false, 'error' => 'This exam is not available right now.']);
+            }
+            if (!$this->areAllModulesCompleted($course, $user->id)) {
+                return response()->json(['ok' => false, 'error' => 'Complete all modules before taking the final exam.']);
+            }
+
+            [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+            $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
+            $attemptsUsed = Grade::where('assessment_id', $assessment->id)
+                ->where('user_id', $user->id)
+                ->count();
+            if ($attemptsUsed >= $maxAttempts) {
+                $course->users()->updateExistingPivot($user->id, ['status' => 'attempts_exhausted']);
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'You have reached the maximum number of attempts.',
+                    'max_attempts_reached' => true,
+                ]);
             }
 
             $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
@@ -1809,7 +2296,7 @@ class CourseController extends Controller
                         'ok' => false,
                         'error' => 'Essay answers cannot be empty.',
                         'question_index' => $index,
-                    ], 422);
+                    ]);
                 }
             }
 
@@ -1831,7 +2318,7 @@ class CourseController extends Controller
             $payload = [
                 'course_id' => $course->id,
                 'user_id' => $user->id,
-                'module_index' => $data['mi'],
+                'module_index' => $resolvedModuleIndex,
                 'correct' => round($objectiveCorrect, 2),
                 'total' => round($objectiveTotal, 2),
                 'pct' => $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0,
@@ -1846,20 +2333,41 @@ class CourseController extends Controller
             if (!is_dir($dir)) {
                 return response()->json(['ok' => false, 'error' => 'Unable to prepare exam submission storage.'], 500);
             }
-            $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$data['mi'].'_u_'.$user->id.'.json';
+            $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$resolvedModuleIndex.'_u_'.$user->id.'.json';
             if (file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT)) === false) {
                 return response()->json(['ok' => false, 'error' => 'Unable to save exam submission file.'], 500);
             }
 
-            $this->syncEssayResponsesForSubmission($course, $user, (int) $data['mi'], $questions, $answers, $submittedAt);
-            $summary = $this->buildModuleExamAttemptSummary($course, (int) $data['mi'], $user->id, $payload);
+            $this->syncEssayResponsesForSubmission($course, $user, $resolvedModuleIndex, $questions, $answers, $submittedAt);
+            $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, $user->id, $payload);
 
+            $evaluation = $this->evaluateFinalExamOutcome($course, $resolvedModuleIndex, $user->id, $summary, $exam);
             $completed = false;
-            if (($summary['status'] ?? 'completed') === 'completed') {
+            if (($evaluation['passed'] ?? false) === true) {
                 $completed = $this->issueCertificateIfCompleted($user, $course);
             }
 
-            return response()->json(['ok'=>true, 'completed' => $completed, 'summary' => $summary]);
+            return response()->json([
+                'ok' => true,
+                'completed' => $completed,
+                'summary' => array_merge($summary, [
+                    'passing_score' => $evaluation['passing_score'] ?? $passingScore,
+                    'max_attempts' => $evaluation['max_attempts'] ?? $maxAttempts,
+                    'attempt_no' => $evaluation['attempt_no'] ?? ($attemptsUsed + 1),
+                    'passed' => $evaluation['passed'] ?? null,
+                    'restart_required' => $evaluation['restart_required'] ?? false,
+                    'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
+                    'restart_message' => ($evaluation['restart_required'] ?? false)
+                        ? 'You failed the exam. You must restart from Module 1.'
+                        : null,
+                    'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
+                        ? 'You have reached the maximum number of attempts.'
+                        : null,
+                    'redirect_url' => ($evaluation['restart_required'] ?? false)
+                        ? route('trainee.courses.outline', ['course' => $course, 'mi' => 0])
+                        : null,
+                ]),
+            ]);
         } catch (\Throwable $e) {
             \Log::error('submitModuleExam failed', [
                 'course_id' => $course->id,
@@ -1884,11 +2392,15 @@ class CourseController extends Controller
             return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
         }
         $mi = (int)$request->query('mi', -1);
-        if ($mi < 0) return response()->json(['ok'=>false,'error'=>'Missing module index'], 422);
+        if ($mi < 0) return response()->json(['ok'=>false,'error'=>'Missing module index']);
+        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $mi);
+        if ($resolvedModuleIndex === null) {
+            return response()->json(['ok' => true, 'items' => []]);
+        }
         $dir = storage_path('app/exam_submissions/course_'.$course->id);
         $items = [];
         if (is_dir($dir)) {
-            foreach (glob($dir.DIRECTORY_SEPARATOR.'mi_'.$mi.'_u_*.json') as $p) {
+            foreach (glob($dir.DIRECTORY_SEPARATOR.'mi_'.$resolvedModuleIndex.'_u_*.json') as $p) {
                 $j = json_decode(@file_get_contents($p), true) ?: [];
                 if (!empty($j['user_id'])) {
                     $u = \App\Models\User::find($j['user_id']);
@@ -1935,7 +2447,10 @@ class CourseController extends Controller
 
         $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $targetUserId);
         if (!$summary) {
-            return response()->json(['ok' => false, 'error' => 'Attempt not found'], 404);
+            return response()->json([
+                'ok' => true,
+                'attempt' => null,
+            ]);
         }
 
         $targetUser = User::find($targetUserId);
@@ -1945,6 +2460,52 @@ class CourseController extends Controller
                 'user_name' => $targetUser?->name ?? ('User '.$targetUserId),
                 'user_email' => $targetUser?->email,
             ]),
+        ]);
+    }
+
+    public function restartModuleExamProgress(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        if (!in_array($user->role, $participantRoles, true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $data = $request->validate([
+            'mi' => 'nullable|integer|min:0',
+        ]);
+
+        $requestedModuleIndex = array_key_exists('mi', $data)
+            ? (int) $data['mi']
+            : (int) ($this->getFinalExamModuleIndex($course) ?? 0);
+
+        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $requestedModuleIndex);
+        $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, $user->id);
+        if (!$summary) {
+            return response()->json(['ok' => false, 'error' => 'No failed exam attempt found.'], 404);
+        }
+
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'You have reached the maximum number of attempts.',
+                'max_attempts_reached' => true,
+            ]);
+        }
+
+        if (($summary['passed'] ?? null) !== false) {
+            return response()->json(['ok' => false, 'error' => 'This exam does not need a restart.'], 422);
+        }
+
+        $this->resetTraineeCourseProgress($course, $user->id, $resolvedModuleIndex ?? $requestedModuleIndex);
+
+        return response()->json([
+            'ok' => true,
+            'redirect_url' => route('trainee.courses.outline', ['course' => $course, 'mi' => 0]),
         ]);
     }
 
@@ -1964,15 +2525,20 @@ class CourseController extends Controller
             'reviews.*.feedback' => 'nullable|string',
         ]);
 
-        $exam = $this->getCourseModuleExam($course, (int) $data['mi']);
+        $requestedModuleIndex = (int) $data['mi'];
+        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $requestedModuleIndex);
+        $exam = $this->getCourseModuleExam($course, $requestedModuleIndex);
         if (!$exam) {
             return response()->json(['ok' => false, 'error' => 'Module exam not found.'], 404);
+        }
+        if ($resolvedModuleIndex === null) {
+            return response()->json(['ok' => false, 'error' => 'Module exam mapping is invalid.'], 422);
         }
 
         $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
         $rows = ExamEssayResponse::where('course_id', $course->id)
             ->where('trainee_id', (int) $data['user_id'])
-            ->where('module_index', (int) $data['mi'])
+            ->where('module_index', $resolvedModuleIndex)
             ->get()
             ->keyBy('question_index');
 
@@ -2013,15 +2579,32 @@ class CourseController extends Controller
             ]);
         }
 
-        $summary = $this->buildModuleExamAttemptSummary($course, (int) $data['mi'], (int) $data['user_id']);
+        $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, (int) $data['user_id']);
         $completed = false;
-        if (($summary['status'] ?? null) === 'completed') {
-            $trainee = User::find((int) $data['user_id']);
-            if ($trainee) {
+        $trainee = User::find((int) $data['user_id']);
+        $evaluation = $this->evaluateFinalExamOutcome($course, $resolvedModuleIndex, (int) $data['user_id'], $summary, $exam);
+        if (($evaluation['passed'] ?? false) === true && $trainee) {
                 $completed = $this->issueCertificateIfCompleted($trainee, $course);
-            }
         }
-        return response()->json(['ok' => true, 'attempt' => $summary, 'completed' => $completed]);
+        return response()->json([
+            'ok' => true,
+            'attempt' => array_merge($summary, [
+                'attempt_no' => $evaluation['attempt_no'] ?? null,
+                'passed' => $evaluation['passed'] ?? null,
+                'restart_required' => $evaluation['restart_required'] ?? false,
+                'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
+                'restart_message' => ($evaluation['restart_required'] ?? false)
+                    ? 'You failed the exam. You must restart from Module 1.'
+                    : null,
+                'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
+                    ? 'You have reached the maximum number of attempts.'
+                    : null,
+                'redirect_url' => ($evaluation['restart_required'] ?? false)
+                    ? route('trainee.courses.outline', ['course' => $course, 'mi' => 0])
+                    : null,
+            ]),
+            'completed' => $completed,
+        ]);
     }
 
     /**
@@ -2093,21 +2676,11 @@ class CourseController extends Controller
         }
         // Participants (active only)
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
-        $participants = $course->users()->whereIn('role', $participantRoles)->wherePivot('status','active')->get();
+        $participants = $course->users()
+            ->whereIn('role', $participantRoles)
+            ->wherePivotIn('status', ['active', 'in_progress', 'ready_for_exam', 'completed'])
+            ->get();
         $outUsers = [];
-        // Pre-scan exam submissions directory
-        $examDir = storage_path('app/exam_submissions/course_'.$course->id);
-        $examIndex = [];
-        if (is_dir($examDir)) {
-            foreach (glob($examDir.DIRECTORY_SEPARATOR.'mi_*_u_*.json') as $p) {
-                $j = json_decode(@file_get_contents($p), true) ?: [];
-                $uid = $j['user_id'] ?? null;
-                $mi = $j['module_index'] ?? null;
-                if ($uid !== null && $mi !== null) {
-                    $examIndex[$uid.'_'.$mi] = (int)($j['pct'] ?? 0);
-                }
-            }
-        }
         foreach ($participants as $u) {
             $rows = \App\Models\ReflectionResponse::where('user_id', $u->id)
                 ->where('course_id', $course->id)
@@ -2127,13 +2700,16 @@ class CourseController extends Controller
                 $total = $totals[$mi] ?? 0;
                 $done = $doneSetByModule[$mi] ?? 0;
                 $modulePct = $total ? (int) round(($done / $total) * 100) : null;
-                $examPct = $examIndex[$u->id.'_'.$mi] ?? null;
-                $examSummary = $examPct !== null ? $this->buildModuleExamAttemptSummary($course, $mi, $u->id) : null;
+                $hasExam = !empty($mods[$mi]['exam']['questions'] ?? []);
+                $examSummary = $hasExam ? $this->buildModuleExamAttemptSummary($course, $mi, $u->id) : null;
                 $scores[] = [
                     'module_pct' => $modulePct,
-                    'exam_pct' => $examSummary['final_pct'] ?? $examPct,
+                    'exam_pct' => $examSummary['final_pct'] ?? null,
                     'exam_status' => $examSummary['status'] ?? null,
                     'essay_pending_count' => $examSummary['essay_pending_count'] ?? 0,
+                    'exam_passed' => $examSummary['passed'] ?? null,
+                    'exam_status_label' => $examSummary['status_label'] ?? null,
+                    'exam_has_submission' => $examSummary !== null,
                 ];
             }
             $outUsers[] = [
@@ -2146,6 +2722,31 @@ class CourseController extends Controller
             'ok' => true,
             'modules' => $modulesMeta,
             'users' => $outUsers,
+        ]);
+    }
+
+    public function accessState(Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        if (!in_array($user->role, $participantRoles, true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $sync = $this->syncSequentialProgress($course, $user->id);
+
+        return response()->json([
+            'ok' => true,
+            'allowed_module_index' => $this->getAllowedModuleArrayIndex($course, $user->id),
+            'final_exam_module_index' => $this->getFinalExamModuleIndex($course),
+            'final_exam_unlocked' => $this->areAllModulesCompleted($course, $user->id),
+            'current_module' => $sync['current_module'] ?? null,
+            'progress_percentage' => $sync['progress_percentage'] ?? null,
+            'status' => $sync['status'] ?? null,
         ]);
     }
 
@@ -2300,6 +2901,12 @@ class CourseController extends Controller
         $title = trim((string) ($e['title'] ?? ''));
         $description = (string) ($e['description'] ?? '');
         $timer = (int) ($e['timer_minutes'] ?? 0);
+        $passingScore = isset($e['passing_score']) && $e['passing_score'] !== ''
+            ? max(1, min(100, (int) $e['passing_score']))
+            : 75;
+        $maxAttempts = isset($e['max_attempts']) && $e['max_attempts'] !== ''
+            ? max(1, (int) $e['max_attempts'])
+            : (isset($e['attempt_limit']) && $e['attempt_limit'] !== '' ? max(1, (int) $e['attempt_limit']) : 3);
         $qs = is_array($e['questions'] ?? []) ? $e['questions'] : [];
         // Validation per requirements
         if ($title === '') {
@@ -2374,7 +2981,7 @@ class CourseController extends Controller
             return response()->json(['ok'=>false,'error'=>implode('; ', $errors)], 422);
         }
         // Transaction to avoid partial updates
-        \Illuminate\Support\Facades\DB::transaction(function() use ($course, $title, $description, $timer, $norm) {
+        \Illuminate\Support\Facades\DB::transaction(function() use ($course, $title, $description, $timer, $passingScore, $maxAttempts, $norm) {
             $mods = $course->modules;
             if (is_string($mods)) {
                 try { $mods = json_decode($mods, true); } catch (\Throwable $th) { $mods = []; }
@@ -2388,6 +2995,9 @@ class CourseController extends Controller
                 'title' => $title,
                 'description' => $description,
                 'timer_minutes' => $timer,
+                'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+                'attempt_limit' => $maxAttempts,
                 'questions' => $norm,
             ];
             $hasModules = !empty($mods);
@@ -2418,6 +3028,7 @@ class CourseController extends Controller
             }
             $course->modules = $mods;
             $course->save();
+            $this->getOrCreateFinalExamAssessment($course, $examArr, $passingScore, $maxAttempts);
         });
         return response()->json(['ok' => true, 'version' => optional($course->fresh()->updated_at)->toISOString()]);
     }
@@ -2638,7 +3249,15 @@ class CourseController extends Controller
 
         if (!empty($traineesToAttach)) {
             // Attach new ones as active
-            $course->users()->attach($traineesToAttach, ['status' => 'active']);
+            $payload = [];
+            foreach ($traineesToAttach as $traineeId) {
+                $payload[$traineeId] = [
+                    'status' => 'active',
+                    'current_module' => 1,
+                    'progress_percentage' => 0,
+                ];
+            }
+            $course->users()->attach($payload);
             
             // Notify new participants
             foreach ($traineesToAttach as $traineeId) {
@@ -2734,7 +3353,11 @@ class CourseController extends Controller
             $validTrainees = User::whereIn('id', $request->trainee_ids)->whereIn('role', $managedParticipantRoles)->pluck('id')->toArray();
             foreach ($validTrainees as $id) {
                 if (!$course->users()->where('user_id', $id)->exists()) {
-                    $course->users()->attach($id, ['status' => 'active']);
+                    $course->users()->attach($id, [
+                        'status' => 'active',
+                        'current_module' => 1,
+                        'progress_percentage' => 0,
+                    ]);
                     $count++;
 
                     // Notify Trainee
@@ -2793,7 +3416,11 @@ class CourseController extends Controller
             return redirect()->back()->with('error_enroll', 'Participant is already enrolled in this course.');
         }
 
-        $course->users()->attach($user->id, ['status' => 'active']);
+        $course->users()->attach($user->id, [
+            'status' => 'active',
+            'current_module' => 1,
+            'progress_percentage' => 0,
+        ]);
 
         Notification::create([
             'user_id' => $user->id,
@@ -2832,7 +3459,11 @@ class CourseController extends Controller
         }
 
         // Attach with active status immediately (automatic enrollment)
-        $course->users()->attach($user->id, ['status' => 'active']);
+        $course->users()->attach($user->id, [
+            'status' => 'active',
+            'current_module' => 1,
+            'progress_percentage' => 0,
+        ]);
 
         // Notify user of immediate enrollment
         Notification::create([

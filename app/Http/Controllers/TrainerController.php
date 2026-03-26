@@ -101,6 +101,8 @@ class TrainerController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
             'questions_json' => 'required|string',
+            'passing_score' => 'nullable|integer|min:1|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
 
         // Guard against empty question sets
@@ -116,6 +118,8 @@ class TrainerController extends Controller
             'description' => $request->description,
             'due_date' => $request->due_date,
             'questions_json' => $request->questions_json,
+            'passing_score' => $request->filled('passing_score') ? (int) $request->passing_score : null,
+            'max_attempts' => $request->filled('max_attempts') ? (int) $request->max_attempts : null,
         ]);
         $this->backupAssessment($assessment);
 
@@ -131,12 +135,16 @@ class TrainerController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
             'questions_json' => 'nullable|string',
+            'passing_score' => 'nullable|integer|min:1|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
         $update = [
             'title' => $request->title,
             'type' => $request->type ?? $assessment->type,
             'description' => $request->description,
             'due_date' => $request->due_date,
+            'passing_score' => $request->filled('passing_score') ? (int) $request->passing_score : null,
+            'max_attempts' => $request->filled('max_attempts') ? (int) $request->max_attempts : null,
         ];
         if($request->filled('questions_json')){
             $update['questions_json'] = $request->questions_json;
@@ -179,12 +187,18 @@ class TrainerController extends Controller
     public function editAssessment(Assessment $assessment)
     {
         $this->ensureTrainer();
+        $assessment->loadMissing('course');
         $course = $assessment->course;
         return view('trainer.assessment-edit', compact('assessment','course'));
     }
     public function editAssessmentForCourse(Course $course, Assessment $assessment)
     {
-        return $this->editAssessment($assessment);
+        $this->ensureTrainer();
+        $assessment->loadMissing('course');
+        return view('trainer.assessment-edit', [
+            'assessment' => $assessment,
+            'course' => $course,
+        ]);
     }
     public function showAssessment(Assessment $assessment)
     {

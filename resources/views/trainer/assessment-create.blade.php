@@ -123,8 +123,8 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
             <input class="input" type="number" min="0" max="100" id="setPassing" name="passing_score" placeholder="e.g., 70">
           </div>
           <div class="field">
-            <label class="label">Attempt Limit</label>
-            <input class="input" type="number" min="0" id="setAttempts" name="attempt_limit" placeholder="0 = unlimited">
+            <label class="label">Max Attempts</label>
+            <input class="input" type="number" min="1" id="setAttempts" name="max_attempts" placeholder="e.g., 3">
           </div>
         </div>
         <div class="row">

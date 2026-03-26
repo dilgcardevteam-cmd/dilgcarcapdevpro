@@ -475,9 +475,115 @@
         const status = @json($status);
         const isEnrolled = status === 'active';
         const viewOnly = @json($viewOnly ?? false);
+        let allowedModuleIndex = @json($allowedModuleIndex ?? null);
+        const finalExamModuleIndex = @json($finalExamModuleIndex ?? null);
+        let finalExamUnlocked = @json($finalExamUnlocked ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
         const ENFORCE_LOCKS_ALL = false;
+
+        function redirectToAllowedModule(message){
+            if(allowedModuleIndex === null || allowedModuleIndex === undefined){ return; }
+            const targetMi = Number(allowedModuleIndex);
+            const target = new URL(window.location.href);
+            target.searchParams.set('mi', String(targetMi));
+            try{
+                window.history.replaceState({}, '', target.toString());
+            }catch(e){}
+
+            const modules = Array.isArray(course.modules) ? course.modules : [];
+            const targetModule = modules[targetMi] || {};
+            const targetTopics = Array.isArray(targetModule.topics) ? targetModule.topics : [];
+            const hasExam = !!(targetModule.exam && Array.isArray(targetModule.exam.questions) && targetModule.exam.questions.length);
+
+            document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
+
+            if(targetTopics.length > 0){
+                const moduleNode = document.querySelectorAll('.module')[targetMi];
+                const topicsCt = moduleNode?.querySelector('.topics');
+                if(topicsCt){ topicsCt.style.display = 'block'; }
+                const chev = moduleNode?.querySelector('.toggle-icon i');
+                if(chev){ chev.style.transform = 'rotate(180deg)'; }
+                openTopic(targetMi, 0);
+                return;
+            }
+
+            if(hasExam){
+                openExam(targetMi);
+            }
+        }
+
+        function canAccessModule(mi){
+            recalculateClientAccessState();
+            if(!IS_TRAINEE_USER || allowedModuleIndex === null || allowedModuleIndex === undefined){ return true; }
+            return mi <= allowedModuleIndex;
+        }
+
+        function canAccessFinalExam(mi){
+            recalculateClientAccessState();
+            if(!IS_TRAINEE_USER || finalExamModuleIndex === null || finalExamModuleIndex === undefined){ return true; }
+            if(mi !== finalExamModuleIndex){ return true; }
+            return !!finalExamUnlocked;
+        }
+
+        async function syncServerAccessState(){
+            try{
+                const res = await fetch("{{ route('courses.access-state', $course) }}", {credentials:'same-origin'});
+                if(!res.ok) return false;
+                const data = await res.json();
+                if(!data?.ok) return false;
+                if(data.allowed_module_index !== null && data.allowed_module_index !== undefined){
+                    allowedModuleIndex = Number(data.allowed_module_index);
+                }
+                finalExamUnlocked = !!data.final_exam_unlocked;
+                return true;
+            }catch(e){
+                return false;
+            }
+        }
+
+        function isClientModuleCompleted(mi){
+            const module = (Array.isArray(course.modules) ? course.modules : [])[mi] || {};
+            const topics = Array.isArray(module.topics) ? module.topics : [];
+            if(!topics.length) return false;
+            return topics.every((_, ti)=> hasReflection(mi, ti, -1));
+        }
+
+        function recalculateClientAccessState(){
+            const modules = Array.isArray(course.modules) ? course.modules : [];
+            const contentIndexes = [];
+            modules.forEach((module, index)=>{
+                const topics = Array.isArray(module?.topics) ? module.topics : [];
+                if(topics.length){ contentIndexes.push(index); }
+            });
+
+            if(!contentIndexes.length){
+                if(finalExamModuleIndex !== null && finalExamModuleIndex !== undefined){
+                    allowedModuleIndex = finalExamModuleIndex;
+                    finalExamUnlocked = true;
+                }
+                return;
+            }
+
+            let nextAllowed = contentIndexes[0];
+            let completedAll = true;
+            for(const moduleIndex of contentIndexes){
+                if(isClientModuleCompleted(moduleIndex)){
+                    nextAllowed = moduleIndex;
+                    continue;
+                }
+                nextAllowed = moduleIndex;
+                completedAll = false;
+                break;
+            }
+
+            if(completedAll){
+                nextAllowed = contentIndexes[contentIndexes.length - 1];
+            }
+
+            allowedModuleIndex = nextAllowed;
+            finalExamUnlocked = completedAll;
+        }
 
         function isVideo(path){ return /\.(mp4|webm|ogg)$/i.test(path||''); }
         function renderVideo(){
@@ -771,8 +877,16 @@
         function updateAllProgress(){
             const modules = document.querySelectorAll('.module');
             modules.forEach((_, idx)=> updateProgressFor(idx));
+            recalculateClientAccessState();
         }
-        function openTopic(mi,ti){
+        async function openTopic(mi,ti){
+            if(!canAccessModule(mi)){
+                await syncServerAccessState();
+                if(!canAccessModule(mi)){
+                    redirectToAllowedModule('You can only access your current module.');
+                    return;
+                }
+            }
             document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
             const node = document.querySelector(`.topic[data-mi="${mi}"][data-ti="${ti}"]`);
             if(node) node.classList.add('active');
@@ -860,6 +974,7 @@
                                         input.style.display='none';
                                         const actions = submitBtn.parentElement; if(actions){ actions.style.display='none'; }
                                         updateProgressFor(bMi);
+                                        await syncServerAccessState();
                                         try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
                                         const resetBtn = summary.querySelector('[data-act="reset-ref"]');
                                         if(resetBtn){
@@ -871,8 +986,9 @@
                                                 input.style.display='';
                                                 if(actions){ actions.style.display='flex'; }
                                                 unmarkReflection(bMi,bTi,-1);
-                                        updateProgressFor(bMi);
-                                        input.focus();
+                                                updateProgressFor(bMi);
+                                                syncServerAccessState();
+                                                input.focus();
                                     };
                                 }
                                 
@@ -969,7 +1085,14 @@
                 });
             })();
         }
-        function openExam(mi){
+        async function openExam(mi){
+            if(!canAccessFinalExam(mi)){
+                await syncServerAccessState();
+                if(!canAccessFinalExam(mi)){
+                    redirectToAllowedModule('Complete all modules before taking the final exam.');
+                    return;
+                }
+            }
             const m = (course.modules||[])[mi]||{};
             const ex = m.exam||{};
             const qs = Array.isArray(ex.questions)? ex.questions : [];
@@ -1065,7 +1188,9 @@
             }).join('');
             const timerMins = parseInt(ex.timer_minutes||0,10) || 0;
             const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;
-            const attemptLim = (ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null;
+            const attemptLim = (ex.max_attempts!=null && ex.max_attempts!=='')
+                ? (parseInt(ex.max_attempts,10)||0)
+                : ((ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null);
             // Optional trainer-only Results button
             const resultsBtn = IS_TRAINER ? '<button id="examResultsBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">View Results</button>' : '';
             const titleText = ex.title ? `Module Exam: ${esc(ex.title)}` : 'Module Exam';
@@ -1331,6 +1456,11 @@
                             }
                             serverSummary = j.summary || null;
                             serverCompleted = !!j.completed;
+                            if(serverSummary?.max_attempts_reached){
+                                alert(serverSummary.max_attempts_message || 'You have reached the maximum number of attempts.');
+                            }else if(serverSummary?.restart_required){
+                                alert(serverSummary.restart_message || 'You failed the exam. You must restart from Module 1.');
+                            }
                         }catch(_){
                             if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
                             alert('Exam submission failed. Please check your connection and try again.');
@@ -1358,6 +1488,10 @@
                             items: []
                         });
                     }
+                    if(serverSummary?.restart_required && serverSummary?.redirect_url){
+                        setTimeout(()=>{ window.location.href = serverSummary.redirect_url; }, 300);
+                        return;
+                    }
                     if(serverCompleted) {
                         showCongrats();
                     }
@@ -1372,13 +1506,29 @@
                     const essayChecked = Number(summary?.essay_checked_count ?? 0) || 0;
                     const status = summary?.status || 'completed';
                     const statusLabel = summary?.status_label || 'Completed';
+                    const effectivePassingScore = summary?.passing_score != null && summary?.passing_score !== ''
+                        ? (parseInt(summary.passing_score, 10) || 0)
+                        : ((typeof passPct === 'number') ? passPct : null);
                     const allowPassFail = status === 'completed';
-                    const passed = allowPassFail && (typeof passPct === 'number') ? (finalPct >= passPct) : null;
+                    const passed = allowPassFail
+                        ? (typeof summary?.passed === 'boolean'
+                            ? summary.passed
+                            : ((typeof effectivePassingScore === 'number' && effectivePassingScore > 0)
+                                ? (finalPct >= effectivePassingScore)
+                                : null))
+                        : null;
+                    const canRetake = status === 'completed' && passed === false && !summary?.max_attempts_reached;
+                    const restartUrl = @json(route('trainee.courses.outline', ['course' => $course, 'mi' => 0]));
+                    const retryLabel = 'Go to Module 1';
                     const statusTxt = status === 'pending_review'
                         ? 'Your essay answers are waiting for trainer review.'
                         : status === 'partially_graded'
                             ? 'Your objective items are graded. Essay items are still under review.'
-                            : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'));
+                            : (summary?.max_attempts_reached
+                                ? 'You have reached the maximum number of attempts.'
+                                : (summary?.restart_required
+                                    ? 'You failed the exam. You must restart from Module 1.'
+                                    : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'))));
                     const statusColor = status === 'pending_review'
                         ? '#b45309'
                         : status === 'partially_graded'
@@ -1394,7 +1544,7 @@
                         resultBox.style.margin = '0 auto';
                         resultBox.innerHTML = `
                           <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px">
-                            <svg viewBox="0 0 100 60" width="100%" height="auto" style="display:block;max-width:420px">
+                            <svg viewBox="0 0 100 60" style="display:block;max-width:420px;width:100%;height:auto">
                               <path d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"></path>
                               <path id="examGaugePath" d="M10,60 A40,40 0 1 1 90,60" fill="none" stroke="${status==='pending_review' ? '#f59e0b' : (passed===false ? '#ef4444' : '#002C76')}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999"></path>
                               <text x="50" y="45" text-anchor="middle" font-size="18" font-weight="900" fill="#0f172a">${finalPct}%</text>
@@ -1403,14 +1553,15 @@
                             <div style="font-size:0.95rem;font-weight:800;color:${statusColor}">${statusLabel}</div>
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} objective score</span>
+                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} Objective score</span>
                               ${essayPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${essayPending} essay pending</span>` : ``}
                               ${essayChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${essayChecked} essay checked</span>` : ``}
-                              ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
+                              ${effectivePassingScore!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${effectivePassingScore}%</span>` : ``}
                             </div>
                             <div style="color:#334155;margin-top:6px">You can review your answers below.</div>
                             <div style="display:flex;gap:10px;margin-top:6px">
                               <button id="examReview" class="btn-blue" style="padding:10px 16px;border-radius:12px">Review Assessment</button>
+                              ${canRetake ? `<button id="examRetake" class="btn-ghost" style="padding:10px 16px;border-radius:12px;border:1px solid #cbd5e1;background:#fff;font-weight:800">${retryLabel}</button>` : ``}
                             </div>
                           </div>`;
                         const gauge = resultBox.querySelector('#examGaugePath');
@@ -1450,6 +1601,32 @@
                                 }
                             }
                           };
+                        }
+                        const retakeBtn = document.getElementById('examRetake');
+                        if(retakeBtn){
+                            retakeBtn.onclick = async ()=>{
+                                prepareExamRetake();
+                                try{
+                                    const resp = await fetch("{{ route('courses.module-exam.restart', $course) }}", {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        credentials: 'same-origin',
+                                        body: JSON.stringify({ mi })
+                                    });
+                                    const data = await resp.json().catch(()=>null);
+                                    if(data?.ok){
+                                        window.location.href = data.redirect_url || summary?.redirect_url || restartUrl;
+                                        return;
+                                    }
+                                    if(data?.error){
+                                        alert(data.error);
+                                    }
+                                }catch(e){}
+                                window.location.href = summary?.redirect_url || restartUrl;
+                            };
                         }
                 }
                 function revealAnswers(){
@@ -1614,8 +1791,37 @@
                     const el=document.getElementById('examConfirmSummary');
                     if(el){ el.innerHTML = `You answered <b>${answered}/${total}</b> items. Submit now?`; }
                 }
+                function findMissingExamAnswer(){
+                    const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
+                    for(let i = 0; i < blocks.length; i++){
+                        const b = blocks[i];
+                        const kind = b.getAttribute('data-kind') || 'mc';
+                        if(kind === 'mc'){
+                            const sel = b.querySelector('.mc .mc-option.selected');
+                            if(!sel) return `Question ${i + 1} has no selected answer.`;
+                        }else if(kind === 'id'){
+                            const val = (b.querySelector('.q-input')?.value || '').trim();
+                            if(!val) return `Question ${i + 1} is blank.`;
+                        }else if(kind === 'enum'){
+                            const vals = Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim());
+                            if(vals.some(v => !v)) return `Question ${i + 1} needs all enumeration answers filled in.`;
+                        }else if(kind === 'essay'){
+                            const val = (b.querySelector('.q-input')?.value || '').trim();
+                            if(!val) return `Question ${i + 1} essay answer cannot be empty.`;
+                        }else if(kind === 'tf'){
+                            const sel = b.querySelector('.tf .tf-option.selected');
+                            if(!sel) return `Question ${i + 1} has no selected answer.`;
+                        }
+                    }
+                    return null;
+                }
                 if(submitAll){
                     submitAll.onclick = ()=>{
+                        const missingMessage = findMissingExamAnswer();
+                        if(missingMessage){
+                            alert(missingMessage);
+                            return;
+                        }
                         const ov=document.getElementById('examConfirm');
                         const chk=document.getElementById('examConfirmChk');
                         const go=document.getElementById('examConfirmGo');
@@ -1657,9 +1863,31 @@
                     if(prefaceBox) prefaceBox.style.display='none';
                     if(bodyBox) bodyBox.style.display='';
                 }
+                function prepareExamRetake(){
+                    try{
+                        localStorage.removeItem(keyBase+'_answers');
+                        localStorage.removeItem(keyBase+'_submitted');
+                        localStorage.removeItem(keyBase+'_started');
+                        localStorage.removeItem(keyBase+'_start');
+                        localStorage.setItem(keyBase+'_retake_mode', '1');
+                    }catch(e){}
+                    latestExamSummary = null;
+                    setFrozen(false);
+                    try{
+                        bodyBox.querySelectorAll('input[type="radio"]').forEach(inp => { inp.checked = false; });
+                        bodyBox.querySelectorAll('input[type="text"], textarea').forEach(inp => { inp.value = ''; });
+                    }catch(e){}
+                    if(submitAll){
+                        submitAll.disabled = false;
+                        submitAll.textContent = 'Submit Exam';
+                    }
+                    if(resultBox){ resultBox.style.display='none'; }
+                    showExamPreface();
+                }
                 function markAttemptAsSubmitted(summary){
                     try{
                         localStorage.setItem(keyBase+'_submitted','1');
+                        localStorage.removeItem(keyBase+'_retake_mode');
                         localStorage.removeItem(keyBase+'_started');
                         localStorage.removeItem(keyBase+'_start');
                     }catch(e){}
@@ -1674,6 +1902,9 @@
                     if(timerIv){ clearInterval(timerIv); timerIv = null; }
                 }
                 function loadExistingAttempt(){
+                    if(localStorage.getItem(keyBase+'_retake_mode')==='1'){
+                        return Promise.resolve(false);
+                    }
                     return fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
                         .then(r=>r.json())
                         .then(j=>{
@@ -1691,6 +1922,7 @@
                         if(localStorage.getItem(keyBase+'_submitted')==='1'){ return; }
                         showExamBody();
                         try{
+                            localStorage.removeItem(keyBase+'_retake_mode');
                             localStorage.setItem(keyBase+'_started','1');
                             if(!localStorage.getItem(keyBase+'_start')) localStorage.setItem(keyBase+'_start', String(Date.now()));
                         }catch(e){}
@@ -2086,6 +2318,8 @@
                                     setSubtopicDone(bMi,bTi,bSi,true);
                                     const tEl = document.querySelector(`.topic[data-mi="${bMi}"][data-ti="${bTi}"]`);
                                     if(tEl){ renderDoneStates(bMi,bTi,tEl); updateProgressFor(bMi); }
+                                    recalculateClientAccessState();
+                                    await syncServerAccessState();
                                     summary.style.display='block';
                                     summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
                                         <div><b>What you learned:</b> ${answers.learned?answers.learned:'(none)'}</div>
@@ -2106,6 +2340,8 @@
                                             if(typeof unmarkReflection === 'function'){ unmarkReflection(bMi,bTi,bSi); }
                                             const tEl2 = document.querySelector(`.topic[data-mi="${bMi}"][data-ti="${bTi}"]`);
                                             if(tEl2){ renderDoneStates(bMi,bTi,tEl2); updateProgressFor(bMi); }
+                                            recalculateClientAccessState();
+                                            syncServerAccessState();
                                         };
                                     }
                                     try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
@@ -2127,7 +2363,7 @@
         async function loadReflectionMap(){
             try{
                 const res = await fetch("{{ route('courses.reflections.map', $course) }}", {credentials:'same-origin'});
-                if(res.ok){ const j = await res.json(); reflectionMap = j.map || {}; updateAllProgress(); }
+                if(res.ok){ const j = await res.json(); reflectionMap = j.map || {}; updateAllProgress(); recalculateClientAccessState(); await syncServerAccessState(); }
             }catch(e){}
         }
         function reflectKey(mi,ti,si){ return `${mi}_${ti}_${si}`; }
@@ -2186,6 +2422,7 @@
                     });
                     if(res.ok){
                         markReflection(mi,ti,si);
+                        await syncServerAccessState();
                         summary.style.display='block';
                         summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Thanks! Summary</div>
                         <div><b>What you learned:</b> ${answers.learned?answers.learned:'(none)'}</div>`;

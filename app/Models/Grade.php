@@ -11,6 +11,14 @@ class Grade extends Model
         'user_id',
         'score',
         'feedback',
+        'attempt_no',
+        'is_retake',
+    ];
+
+    protected $casts = [
+        'score' => 'decimal:2',
+        'attempt_no' => 'integer',
+        'is_retake' => 'boolean',
     ];
 
     public function assessment()
