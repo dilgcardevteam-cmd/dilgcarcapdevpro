@@ -321,7 +321,7 @@
     </main>
 
     <footer class="footer">
-        <p class="footer-logo-text">DILG CAR - Josiah Love Gween</p>
+        <p class="footer-logo-text">DILG CAR - Universidad De Dagupan IT Students</p>
         <p>&copy; 2026 CAPDEV PRO. All rights reserved.</p>
     </footer>
 </body>
