@@ -1116,6 +1116,18 @@
                                 <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
                                 <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
                             </div>
+                            
+                            @if(!empty($asTrainer) && $course->course_type === 'controlled' && $course->access_code)
+                                <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(22, 101, 52, 0.05);">
+                                    <i class="fas fa-key" style="font-size: 0.8rem;"></i>
+                                    <span>Access Code: </span>
+                                    <span class="access-code-masked" style="letter-spacing: 2px;">••••••••</span>
+                                    <span class="access-code-visible" style="display: none;">{{ $course->access_code }}</span>
+                                    <button type="button" class="toggle-access-code" onclick="toggleAccessCode(this)" style="background: none; border: none; padding: 0; margin-left: 6px; color: #166534; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; outline: none;" title="Show/Hide Access Code">
+                                        <i class="fas fa-eye" style="font-size: 0.95rem;"></i>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                         
                         @if(!empty($asTrainer))
@@ -2458,6 +2470,25 @@
 
         function closeDurationModal() {
             document.getElementById('durationModal').classList.remove('active');
+        }
+
+        function toggleAccessCode(button) {
+            const parent = button.closest('.course-code');
+            const masked = parent.querySelector('.access-code-masked');
+            const visible = parent.querySelector('.access-code-visible');
+            const icon = button.querySelector('i');
+
+            if (masked.style.display === 'none') {
+                masked.style.display = 'inline';
+                visible.style.display = 'none';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                masked.style.display = 'none';
+                visible.style.display = 'inline';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
         }
 
         function openEnrollmentModal(courseId, startDate, endDate) {
