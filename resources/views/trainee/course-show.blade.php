@@ -1637,7 +1637,12 @@
                                     const data = await resp.json().catch(()=>null);
                                     if(data?.ok){
                                         prepareExamRetake();
-                                        window.location.href = data.redirect_url;
+                                        // Show exam body immediately without refresh
+                                        showExamBody();
+                                        try {
+                                            localStorage.setItem(keyBase + '_started', '1');
+                                            localStorage.setItem(keyBase + '_start', String(Date.now()));
+                                        } catch (e) {}
                                         return;
                                     }
                                     if(data?.error){
@@ -1927,9 +1932,45 @@
                     latestExamSummary = null;
                     setFrozen(false);
                     try{
-                        bodyBox.querySelectorAll('input[type="radio"]').forEach(inp => { inp.checked = false; });
-                        bodyBox.querySelectorAll('input[type="text"], textarea').forEach(inp => { inp.value = ''; });
-                    }catch(e){}
+                        // 1. Clear text inputs and textareas
+                        bodyBox.querySelectorAll('input[type="text"], textarea').forEach(inp => { 
+                            inp.value = ''; 
+                            inp.disabled = false;
+                        });
+                        
+                        // 2. Clear radio buttons if any (though we use classes)
+                        bodyBox.querySelectorAll('input[type="radio"]').forEach(inp => { 
+                            inp.checked = false; 
+                        });
+
+                        // 3. Clear multiple choice and true/false selections and classes
+                        bodyBox.querySelectorAll('.mc-option, .tf-option').forEach(opt => {
+                            opt.classList.remove('selected', 'trainer-answer', 'submitted-correct', 'submitted-wrong');
+                            // Remove any dynamically added "Answer" chips
+                            const chip = opt.querySelector('.chip');
+                            if (chip) chip.remove();
+                        });
+
+                        // 4. Remove any dynamically added feedback or status elements
+                        bodyBox.querySelectorAll('.field.question').forEach(q => {
+                            q.style.pointerEvents = 'auto';
+                            // Remove extra info added during revealAnswers (identification/enumeration/essay feedback)
+                            const extraInfo = q.querySelectorAll('.muted, div[style*="color"]');
+                            extraInfo.forEach(info => {
+                                // Only remove if it was added dynamically (not part of original question structure)
+                                if (info.parentElement === q && !info.classList.contains('q-title')) {
+                                    info.remove();
+                                }
+                            });
+                        });
+
+                        // 5. Hide the top bar from review mode if it exists
+                        const topBar = document.getElementById('reviewTopBar');
+                        if (topBar) topBar.style.display = 'none';
+
+                    }catch(e){
+                        console.error('Error clearing exam for retake:', e);
+                    }
                     if(submitAll){
                         submitAll.disabled = false;
                         submitAll.textContent = 'Submit Exam';
