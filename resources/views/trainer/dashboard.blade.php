@@ -1650,6 +1650,12 @@
                                 <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                                 <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
+                                    @if($course->course_type === 'controlled' && $course->access_code)
+                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
+                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
+                                            <span>Access Code: {{ $course->access_code }}</span>
+                                        </div>
+                                    @endif
                                     <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                     <div class="course-footer">
                                         <span style="font-size: 0.8rem; color: #777;">
@@ -1721,8 +1727,14 @@
                             @endphp
                             <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                    <div class="course-title">{{ $course->name }}</div>
+                                    @if($course->course_type === 'controlled' && $course->access_code)
+                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
+                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
+                                            <span>Access Code: {{ $course->access_code }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 <div class="course-footer">
                                     <span>
                                         <i class="fas fa-users"></i>
@@ -1797,8 +1809,14 @@
                             @endphp
                             <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
                             <div class="course-content">
-                                <div class="course-title">{{ $course->name }}</div>
-                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                    <div class="course-title">{{ $course->name }}</div>
+                                    @if($course->course_type === 'controlled' && $course->access_code)
+                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
+                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
+                                            <span>Access Code: {{ $course->access_code }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 <div class="course-footer">
                                     @php
                                         $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];

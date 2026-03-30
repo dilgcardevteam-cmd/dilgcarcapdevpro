@@ -681,9 +681,7 @@ class DashboardController extends Controller
                 } else {
                     $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
                 }
-                $availableCourses = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })->where('is_published', true);
+                $availableCourses = Course::where('is_published', true);
                 if (!empty($excludedIds)) {
                     $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
                 }

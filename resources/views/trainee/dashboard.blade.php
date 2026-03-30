@@ -1108,22 +1108,18 @@
                     </a>
                 </li>
                 @endif
-                @if(Auth::user()->hasPermission('view_training'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('calendar', this)">
                         <i class="fas fa-calendar-alt nav-icon"></i>
                         <span class="nav-text">Calendar</span>
                     </a>
                 </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_communication'))
                 <li class="nav-item">
                     <a href="#" class="nav-link" onclick="showContent('announcements', this)">
                         <i class="fas fa-bullhorn nav-icon"></i>
                         <span class="nav-text">Announcements</span>
                     </a>
                 </li>
-                @endif
                 @if(in_array(Auth::user()->role, ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach']))
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}" class="nav-link">
@@ -1276,6 +1272,17 @@
                             </div>
                             <div class="card-content">
                                 <h3 class="card-title">{{ $course->name }}</h3>
+                                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                    @if($course->course_type === 'free')
+                                        <span style="background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0;">
+                                            <i class="fas fa-unlock"></i> Free Enrollment
+                                        </span>
+                                    @else
+                                        <span style="background: #fff7ed; color: #9a3412; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fed7aa;">
+                                            <i class="fas fa-lock"></i> Controlled
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="course-desc" style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px;">{{ Str::limit($course->description, 100) }}</p>
 
                                 <div class="card-meta" style="margin-bottom: 15px;">
@@ -1292,9 +1299,16 @@
                                     @if(!$enrollable)
                                         <button class="btn-gradient" style="{{ $awaitingTrainerAssignment ? 'background:#FFF4DB;color:#B4690E;border:1px solid #F7C66A;box-shadow:none;' : 'background:#94a3b8;color:#ffffff;border:none;' }} cursor: not-allowed; opacity: 0.95; flex: 1;" disabled title="{{ $awaitingTrainerAssignment ? 'Trainer assignment is still pending for this course.' : 'This course is not yet open for enrollment.' }}">{{ $awaitingTrainerAssignment ? 'Awaiting Trainer Assignment' : 'Not Yet Available' }}</button>
                                     @else
-                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll</button>
+                                        @if($course->course_type === 'free')
+                                            <form action="{{ route('courses.enroll.free', $course) }}" method="POST" style="flex: 1;">
+                                                @csrf
+                                                <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll</button>
+                                            </form>
+                                        @else
+                                            <button class="btn-gradient" style="background: #4f46e5; box-shadow: 0 10px 18px rgba(79,70,229,0.24); flex: 1;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Join Class</button>
+                                        @endif
                                     @endif
-                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation();openCourseDetails({{ $course->id }})">Details</button>
+                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation(); openCourseDetails({{ $course->id }})">Details</button>
                                 </div>
                             </div>
                         </div>
@@ -1749,7 +1763,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                             <span id="detail-enroll-chip" class="status-chip" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b"><i class="fas fa-ban"></i> Enrollment Closed</span>
-                            <button id="detail-enroll-btn" class="btn-view" style="background-color: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal()">
+                            <button id="detail-enroll-btn" class="btn-view" style="background-color: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); padding: 12px 25px; font-size: 1rem; display: none; white-space: nowrap;" onclick="openEnrollModal(currentCourseId, document.getElementById('detail-title').innerText)">
                                 <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Enroll Now
                             </button>
                         </div>
@@ -1823,14 +1837,19 @@
             <div style="width:88px;height:88px;margin:0 auto 18px;border-radius:28px;background:linear-gradient(135deg,#e8f0ff 0%,#cfe0ff 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 30px rgba(21,62,138,0.14);">
                 <i class="fas fa-user-plus" style="font-size: 2.2rem; color: #153E8A;"></i>
             </div>
-            <h2 class="modal-title">Confirm Enrollment</h2>
-            <p style="color:#64748b; margin:0 0 24px; line-height:1.7; font-size:1rem;">Are you sure you want to enroll in this course?</p>
+            <h2 class="modal-title" id="enrollModalTitle">Confirm Enrollment</h2>
+            <p id="enrollModalMessage" style="color:#64748b; margin:0 0 24px; line-height:1.7; font-size:1rem;">Are you sure you want to enroll in this course?</p>
             
             <form id="enrollForm" method="POST" action="">
                 @csrf
+                <div id="accessCodeWrapper" style="display:none; margin-bottom:20px;">
+                    <label for="access_code" style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:8px; text-align:left;">Access Code</label>
+                    <input type="text" id="access_code" name="access_code" placeholder="Enter access code" style="width:100%; padding:12px; border:1px solid #d1d5db; border-radius:10px; font-size:1rem; outline:none; transition:border-color 0.2s; box-sizing:border-box;" onfocus="this.style.borderColor='#153E8A'" onblur="this.style.borderColor='#d1d5db'">
+                    <div id="enrollError" style="display:none; color:#dc2626; font-size:0.875rem; margin-top:8px; text-align:left;"></div>
+                </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-cancel" onclick="closeEnrollModal()">Cancel</button>
-                    <button type="submit" class="btn-confirm">Yes, Enroll</button>
+                    <button type="submit" class="btn-confirm" id="enrollSubmitBtn">Yes, Enroll</button>
                 </div>
             </form>
         </div>
@@ -2758,29 +2777,106 @@
             document.getElementById(`subtab-${subTabName}`).classList.add('active');
         }
         
-        function openEnrollModal(courseId) {
+        function openEnrollModal(courseId, courseName) {
             if (courseId) {
                 currentCourseId = courseId;
             }
             if (!currentCourseId) return;
-            
+
+            const course = coursesData[currentCourseId];
+            const modal = document.getElementById('enrollModal');
+            const title = document.getElementById('enrollModalTitle');
+            const message = document.getElementById('enrollModalMessage');
             const form = document.getElementById('enrollForm');
-            form.action = `/courses/${currentCourseId}/join`;
+            const accessCodeWrapper = document.getElementById('accessCodeWrapper');
+            const submitBtn = document.getElementById('enrollSubmitBtn');
+            const errorDiv = document.getElementById('enrollError');
+            const input = document.getElementById('access_code');
+
+            // Reset modal
+            errorDiv.style.display = 'none';
+            input.value = '';
             
-            document.getElementById('enrollModal').style.display = 'flex';
+            if (course && course.course_type === 'controlled') {
+                title.textContent = "Join Controlled Course";
+                message.textContent = `Please enter the access code for "${courseName || course.name}" to join.`;
+                accessCodeWrapper.style.display = 'block';
+                submitBtn.textContent = "Join Class";
+                form.onsubmit = handleControlledEnrollment;
+            } else {
+                title.textContent = "Confirm Enrollment";
+                message.textContent = "Are you sure you want to enroll in this course?";
+                accessCodeWrapper.style.display = 'none';
+                submitBtn.textContent = "Yes, Enroll";
+                form.action = `/courses/${currentCourseId}/join`;
+                form.onsubmit = null; // Use default form submission for free/standard courses
+            }
+            
+            modal.style.display = 'flex';
+            if (course && course.course_type === 'controlled') {
+                setTimeout(() => input.focus(), 100);
+            }
         }
         
         function closeEnrollModal() {
             document.getElementById('enrollModal').style.display = 'none';
+            document.getElementById('access_code').value = '';
+            document.getElementById('enrollError').style.display = 'none';
+        }
+
+        async function handleControlledEnrollment(e) {
+            e.preventDefault();
+            const form = e.target;
+            const errorDiv = document.getElementById('enrollError');
+            const submitBtn = document.getElementById('enrollSubmitBtn');
+            const accessCode = document.getElementById('access_code').value;
+
+            if (!accessCode) {
+                errorDiv.textContent = "Please enter an access code.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`/courses/${currentCourseId}/enroll-controlled`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ access_code: accessCode })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = data.redirect || window.location.href;
+                } else {
+                    errorDiv.textContent = data.message || 'Invalid code, please try again.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                }
+            } catch (error) {
+                console.error('Enrollment error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
         }
         
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             const modal = document.getElementById('enrollModal');
             if (event.target == modal) {
                 closeEnrollModal();
             }
-        }
+        });
         function openCertificateModal(url, traineeName, courseName, issuedOn, certNo, downloadUrl){
             var m=document.getElementById('certificateModal');
             var img=document.getElementById('certificateImage');

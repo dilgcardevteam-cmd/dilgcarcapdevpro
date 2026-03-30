@@ -1007,6 +1007,7 @@ class CourseController extends Controller
             'image' => 'required_without:image_draft_data|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'image_draft_data' => 'nullable|string',
             'certification_id' => 'nullable|exists:certifications,id',
+            'course_type' => 'required|in:free,controlled',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
@@ -1197,6 +1198,10 @@ class CourseController extends Controller
 
         if (auth()->check()) {
             $validated['trainer_id'] = auth()->id();
+        }
+
+        if ($request->course_type === 'controlled') {
+            $validated['access_code'] = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
         }
 
         try {
@@ -1410,6 +1415,10 @@ class CourseController extends Controller
 
         if (auth()->check()) {
             $validated['trainer_id'] = auth()->id();
+        }
+
+        if ($request->course_type === 'controlled') {
+            $validated['access_code'] = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
         }
 
         try {
@@ -3415,6 +3424,62 @@ class CourseController extends Controller
 
         return redirect()->route('dashboard', ['tab' => 'trainer-trainee-management'])
             ->with('success_enroll', 'Participants updated successfully.');
+    }
+
+    public function enrollFree(Course $course)
+    {
+        if ($course->course_type !== 'free') {
+            return redirect()->back()->with('error', 'This course is not available for free enrollment.');
+        }
+
+        if (!$course->isEnrollable()) {
+            return redirect()->back()->with('error', 'Enrollment for this course is currently closed.');
+        }
+
+        $userId = auth()->id();
+        if ($course->users()->where('user_id', $userId)->exists()) {
+            return redirect()->back()->with('info', 'You are already enrolled in this course.');
+        }
+
+        $course->users()->attach($userId, [
+            'status' => 'active',
+            'current_module' => 1,
+            'progress_percentage' => 0,
+        ]);
+
+        return redirect()->route('trainee.courses.show', $course)->with('success', 'You have successfully enrolled in the course.');
+    }
+
+    public function enrollControlled(Request $request, Course $course)
+    {
+        $request->validate([
+            'access_code' => 'required|string',
+        ]);
+
+        if ($course->course_type !== 'controlled') {
+            return response()->json(['message' => 'This course does not require an access code.'], 400);
+        }
+
+        if ($course->access_code !== $request->access_code) {
+            return response()->json(['message' => 'Invalid code, please try again.'], 422);
+        }
+
+        if (!$course->isEnrollable()) {
+            return response()->json(['message' => 'Enrollment for this course is currently closed.'], 403);
+        }
+
+        $userId = auth()->id();
+        if ($course->users()->where('user_id', $userId)->exists()) {
+            return response()->json(['message' => 'You are already enrolled in this course.'], 200);
+        }
+
+        $course->users()->attach($userId, [
+            'status' => 'active',
+            'current_module' => 1,
+            'progress_percentage' => 0,
+        ]);
+
+        return response()->json(['message' => 'Success! You have been enrolled.', 'redirect' => route('trainee.courses.show', $course)]);
     }
 
     public function enrollUser(Request $request, Course $course)

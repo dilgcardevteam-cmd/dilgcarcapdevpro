@@ -269,6 +269,20 @@
                         </div>
                         <div class="right">
                             <div class="section">
+                                <div class="section-title"><i class="fas fa-tags"></i> Course Type</div>
+                                <div style="display:flex; gap:16px;">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="radio" name="course_type" value="free" required>
+                                        <span>Free</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="radio" name="course_type" value="controlled" required>
+                                        <span>Controlled</span>
+                                    </label>
+                                </div>
+                                <div id="courseTypeError" class="error-text" style="display:none;"></div>
+                            </div>
+                            <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
                                 <select id="subject_area" name="subject_area" required aria-describedby="subjectError">
                                     <option value="" disabled selected>Select Subject Area</option>
@@ -398,6 +412,9 @@
                                         
                                         <span class="summary-label" style="margin-top: 12px;">Subject Area</span>
                                         <div id="summarySubject"></div>
+
+                                        <span class="summary-label" style="margin-top: 12px;">Course Type</span>
+                                        <div id="summaryCourseType"></div>
                                     </div>
                                     <div id="summaryImageWrapper">
                                         <span class="summary-label">Course Image</span>
@@ -2029,6 +2046,8 @@
             if(!name.value.trim() || name.value.length > 100){ ok = false; setError(name,'nameError','Name is required (max 100).'); } else setError(name,'nameError','');
             if(!desc.value.trim() || desc.value.length > 1000){ ok = false; setError(desc,'descError','Description is required, max 1000 characters.'); } else setError(desc,'descError','');
             if(!subj.value){ ok = false; setError(subj,'subjectError','Select a subject area.'); } else setError(subj,'subjectError','');
+            const courseType = document.querySelector('input[name="course_type"]:checked');
+            if(!courseType){ ok = false; setError(document.querySelector('input[name="course_type"]'),'courseTypeError','Select a course type.'); } else { setError(document.querySelector('input[name="course_type"]'),'courseTypeError',''); }
             
             const imageDraft = document.getElementById('image_draft_data');
             if((!image.files || !image.files[0]) && (!imageDraft || !imageDraft.value)){
@@ -2190,6 +2209,8 @@
             document.getElementById('summaryDescription').textContent = document.getElementById('description').value || '(No description)';
             const subj = document.getElementById('subject_area');
             document.getElementById('summarySubject').textContent = subj.options[subj.selectedIndex]?.text || '(No subject area)';
+            const courseType = document.querySelector('input[name="course_type"]:checked');
+            document.getElementById('summaryCourseType').textContent = courseType ? courseType.value.charAt(0).toUpperCase() + courseType.value.slice(1) : '(No course type selected)';
             
             // Image Preview
             const imgPreview = document.getElementById('imagePreview');

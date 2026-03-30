@@ -29,6 +29,8 @@ class Course extends Model
         'enrollment_start',
         'enrollment_end',
         'certification_id',
+        'course_type',
+        'access_code',
     ];
 
     public function certification()
