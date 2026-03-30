@@ -1210,9 +1210,6 @@
             }).join('');
             const timerMins = parseInt(ex.timer_minutes||0,10) || 0;
             const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;
-            const attemptLim = (ex.max_attempts!=null && ex.max_attempts!=='')
-                ? (parseInt(ex.max_attempts,10)||0)
-                : ((ex.attempt_limit!=null && ex.attempt_limit!=='') ? (parseInt(ex.attempt_limit,10)||0) : null);
             // Optional trainer-only Results button
             const resultsBtn = IS_TRAINER ? '<button id="examResultsBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">View Results</button>' : '';
             const titleText = ex.title ? `Module Exam: ${esc(ex.title)}` : 'Module Exam';
@@ -1240,7 +1237,6 @@
                                 <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#0f3b8f"></i> ${qs.length} item${qs.length===1?'':'s'}</span>
                                 ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#0f3b8f"></i> ${timerMins} min</span>` : `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-infinity" style="margin-right:6px;color:#0f3b8f"></i> No time limit</span>`}
                                 ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check-circle" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
-                                ${attemptLim && attemptLim>0 ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-rotate" style="margin-right:6px;color:#0f3b8f"></i> ${attemptLim} attempt${attemptLim===1?'':'s'}</span>` : ``}
                             </div>
                         </div>
                         <div style="color:#334155;margin:0 0 12px 0">
@@ -1478,9 +1474,6 @@
                             }
                             serverSummary = j.summary || null;
                             serverCompleted = !!j.completed;
-                            if(serverSummary?.max_attempts_reached){
-                                alert(serverSummary.max_attempts_message || 'You have reached the maximum number of attempts.');
-                            }
                         }catch(_){
                             if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
                             alert('Exam submission failed. Please check your connection and try again.');
@@ -1548,14 +1541,12 @@
                                 ? (finalPct >= effectivePassingScore)
                                 : null))
                         : null;
-                    const canRetake = status === 'completed' && passed === false && !summary?.max_attempts_reached;
+                    const canRetake = status === 'completed' && passed === false;
                     const statusTxt = status === 'pending_review'
                         ? 'Your essay answers are waiting for trainer review.'
                         : status === 'partially_graded'
                             ? 'Your objective items are graded. Essay items are still under review.'
-                            : (summary?.max_attempts_reached
-                                ? 'You have reached the maximum number of attempts.'
-                                : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.')));
+                            : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'));
                     const statusColor = status === 'pending_review'
                         ? '#b45309'
                         : status === 'partially_graded'

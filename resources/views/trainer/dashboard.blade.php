@@ -72,131 +72,282 @@
             gap: 15px;
         }
 
-        /* Notification Styles */
+        /* Modern Notification Styles */
         .notification-container {
             position: relative;
-            margin-right: 10px;
         }
         
         .notification-bell {
             cursor: pointer;
             position: relative;
             color: var(--primary-blue);
-            font-size: 1.2rem;
-            width: 40px;
-            height: 40px;
+            font-size: 1.25rem;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: background-color 0.2s;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .notification-bell:hover {
-            background-color: #f5f5f5;
+            background-color: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .notification-bell:active {
+            transform: translateY(0);
         }
 
         .notification-badge {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #d9534f;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
             color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
+            border-radius: 999px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
             font-size: 0.7rem;
-            font-weight: bold;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
         }
 
         .notification-dropdown {
             display: none;
             position: absolute;
-            top: 50px;
-            right: -10px;
-            width: 320px;
+            top: 55px;
+            right: 0;
+            width: 380px;
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            z-index: 1000;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+            z-index: 1200;
             overflow: hidden;
-            border: 1px solid #eee;
+            border: 1px solid #e2e8f0;
+            animation: dropdownFadeIn 0.2s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .notification-header {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-weight: bold;
-            color: var(--primary-blue);
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background-color: white;
+        }
+
+        .notification-header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f9f9f9;
+            margin-bottom: 4px;
+        }
+
+        .notification-header-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .mark-all-read {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .mark-all-read:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .notification-header-subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
         }
 
         .notification-list {
-            max-height: 350px;
+            max-height: 400px;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
         }
 
         .notification-item {
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
             cursor: pointer;
-            transition: background-color 0.2s;
-            display: block;
+            transition: all 0.2s;
+            display: flex;
+            gap: 14px;
             text-decoration: none;
             color: inherit;
+            position: relative;
         }
 
         .notification-item:hover {
-            background-color: #f9f9f9;
+            background-color: #f8fafc;
         }
 
         .notification-item.unread {
-            background-color: #e3f2fd;
+            background-color: #f0f7ff;
         }
 
         .notification-item.unread:hover {
-            background-color: #daeefc;
+            background-color: #e5f1ff;
         }
 
-        .notification-title {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--dark-text);
-            margin-bottom: 5px;
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
         }
 
-        .unread-dot {
-            display: inline-block;
+        /* Notification Types Icons */
+        .icon-course { background-color: #e0ebff; color: #1d4ed8; }
+        .icon-student { background-color: #ecfdf5; color: #059669; }
+        .icon-assessment { background-color: #fff7ed; color: #d97706; }
+        .icon-calendar { background-color: #fef2f2; color: #dc2626; }
+        .icon-announcement { background-color: #f5f3ff; color: #7c3aed; }
+        .icon-default { background-color: #f1f5f9; color: #475569; }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-item-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .notification-item.unread .notification-item-title {
+            padding-right: 15px;
+        }
+
+        .unread-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             width: 8px;
             height: 8px;
-            background-color: #007bff;
+            background-color: #3b82f6;
             border-radius: 50%;
-            margin-right: 8px;
-            flex-shrink: 0;
         }
 
-        .notification-message {
-            font-size: 0.85rem;
-            color: var(--light-text);
-            margin-bottom: 5px;
+        .notification-item-message {
+            font-size: 0.82rem;
+            color: #64748b;
             line-height: 1.4;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .notification-time {
+        .notification-item-time {
             font-size: 0.75rem;
-            color: #999;
+            color: #94a3b8;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .empty-notifications {
-            padding: 30px;
+        .notification-footer {
+            padding: 14px;
             text-align: center;
-            color: var(--light-text);
-            font-style: italic;
+            background-color: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .view-all-link {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .view-all-link:hover {
+            color: #1d4ed8;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .empty-state-text {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .notification-dropdown {
+                width: calc(100vw - 32px);
+                right: -50px;
+            }
+        }
+
+        /* Bell Shake Animation */
+        @keyframes bellShake {
+            0% { transform: rotate(0); }
+            15% { transform: rotate(10deg); }
+            30% { transform: rotate(-10deg); }
+            45% { transform: rotate(5deg); }
+            60% { transform: rotate(-5deg); }
+            75% { transform: rotate(2deg); }
+            100% { transform: rotate(0); }
+        }
+
+        .bell-shake {
+            animation: bellShake 0.6s ease-in-out;
         }
 
         .user-profile {
@@ -1423,38 +1574,65 @@
         <div class="header-right">
             <!-- Notification Bell -->
             <div class="notification-container">
-                <div class="notification-bell" onclick="toggleNotifications()">
+                <div class="notification-bell {{ (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0) ? 'bell-shake' : '' }}" onclick="toggleNotifications()">
                     <i class="fas fa-bell"></i>
                     @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                        <span class="notification-badge">{{ $unreadNotificationsCount }}</span>
+                        <span class="notification-badge">{{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}</span>
                     @endif
                 </div>
                 
                 <div id="notificationDropdown" class="notification-dropdown">
                     <div class="notification-header">
-                        <span>Notifications</span>
-                        <span style="font-size: 0.8rem; color: var(--light-text); background: #eee; padding: 2px 8px; border-radius: 10px;">{{ isset($unreadNotificationsCount) ? $unreadNotificationsCount : 0 }} New</span>
+                        <div class="notification-header-top">
+                            <span class="notification-header-title">Notifications</span>
+                            <span class="mark-all-read" onclick="markAllAsRead()">Mark all as read</span>
+                        </div>
+                        <div class="notification-header-subtitle">Stay updated with your assigned courses and activities.</div>
                     </div>
-                    <div class="notification-list">
+                    <div class="notification-list" id="notificationList">
                         @if(isset($notifications) && $notifications->count() > 0)
                             @foreach($notifications as $notification)
+                                @php
+                                    $iconClass = 'icon-default';
+                                    $icon = 'fa-bell';
+                                    
+                                    if (str_contains(strtolower($notification->title), 'course')) {
+                                        $iconClass = 'icon-course'; $icon = 'fa-book';
+                                    } elseif (str_contains(strtolower($notification->title), 'student') || str_contains(strtolower($notification->title), 'enrolled')) {
+                                        $iconClass = 'icon-student'; $icon = 'fa-user-graduate';
+                                    } elseif (str_contains(strtolower($notification->title), 'assessment') || str_contains(strtolower($notification->title), 'submitted')) {
+                                        $iconClass = 'icon-assessment'; $icon = 'fa-file-alt';
+                                    } elseif (str_contains(strtolower($notification->title), 'session') || str_contains(strtolower($notification->title), 'calendar')) {
+                                        $iconClass = 'icon-calendar'; $icon = 'fa-calendar-alt';
+                                    } elseif (str_contains(strtolower($notification->title), 'announcement')) {
+                                        $iconClass = 'icon-announcement'; $icon = 'fa-bullhorn';
+                                    }
+                                @endphp
                                 <div class="notification-item {{ $notification->is_read ? '' : 'unread' }}" onclick="markAsRead('{{ $notification->id }}', '{{ $notification->link }}')">
-                                    <div class="notification-title">
-                                        @if(!$notification->is_read) <span class="unread-dot"></span> @endif
-                                        {{ $notification->title }}
+                                    <div class="notification-icon {{ $iconClass }}">
+                                        <i class="fas {{ $icon }}"></i>
                                     </div>
-                                    <div class="notification-message">{{ $notification->message }}</div>
-                                    <div class="notification-time">
-                                        <i class="far fa-clock" style="margin-right: 3px;"></i> {{ $notification->created_at->diffForHumans() }}
+                                    <div class="notification-content">
+                                        <div class="notification-item-title">{{ $notification->title }}</div>
+                                        <div class="notification-item-message">{{ $notification->message }}</div>
+                                        <div class="notification-item-time">
+                                            <i class="far fa-clock"></i> {{ $notification->created_at->diffForHumans() }}
+                                        </div>
                                     </div>
+                                    @if(!$notification->is_read)
+                                        <div class="unread-indicator"></div>
+                                    @endif
                                 </div>
                             @endforeach
                         @else
-                            <div class="empty-notifications">
-                                <i class="far fa-bell-slash" style="font-size: 2rem; color: #ddd; margin-bottom: 10px; display: block;"></i>
-                                No notifications yet
+                            <div class="empty-state">
+                                <div class="empty-state-icon"><i class="far fa-bell-slash"></i></div>
+                                <div class="empty-state-text">No new notifications yet.</div>
                             </div>
                         @endif
+                    </div>
+                    <div class="notification-footer">
+                        <a href="{{ route('dashboard', ['tab' => 'notifications']) }}" class="view-all-link">View All Notifications</a>
                     </div>
                 </div>
             </div>
@@ -3098,10 +3276,16 @@
         // Notification Logic
         function toggleNotifications() {
             var dropdown = document.getElementById('notificationDropdown');
+            var bell = document.querySelector('.notification-bell');
             if (dropdown.style.display === 'block') {
                 dropdown.style.display = 'none';
+                if(bell) bell.classList.remove('active');
             } else {
                 dropdown.style.display = 'block';
+                if(bell) {
+                    bell.classList.add('active');
+                    bell.classList.remove('bell-shake');
+                }
             }
         }
 
@@ -3122,21 +3306,21 @@
                     // Update badge
                     var badge = document.querySelector('.notification-badge');
                     if (badge) {
-                        var count = parseInt(badge.innerText);
+                        var countText = badge.textContent.replace('+', '');
+                        var count = parseInt(countText);
                         if (count > 1) {
-                            badge.innerText = count - 1;
-                            // Update header count too
-                            var headerCount = document.querySelector('.notification-header span:last-child');
-                            if (headerCount) {
-                                headerCount.innerText = (count - 1) + ' New';
-                            }
+                            badge.textContent = (count - 1) > 9 ? '9+' : (count - 1);
                         } else {
                             badge.remove();
-                            var headerCount = document.querySelector('.notification-header span:last-child');
-                            if (headerCount) {
-                                headerCount.innerText = '0 New';
-                            }
                         }
+                    }
+                    
+                    // Update item UI
+                    var item = document.querySelector(`.notification-item[onclick*="'${notificationId}'"]`);
+                    if (item) {
+                        item.classList.remove('unread');
+                        var indicator = item.querySelector('.unread-indicator');
+                        if (indicator) indicator.remove();
                     }
                     
                     // Redirect if link exists
@@ -3153,13 +3337,44 @@
             });
         }
 
+        function markAllAsRead() {
+            event.stopPropagation();
+            
+            fetch('/notifications/mark-all-as-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove all unread styles
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                        var indicator = item.querySelector('.unread-indicator');
+                        if (indicator) indicator.remove();
+                    });
+                    
+                    // Remove badge
+                    var badge = document.querySelector('.notification-badge');
+                    if (badge) badge.remove();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             var container = document.querySelector('.notification-container');
             var dropdown = document.getElementById('notificationDropdown');
+            var bell = document.querySelector('.notification-bell');
             
             if (container && !container.contains(event.target)) {
                 if (dropdown) dropdown.style.display = 'none';
+                if (bell) bell.classList.remove('active');
             }
         });
         function toggleProfileMenu(){

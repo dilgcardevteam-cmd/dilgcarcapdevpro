@@ -15,14 +15,6 @@ class AssessmentAnswerController extends Controller
     {
         $user = Auth::user();
         if(!$user){ abort(401); }
-        if (($assessment->max_attempts ?? null) !== null) {
-            $attemptsUsed = Grade::where('assessment_id', $assessment->id)
-                ->where('user_id', $user->id)
-                ->count();
-            if ($attemptsUsed >= (int) $assessment->max_attempts) {
-                return redirect()->back()->with('error', 'You have reached the maximum number of attempts.');
-            }
-        }
         $questions = is_array($assessment->questions_json)
             ? $assessment->questions_json
             : (json_decode($assessment->questions_json, true) ?: []);
@@ -72,10 +64,6 @@ class AssessmentAnswerController extends Controller
         $attemptNo = Grade::where('assessment_id', $assessment->id)
             ->where('user_id', $user->id)
             ->count() + 1;
-        if (($assessment->max_attempts ?? null) !== null && $attemptNo > (int) $assessment->max_attempts) {
-            return redirect()->route('trainee.assessments.take', $assessment)
-                ->with('error', 'You have reached the maximum number of attempts.');
-        }
         $answers = $request->input('answers', []);
         $questions = is_array($assessment->questions_json)
             ? $assessment->questions_json

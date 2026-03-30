@@ -122,10 +122,6 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
             <label class="label">Passing Score (%)</label>
             <input class="input" type="number" min="0" max="100" id="setPassing" name="passing_score" placeholder="e.g., 70">
           </div>
-          <div class="field">
-            <label class="label">Max Attempts</label>
-            <input class="input" type="number" min="1" id="setAttempts" name="max_attempts" placeholder="e.g., 3">
-          </div>
         </div>
         <div class="row">
           <label class="field" style="flex:0 0 auto;display:flex;align-items:center;gap:8px">

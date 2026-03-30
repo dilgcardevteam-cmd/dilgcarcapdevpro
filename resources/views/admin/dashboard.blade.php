@@ -9349,6 +9349,20 @@
             initializeUserDetailsSection();
             const params = new URLSearchParams(window.location.search);
             const requestedTab = params.get('tab');
+            const clearDraftKey = params.get('clear_draft');
+
+            if (clearDraftKey) {
+                // Clear both the legacy key and the new active key
+                localStorage.removeItem('draft_course_create');
+                localStorage.removeItem('draft_course_active_new');
+                sessionStorage.removeItem('draft_course_key');
+                sessionStorage.setItem('load_draft', '0');
+                
+                // Also remove it from URL so refresh doesn't keep clearing
+                const url = new URL(window.location.href);
+                url.searchParams.delete('clear_draft');
+                window.history.replaceState({}, '', url.toString());
+            }
             
             if (requestedTab === 'user-details-section') {
                 const stored = sessionStorage.getItem('current_viewing_user');
@@ -9371,8 +9385,16 @@
             }
 
             if (requestedTab === 'course-create') {
-                const isDraft = sessionStorage.getItem('load_draft') === '1';
-                openAddCourseModal(isDraft);
+                const loadFlag = sessionStorage.getItem('load_draft');
+                if (loadFlag === '1') {
+                    openAddCourseModal(true);
+                } else if (loadFlag === '0') {
+                    openAddCourseModal(false);
+                } else {
+                    // Manual URL entry or refresh - preserve existing frame state/draft
+                    showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
+                    ensureCourseCreateFrameLoaded();
+                }
             } else if (requestedTab === 'course-management' && params.get('open_add_course') === '1') {
                 openAddCourseModal();
             }
@@ -9490,12 +9512,17 @@
             if (!forceDraft) {
                 sessionStorage.setItem('load_draft', '0');
                 sessionStorage.removeItem('draft_course_key');
+                // Clear active draft keys immediately
+                localStorage.removeItem('draft_course_active_new');
+                localStorage.removeItem('draft_course_create');
             }
             
             const frame = document.getElementById('courseCreateFrame');
             if (frame) {
-                // Force reload to ensure a fresh blank form or loaded draft
-                frame.src = courseCreateEmbeddedUrl;
+                // Force reload with a timestamp to ensure fresh load and trigger DOMContentLoaded
+                const baseUrl = courseCreateEmbeddedUrl;
+                const separator = baseUrl.includes('?') ? '&' : '?';
+                frame.src = baseUrl + separator + 't=' + Date.now();
             }
             showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }

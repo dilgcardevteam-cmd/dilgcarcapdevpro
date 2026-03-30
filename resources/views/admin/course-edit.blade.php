@@ -3084,10 +3084,6 @@
                             <span class="exam-meta-timer-label">Passing Rate (%)</span>
                             <input type="number" min="1" max="100" class="exam-passing-score exam-meta-timer-input" placeholder="e.g., 75">
                         </label>
-                        <label class="exam-meta-timer">
-                            <span class="exam-meta-timer-label">Max Attempts</span>
-                            <input type="number" min="1" class="exam-max-attempts exam-meta-timer-input" placeholder="e.g., 3">
-                        </label>
                         <div class="exam-meta-title">Module Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
@@ -3252,13 +3248,12 @@
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
                 const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
                 const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
-                const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
                 const list = wrap.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                const val = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
+                const val = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
                 wrap.querySelector('.exam-json').value = val;
                 try{ localStorage.setItem('exam_draft_edit_{{ $course->id }}', val); }catch(e){}
             }
@@ -3388,7 +3383,6 @@
                 try{
                     wrap.querySelector('.exam-duration').value = prefill.timer_minutes || '';
                     const pass = wrap.querySelector('.exam-passing-score'); if(pass) pass.value = prefill.passing_score || '';
-                    const attempts = wrap.querySelector('.exam-max-attempts'); if(attempts) attempts.value = prefill.max_attempts || prefill.attempt_limit || '';
                     if(prefill.title) wrap.querySelector('.exam-title').value = prefill.title;
                     if(prefill.description) wrap.querySelector('.exam-desc').value = prefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
@@ -3491,7 +3485,7 @@
                 try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && (obj.text||obj.title)){ qs.push(obj); } }catch(e){}
             });
             const hidden = wrap.querySelector('.exam-json');
-            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
+            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
         }
         function populateBuilderFromItem(wrap, idx){
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
@@ -3799,7 +3793,6 @@
                         try{ hidden.value = JSON.stringify(mod.exam); }catch(e){}
                         const dur = host.querySelector('.exam-duration'); if(dur) dur.value = mod.exam.timer_minutes || '';
                         const pass = host.querySelector('.exam-passing-score'); if(pass) pass.value = mod.exam.passing_score || '';
-                        const attempts = host.querySelector('.exam-max-attempts'); if(attempts) attempts.value = mod.exam.max_attempts || mod.exam.attempt_limit || '';
                         const listEl = host.querySelector('.exam-q-list');
                         (mod.exam.questions||[]).forEach((q, idx)=>{
                             const node = document.createElement('div');

@@ -1398,24 +1398,21 @@
                     $isTrainer = !empty($asTrainer) || (\Illuminate\Support\Facades\Auth::check() && (in_array($currentRole, ['trainer', 'coach'], true) || \Illuminate\Support\Str::endsWith((string) $currentRole, '_coach')));
                 @endphp
                 @if(!empty($asTrainer))
-                <div class="container-box" id="progressContainer" style="margin-bottom:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div class="container-box" id="progressContainer" style="margin-bottom:12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                         <div class="section-head" style="margin:0;color:var(--text);font-weight:700;">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-table"></i></div>
-                            <div>Participant Progress</div>
+                            <div style="width:40px;height:40px;border-radius:12px;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#0f3b8f; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"><i class="fas fa-table"></i></div>
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #1e293b;">Participant Progress</div>
                         </div>
-                    </div>
-                    <div id="participantProgressFull" class="card" style="padding:0;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e5e7eb;">
-                        <div style="font-weight:800;color:#0f172a">Participant Progress</div>
-                        <button id="notifyIncompleteBtn" class="btn-cta" style="background-color: #C9282D; padding: 8px 12px; font-size: 0.8rem;">
+                        <button id="notifyIncompleteBtn" class="btn-cta" style="background-color: #C9282D; padding: 12px 20px; font-size: 0.875rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);">
                             <i class="fas fa-bell"></i>
                             Notify Incomplete Participants
                         </button>
                     </div>
-                        <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e5e7eb">
+                    <div id="participantProgressFull" class="card" style="padding:0; border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);">
+                        <div id="progressTableScroller" style="overflow:auto;border-bottom:1px solid #e2e8f0">
                             <table id="progressTable" style="border-collapse:collapse;width:100%;min-width:960px">
-                                <thead></thead>
+                                <thead style="background-color: #f1f5f9;"></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -2234,7 +2231,7 @@
                 : '';
             const canReview = score?.exam_has_submission === true || score?.exam_status || score?.exam_pct != null;
             const reviewBtn = canReview
-                ? `<button type="button" class="btn btn-ghost js-review-attempt-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" data-exam-title="${String(plan.title || 'Module Exam').replace(/"/g, '&quot;')}" style="margin-top:8px;border-radius:10px;padding:6px 10px;cursor:pointer;position:relative;z-index:2">View Attempt</button>`
+                ? `<button type="button" class="btn btn-ghost js-review-attempt-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" data-exam-title="${String(plan.title || 'Module Exam').replace(/"/g, '&quot;')}" style="margin-top:8px;border-radius:10px;padding:6px 10px;cursor:pointer;position:relative;z-index:2; font-weight: 600; color: #475569; background-color: #f1f5f9; border: 1px solid #e2e8f0;">View Attempt</button>`
                 : `<button type="button" class="btn btn-ghost" style="margin-top:8px;border-radius:10px;padding:6px 10px;opacity:.55;cursor:not-allowed" disabled title="The trainee has not submitted this exam yet.">No Attempt Yet</button>`;
             
             let retakeBtn = '';
@@ -2246,7 +2243,7 @@
                 }
             }
 
-            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:${statusColor}">${statusLabel}</div>${reviewBtn}${retakeBtn}</td>`);
+            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: 600; color: ${statusColor}; background-color: ${statusColor}1a;">${statusLabel}</div>${reviewBtn}${retakeBtn}</td>`);
         }
         async function renderParticipantProgress(){
             const info = document.getElementById('progressInfo');
@@ -2261,24 +2258,24 @@
                 if(!j || !j.ok){ if(info) info.textContent='Failed to load.'; return; }
                 const mods = Array.isArray(j.modules)?j.modules:[];
                 const users = Array.isArray(j.users)?j.users:[];
-                const h1 = ['<th style="position:sticky;left:0;background:#fff;z-index:2;text-align:left;padding:10px;border:1px solid #e5e7eb">Participant\'s Name</th>'];
+                const h1 = ['<th style="position:sticky;left:0;background:#f1f5f9;z-index:2;text-align:left;padding:12px 16px;border-bottom:1px solid #e2e8f0; font-weight: 600; color: #475569;">Participant\'s Name</th>'];
                 const colPlan = [];
                 mods.forEach((m, idx)=>{
                     const baseTitle = (m && m.title) ? m.title : `Module ${idx+1}`;
                     if((m?.total_subs||0) > 0){
-                        h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Module ${idx+1}: ${baseTitle}</th>`);
+                        h1.push(`<th style="text-align:center;padding:12px 16px;border-bottom:1px solid #e2e8f0; font-weight: 600; color: #475569;">Module ${idx+1}: ${baseTitle}</th>`);
                         colPlan.push({type:'module', mi: idx});
                     }
                     const examTitle = (m && m.exam_title) ? m.exam_title : '';
                     if(examTitle){
-                        h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Module Exam: ${examTitle}</th>`);
+                        h1.push(`<th style="text-align:center;padding:12px 16px;border-bottom:1px solid #e2e8f0; font-weight: 600; color: #475569;">Module Exam: ${examTitle}</th>`);
                         colPlan.push({type:'exam', mi: idx, pass: m?.passing_score ?? null, title: examTitle});
                     }
                 });
-                h1.push(`<th style="text-align:center;padding:10px;border:1px solid #e5e7eb;background:#f8fafc">Notify</th>`);
+                h1.push(`<th style="text-align:center;padding:12px 16px;border-bottom:1px solid #e2e8f0; font-weight: 600; color: #475569;">Notify</th>`);
                 if(thead){ thead.innerHTML = `<tr>${h1.join('')}</tr>`; }
                 const rows = users.map(u=>{
-                    const first = `<td style="position:sticky;left:0;background:#fff;z-index:1;padding:10px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#0f172a">${u.name||('User '+u.user_id)}</td>`;
+                    const first = `<td style="position:sticky;left:0;background:#fff;z-index:1;padding:12px 16px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#1e293b">${u.name||('User '+u.user_id)}</td>`;
                     const cells = colPlan.map(plan=>{
                         const s = u.scores?.[plan.mi] || {};
                         if(plan.type==='module'){
@@ -2286,13 +2283,13 @@
                             if(!hasTotal) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--%</td>`;
                             const pct = (s.module_pct==null) ? null : (parseInt(s.module_pct,10)||0);
                             if(pct===null) return `<td style="text-align:center;background:#f8fafc;color:#64748b">--%</td>`;
-                            return `<td style="text-align:center;background:#eef7ee;color:#166534;border-bottom:1px solid #e5e7eb">${pct}%</td>`;
+                            return `<td style="text-align:center;background:#fff;color:#166534;border-bottom:1px solid #e2e8f0"><div style="width: 100%; background-color: #e2e8f0; border-radius: 9999px;"><div style="width: ${pct}%; background-color: #22c55e; color: #fff; border-radius: 9999px; text-align: center; font-weight: 600;">${pct}%</div></div></td>`;
                         }else{
                             return renderExamProgressCell(u, plan, s);
                         }
                     }).join('');
-                    const notifyBtn = `<td style="text-align:center;border-bottom:1px solid #e5e7eb">
-                        <button onclick="notifyIndividual(${u.user_id}, this)" class="btn-cta" style="background-color: #C9282D; padding: 4px 8px; font-size: 0.7rem; margin: 0;">
+                    const notifyBtn = `<td style="text-align:center;border-bottom:1px solid #e2e8f0">
+                        <button onclick="notifyIndividual(${u.user_id}, this)" class="btn-cta" style="background-color: #C9282D; padding: 8px 12px; font-size: 0.8rem; border-radius: 6px;">
                             <i class="fas fa-bell"></i> Notify
                         </button>
                     </td>`;

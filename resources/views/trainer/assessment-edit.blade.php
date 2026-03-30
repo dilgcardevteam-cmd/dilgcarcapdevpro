@@ -97,10 +97,6 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
                         <label class="label">Passing Rate (%)</label>
                         <input class="input" type="number" min="1" max="100" name="passing_score" value="{{ old('passing_score', $assessment->passing_score ?? '') }}" placeholder="e.g., 75">
                     </div>
-                    <div class="field">
-                        <label class="label">Max Attempts</label>
-                        <input class="input" type="number" min="1" name="max_attempts" value="{{ old('max_attempts', $assessment->max_attempts ?? '') }}" placeholder="e.g., 3">
-                    </div>
                 </div>
             </div>
 
