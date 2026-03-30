@@ -32,7 +32,16 @@ class Course extends Model
         'certification_id',
         'course_type',
         'access_code',
+        'academic_year_id',
     ];
+
+    /**
+     * Get the academic year for the course.
+     */
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
 
     public function certification()
     {

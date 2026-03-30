@@ -1776,6 +1776,62 @@
             
             <!-- Dashboard Home Section -->
             <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
+                <!-- Academic Year Selector -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; background: #fff; padding: 12px 20px; border-radius: 16px; border: 1px solid #e5eef7; box-shadow: 0 4px 15px rgba(0,44,118,0.03);">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); color: #002C76; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;">Session Filter</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.1rem; font-weight: 800; color: #002C76; letter-spacing: -0.01em;">
+                                    Academic Year {{ $selectedYear ? $selectedYear->year_start . ' – ' . $selectedYear->year_end : 'N/A' }}
+                                </span>
+                                @if($selectedYear && $selectedYear->is_active)
+                                    <span style="background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; border: 1px solid #bbf7d0;">ACTIVE</span>
+                                @else
+                                    <span style="background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; border: 1px solid #e2e8f0;">INACTIVE</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @php
+                            $academicYears = $academicYears ?? collect();
+                            $currentIndex = $academicYears->search(fn($ay) => $ay->id == $selectedYearId);
+                            $prevYear = $currentIndex !== false && $currentIndex < $academicYears->count() - 1 ? $academicYears[$currentIndex + 1] : null;
+                            $nextYear = $currentIndex !== false && $currentIndex > 0 ? $academicYears[$currentIndex - 1] : null;
+                        @endphp
+                        
+                        <a href="{{ $prevYear ? route('dashboard', ['academic_year_id' => $prevYear->id]) : '#' }}" 
+                           class="btn" 
+                           title="Previous Year"
+                           style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: {{ $prevYear ? '#f1f5f9' : 'transparent' }}; border: {{ $prevYear ? '1px solid #e2e8f0' : 'none' }}; color: {{ $prevYear ? '#002C76' : '#cbd5e1' }}; {{ !$prevYear ? 'cursor: not-allowed;' : '' }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        
+                        <div style="position: relative;">
+                            <select onchange="window.location.href='{{ route('dashboard') }}?academic_year_id=' + this.value" 
+                                    style="appearance: none; background: transparent; border: none; padding: 0 25px 0 10px; height: 36px; font-weight: 700; color: #002C76; cursor: pointer; outline: none; min-width: 140px; font-size: 0.9rem;">
+                                @foreach($academicYears as $ay)
+                                    <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
+                                        {{ $ay->year_start }} – {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #64748b; font-size: 0.7rem;"></i>
+                        </div>
+
+                        <a href="{{ $nextYear ? route('dashboard', ['academic_year_id' => $nextYear->id]) : '#' }}" 
+                           class="btn" 
+                           title="Next Year"
+                           style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: {{ $nextYear ? '#f1f5f9' : 'transparent' }}; border: {{ $nextYear ? '1px solid #e2e8f0' : 'none' }}; color: {{ $nextYear ? '#002C76' : '#cbd5e1' }}; {{ !$nextYear ? 'cursor: not-allowed;' : '' }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
                 @if(session('success'))
                 <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     <i class="fas fa-check-circle"></i> {{ session('success') }}

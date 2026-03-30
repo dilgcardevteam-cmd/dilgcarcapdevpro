@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('courses', function (Blueprint $table) {
-            //
-        });
+        if (!Schema::hasColumn('courses', 'academic_year_id')) {
+            Schema::table('courses', function (Blueprint $table) {
+                $table->foreignId('academic_year_id')->nullable()->constrained()->onDelete('set null');
+            });
+        }
     }
 
     /**

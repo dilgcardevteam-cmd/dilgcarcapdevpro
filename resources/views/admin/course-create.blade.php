@@ -284,7 +284,29 @@
                             </div>
                             <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-calendar-check"></i> Academic Year</div>
-                                <input type="text" name="academic_year" class="pro-input" placeholder="e.g., 2024-2025">
+                                @php
+                                    $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+                                @endphp
+                                @if($activeYear)
+                                    <input type="text" name="academic_year_display" class="pro-input" value="{{ $activeYear->year_start }}–{{ $activeYear->year_end }}" readonly style="background:#f8fafc">
+                                    <input type="hidden" name="academic_year" value="{{ $activeYear->year_start }}–{{ $activeYear->year_end }}">
+                                    <input type="hidden" name="academic_year_id" value="{{ $activeYear->id }}">
+                                @else
+                                    <div style="background:#fff5f5; border:1px solid #feb2b2; color:#c53030; padding:10px; border-radius:10px; font-size:.9rem; font-weight:700">
+                                        <i class="fas fa-exclamation-triangle"></i> No active academic year set. Please contact Superadmin.
+                                    </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            const submitBtns = document.querySelectorAll('.btn-submit, #saveDraftBtn, #nextToModules');
+                                            submitBtns.forEach(btn => {
+                                                btn.disabled = true;
+                                                btn.title = 'Please set an active academic year first.';
+                                                btn.style.opacity = '0.5';
+                                                btn.style.cursor = 'not-allowed';
+                                            });
+                                        });
+                                    </script>
+                                @endif
                                 <div id="academicYearError" class="error-text" style="display:none;"></div>
                             </div>
                             <div class="section" style="margin-top:12px;">

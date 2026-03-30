@@ -129,6 +129,10 @@ Route::post('/admin/system-settings/backup/create', [DashboardController::class,
 Route::get('/admin/system-settings/backup/download/{file}', [DashboardController::class, 'downloadBackup'])->middleware(['auth'])->name('admin.settings.backup.download');
 Route::delete('/admin/system-settings/backup/delete/{file}', [DashboardController::class, 'deleteBackup'])->middleware(['auth'])->name('admin.settings.backup.delete');
 Route::post('/admin/system-settings/backup/restore', [DashboardController::class, 'restoreBackup'])->middleware(['auth'])->name('admin.settings.backup.restore');
+
+// Academic Year Management
+Route::post('/admin/system-settings/academic-year', [DashboardController::class, 'storeAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.store');
+Route::post('/admin/system-settings/academic-year/{academicYear}/activate', [DashboardController::class, 'activateAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.activate');
 // Trainer create classwork page
 Route::get('/trainer/courses/{course}/classwork/create', [CourseController::class, 'trainerClassworkCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.classwork.create');
 // Trainer create material/assessment dedicated pages

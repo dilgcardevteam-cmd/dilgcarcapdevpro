@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\AcademicYear;
 use App\Models\Assessment;
 use App\Models\ExamEssayResponse;
 use App\Models\Grade;
@@ -998,6 +999,12 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
+        // Ensure an active academic year exists
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        if (!$activeYear) {
+            return back()->withErrors(['academic_year' => 'No active academic year set. Please contact Superadmin.'], 'create_course')->withInput();
+        }
+
         $validated = $request->validateWithBag('create_course', [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
@@ -1011,6 +1018,10 @@ class CourseController extends Controller
             'course_type' => 'required|in:free,controlled',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
+
+        // Automatically assign active academic year
+        $validated['academic_year_id'] = $activeYear->id;
+        $validated['academic_year'] = "{$activeYear->year_start}–{$activeYear->year_end}";
 
         // Ensure DB columns that may be NOT NULL receive safe defaults
         if (!$request->filled('video_url')) {

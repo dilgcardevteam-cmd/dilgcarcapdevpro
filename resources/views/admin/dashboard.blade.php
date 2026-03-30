@@ -4877,6 +4877,18 @@
                             </div>
                             <div class="setting-sub">Safeguard your data with on-demand backups and secure restore.</div>
                         </div>
+                        @if(auth()->user()->role === 'super_admin')
+                        <div class="setting-card" onclick="openSetting('academic-year')">
+                            <div class="setting-head">
+                                <div class="setting-icon"><i class="fas fa-calendar-alt"></i></div>
+                                <div>
+                                    <div class="setting-title">Academic Year Management</div>
+                                    <div class="setting-sub">Set and manage the active academic year for course creation.</div>
+                                </div>
+                            </div>
+                            <div class="setting-sub">Control the academic years available in the system.</div>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <div id="settingsLocation" style="display:none">
@@ -5046,7 +5058,105 @@
                         </div>
                     </div>
                 </div>
+                <div id="settingsAcademicYear" style="display:none">
+                    <div class="import-wrap">
+                        <div class="import-card">
+                            <div class="import-hero">
+                                <div class="hero-left">
+                                    <div class="hero-icon"><i class="fas fa-calendar-alt"></i></div>
+                                    <div>
+                                        <div class="hero-title">Academic Year Management</div>
+                                        <div class="hero-sub">Create and set the active academic year</div>
+                                    </div>
+                                </div>
+                                <button class="btn-pill" onclick="backSettingsHome()"><i class="fas fa-arrow-left"></i> Back</button>
+                            </div>
+                            <div class="import-body">
+                                <div class="cta-row" style="justify-content:flex-end">
+                                    <button onclick="showAddAcademicYearForm()" class="btn btn-blue"><i class="fas fa-plus"></i> New Academic Year</button>
+                                </div>
+                                
+                                <div id="addAcademicYearForm" style="display:none; margin-top:16px; padding:16px; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc;">
+                                    <h3 style="margin-top:0; color:#0b3b8f">Add New Academic Year</h3>
+                                    <form id="academicYearStoreForm" method="POST" action="{{ route('admin.settings.academic-year.store') }}">
+                                        @csrf
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px">
+                                            <div>
+                                                <label class="form-label">Year Start</label>
+                                                <input type="number" name="year_start" class="input-pro" placeholder="e.g. 2025" required min="2000" max="2100">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Year End</label>
+                                                <input type="number" name="year_end" class="input-pro" placeholder="e.g. 2026" required min="2000" max="2100">
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:16px; display:flex; gap:8px">
+                                            <button type="submit" class="btn btn-blue">Save Academic Year</button>
+                                            <button type="button" onclick="hideAddAcademicYearForm()" class="btn">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div style="margin-top:16px">
+                                    <table class="table-pro" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Academic Year</th>
+                                                <th>Status</th>
+                                                <th>Created At</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $academicYears = \App\Models\AcademicYear::orderBy('year_start', 'desc')->get();
+                                            @endphp
+                                            @forelse($academicYears as $ay)
+                                                <tr style="{{ $ay->is_active ? 'background:#f0f7ff' : '' }}">
+                                                    <td style="font-weight:700">{{ $ay->year_start }} – {{ $ay->year_end }}</td>
+                                                    <td>
+                                                        @if($ay->is_active)
+                                                            <span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:800">ACTIVE</span>
+                                                        @else
+                                                            <span style="background:#f1f5f9; color:#64748b; padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:800">INACTIVE</span>
+                                                        @endif
+                                                    </td>
+                                                    <td style="color:#64748b; font-size:.85rem">{{ $ay->created_at->format('M d, Y') }}</td>
+                                                    <td>
+                                                        @if(!$ay->is_active)
+                                                            <form method="POST" action="{{ route('admin.settings.academic-year.activate', $ay->id) }}" style="display:inline">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-blue" style="font-size:.75rem; padding:6px 10px">Set as Active</button>
+                                                            </form>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr><td colspan="4" style="text-align:center; padding:30px; color:#64748b">No academic years found.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="import-side">
+                            <div class="side-head"><i class="fas fa-info-circle"></i> Academic Year Rules</div>
+                            <ul class="side-list">
+                                <li>Only one academic year can be active at a time.</li>
+                                <li>Activating a new year automatically deactivates the current one.</li>
+                                <li>New courses will be linked to the active academic year.</li>
+                                <li>Existing courses will retain their linked academic year.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <script>
+                    function showAddAcademicYearForm(){
+                        document.getElementById('addAcademicYearForm').style.display='block';
+                    }
+                    function hideAddAcademicYearForm(){
+                        document.getElementById('addAcademicYearForm').style.display='none';
+                    }
                     function openSetting(key){
                         if(key==='location'){
                             document.getElementById('settingsHome').style.display='none';
@@ -5054,14 +5164,19 @@
                         } else if (key==='backup'){
                             document.getElementById('settingsHome').style.display='none';
                             document.getElementById('settingsBackup').style.display='block';
+                        } else if (key==='academic-year'){
+                            document.getElementById('settingsHome').style.display='none';
+                            document.getElementById('settingsAcademicYear').style.display='block';
                         }
                     }
                     function backSettingsHome(){
                         var loc=document.getElementById('settingsLocation');
                         var bkp=document.getElementById('settingsBackup');
+                        var ay=document.getElementById('settingsAcademicYear');
                         if(loc) loc.style.display='none';
                         if(bkp) bkp.style.display='none';
-                            document.getElementById('settingsHome').style.display='block';
+                        if(ay) ay.style.display='none';
+                        document.getElementById('settingsHome').style.display='block';
                     }
                     (function(){
                         var form=document.getElementById('psgcImportForm');
