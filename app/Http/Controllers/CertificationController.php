@@ -280,27 +280,17 @@ class CertificationController extends Controller
         }
         $attached = 0;
         foreach ($enrolled as $u) {
-            if ($request->boolean('only_completed') && $overallTotal > 0) {
-                $rows = ReflectionResponse::where('user_id', $u->id)
-                    ->where('course_id', $course->id)
-                    ->get(['module_index','topic_index','sub_index','answers_json']);
-                $doneSet = [];
-                foreach ($rows as $r) {
-                    $answers = is_array($r->answers_json) ? $r->answers_json : [];
-                    $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
-                        ? trim($answers['learned'])
-                        : '';
-                    if ($val !== '') {
-                        $doneSet["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = true;
-                    }
-                }
-                $percent = $overallTotal ? round((count($doneSet)/$overallTotal)*100) : 0;
-                if ($percent < 100) {
+            $userModel = User::find($u->id);
+            if (!$userModel) continue;
+
+            if ($request->boolean('only_completed')) {
+                $progress = $course->getCourseProgress($userModel);
+                if ($progress['percentage'] < 100) {
                     continue;
                 }
             }
-            $user = User::find($u->id);
-            if ($user && !$user->certifications()->where('certification_id', $cert->id)->wherePivot('course_id',$course->id)->exists()) {
+            
+            if (!$userModel->certifications()->where('certification_id', $cert->id)->wherePivot('course_id',$course->id)->exists()) {
                 $user->certifications()->attach($cert->id, [
                     'course_id' => $course->id,
                     'certificate_number' => $this->generateCertificateNumber(),
@@ -386,18 +376,8 @@ class CertificationController extends Controller
         $notCert = [];
         $haveCert = [];
         foreach ($trainees as $t) {
-            $rows = ReflectionResponse::where('user_id', $t->id)
-                ->where('course_id', $course->id)
-                ->get(['module_index','topic_index','sub_index','answers_json']);
-            $doneSet = [];
-            foreach ($rows as $r) {
-                $ans = is_array($r->answers_json) ? $r->answers_json : [];
-                $val = array_key_exists('learned',$ans) && is_string($ans['learned']) ? trim($ans['learned']) : '';
-                if ($val !== '') {
-                    $doneSet["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = true;
-                }
-            }
-            $pct = $overallTotal ? round((count($doneSet)/$overallTotal)*100) : 0;
+            $progress = $course->getCourseProgress($t);
+            $pct = $progress['percentage'];
             $row = ['id'=>$t->id,'name'=>$t->name,'email'=>$t->email,'account_id'=>$t->account_id,'percent'=>$pct];
             if (array_key_exists($t->id, $certified)) {
                 $row['certification_id'] = $certified[$t->id]['certification_id'] ?? null;

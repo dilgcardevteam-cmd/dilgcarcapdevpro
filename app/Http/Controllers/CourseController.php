@@ -1858,6 +1858,7 @@ class CourseController extends Controller
             $data = $request->validate([
                 'enrollment_start_at' => 'required|date',
                 'enrollment_end_at' => 'required|date|after_or_equal:enrollment_start_at',
+                'trainer_id' => 'nullable|exists:users,id',
             ]);
             // Legacy fields for backward compatibility
             $course->enrollment_start_at = $data['enrollment_start_at'];
@@ -1866,6 +1867,14 @@ class CourseController extends Controller
             // New fields used by isEnrollable()
             $course->enrollment_start = $data['enrollment_start_at'];
             $course->enrollment_end = $data['enrollment_end_at'];
+
+            if (!empty($data['trainer_id'])) {
+                $course->trainer_id = $data['trainer_id'];
+                // Also attach to pivot table if not already linked
+                if (!$course->users()->where('user_id', $data['trainer_id'])->exists()) {
+                    $course->users()->attach($data['trainer_id'], ['status' => 'active']);
+                }
+            }
         }
         $course->is_published = $published;
         $course->save();

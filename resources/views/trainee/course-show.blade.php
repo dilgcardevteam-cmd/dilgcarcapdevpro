@@ -737,7 +737,7 @@
                     tEl.setAttribute('data-ti','exam');
                     const num = `${mi+1}.E`;
                     const qCount = m.exam.questions.length;
-                    const badge = `<span class="count" style="display:inline-block">$</span>`;
+                    const badge = `<span class="count" style="display:inline-block">${qCount}</span>`;
                     tEl.innerHTML = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
                         <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
@@ -813,10 +813,24 @@
             const topics = mod.querySelectorAll('.topic');
             let total=topics.length, done=0;
             topics.forEach((tEl)=>{
-                const ti = parseInt(tEl.getAttribute('data-ti'),10);
-                renderDoneStates(mi,ti,tEl);
-                if(hasReflection(mi,ti,-1)) done++;
+                const ti = tEl.getAttribute('data-ti');
+                if (ti === 'exam') return; // handle exam separately below
+                const tiInt = parseInt(ti, 10);
+                renderDoneStates(mi,tiInt,tEl);
+                if(hasReflection(mi,tiInt,-1)) done++;
             });
+
+            // If module has an embedded exam, include it in progress
+            const hasExam = m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length;
+            if (hasExam) {
+                total++;
+                const attempt = examAttemptCache[mi];
+                const passCfg = (m.exam.passing_score!=null && m.exam.passing_score!=='') ? (parseInt(m.exam.passing_score,10)||0) : 70;
+                if (attempt && (Number(attempt.final_pct ?? attempt.pct ?? attempt.objective_pct ?? 0) >= passCfg)) {
+                    done++;
+                }
+            }
+
             const pct = total ? Math.round((done/total)*100) : 0;
             const bar = mod.querySelector(`#bar_${mi}`); if(bar) bar.style.width = pct+'%';
             const kpi = mod.querySelector(`#kpi_${mi}`); if(kpi) kpi.textContent = total ? `${pct}%` : '';
@@ -852,10 +866,17 @@
             const finalPct = Number(attempt?.final_pct ?? attempt?.pct ?? attempt?.objective_pct ?? 0) || 0;
             const passCfg = (examCfg && examCfg.passing_score!=null && examCfg.passing_score!=='')
                 ? (parseInt(examCfg.passing_score,10) || 0)
-                : 75;
+                : 70;
             const isPassed = finalPct >= passCfg;
             if(kpi) kpi.textContent = `${finalPct}%`;
-            if(bar) bar.style.width = isPassed ? `${finalPct}%` : '0%';
+            if(bar) {
+                bar.style.width = `${finalPct}%`;
+                if (!isPassed) {
+                    bar.style.background = '#9ca3af'; // Grey for not passed
+                } else {
+                    bar.style.background = '#22c55e'; // Green for passed
+                }
+            }
         }
 
         async function updateAllExamBars(){
@@ -866,12 +887,13 @@
                 const hasTopics = Array.isArray(m.topics) && m.topics.length>0;
                 // Embedded exams create bar_ex_* elements
                 if(hasExam && hasTopics){
-                    updateExamBarFor(mi, `bar_ex_${mi}`, `kpi_ex_${mi}`, m.exam);
+                    await updateExamBarFor(mi, `bar_ex_${mi}`, `kpi_ex_${mi}`, m.exam);
                 }
                 // Exam-only modules are handled by updateProgressFor(), but we also call here as a safety net
                 if(hasExam && !hasTopics){
-                    updateExamBarFor(mi, `bar_${mi}`, `kpi_${mi}`, m.exam);
+                    await updateExamBarFor(mi, `bar_${mi}`, `kpi_${mi}`, m.exam);
                 }
+                if(!viewOnly){ updateProgressFor(mi); }
             }
         }
         function updateAllProgress(){

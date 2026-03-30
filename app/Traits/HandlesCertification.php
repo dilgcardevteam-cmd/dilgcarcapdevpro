@@ -14,42 +14,17 @@ use Dompdf\Options;
 trait HandlesCertification
 {
     /**
-     * Issue a certificate if the trainee has completed 100% of the course.
+     * Issue a certificate if the trainee has completed 100% of the course (both modules and exams).
      */
     public function issueCertificateIfCompleted(User $user, Course $course): bool
     {
-        // 1. Calculate overall progress
-        $mods = is_array($course->modules) ? $course->modules : [];
-        $overallTotal = 0;
-        foreach ($mods as $m) {
-            $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
-            foreach ($topics as $t) {
-                $subs = isset($t['subtopics']) && is_array($t['subtopics']) ? $t['subtopics'] : [];
-                $overallTotal += count($subs);
-            }
-        }
-
-        if ($overallTotal === 0) return false;
-
-        $rows = ReflectionResponse::where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->get(['module_index', 'topic_index', 'sub_index', 'answers_json']);
+        // 1. Calculate overall progress using Course model helper
+        $progress = $course->getCourseProgress($user);
         
-        $doneSet = [];
-        foreach ($rows as $r) {
-            $answers = is_array($r->answers_json) ? $r->answers_json : [];
-            $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
-                ? trim($answers['learned'])
-                : '';
-            if ($val !== '') {
-                $doneSet["{$r->module_index}_{$r->topic_index}_{$r->sub_index}"] = true;
-            }
-        }
-
-        $percent = round((count($doneSet) / $overallTotal) * 100);
+        if ($progress['total'] === 0) return false;
 
         // 2. Check if progress is 100%
-        if ($percent < 100) return false;
+        if ($progress['percentage'] < 100) return false;
 
         // 3. Find the certification associated with this course
         $certId = $course->certification_id;

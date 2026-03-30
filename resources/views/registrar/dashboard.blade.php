@@ -2061,8 +2061,12 @@
                                                     Unpublished
                                                 </span>
                                                 @if(Auth::user()->canManageTraining())
+                                                @php
+                                                    $currentTrainer = $course->users->filter(fn($u) => in_array($u->role, ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach']))->first();
+                                                    $trainerId = $currentTrainer ? $currentTrainer->id : '';
+                                                @endphp
                                                 <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
-                                                    onclick="event.stopPropagation(); openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}')">
+                                                    onclick="event.stopPropagation(); openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}', '{{ $trainerId }}')">
                                                     <i class="fas fa-bullhorn"></i> Publish Course
                                                 </button>
                                                 @endif
@@ -2077,46 +2081,104 @@
             </section>
             <!-- Publish Modal -->
             <div id="publishModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:3000;align-items:center;justify-content:center;">
-                <div id="publishModalCard" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle" style="display:block;width:min(420px,92vw);max-width:420px;background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 20px 44px rgba(2,6,23,.26);overflow:hidden;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e5e7eb">
-                        <div style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0f172a">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#ecfdf5;display:flex;align-items:center;justify-content:center;color:#0f3b8f"><i class="fas fa-calendar-check"></i></div>
-                            <div id="publishModalTitle">Enrollment Date Deadline</div>
+                <div id="publishModalCard" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle" style="width:min(94vw, 500px); border-radius:24px; background:#fff; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; border:none;">
+                    <div style="background:linear-gradient(135deg, #0f3b8f 0%, #1e40af 100%); padding:24px; color:white; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:40px; height:40px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-bullhorn" style="font-size:1.2rem;"></i>
+                            </div>
+                            <div>
+                                <h3 id="publishModalTitle" style="margin:0; font-size:1.1rem; font-weight:800; letter-spacing:-0.01em;">Publish Course</h3>
+                                <div id="publishCourseName" style="font-size:0.8rem; opacity:0.9; font-weight:500; margin-top:2px;"></div>
+                            </div>
                         </div>
-                        <button type="button" onclick="closePublishModal()" style="border:none;background:none;color:#64748b;font-size:1.1rem"><i class="fas fa-xmark"></i></button>
+                        <button type="button" onclick="closePublishModal()" style="background:rgba(255,255,255,0.1); border:none; color:white; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;">
+                            <i class="fas fa-xmark"></i>
+                        </button>
                     </div>
-                    <form id="publishForm" method="POST" action="" style="padding:16px">
+
+                    <form id="publishForm" method="POST" action="" style="padding:28px;">
                         @csrf
                         <input type="hidden" name="return_tab" value="trainer-trainee-management">
                         <input type="hidden" name="published" value="1">
-                        <div class="muted" id="publishCourseName" style="margin-bottom:10px"></div>
-                        <div class="two-col" style="display:grid;grid-template-columns:1fr;gap:8px">
+                        
+                        <div style="margin-bottom:24px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                <label for="publishTrainer" style="font-size:0.9rem; color:#475569; font-weight:700; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-user-tie" style="color:#0f3b8f;"></i> Select Coach
+                                </label>
+                                <a href="javascript:void(0)" onclick="showContent('user-management', document.querySelector('[onclick*=\'user-management\']'))" style="font-size:0.75rem; color:#0f3b8f; text-decoration:none; font-weight:700; background:#eff6ff; padding:4px 10px; border-radius:6px; transition:all 0.2s;">
+                                    <i class="fas fa-plus" style="font-size:0.7rem;"></i> Add New
+                                </a>
+                            </div>
+                            <div style="position:relative;">
+                                <select id="publishTrainer" name="trainer_id" style="width:100%; padding:14px 16px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; appearance:none; background:#f8fafc; cursor:pointer; transition:all 0.2s; color:#1e293b; font-weight:500; outline:none;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                                    <option value="">-- No Coach Assigned --</option>
+                                    @php
+                                        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                                        $availableCoaches = (isset($potentialParticipants) ? $potentialParticipants : collect())->filter(fn($u) => in_array($u->role, $coachRoles))->sortBy('name');
+                                    @endphp
+                                    @foreach($availableCoaches as $coach)
+                                        <option value="{{ $coach->id }}">{{ $coach->name }} ({{ ucwords(str_replace('_', ' ', $coach->role)) }})</option>
+                                    @endforeach
+                                </select>
+                                <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:#94a3b8;">
+                                    <i class="fas fa-chevron-down" style="font-size:0.8rem;"></i>
+                                </div>
+                            </div>
+                            @if($availableCoaches->isEmpty())
+                                <div style="margin-top:10px; padding:12px; background:#fff7ed; border-radius:12px; border:1px solid #ffedd5; display:flex; gap:10px;">
+                                    <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-top:2px;"></i>
+                                    <div style="font-size:0.8rem; color:#92400e; line-height:1.4;">
+                                        <strong>No coaches found.</strong><br>
+                                        Go to User Management to create or activate a coach account.
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:32px;">
                             <div>
-                                <label for="enrollStart" class="section-title" style="margin:0 0 6px"><i></i> Start Date</label>
-                                <input id="enrollStart" name="enrollment_start_at" type="date" class="pro-input" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+                                <label for="enrollStart" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
+                                    <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Start Date
+                                </label>
+                                <input id="enrollStart" name="enrollment_start_at" type="date" style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
                             <div>
-                                <label for="enrollEnd" class="section-title" style="margin:0 0 6px"></i> End Date</label>
-                                <input id="enrollEnd" name="enrollment_end_at" type="date" class="pro-input" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+                                <label for="enrollEnd" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
+                                    <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> End Date
+                                </label>
+                                <input id="enrollEnd" name="enrollment_end_at" type="date" style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
                         </div>
-                        <div id="publishError" class="error-text" style="display:none;color:#b91c1c;margin-top:10px;font-weight:700"></div>
-                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-                            <button type="button" class="btn-view" style="background:#e5e7eb;color:#0f172a;border-color:transparent" onclick="closePublishModal()"><i class="fas fa-xmark"></i> Cancel</button>
-                            <button id="publishSubmitBtn" type="submit" class="btn-view" style="background:#0f3b8f;border-color:transparent"><i class="fas fa-bullhorn"></i> Publish</button>
+
+                        <div id="publishError" style="display:none; color:#ef4444; margin-bottom:24px; padding:14px; background:#fef2f2; border-radius:14px; font-size:0.85rem; font-weight:600; border:1px solid #fee2e2; align-items:center; gap:10px;">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <span id="publishErrorText"></span>
+                        </div>
+
+                        <div style="display:flex; gap:12px;">
+                            <button type="button" style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:16px; border-radius:14px; font-weight:700; cursor:pointer; transition:all 0.2s; font-size:0.95rem;" onclick="closePublishModal()">
+                                Cancel
+                            </button>
+                            <button id="publishSubmitBtn" type="submit" style="flex:2; background:#0f3b8f; color:#fff; border:none; padding:16px; border-radius:14px; font-weight:700; cursor:pointer; transition:all 0.2s; font-size:0.95rem; box-shadow:0 10px 15px -3px rgba(15,59,143,0.3);">
+                                <i class="fas fa-check-circle" style="margin-right:8px;"></i> Confirm & Publish
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
             <script>
-                function openPublishModal(actionUrl, courseName){
+                function openPublishModal(actionUrl, courseName, trainerId){
                     var m=document.getElementById('publishModal');
                     var f=document.getElementById('publishForm');
                     var name=document.getElementById('publishCourseName');
                     var err=document.getElementById('publishError');
+                    var trainerSelect = document.getElementById('publishTrainer');
                     if(f){ f.setAttribute('action', actionUrl); }
                     if(name){ name.textContent = 'Course: '+courseName; }
                     if(err){ err.style.display='none'; err.textContent=''; }
+                    if(trainerSelect){ trainerSelect.value = trainerId || ''; }
                     if(m){ m.style.display='flex'; }
                 }
                 function closePublishModal(){
@@ -2127,21 +2189,28 @@
                     var form=document.getElementById('publishForm');
                     var btn=document.getElementById('publishSubmitBtn');
                     var err=document.getElementById('publishError');
+                    var errText=document.getElementById('publishErrorText');
                     if(form){
                         form.addEventListener('submit', function(e){
                             var s=document.getElementById('enrollStart')?.value;
                             var t=document.getElementById('enrollEnd')?.value;
                             if(!s || !t){
                                 e.preventDefault();
-                                if(err){ err.style.display='block'; err.textContent='Please select both Start Date and End Date.'; }
+                                if(err){ err.style.display='flex'; }
+                                if(errText){ errText.textContent='Please select both Start Date and End Date.'; }
                                 return false;
                             }
                             if(new Date(t) < new Date(s)){
                                 e.preventDefault();
-                                if(err){ err.style.display='block'; err.textContent='End Date must be on or after Start Date.'; }
+                                if(err){ err.style.display='flex'; }
+                                if(errText){ errText.textContent='End Date must be on or after Start Date.'; }
                                 return false;
                             }
-                            if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Publishing…'; }
+                            if(btn){ 
+                                btn.disabled=true; 
+                                btn.style.opacity='0.8';
+                                btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Publishing…'; 
+                            }
                         });
                     }
                 })();

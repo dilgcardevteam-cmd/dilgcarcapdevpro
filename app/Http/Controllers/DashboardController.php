@@ -234,7 +234,7 @@ class DashboardController extends Controller
                 $approvedCount = User::where('profile_completed', true)->where('status', 'active')->where($registrarScope)->count();
                 $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('profile_completed', true)->where('status', 'pending')->where($registrarScope)->count();
                 // Registrar manages coach/trainer and participant roles
-                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+                $managedRoles = ['admin', 'training_manager', 'coach', 'trainer', 'participant'];
                 // Show all courses to registrar (including those without assigned users yet)
                 $totalCourses = Course::count();
                 $courses = Course::with('users')->orderBy('created_at','desc')->get();
@@ -476,7 +476,7 @@ class DashboardController extends Controller
                             ->where('region', 'DILG Provincial Office');
                     };
                 } else {
-                    $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
+                    $managedRoles = ['admin', 'training_manager', 'coach', 'trainer', 'participant'];
                     $pendingApplicantScope = function ($query) {
                         $query->whereNull('role')
                             ->where('status', 'pending')
@@ -922,8 +922,8 @@ class DashboardController extends Controller
             } elseif ($actor->role === 'provincial_office_training_manager') {
                 $managedRoles = ['provincial_office_admin', 'provincial_office_training_manager', 'provincial_office_coach', 'provincial_office_participants'];
             } else {
-                $managedRoles = ['admin', 'training_manager', 'coach', 'participant'];
-            }
+                    $managedRoles = ['admin', 'training_manager', 'coach', 'trainer', 'participant'];
+                }
 
             // Training Managers and Registrars may only change role and status
             $validated = $request->validate([

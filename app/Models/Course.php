@@ -149,8 +149,16 @@ class Course extends Model
         $totalAssessments = $this->assessments()->count();
         $gradedAssessments = 0;
         foreach ($this->assessments as $assessment) {
-            if ($assessment->grades()->where('user_id', $user->id)->exists()) {
-                $gradedAssessments++;
+            $latestGrade = $assessment->grades()
+                ->where('user_id', $user->id)
+                ->orderBy('score', 'desc') // Check highest score
+                ->first();
+            
+            if ($latestGrade) {
+                $passingScore = $assessment->passing_score ?? 70; // default 70 if not set
+                if ($latestGrade->score >= $passingScore) {
+                    $gradedAssessments++;
+                }
             }
         }
 
