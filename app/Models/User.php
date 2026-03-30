@@ -186,6 +186,12 @@ class User extends Authenticatable
         if (Schema::hasColumn('course_user', 'progress_percentage')) {
             $pivotColumns[] = 'progress_percentage';
         }
+        if (Schema::hasColumn('course_user', 'retake_requested')) {
+            $pivotColumns[] = 'retake_requested';
+        }
+        if (Schema::hasColumn('course_user', 'retake_approved')) {
+            $pivotColumns[] = 'retake_approved';
+        }
 
         return $this->belongsToMany(Course::class, 'course_user')
             ->withPivot($pivotColumns)

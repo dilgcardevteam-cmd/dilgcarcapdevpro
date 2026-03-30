@@ -1458,8 +1458,6 @@
                             serverCompleted = !!j.completed;
                             if(serverSummary?.max_attempts_reached){
                                 alert(serverSummary.max_attempts_message || 'You have reached the maximum number of attempts.');
-                            }else if(serverSummary?.restart_required){
-                                alert(serverSummary.restart_message || 'You failed the exam. You must restart from Module 1.');
                             }
                         }catch(_){
                             if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
@@ -1488,15 +1486,26 @@
                             items: []
                         });
                     }
-                    if(serverSummary?.restart_required && serverSummary?.redirect_url){
-                        setTimeout(()=>{ window.location.href = serverSummary.redirect_url; }, 300);
-                        return;
-                    }
                     if(serverCompleted) {
                         showCongrats();
                     }
                 }
-                function renderExamSummary(summary){
+                async function renderExamSummary(summary){
+                    let retakeRequested = summary?.retake_requested ?? false;
+                    let retakeApproved = summary?.retake_approved ?? false;
+
+                    // If we don't have retake info in summary, try to fetch it
+                    if (summary && summary.passed === false && typeof summary.retake_requested === 'undefined') {
+                        try {
+                            const r = await fetch("{{ route('courses.module-exam.attempt', $course) }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'});
+                            const j = await r.json();
+                            if (j && j.ok) {
+                                retakeRequested = !!j.retake_requested;
+                                retakeApproved = !!j.retake_approved;
+                            }
+                        } catch(e) {}
+                    }
+
                     latestExamSummary = summary || null;
                     if(!resultBox){ return; }
                     const finalPct = Number(summary?.final_pct ?? 0) || 0;
@@ -1518,22 +1527,30 @@
                                 : null))
                         : null;
                     const canRetake = status === 'completed' && passed === false && !summary?.max_attempts_reached;
-                    const restartUrl = @json(route('trainee.courses.outline', ['course' => $course, 'mi' => 0]));
-                    const retryLabel = 'Go to Module 1';
                     const statusTxt = status === 'pending_review'
                         ? 'Your essay answers are waiting for trainer review.'
                         : status === 'partially_graded'
                             ? 'Your objective items are graded. Essay items are still under review.'
                             : (summary?.max_attempts_reached
                                 ? 'You have reached the maximum number of attempts.'
-                                : (summary?.restart_required
-                                    ? 'You failed the exam. You must restart from Module 1.'
-                                    : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'))));
+                                : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.')));
                     const statusColor = status === 'pending_review'
                         ? '#b45309'
                         : status === 'partially_graded'
                             ? '#0f3b8f'
                             : (passed===null ? '#334155' : (passed ? '#059669' : '#b91c1c'));
+                        
+                        let retakeButtonHtml = '';
+                        if (canRetake) {
+                            if (retakeApproved) {
+                                retakeButtonHtml = `<button id="examRetake" class="btn-blue" style="padding:10px 16px;border-radius:12px">Retake Exam</button>`;
+                            } else if (retakeRequested) {
+                                retakeButtonHtml = `<button class="btn-ghost" disabled style="padding:10px 16px;border-radius:12px;border:1px solid #cbd5e1;background:#f1f5f9;font-weight:800;color:#64748b;cursor:not-allowed">Waiting for trainer approval</button>`;
+                            } else {
+                                retakeButtonHtml = `<button id="examRequestRetake" class="btn-ghost" style="padding:10px 16px;border-radius:12px;border:1px solid #cbd5e1;background:#fff;font-weight:800">Request Retake</button>`;
+                            }
+                        }
+
                         resultBox.style.display='block';
                         resultBox.style.background = '#ffffff';
                         resultBox.style.border = '1px solid #e5e7eb';
@@ -1561,7 +1578,7 @@
                             <div style="color:#334155;margin-top:6px">You can review your answers below.</div>
                             <div style="display:flex;gap:10px;margin-top:6px">
                               <button id="examReview" class="btn-blue" style="padding:10px 16px;border-radius:12px">Review Assessment</button>
-                              ${canRetake ? `<button id="examRetake" class="btn-ghost" style="padding:10px 16px;border-radius:12px;border:1px solid #cbd5e1;background:#fff;font-weight:800">${retryLabel}</button>` : ``}
+                              ${retakeButtonHtml}
                             </div>
                           </div>`;
                         const gauge = resultBox.querySelector('#examGaugePath');
@@ -1605,7 +1622,8 @@
                         const retakeBtn = document.getElementById('examRetake');
                         if(retakeBtn){
                             retakeBtn.onclick = async ()=>{
-                                prepareExamRetake();
+                                retakeBtn.disabled = true;
+                                retakeBtn.textContent = 'Preparing...';
                                 try{
                                     const resp = await fetch("{{ route('courses.module-exam.restart', $course) }}", {
                                         method: 'POST',
@@ -1618,14 +1636,49 @@
                                     });
                                     const data = await resp.json().catch(()=>null);
                                     if(data?.ok){
-                                        window.location.href = data.redirect_url || summary?.redirect_url || restartUrl;
+                                        prepareExamRetake();
+                                        window.location.href = data.redirect_url;
                                         return;
                                     }
                                     if(data?.error){
                                         alert(data.error);
                                     }
-                                }catch(e){}
-                                window.location.href = summary?.redirect_url || restartUrl;
+                                }catch(e){
+                                    alert('Failed to start exam retake.');
+                                }
+                                retakeBtn.disabled = false;
+                                retakeBtn.textContent = 'Retake Exam';
+                            };
+                        }
+
+                        const requestRetakeBtn = document.getElementById('examRequestRetake');
+                        if (requestRetakeBtn) {
+                            requestRetakeBtn.onclick = async () => {
+                                requestRetakeBtn.disabled = true;
+                                requestRetakeBtn.textContent = 'Requesting...';
+                                try {
+                                    const resp = await fetch("{{ route('courses.module-exam.request-retake', $course) }}", {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        credentials: 'same-origin',
+                                        body: JSON.stringify({ mi })
+                                    });
+                                    const data = await resp.json().catch(() => null);
+                                    if (data?.ok) {
+                                        renderExamSummary({...summary, retake_requested: true, retake_approved: false});
+                                    } else {
+                                        alert(data?.error || 'Failed to request retake.');
+                                        requestRetakeBtn.disabled = false;
+                                        requestRetakeBtn.textContent = 'Request Retake';
+                                    }
+                                } catch (e) {
+                                    alert('Failed to request retake.');
+                                    requestRetakeBtn.disabled = false;
+                                    requestRetakeBtn.textContent = 'Request Retake';
+                                }
                             };
                         }
                 }

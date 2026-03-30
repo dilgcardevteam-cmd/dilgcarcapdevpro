@@ -2236,7 +2236,17 @@
             const reviewBtn = canReview
                 ? `<button type="button" class="btn btn-ghost js-review-attempt-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" data-exam-title="${String(plan.title || 'Module Exam').replace(/"/g, '&quot;')}" style="margin-top:8px;border-radius:10px;padding:6px 10px;cursor:pointer;position:relative;z-index:2">View Attempt</button>`
                 : `<button type="button" class="btn btn-ghost" style="margin-top:8px;border-radius:10px;padding:6px 10px;opacity:.55;cursor:not-allowed" disabled title="The trainee has not submitted this exam yet.">No Attempt Yet</button>`;
-            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:${statusColor}">${statusLabel}</div>${reviewBtn}</td>`);
+            
+            let retakeBtn = '';
+            if (score?.exam_passed === false) {
+                if (score?.retake_approved) {
+                    retakeBtn = `<div style="margin-top:8px;font-size:0.72rem;font-weight:800;color:#0f3b8f">Retake Approved</div>`;
+                } else if (score?.retake_requested) {
+                    retakeBtn = `<button type="button" class="btn btn-blue js-allow-retake-btn" data-user-id="${user.user_id}" data-module-index="${plan.mi}" style="margin-top:8px;border-radius:10px;padding:6px 10px;font-size:0.7rem;background:#0f3b8f">Allow Retake</button>`;
+                }
+            }
+
+            return gradeCell(pct, plan.pass ?? null).replace('</td>', `${pendingBadge}<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:${statusColor}">${statusLabel}</div>${reviewBtn}${retakeBtn}</td>`);
         }
         async function renderParticipantProgress(){
             const info = document.getElementById('progressInfo');
@@ -2300,6 +2310,38 @@
                                 const moduleIndex = Number(btn.getAttribute('data-module-index'));
                                 const examTitle = btn.getAttribute('data-exam-title') || 'Module Exam';
                                 openEssayReviewModal(userId, moduleIndex, examTitle);
+                            });
+                        });
+                        tbody.querySelectorAll('.js-allow-retake-btn').forEach(btn => {
+                            btn.addEventListener('click', async ()=>{
+                                const userId = Number(btn.getAttribute('data-user-id'));
+                                const moduleIndex = Number(btn.getAttribute('data-module-index'));
+                                if (!confirm('Allow this participant to retake the exam?')) return;
+                                
+                                btn.disabled = true;
+                                btn.textContent = 'Allowing...';
+                                try {
+                                    const resp = await fetch("{{ route('courses.module-exam.approve-retake', $course) }}", {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        body: JSON.stringify({ user_id: userId, mi: moduleIndex })
+                                    });
+                                    const data = await resp.json();
+                                    if (data && data.ok) {
+                                        renderParticipantProgress();
+                                    } else {
+                                        alert(data.error || 'Failed to approve retake.');
+                                        btn.disabled = false;
+                                        btn.textContent = 'Allow Retake';
+                                    }
+                                } catch (e) {
+                                    alert('Failed to approve retake.');
+                                    btn.disabled = false;
+                                    btn.textContent = 'Allow Retake';
+                                }
                             });
                         });
                     }

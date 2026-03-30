@@ -120,6 +120,12 @@ class Course extends Model
         if (Schema::hasColumn('course_user', 'progress_percentage')) {
             $pivotColumns[] = 'progress_percentage';
         }
+        if (Schema::hasColumn('course_user', 'retake_requested')) {
+            $pivotColumns[] = 'retake_requested';
+        }
+        if (Schema::hasColumn('course_user', 'retake_approved')) {
+            $pivotColumns[] = 'retake_approved';
+        }
 
         return $this->belongsToMany(User::class, 'course_user')
             ->withPivot($pivotColumns)

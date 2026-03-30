@@ -602,8 +602,7 @@ class CourseController extends Controller
                 : null);
         $summary['max_attempts_reached'] = $summary['max_attempts_reached']
             ?? (($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
-        $summary['restart_required'] = $summary['restart_required']
-            ?? (($summary['passed'] === false) && !$summary['max_attempts_reached']);
+        $summary['restart_required'] = $summary['restart_required'] ?? false;
         $summary['status_label'] = $summary['status_label']
             ?? match ($summary['status'] ?? 'completed') {
                 'pending_review' => 'Pending Trainer Review',
@@ -795,11 +794,13 @@ class CourseController extends Controller
         ];
     }
 
-    protected function resetTraineeCourseProgress(Course $course, int $userId, int $moduleIndex): void
+    protected function resetTraineeCourseProgress(Course $course, int $userId, int $moduleIndex, bool $examOnly = false): void
     {
-        \App\Models\ReflectionResponse::where('user_id', $userId)
-            ->where('course_id', $course->id)
-            ->delete();
+        if (!$examOnly) {
+            \App\Models\ReflectionResponse::where('user_id', $userId)
+                ->where('course_id', $course->id)
+                ->delete();
+        }
 
         ExamEssayResponse::where('course_id', $course->id)
             ->where('trainee_id', $userId)
@@ -812,11 +813,20 @@ class CourseController extends Controller
             }
         }
 
-        $course->users()->updateExistingPivot($userId, [
-            'current_module' => 1,
-            'progress_percentage' => 0,
-            'status' => 'in_progress',
-        ]);
+        if (!$examOnly) {
+            $course->users()->updateExistingPivot($userId, [
+                'current_module' => 1,
+                'progress_percentage' => 0,
+                'status' => 'in_progress',
+            ]);
+        } else {
+            // If exam only, we just clear retake flags and keep progress
+            $course->users()->updateExistingPivot($userId, [
+                'retake_requested' => false,
+                'retake_approved' => false,
+                'status' => 'ready_for_exam', // Reset status so they can take it again
+            ]);
+        }
     }
 
     protected function markCourseCompleted(Course $course, int $userId): void
@@ -933,13 +943,14 @@ class CourseController extends Controller
             ];
         }
 
-        $this->resetTraineeCourseProgress($course, $userId, $moduleIndex);
+        // Controlled retake: no automatic reset. The participant must request a retake.
+        $course->users()->updateExistingPivot($userId, ['status' => 'failed']);
 
         return [
             'attempt_no' => $attemptNo,
             'passed' => false,
             'pending_review' => false,
-            'restart_required' => true,
+            'restart_required' => false,
             'passing_score' => $passingScore,
             'max_attempts' => $maxAttempts,
         ];
@@ -2358,14 +2369,12 @@ class CourseController extends Controller
                     'restart_required' => $evaluation['restart_required'] ?? false,
                     'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
                     'restart_message' => ($evaluation['restart_required'] ?? false)
-                        ? 'You failed the exam. You must restart from Module 1.'
+                        ? 'You may request an exam retake from your trainer.'
                         : null,
                     'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
                         ? 'You have reached the maximum number of attempts.'
                         : null,
-                    'redirect_url' => ($evaluation['restart_required'] ?? false)
-                        ? route('trainee.courses.outline', ['course' => $course, 'mi' => 0])
-                        : null,
+                    'redirect_url' => null,
                 ]),
             ]);
         } catch (\Throwable $e) {
@@ -2454,13 +2463,100 @@ class CourseController extends Controller
         }
 
         $targetUser = User::find($targetUserId);
+        $pivot = $this->getCourseUserPivot($course, $targetUserId);
         return response()->json([
             'ok' => true,
             'attempt' => array_merge($summary, [
                 'user_name' => $targetUser?->name ?? ('User '.$targetUserId),
                 'user_email' => $targetUser?->email,
             ]),
+            'retake_requested' => (bool) ($pivot->retake_requested ?? false),
+            'retake_approved' => (bool) ($pivot->retake_approved ?? false),
         ]);
+    }
+
+    public function requestModuleExamRetake(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        if (!in_array($user->role, $participantRoles, true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $moduleIndex = (int) $request->input('mi', $this->getFinalExamModuleIndex($course) ?? 0);
+        $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $user->id);
+        if (!$summary || ($summary['passed'] ?? null) !== false) {
+            return response()->json(['ok' => false, 'error' => 'A failed exam attempt is required before requesting a retake.'], 422);
+        }
+
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json(['ok' => false, 'error' => 'You have reached the maximum number of attempts.'], 422);
+        }
+
+        $pivot = $this->getCourseUserPivot($course, $user->id);
+        if (!$pivot) {
+            return response()->json(['ok' => false, 'error' => 'Enrollment record not found.'], 404);
+        }
+
+        if ((bool) ($pivot->retake_approved ?? false)) {
+            return response()->json(['ok' => true, 'retake_requested' => false, 'retake_approved' => true]);
+        }
+
+        $course->users()->updateExistingPivot($user->id, [
+            'retake_requested' => true,
+            'retake_approved' => false,
+            'status' => 'failed',
+        ]);
+
+        return response()->json(['ok' => true, 'retake_requested' => true, 'retake_approved' => false]);
+    }
+
+    public function approveModuleExamRetake(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+
+        $data = $request->validate([
+            'user_id' => 'required|integer|min:1',
+            'mi' => 'nullable|integer|min:0',
+        ]);
+
+        $userId = (int) $data['user_id'];
+        $moduleIndex = array_key_exists('mi', $data)
+            ? (int) $data['mi']
+            : (int) ($this->getFinalExamModuleIndex($course) ?? 0);
+
+        $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $userId);
+        if (!$summary || ($summary['passed'] ?? null) !== false) {
+            return response()->json(['ok' => false, 'error' => 'Only failed exam attempts can be approved for retake.'], 422);
+        }
+
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json(['ok' => false, 'error' => 'This participant has reached the maximum number of attempts.'], 422);
+        }
+
+        $pivot = $this->getCourseUserPivot($course, $userId);
+        if (!$pivot) {
+            return response()->json(['ok' => false, 'error' => 'Enrollment record not found.'], 404);
+        }
+
+        if (!(bool) ($pivot->retake_requested ?? false) && !(bool) ($pivot->retake_approved ?? false)) {
+            return response()->json(['ok' => false, 'error' => 'This participant has not requested a retake yet.'], 422);
+        }
+
+        $course->users()->updateExistingPivot($userId, [
+            'retake_requested' => false,
+            'retake_approved' => true,
+            'status' => 'failed',
+        ]);
+
+        return response()->json(['ok' => true, 'retake_requested' => false, 'retake_approved' => true]);
     }
 
     public function restartModuleExamProgress(Request $request, Course $course)
@@ -2497,15 +2593,18 @@ class CourseController extends Controller
             ]);
         }
 
-        if (($summary['passed'] ?? null) !== false) {
-            return response()->json(['ok' => false, 'error' => 'This exam does not need a restart.'], 422);
+        // New retake logic: only allow if approved
+        $pivot = $this->getCourseUserPivot($course, $user->id);
+        if (!$pivot || !$pivot->retake_approved) {
+            return response()->json(['ok' => false, 'error' => 'Your retake request has not been approved yet.'], 403);
         }
 
-        $this->resetTraineeCourseProgress($course, $user->id, $resolvedModuleIndex ?? $requestedModuleIndex);
+        // Only reset the exam, not the modules
+        $this->resetTraineeCourseProgress($course, $user->id, $resolvedModuleIndex ?? $requestedModuleIndex, true);
 
         return response()->json([
             'ok' => true,
-            'redirect_url' => route('trainee.courses.outline', ['course' => $course, 'mi' => 0]),
+            'redirect_url' => route('trainee.courses.outline', ['course' => $course, 'mi' => $requestedModuleIndex]),
         ]);
     }
 
@@ -2594,14 +2693,12 @@ class CourseController extends Controller
                 'restart_required' => $evaluation['restart_required'] ?? false,
                 'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
                 'restart_message' => ($evaluation['restart_required'] ?? false)
-                    ? 'You failed the exam. You must restart from Module 1.'
+                    ? 'You may request an exam retake from your trainer.'
                     : null,
                 'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
                     ? 'You have reached the maximum number of attempts.'
                     : null,
-                'redirect_url' => ($evaluation['restart_required'] ?? false)
-                    ? route('trainee.courses.outline', ['course' => $course, 'mi' => 0])
-                    : null,
+                'redirect_url' => null,
             ]),
             'completed' => $completed,
         ]);
@@ -2678,7 +2775,7 @@ class CourseController extends Controller
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
         $participants = $course->users()
             ->whereIn('role', $participantRoles)
-            ->wherePivotIn('status', ['active', 'in_progress', 'ready_for_exam', 'completed'])
+            ->wherePivotIn('status', ['active', 'in_progress', 'ready_for_exam', 'completed', 'failed', 'attempts_exhausted'])
             ->get();
         $outUsers = [];
         foreach ($participants as $u) {
@@ -2710,6 +2807,8 @@ class CourseController extends Controller
                     'exam_passed' => $examSummary['passed'] ?? null,
                     'exam_status_label' => $examSummary['status_label'] ?? null,
                     'exam_has_submission' => $examSummary !== null,
+                    'retake_requested' => (bool) ($u->pivot->retake_requested ?? false),
+                    'retake_approved' => (bool) ($u->pivot->retake_approved ?? false),
                 ];
             }
             $outUsers[] = [

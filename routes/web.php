@@ -114,6 +114,8 @@ Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 's
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 Route::get('/courses/{course}/module-exam/attempt', [CourseController::class, 'moduleExamAttempt'])->middleware(['auth'])->name('courses.module-exam.attempt');
 Route::post('/courses/{course}/module-exam/restart', [CourseController::class, 'restartModuleExamProgress'])->middleware(['auth'])->name('courses.module-exam.restart');
+Route::post('/courses/{course}/module-exam/request-retake', [CourseController::class, 'requestModuleExamRetake'])->middleware(['auth'])->name('courses.module-exam.request-retake');
+Route::post('/courses/{course}/module-exam/approve-retake', [CourseController::class, 'approveModuleExamRetake'])->middleware(['auth'])->name('courses.module-exam.approve-retake');
 Route::post('/courses/{course}/module-exam/review', [CourseController::class, 'reviewModuleExamEssay'])->middleware(['auth'])->name('courses.module-exam.review');
 // Participants progress (trainer gradebook)
 Route::get('/trainer/courses/{course}/participants-progress', [CourseController::class, 'participantsProgress'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.participants-progress');
