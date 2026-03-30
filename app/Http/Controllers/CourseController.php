@@ -888,6 +888,14 @@ class CourseController extends Controller
                 ->where('user_id', $userId)
                 ->count() + 1);
 
+        // Ensure these are stored in the feedback summary
+        $summary['passing_score'] = $passingScore;
+        $summary['max_attempts'] = $maxAttempts;
+        $summary['attempt_no'] = $attemptNo;
+        $summary['passed'] = (($summary['status'] ?? 'completed') === 'completed')
+            ? ((float) ($summary['final_pct'] ?? 0) >= $passingScore)
+            : null;
+
         $gradePayload = [
             'score' => (float) ($summary['final_pct'] ?? 0),
             'feedback' => json_encode([
@@ -1127,6 +1135,8 @@ class CourseController extends Controller
                         'title' => (string) ($e['title'] ?? ''),
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'passing_score' => (int) ($e['passing_score'] ?? 75),
+                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                         'questions' => $qs,
                     ];
                 }
@@ -1156,6 +1166,8 @@ class CourseController extends Controller
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                    'passing_score' => (int) ($e['passing_score'] ?? 75),
+                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                     'questions' => $qs,
                 ];
                 $hasModules = !empty($modules);
@@ -1334,6 +1346,8 @@ class CourseController extends Controller
                         'title' => (string) ($e['title'] ?? ''),
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'passing_score' => (int) ($e['passing_score'] ?? 75),
+                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                         'questions' => $qs,
                     ];
                 }
@@ -1363,6 +1377,8 @@ class CourseController extends Controller
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                    'passing_score' => (int) ($e['passing_score'] ?? 75),
+                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                     'questions' => $qs,
                 ];
                 // Remove any previous dedicated 'Course Exam' module
@@ -2066,6 +2082,8 @@ class CourseController extends Controller
                             'title' => (string) ($examDecoded['title'] ?? ''),
                             'description' => (string) ($examDecoded['description'] ?? ''),
                             'timer_minutes' => (int) ($examDecoded['timer_minutes'] ?? 0),
+                            'passing_score' => (int) ($examDecoded['passing_score'] ?? 75),
+                            'max_attempts' => (int) ($examDecoded['max_attempts'] ?? ($examDecoded['attempt_limit'] ?? 3)),
                             'questions' => $examQuestions,
                         ];
                     }

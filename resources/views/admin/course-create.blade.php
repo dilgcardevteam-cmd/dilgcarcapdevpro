@@ -204,7 +204,11 @@
                 <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
             </div>
         </div>
-        <div class="header-right" style="display:flex; gap:10px;">
+        <div class="header-right" style="display:flex; gap:10px; align-items:center;">
+            <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;">Draft saved at <span id="autoSaveTime"></span></span>
+            <button type="button" id="clearDraftBtn" class="back-link" style="margin:0; background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:none; align-items:center; gap:8px; cursor:pointer;">
+                <i class="fas fa-trash-can"></i> Clear Draft
+            </button>
             <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-file-pen"></i> Draft Courses
             </a>
@@ -533,6 +537,65 @@
     </div>
     <div id="dmHelp" style="position:absolute;left:-9999px;top:-9999px;">Use Tab/Shift+Tab to move between menu buttons. Press Enter or Space to activate.</div>
     <script>
+        // IndexedDB for storing draft files (survives refresh)
+        const DB_NAME = 'CourseDraftsDB';
+        const STORE_NAME = 'draftFiles';
+        
+        async function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function saveFileToDB(key, files) {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            // Store as an array of {name, type, blob}
+            const fileDatas = await Promise.all(Array.from(files).map(async f => {
+                return {
+                    name: f.name,
+                    type: f.type,
+                    blob: f // Blobs are supported in IndexedDB
+                };
+            }));
+            store.put(fileDatas, key);
+            return new Promise((resolve, reject) => {
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function getFilesFromDB(key) {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.get(key);
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function deleteFilesFromDB(key) {
+            const db = await openDB();
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(key);
+            return new Promise((resolve, reject) => {
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
         function handleMaterialsUpload(input) {
             const list = document.getElementById('materialsList');
             const files = input.files;
@@ -543,9 +606,18 @@
                         <i class="fas fa-file-circle-plus" style="font-size: 2rem; color: #e2e8f0;"></i>
                         <span>No materials uploaded yet (Optional)</span>
                     </div>`;
+                deleteFilesFromDB(draftKey() + '_materials');
                 return;
             }
 
+            // Save to IndexedDB so it survives refresh
+            saveFileToDB(draftKey() + '_materials', files).catch(err => console.error('DB Save Error:', err));
+
+            renderMaterialsList(files);
+        }
+
+        function renderMaterialsList(files, isRestored = false) {
+            const list = document.getElementById('materialsList');
             list.innerHTML = '';
             Array.from(files).forEach((file, index) => {
                 const extension = file.name.split('.').pop().toLowerCase();
@@ -580,6 +652,7 @@
                     <div style="display: flex; flex-direction: column; line-height: 1.2;">
                         <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</span>
                         <span style="color: #94a3b8; font-size: 0.7rem; font-weight: 500;">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                        ${isRestored ? '<span style="color: #10b981; font-size: 0.65rem; font-weight: 700;">(Restored from draft)</span>' : ''}
                     </div>
                 `;
                 list.appendChild(badge);
@@ -619,6 +692,7 @@
             container.appendChild(wrapper);
             reindexModules();
             updateProgress();
+            scheduleAutoSave();
         }
         function toggleChevron(btn){
             const body = btn.closest('.module-wrapper').querySelector('.module-body');
@@ -659,6 +733,7 @@
             `;
             topics.appendChild(row);
             updateProgress();
+            scheduleAutoSave();
         }
         function addSubtopicRow(btnOrRow){
             const topicRow = (btnOrRow && btnOrRow.closest) ? btnOrRow.closest('.topic-row') : btnOrRow;
@@ -714,6 +789,7 @@
             row.remove();
             reindexTopics(topics);
             updateProgress();
+            scheduleAutoSave();
         }
         function openKebab(btn){
             const menu = btn.parentElement.querySelector('.kebab-menu');
@@ -737,7 +813,7 @@
         }
         function kebabDeleteModule(el){
             if(!confirm('Delete this module?')) return;
-            const wrapper = el.closest('.module-wrapper'); if(wrapper){ wrapper.remove(); reindexModules(); updateProgress(); }
+            const wrapper = el.closest('.module-wrapper'); if(wrapper){ wrapper.remove(); reindexModules(); updateProgress(); scheduleAutoSave(); }
         }
         function kebabAddSubtopic(el){
             const topicRow = el.closest('.topic-row'); if(topicRow){ addSubtopicRow(topicRow); }
@@ -745,7 +821,7 @@
         }
         function kebabDeleteTopic(el){
             if(!confirm('Delete this topic?')) return;
-            const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); }
+            const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); scheduleAutoSave(); }
             el.closest('.kebab-menu').classList.remove('open');
         }
         function reindexTopics(container){
@@ -1686,6 +1762,7 @@
             const fields = nonRef.concat(ref);
             const textarea = panel.querySelector('textarea[name$="[fields_json]"]');
             textarea.value = JSON.stringify(fields);
+            scheduleAutoSave();
         }
         // Legacy question helpers reused by question field
         function addQuestionBlock(btn){
@@ -2085,7 +2162,9 @@
             tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
             tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
         }
+        let CURRENT_TAB = 1;
         function switchTo(tab){
+            CURRENT_TAB = tab;
             if (tab === 4) renderSummary();
 
             [1,2,3,4].forEach(n => {
@@ -2103,6 +2182,7 @@
             if(tab === 2){ ensureDefaultModule(); }
             updateProgress();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            scheduleAutoSave(); // Save current tab index
         }
         function renderSummary() {
             // Course Details
@@ -2401,8 +2481,8 @@
             // Use the key provided by the dashboard or generated for this session
             let key = sessionStorage.getItem('draft_course_key');
             if(!key){
-                // Generate a unique key for this new draft so it doesn't overwrite others
-                key = 'draft_course_new_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                // Stable key for "new course" creation to survive refresh even if sessionStorage is flaky
+                key = 'draft_course_active_new';
                 sessionStorage.setItem('draft_course_key', key);
             }
             return key; 
@@ -2434,7 +2514,31 @@
         function closeConfirmCertModal() {
             document.getElementById('confirmCertModal').style.display = 'none';
         }
-        function saveDraft(){
+        let autoSaveTimer = null;
+        function scheduleAutoSave() {
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveDraft(true); // true means silent save
+            }, 2000); // Auto-save after 2 seconds of inactivity
+        }
+
+        function updateClearDraftButtonVisibility() {
+            const btn = document.getElementById('clearDraftBtn');
+            if (!btn) return;
+            const key = draftKey();
+            btn.style.display = localStorage.getItem(key) ? 'inline-flex' : 'none';
+        }
+
+        function clearCurrentDraft() {
+            if (!confirm('Sigurado ka bang gusto mong burahin ang draft na ito? Mawawala ang lahat ng iyong nasimulan.')) return;
+            const key = draftKey();
+            localStorage.removeItem(key);
+            deleteFilesFromDB(key + '_materials');
+            sessionStorage.removeItem('draft_course_key');
+            window.location.reload();
+        }
+
+        function saveDraft(silent = false){
             try {
                 const form = document.getElementById('courseForm');
                 const data = new FormData(form);
@@ -2456,23 +2560,52 @@
                 
                 // Save modules correctly via serialization
                 obj['modules'] = serializeModules();
+                obj['current_tab'] = CURRENT_TAB;
+                
+                // Save materials metadata
+                const materialsInput = document.getElementById('course_materials');
+                if (materialsInput && materialsInput.files.length > 0) {
+                    obj['materials_metadata'] = Array.from(materialsInput.files).map(f => ({
+                        name: f.name,
+                        size: f.size
+                    }));
+                }
                 
                 const key = draftKey();
                 const json = JSON.stringify(obj);
                 
                 try {
                     localStorage.setItem(key, json);
-                    document.getElementById('draftSavedModal').style.display = 'flex';
+                    updateClearDraftButtonVisibility();
+                    
+                    // Show auto-save indicator
+                    const indicator = document.getElementById('autoSaveIndicator');
+                    const timeSpan = document.getElementById('autoSaveTime');
+                    if (indicator && timeSpan) {
+                        const now = new Date();
+                        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        indicator.style.display = 'inline';
+                        // Fade out after 3 seconds
+                        setTimeout(() => {
+                            indicator.style.opacity = '0.5';
+                        }, 2000);
+                    }
+
+                    if (!silent) {
+                        document.getElementById('draftSavedModal').style.display = 'flex';
+                    } else {
+                        console.log('Draft auto-saved');
+                    }
                 } catch (e) {
                     if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-                        alert('Puno na ang storage ng iyong browser. Subukang magbura ng ibang drafts sa dashboard.');
+                        if (!silent) alert('Puno na ang storage ng iyong browser. Subukang magbura ng ibang drafts sa dashboard.');
                     } else {
                         throw e;
                     }
                 }
             } catch (err) {
                 console.error('Failed to save draft:', err);
-                alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
+                if (!silent) alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
             }
         }
         function closeDraftSavedModal() {
@@ -2520,9 +2653,62 @@
                     }
                 }
                 
+                // Restore materials metadata and ACTUAL files from IndexedDB
+                getFilesFromDB(key + '_materials').then(fileDatas => {
+                    if (fileDatas && Array.isArray(fileDatas)) {
+                        const materialsInput = document.getElementById('course_materials');
+                        if (materialsInput) {
+                            const dt = new DataTransfer();
+                            const files = fileDatas.map(fd => {
+                                return new File([fd.blob], fd.name, { type: fd.type });
+                            });
+                            files.forEach(f => dt.items.add(f));
+                            materialsInput.files = dt.files;
+                            
+                            // Re-render UI
+                            renderMaterialsList(dt.files, true);
+                        }
+                    } else if (obj['materials_metadata'] && Array.isArray(obj['materials_metadata'])) {
+                        // Fallback if DB is empty but metadata exists (original red text behavior)
+                        const list = document.getElementById('materialsList');
+                        if(list) {
+                            list.innerHTML = '';
+                            obj['materials_metadata'].forEach(file => {
+                                const extension = file.name.split('.').pop().toLowerCase();
+                                let icon = 'fa-file';
+                                let color = '#64748b';
+                                if (extension === 'pdf') { icon = 'fa-file-pdf'; color = '#ef4444'; }
+                                else if (['doc', 'docx'].includes(extension)) { icon = 'fa-file-word'; color = '#2563eb'; }
+                                else if (['xls', 'xlsx'].includes(extension)) { icon = 'fa-file-excel'; color = '#10b981'; }
+                                else if (['ppt', 'pptx'].includes(extension)) { icon = 'fa-file-powerpoint'; color = '#f97316'; }
+
+                                const badge = document.createElement('div');
+                                badge.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px 16px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.88rem;color:#1e293b;font-weight:600;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);transition:transform 0.2s ease;`;
+                                badge.innerHTML = `
+                                    <i class="fas ${icon}" style="color: ${color}; font-size: 1.1rem;"></i>
+                                    <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                                        <span style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</span>
+                                        <span style="color: #94a3b8; font-size: 0.7rem; font-weight: 500;">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                        <span style="color: #dc2626; font-size: 0.65rem; font-weight: 700;">(Re-attach for submission)</span>
+                                    </div>
+                                `;
+                                list.appendChild(badge);
+                            });
+                        }
+                    }
+                }).catch(err => console.error('Error restoring files from DB:', err));
+
                 // Restore modules
                 if(obj['modules']) {
                     restoreModules(obj['modules']);
+                }
+
+                // Restore tab
+                if(obj['current_tab']){
+                    // Need to wait for DOM to be ready for some components, but switchTo handles basic visibility
+                    setTimeout(() => {
+                        switchTo(Number(obj['current_tab']));
+                    }, 100);
                 }
                 
                 updateProgress();
@@ -2556,13 +2742,50 @@
         }
         document.addEventListener('DOMContentLoaded', function(){
             bindTabs();
-            // Load draft ONLY IF specifically requested (clicked from Drafts)
-            if (sessionStorage.getItem('load_draft') === '1') {
+            
+            // Check if there's an existing draft for this session or a specific load request
+            const key = draftKey();
+            const hasDraft = !!localStorage.getItem(key);
+            
+            if (sessionStorage.getItem('load_draft') === '1' || hasDraft) {
                 restoreDraft();
+                // Clear the load_draft flag if it was set
+                sessionStorage.removeItem('load_draft');
             }
+            
             updateProgress();
             __bindAutosizeTextareas(document);
             initDynamicMenu();
+            updateClearDraftButtonVisibility();
+            
+            const clearBtn = document.getElementById('clearDraftBtn');
+            if (clearBtn) clearBtn.onclick = clearCurrentDraft;
+            
+            // Auto-save listeners
+            const form = document.getElementById('courseForm');
+            if (form) {
+                form.addEventListener('input', scheduleAutoSave);
+                form.addEventListener('change', scheduleAutoSave);
+                
+                // Special case for editor content (since it doesn't always trigger 'input' on the form)
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.editor-toolbar button') || e.target.closest('.dm-item')) {
+                        scheduleAutoSave();
+                    }
+                });
+                
+                // Clear draft on successful submit
+                form.addEventListener('submit', () => {
+                    const key = draftKey();
+                    // We'll clear it after a short delay to ensure the form actually submits
+                    setTimeout(() => {
+                        localStorage.removeItem(key);
+                        deleteFilesFromDB(key + '_materials');
+                        sessionStorage.removeItem('draft_course_key');
+                    }, 1000);
+                });
+            }
+
             const img = document.getElementById('image');
             if(img){
                 img.addEventListener('change', function(){
