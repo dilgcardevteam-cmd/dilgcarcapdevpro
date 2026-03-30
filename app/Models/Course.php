@@ -15,6 +15,7 @@ class Course extends Model
         'name',
         'description',
         'subject_area',
+        'academic_year',
         'video_url',
         'image_path',
         'modules',

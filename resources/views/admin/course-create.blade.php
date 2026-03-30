@@ -283,6 +283,11 @@
                                 <div id="courseTypeError" class="error-text" style="display:none;"></div>
                             </div>
                             <div class="section" style="margin-top:12px;">
+                                <div class="section-title"><i class="fas fa-calendar-check"></i> Academic Year</div>
+                                <input type="text" name="academic_year" class="pro-input" placeholder="e.g., 2024-2025">
+                                <div id="academicYearError" class="error-text" style="display:none;"></div>
+                            </div>
+                            <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
                                 <select id="subject_area" name="subject_area" required aria-describedby="subjectError">
                                     <option value="" disabled selected>Select Subject Area</option>
@@ -412,6 +417,9 @@
                                         
                                         <span class="summary-label" style="margin-top: 12px;">Subject Area</span>
                                         <div id="summarySubject"></div>
+
+                                        <span class="summary-label" style="margin-top: 12px;">Academic Year</span>
+                                        <div id="summaryAcademicYear"></div>
 
                                         <span class="summary-label" style="margin-top: 12px;">Course Type</span>
                                         <div id="summaryCourseType"></div>
@@ -2209,6 +2217,7 @@
             document.getElementById('summaryDescription').textContent = document.getElementById('description').value || '(No description)';
             const subj = document.getElementById('subject_area');
             document.getElementById('summarySubject').textContent = subj.options[subj.selectedIndex]?.text || '(No subject area)';
+            document.getElementById('summaryAcademicYear').textContent = document.querySelector('input[name="academic_year"]').value || '(Not set)';
             const courseType = document.querySelector('input[name="course_type"]:checked');
             document.getElementById('summaryCourseType').textContent = courseType ? courseType.value.charAt(0).toUpperCase() + courseType.value.slice(1) : '(No course type selected)';
             
@@ -2767,24 +2776,19 @@
             // Check if there's an existing draft for this session or a specific load request
             const key = draftKey();
             const hasDraft = !!localStorage.getItem(key);
-            const loadDraftFlag = sessionStorage.getItem('load_draft');
+            const loadDraftSignal = sessionStorage.getItem('load_draft');
             
-            // Logic:
-            // 1. If load_draft is '1', always restore.
-            // 2. If load_draft is '0', NEVER restore (this is a fresh "Add Course" click).
-            // 3. If load_draft is null (refresh), restore if a draft exists.
-            if (loadDraftFlag === '1') {
-                restoreDraft();
-                sessionStorage.removeItem('load_draft');
-            } else if (loadDraftFlag === '0') {
-                // Clear the active draft for a fresh start
+            // Respect '0' as a signal NOT to load any draft
+            if (loadDraftSignal === '0') {
+                // Explicitly clear the draft for this key to ensure it stays empty
                 localStorage.removeItem(key);
                 deleteFilesFromDB(key + '_materials');
-                sessionStorage.removeItem('load_draft');
-            } else if (hasDraft) {
-                // Restore on refresh
+            } else if (loadDraftSignal === '1' || hasDraft) {
                 restoreDraft();
             }
+            
+            // Clear the load_draft signal after processing
+            sessionStorage.removeItem('load_draft');
             
             updateProgress();
             __bindAutosizeTextareas(document);
@@ -3912,6 +3916,10 @@
                             <span class="exam-meta-timer-label">Passing Rate (%)</span>
                             <input type="number" min="1" max="100" class="exam-passing-score exam-meta-timer-input" placeholder="e.g., 75">
                         </label>
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Max Attempts</span>
+                            <input type="number" min="1" class="exam-max-attempts exam-meta-timer-input" placeholder="e.g., 3">
+                        </label>
                         <div class="exam-meta-title">Module Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
@@ -4097,12 +4105,13 @@
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
                 const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
                 const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
+                const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
                 const list = wrap.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
             }
             function resetTypeSpecificFields(){
                 // Clear type-specific inputs so they never carry over from other questions
@@ -4348,6 +4357,7 @@
                     const normalizedPrefill = normalizeExamPrefill(prefill);
                     wrap.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
                     const pass = wrap.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
+                    const attempts = wrap.querySelector('.exam-max-attempts'); if(attempts) attempts.value = normalizedPrefill?.max_attempts || normalizedPrefill?.attempt_limit || '';
                     if(normalizedPrefill?.title) wrap.querySelector('.exam-title').value = normalizedPrefill.title;
                     if(normalizedPrefill?.description) wrap.querySelector('.exam-desc').value = normalizedPrefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
@@ -4570,7 +4580,7 @@
                 try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && (obj.text||obj.title)){ qs.push(obj); } }catch(e){}
             });
             const hidden = wrap.querySelector('.exam-json');
-            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
+            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
         }
         function populateBuilderFromItem(wrap, idx){
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));

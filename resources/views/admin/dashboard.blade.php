@@ -6162,7 +6162,35 @@
                                         <p style="margin: 0; font-weight: 700; color: #1e293b;">Course Visibility</p>
                                         <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Control whether participants can find this course.</p>
                                     </div>
-                                    <span style="background: #ecfdf5; color: #10b981; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">PUBLIC</span>
+                                    <span id="pro_view_course_visibility_badge" style="background: #ecfdf5; color: #10b981; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">PUBLIC</span>
+                                </div>
+
+                                <div id="pro_view_archive_section" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div>
+                                        <p id="pro_view_archive_title" style="margin: 0; font-weight: 700; color: #1e293b;">Archive Course</p>
+                                        <p id="pro_view_archive_desc" style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Archived courses are hidden from participants but can be restored later.</p>
+                                    </div>
+                                    <form id="pro_view_archive_form" method="POST" action="">
+                                        @csrf
+                                        <input type="hidden" name="_method" id="pro_view_archive_method" value="DELETE">
+                                        <button type="submit" id="pro_view_archive_btn" class="btn" style="background: #f8fafc; border: 1.5px solid #e2e8f0; color: #64748b; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                            <i class="fas fa-archive" style="margin-right: 6px;"></i> Archive Course
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px;">
+                                    <div>
+                                        <p style="margin: 0; font-weight: 700; color: #991b1b;">Delete Course</p>
+                                        <p style="margin: 4px 0 0; font-size: 0.85rem; color: #b91c1c;">Permanently remove this course and all its data. This action cannot be undone.</p>
+                                    </div>
+                                    <form id="pro_view_delete_form" method="POST" action="" onsubmit="return confirm('PERMANENTLY DELETE this course? This will remove all modules, assessments, and participant progress. THIS ACTION CANNOT BE UNDONE.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);">
+                                            <i class="fas fa-trash-can" style="margin-right: 6px;"></i> Delete Permanently
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -9349,20 +9377,6 @@
             initializeUserDetailsSection();
             const params = new URLSearchParams(window.location.search);
             const requestedTab = params.get('tab');
-            const clearDraftKey = params.get('clear_draft');
-
-            if (clearDraftKey) {
-                // Clear both the legacy key and the new active key
-                localStorage.removeItem('draft_course_create');
-                localStorage.removeItem('draft_course_active_new');
-                sessionStorage.removeItem('draft_course_key');
-                sessionStorage.setItem('load_draft', '0');
-                
-                // Also remove it from URL so refresh doesn't keep clearing
-                const url = new URL(window.location.href);
-                url.searchParams.delete('clear_draft');
-                window.history.replaceState({}, '', url.toString());
-            }
             
             if (requestedTab === 'user-details-section') {
                 const stored = sessionStorage.getItem('current_viewing_user');
@@ -9385,16 +9399,8 @@
             }
 
             if (requestedTab === 'course-create') {
-                const loadFlag = sessionStorage.getItem('load_draft');
-                if (loadFlag === '1') {
-                    openAddCourseModal(true);
-                } else if (loadFlag === '0') {
-                    openAddCourseModal(false);
-                } else {
-                    // Manual URL entry or refresh - preserve existing frame state/draft
-                    showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
-                    ensureCourseCreateFrameLoaded();
-                }
+                const isDraft = sessionStorage.getItem('load_draft') === '1';
+                openAddCourseModal(isDraft);
             } else if (requestedTab === 'course-management' && params.get('open_add_course') === '1') {
                 openAddCourseModal();
             }
@@ -9512,17 +9518,16 @@
             if (!forceDraft) {
                 sessionStorage.setItem('load_draft', '0');
                 sessionStorage.removeItem('draft_course_key');
-                // Clear active draft keys immediately
+                // Also clear the default draft keys for new courses to ensure it's empty
                 localStorage.removeItem('draft_course_active_new');
                 localStorage.removeItem('draft_course_create');
             }
             
             const frame = document.getElementById('courseCreateFrame');
             if (frame) {
-                // Force reload with a timestamp to ensure fresh load and trigger DOMContentLoaded
-                const baseUrl = courseCreateEmbeddedUrl;
-                const separator = baseUrl.includes('?') ? '&' : '?';
-                frame.src = baseUrl + separator + 't=' + Date.now();
+                // Force reload to ensure a fresh blank form or loaded draft
+                const ts = new Date().getTime();
+                frame.src = courseCreateEmbeddedUrl + (courseCreateEmbeddedUrl.includes('?') ? '&' : '?') + 't=' + ts;
             }
             showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }
@@ -9634,7 +9639,7 @@
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (!key) continue;
-                if (key === 'draft_course_create' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
+                if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                     const raw = localStorage.getItem(key);
                     if (raw && raw !== '{}' && raw !== 'null') {
                         try {
@@ -9687,7 +9692,7 @@
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (!key) continue;
-                    if (key === 'draft_course_create' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
+                    if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                         const raw = localStorage.getItem(key);
                         if (raw && raw !== '{}' && raw !== 'null') {
                             count++;
@@ -9962,6 +9967,54 @@
                     const editBtn = document.getElementById('pro_view_edit_btn');
                     if (editBtn) {
                         editBtn.onclick = () => window.location.href = `/admin/courses/${c.id}/edit`;
+                    }
+
+                    // Archive and Delete forms
+                    const archiveForm = document.getElementById('pro_view_archive_form');
+                    const deleteForm = document.getElementById('pro_view_delete_form');
+                    const archiveTitle = document.getElementById('pro_view_archive_title');
+                    const archiveDesc = document.getElementById('pro_view_archive_desc');
+                    const archiveBtn = document.getElementById('pro_view_archive_btn');
+                    const archiveMethod = document.getElementById('pro_view_archive_method');
+
+                    if (result.course.trashed) {
+                        if (archiveForm) {
+                            archiveForm.action = `/courses/${c.id}/restore`;
+                            archiveForm.onsubmit = () => confirm('Unarchive this course?');
+                        }
+                        if (archiveMethod) archiveMethod.value = 'POST';
+                        if (archiveTitle) archiveTitle.innerText = 'Restore Course';
+                        if (archiveDesc) archiveDesc.innerText = 'Bring this course back to the library.';
+                        if (archiveBtn) {
+                            archiveBtn.innerHTML = '<i class="fas fa-rotate-left" style="margin-right: 6px;"></i> Restore Course';
+                            archiveBtn.style.background = '#eff6ff';
+                            archiveBtn.style.color = '#1e40af';
+                            archiveBtn.style.borderColor = '#dbeafe';
+                        }
+                    } else {
+                        if (archiveForm) {
+                            archiveForm.action = `/courses/${c.id}`;
+                            archiveForm.onsubmit = () => confirm('Are you sure you want to archive this course?');
+                        }
+                        if (archiveMethod) archiveMethod.value = 'DELETE';
+                        if (archiveTitle) archiveTitle.innerText = 'Archive Course';
+                        if (archiveDesc) archiveDesc.innerText = 'Archived courses are hidden from participants but can be restored later.';
+                        if (archiveBtn) {
+                            archiveBtn.innerHTML = '<i class="fas fa-archive" style="margin-right: 6px;"></i> Archive Course';
+                            archiveBtn.style.background = '#f8fafc';
+                            archiveBtn.style.color = '#64748b';
+                            archiveBtn.style.borderColor = '#e2e8f0';
+                        }
+                    }
+
+                    if (deleteForm) deleteForm.action = `/courses/${c.id}/force`;
+
+                    const visibilityBadge = document.getElementById('pro_view_course_visibility_badge');
+                    if (visibilityBadge) {
+                        const isPublished = result.course.status === 'published' || result.course.is_published;
+                        visibilityBadge.innerText = isPublished ? 'PUBLIC' : 'PRIVATE';
+                        visibilityBadge.style.background = isPublished ? '#ecfdf5' : '#fef2f2';
+                        visibilityBadge.style.color = isPublished ? '#10b981' : '#ef4444';
                     }
 
                     // Materials

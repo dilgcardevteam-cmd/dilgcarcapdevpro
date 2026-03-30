@@ -519,7 +519,7 @@ class CourseController extends Controller
         $totalPossiblePoints = $objectiveTotal + $essayTotal;
         $earnedPoints = $objectiveCorrect + $essayCheckedScore;
         $finalPct = $totalPossiblePoints > 0 ? (int) round(($earnedPoints / $totalPossiblePoints) * 100) : 0;
-        [$passingScore] = $this->getExamConfigValues($exam);
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
 
         $status = 'completed';
         if ($pendingEssayCount > 0 && $checkedEssayCount === 0) {
@@ -549,6 +549,7 @@ class CourseController extends Controller
                 default => ($passed === false ? 'Failed' : 'Passed'),
             },
             'passing_score' => $passingScore,
+            'max_attempts' => $maxAttempts,
             'passed' => $passed,
             'items' => $items,
             'contains_essay' => ($pendingEssayCount + $checkedEssayCount) > 0,
@@ -566,8 +567,8 @@ class CourseController extends Controller
             $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
         }
 
-        [$passingScore] = $this->getExamConfigValues($exam);
-        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore);
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
         $grade = Grade::where('assessment_id', $assessment->id)
             ->where('user_id', $userId)
             ->latest('id')
@@ -592,12 +593,15 @@ class CourseController extends Controller
         $summary['user_id'] = $userId;
         $summary['module_index'] = $moduleIndex;
         $summary['passing_score'] = $summary['passing_score'] ?? $passingScore;
+        $summary['max_attempts'] = $summary['max_attempts'] ?? $maxAttempts;
         $summary['attempt_no'] = $summary['attempt_no'] ?? (int) ($grade->attempt_no ?? 0);
         $summary['passed'] = array_key_exists('passed', $summary)
             ? $summary['passed']
             : (($summary['status'] ?? null) === 'completed'
                 ? ((float) ($summary['final_pct'] ?? 0) >= (float) ($summary['passing_score'] ?? $passingScore))
                 : null);
+        $summary['max_attempts_reached'] = $summary['max_attempts_reached']
+            ?? (($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
         $summary['restart_required'] = $summary['restart_required'] ?? false;
         $summary['status_label'] = $summary['status_label']
             ?? match ($summary['status'] ?? 'completed') {
@@ -760,11 +764,18 @@ class CourseController extends Controller
             ? round(($completedModules / $totalModules) * 100, 2)
             : 0.0;
         $existingStatus = (string) ($this->getCourseUserPivot($course, $userId)?->status ?? '');
+        $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
+        $latestExamSummary = $finalExamModuleIndex !== null
+            ? $this->getLatestFinalExamSummaryFromGrade($course, $finalExamModuleIndex, $userId)
+            : null;
 
         $status = $completedModules >= $totalModules && $totalModules > 0
             ? 'ready_for_exam'
             : 'in_progress';
-        if (in_array($existingStatus, ['completed'], true)) {
+        if (($latestExamSummary['max_attempts_reached'] ?? false) === true) {
+            $status = 'attempts_exhausted';
+        }
+        if (in_array($existingStatus, ['attempts_exhausted', 'completed'], true)) {
             $status = $existingStatus;
         }
 
@@ -828,7 +839,7 @@ class CourseController extends Controller
         ]);
     }
 
-    protected function getOrCreateFinalExamAssessment(Course $course, array $exam, ?int $passingScore): Assessment
+    protected function getOrCreateFinalExamAssessment(Course $course, array $exam, ?int $passingScore, ?int $maxAttempts): Assessment
     {
         $title = trim((string) ($exam['title'] ?? 'Final Exam'));
         $assessment = Assessment::firstOrNew([
@@ -840,6 +851,7 @@ class CourseController extends Controller
         $assessment->description = (string) ($exam['description'] ?? $assessment->description);
         $assessment->questions_json = $exam['questions'] ?? [];
         $assessment->passing_score = $passingScore;
+        $assessment->max_attempts = $maxAttempts;
         $assessment->save();
 
         return $assessment;
@@ -850,14 +862,17 @@ class CourseController extends Controller
         $passingScore = isset($exam['passing_score']) && $exam['passing_score'] !== ''
             ? max(1, min(100, (int) $exam['passing_score']))
             : 75;
+        $maxAttempts = isset($exam['max_attempts']) && $exam['max_attempts'] !== ''
+            ? max(1, (int) $exam['max_attempts'])
+            : (isset($exam['attempt_limit']) && $exam['attempt_limit'] !== '' ? max(1, (int) $exam['attempt_limit']) : 3);
 
-        return [$passingScore];
+        return [$passingScore, $maxAttempts];
     }
 
     protected function evaluateFinalExamOutcome(Course $course, int $moduleIndex, int $userId, array $summary, array $exam): array
     {
-        [$passingScore] = $this->getExamConfigValues($exam);
-        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore);
+        [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
         $latestGrade = Grade::where('assessment_id', $assessment->id)
             ->where('user_id', $userId)
             ->latest('id')
@@ -875,6 +890,7 @@ class CourseController extends Controller
 
         // Ensure these are stored in the feedback summary
         $summary['passing_score'] = $passingScore;
+        $summary['max_attempts'] = $maxAttempts;
         $summary['attempt_no'] = $attemptNo;
         $summary['passed'] = (($summary['status'] ?? 'completed') === 'completed')
             ? ((float) ($summary['final_pct'] ?? 0) >= $passingScore)
@@ -907,6 +923,7 @@ class CourseController extends Controller
                 'passed' => null,
                 'pending_review' => true,
                 'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
             ];
         }
 
@@ -918,6 +935,19 @@ class CourseController extends Controller
                 'passed' => true,
                 'pending_review' => false,
                 'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+            ];
+        }
+
+        if ($attemptNo >= $maxAttempts) {
+            $course->users()->updateExistingPivot($userId, ['status' => 'attempts_exhausted']);
+            return [
+                'attempt_no' => $attemptNo,
+                'passed' => false,
+                'pending_review' => false,
+                'max_attempts_reached' => true,
+                'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
             ];
         }
 
@@ -930,6 +960,7 @@ class CourseController extends Controller
             'pending_review' => false,
             'restart_required' => false,
             'passing_score' => $passingScore,
+            'max_attempts' => $maxAttempts,
         ];
     }
 
@@ -971,6 +1002,7 @@ class CourseController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'subject_area' => 'required|string',
+            'academic_year' => 'nullable|string|max:20',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required_without:image_draft_data|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
@@ -1106,6 +1138,7 @@ class CourseController extends Controller
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'passing_score' => (int) ($e['passing_score'] ?? 75),
+                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                         'questions' => $qs,
                     ];
                 }
@@ -1136,6 +1169,7 @@ class CourseController extends Controller
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                     'passing_score' => (int) ($e['passing_score'] ?? 75),
+                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                     'questions' => $qs,
                 ];
                 $hasModules = !empty($modules);
@@ -1194,7 +1228,7 @@ class CourseController extends Controller
         }
 
         if ($request->boolean('embedded')) {
-            $target = route('dashboard', ['tab' => 'course-management', 'clear_draft' => 'draft_course_active_new']);
+            $target = route('dashboard', ['tab' => 'course-management', 'clear_draft' => 'draft_course_create']);
             $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             return response(
                 "<!doctype html><html><body><script>window.top.location.href={$encodedTarget};</script></body></html>",
@@ -1319,6 +1353,7 @@ class CourseController extends Controller
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'passing_score' => (int) ($e['passing_score'] ?? 75),
+                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                         'questions' => $qs,
                     ];
                 }
@@ -1349,6 +1384,7 @@ class CourseController extends Controller
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                     'passing_score' => (int) ($e['passing_score'] ?? 75),
+                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
                     'questions' => $qs,
                 ];
                 // Remove any previous dedicated 'Course Exam' module
@@ -1423,7 +1459,7 @@ class CourseController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard', ['tab' => 'course-management', 'clear_draft' => 'draft_course_active_new'])->with('success', 'Course submitted to admin for review.');
+        return redirect()->route('dashboard')->with('success', 'Course submitted to admin for review.');
     }
 
     public function adminShow($course)
@@ -2066,6 +2102,7 @@ class CourseController extends Controller
                             'description' => (string) ($examDecoded['description'] ?? ''),
                             'timer_minutes' => (int) ($examDecoded['timer_minutes'] ?? 0),
                             'passing_score' => (int) ($examDecoded['passing_score'] ?? 75),
+                            'max_attempts' => (int) ($examDecoded['max_attempts'] ?? ($examDecoded['attempt_limit'] ?? 3)),
                             'questions' => $examQuestions,
                         ];
                     }
@@ -2280,8 +2317,19 @@ class CourseController extends Controller
                 return response()->json(['ok' => false, 'error' => 'Complete all modules before taking the final exam.']);
             }
 
-            [$passingScore] = $this->getExamConfigValues($exam);
-            $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore);
+            [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+            $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts);
+            $attemptsUsed = Grade::where('assessment_id', $assessment->id)
+                ->where('user_id', $user->id)
+                ->count();
+            if ($attemptsUsed >= $maxAttempts) {
+                $course->users()->updateExistingPivot($user->id, ['status' => 'attempts_exhausted']);
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'You have reached the maximum number of attempts.',
+                    'max_attempts_reached' => true,
+                ]);
+            }
 
             $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
             $answers = array_values($data['answers'] ?? []);
@@ -2352,11 +2400,16 @@ class CourseController extends Controller
                 'completed' => $completed,
                 'summary' => array_merge($summary, [
                     'passing_score' => $evaluation['passing_score'] ?? $passingScore,
-                    'attempt_no' => $evaluation['attempt_no'] ?? 1,
+                    'max_attempts' => $evaluation['max_attempts'] ?? $maxAttempts,
+                    'attempt_no' => $evaluation['attempt_no'] ?? ($attemptsUsed + 1),
                     'passed' => $evaluation['passed'] ?? null,
                     'restart_required' => $evaluation['restart_required'] ?? false,
+                    'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
                     'restart_message' => ($evaluation['restart_required'] ?? false)
                         ? 'You may request an exam retake from your trainer.'
+                        : null,
+                    'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
+                        ? 'You have reached the maximum number of attempts.'
                         : null,
                     'redirect_url' => null,
                 ]),
@@ -2477,6 +2530,10 @@ class CourseController extends Controller
             return response()->json(['ok' => false, 'error' => 'A failed exam attempt is required before requesting a retake.'], 422);
         }
 
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json(['ok' => false, 'error' => 'You have reached the maximum number of attempts.'], 422);
+        }
+
         $pivot = $this->getCourseUserPivot($course, $user->id);
         if (!$pivot) {
             return response()->json(['ok' => false, 'error' => 'Enrollment record not found.'], 404);
@@ -2491,21 +2548,6 @@ class CourseController extends Controller
             'retake_approved' => false,
             'status' => 'failed',
         ]);
-
-        $trainer = $course->trainer;
-        if ($trainer) {
-            $assessment = $course->assessments()->where('module_index', $moduleIndex)->first();
-            if ($assessment) {
-                \App\Models\Notification::create([
-                    'user_id' => $trainer->id,
-                    'title' => 'Retake Request',
-                    'message' => "{$user->name} has requested a retake for an exam in the course: {$course->name}.",
-                    'type' => 'retake_request',
-                    'related_id' => $course->id,
-                    'link' => route('trainer.assessment-show', ['assessment' => $assessment->id]),
-                ]);
-            }
-        }
 
         return response()->json(['ok' => true, 'retake_requested' => true, 'retake_approved' => false]);
     }
@@ -2530,6 +2572,10 @@ class CourseController extends Controller
         $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $userId);
         if (!$summary || ($summary['passed'] ?? null) !== false) {
             return response()->json(['ok' => false, 'error' => 'Only failed exam attempts can be approved for retake.'], 422);
+        }
+
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json(['ok' => false, 'error' => 'This participant has reached the maximum number of attempts.'], 422);
         }
 
         $pivot = $this->getCourseUserPivot($course, $userId);
@@ -2574,6 +2620,14 @@ class CourseController extends Controller
         $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, $user->id);
         if (!$summary) {
             return response()->json(['ok' => false, 'error' => 'No failed exam attempt found.'], 404);
+        }
+
+        if (($summary['max_attempts_reached'] ?? false) === true) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'You have reached the maximum number of attempts.',
+                'max_attempts_reached' => true,
+            ]);
         }
 
         // New retake logic: only allow if approved
@@ -2674,8 +2728,12 @@ class CourseController extends Controller
                 'attempt_no' => $evaluation['attempt_no'] ?? null,
                 'passed' => $evaluation['passed'] ?? null,
                 'restart_required' => $evaluation['restart_required'] ?? false,
+                'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
                 'restart_message' => ($evaluation['restart_required'] ?? false)
                     ? 'You may request an exam retake from your trainer.'
+                    : null,
+                'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
+                    ? 'You have reached the maximum number of attempts.'
                     : null,
                 'redirect_url' => null,
             ]),
@@ -2754,7 +2812,7 @@ class CourseController extends Controller
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
         $participants = $course->users()
             ->whereIn('role', $participantRoles)
-            ->wherePivotIn('status', ['active', 'in_progress', 'ready_for_exam', 'completed', 'failed'])
+            ->wherePivotIn('status', ['active', 'in_progress', 'ready_for_exam', 'completed', 'failed', 'attempts_exhausted'])
             ->get();
         $outUsers = [];
         foreach ($participants as $u) {
@@ -2959,6 +3017,8 @@ class CourseController extends Controller
                     ];
                 })->values(),
                 'status' => $course->status,
+                'is_published' => $course->is_published,
+                'trashed' => $course->trashed(),
                 'assessments' => $dbAssessments->concat($moduleExams)->values(),
             ]
         ]);
@@ -2982,6 +3042,9 @@ class CourseController extends Controller
         $passingScore = isset($e['passing_score']) && $e['passing_score'] !== ''
             ? max(1, min(100, (int) $e['passing_score']))
             : 75;
+        $maxAttempts = isset($e['max_attempts']) && $e['max_attempts'] !== ''
+            ? max(1, (int) $e['max_attempts'])
+            : (isset($e['attempt_limit']) && $e['attempt_limit'] !== '' ? max(1, (int) $e['attempt_limit']) : 3);
         $qs = is_array($e['questions'] ?? []) ? $e['questions'] : [];
         // Validation per requirements
         if ($title === '') {
@@ -3056,7 +3119,7 @@ class CourseController extends Controller
             return response()->json(['ok'=>false,'error'=>implode('; ', $errors)], 422);
         }
         // Transaction to avoid partial updates
-        \Illuminate\Support\Facades\DB::transaction(function() use ($course, $title, $description, $timer, $passingScore, $norm) {
+        \Illuminate\Support\Facades\DB::transaction(function() use ($course, $title, $description, $timer, $passingScore, $maxAttempts, $norm) {
             $mods = $course->modules;
             if (is_string($mods)) {
                 try { $mods = json_decode($mods, true); } catch (\Throwable $th) { $mods = []; }
@@ -3071,6 +3134,8 @@ class CourseController extends Controller
                 'description' => $description,
                 'timer_minutes' => $timer,
                 'passing_score' => $passingScore,
+                'max_attempts' => $maxAttempts,
+                'attempt_limit' => $maxAttempts,
                 'questions' => $norm,
             ];
             $hasModules = !empty($mods);

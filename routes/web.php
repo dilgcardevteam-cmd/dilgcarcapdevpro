@@ -202,7 +202,6 @@ Route::put('/users/{user}/display-details', [DashboardController::class, 'update
 Route::delete('/users/{user}', [DashboardController::class, 'deleteUser'])->middleware(['auth'])->name('users.delete');
 Route::put('/profile', [DashboardController::class, 'updateProfile'])->middleware(['auth'])->name('profile.update');
 Route::post('/notifications/{notification}/mark-as-read', [DashboardController::class, 'markNotificationAsRead'])->middleware(['auth'])->name('notifications.mark-as-read');
-Route::post('/notifications/mark-all-as-read', [DashboardController::class, 'markAllNotificationsAsRead'])->middleware(['auth'])->name('notifications.mark-all-as-read');
 
 // Certification Routes
 Route::middleware(['auth'])->group(function () {
