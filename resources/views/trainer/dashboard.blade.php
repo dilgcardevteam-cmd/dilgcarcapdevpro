@@ -935,6 +935,56 @@
             font-family: inherit;
         }
 
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+        }
+
+        .input-with-icon input {
+            padding-left: 35px !important;
+        }
+
+        .btn-cancel {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e2e8f0;
+        }
+
+        .btn-save {
+            background-color: #0f3b8f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background-color: #0b2c74;
+            transform: translateY(-1px);
+        }
+
         .form-footer {
             margin-top: 25px;
             display: flex;
@@ -1824,23 +1874,38 @@
                                 $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
                                 $studentsCount = $course->users ? $course->users->whereIn('role', $participantRoles)->count() : 0;
                             @endphp
-                            <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
-                                <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
-                                <div class="course-content">
-                                    <div class="course-title">{{ $course->name }}</div>
-                                    @if($course->course_type === 'controlled' && $course->access_code)
-                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
-                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
-                                            <span>Access Code: {{ $course->access_code }}</span>
+                            <div class="course-card" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
+                                <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                                    @if(!$course->trainer_ready)
+                                        <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                            <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
                                         </div>
                                     @endif
+                                </div>
+                                <div class="course-content">
+                                    <div class="course-title">{{ $course->name }}</div>
                                     <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                    
+                                    @if(!$course->trainer_ready)
+                                        <div style="margin-top: 10px; padding: 8px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-info-circle" style="color: #ea580c; font-size: 0.9rem;"></i>
+                                            <span style="color: #9a3412; font-size: 0.8rem; font-weight: 600;">This course is not yet configured.</span>
+                                        </div>
+                                    @endif
+
                                     <div class="course-footer">
-                                        <span style="font-size: 0.8rem; color: #777;">
-                                            <i class="fas fa-users"></i> {{ $studentsCount }} Students
-                                        </span>
-                                        <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
-                                    </div>
+                                         <div style="background: #f1f5f9; color: #64748b; padding: 6px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                             <i class="fas fa-users" style="font-size: 0.8rem;"></i>
+                                             <span>{{ $studentsCount }} Students</span>
+                                         </div>
+                                         @if(!$course->trainer_ready)
+                                             <button class="btn-view" onclick="event.stopPropagation(); openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')" style="background: #f97316; border-color: #f97316; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); cursor: pointer; border-radius: 999px;">
+                                                 <i class="fas fa-cog" style="margin-right: 4px;"></i> Set Up Now
+                                             </button>
+                                         @else
+                                             <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                         @endif
+                                     </div>
                                 </div>
                             </div>
                         @empty
@@ -1871,7 +1936,7 @@
                             // Status is definitely active here due to filter
                             $myStatus = 'active';
                         @endphp
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
+                        <div class="course-card" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1903,16 +1968,24 @@
                                     }
                                 }
                             @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                                @if(!$course->trainer_ready)
+                                    <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                        <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
+                                    </div>
+                                @endif
+                            </div>
                             <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
-                                    @if($course->course_type === 'controlled' && $course->access_code)
-                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
-                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
-                                            <span>Access Code: {{ $course->access_code }}</span>
+                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                    @if(!$course->trainer_ready)
+                                        <div style="margin-top: 10px; padding: 8px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-info-circle" style="color: #ea580c; font-size: 0.9rem;"></i>
+                                            <span style="color: #9a3412; font-size: 0.8rem; font-weight: 600;">This course is not yet configured.</span>
                                         </div>
                                     @endif
-                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
                                 <div class="course-footer">
                                     <span>
                                         <i class="fas fa-users"></i>
@@ -1924,7 +1997,13 @@
                                         @endphp
                                         {{ $studentsCount }} Students
                                     </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                    @if(!$course->trainer_ready)
+                                         <button class="btn-view" onclick="event.stopPropagation(); openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')" style="background: #f97316; border-color: #f97316; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); cursor: pointer; border-radius: 999px;">
+                                             <i class="fas fa-cog" style="margin-right: 4px;"></i> Set Up Now
+                                         </button>
+                                     @else
+                                         <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                     @endif
                                 </div>
                             </div>
                         </div>
@@ -1953,7 +2032,7 @@
                             // For coaches/trainers, once course is approved (unarchived), treat as active
                             $myStatus = 'active';
                         @endphp
-                        <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
+                        <div class="course-card" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -1985,28 +2064,37 @@
                                     }
                                 }
                             @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');"></div>
+                            <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                                @if(!$course->trainer_ready)
+                                    <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                        <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
+                                    </div>
+                                @endif
+                            </div>
                             <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
-                                    @if($course->course_type === 'controlled' && $course->access_code)
-                                        <div class="course-code" style="background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid #bbf7d0;">
-                                            <i class="fas fa-key" style="font-size: 0.75rem;"></i>
-                                            <span>Access Code: {{ $course->access_code }}</span>
+                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+
+                                    @if(!$course->trainer_ready)
+                                        <div style="margin-top: 10px; padding: 8px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-info-circle" style="color: #ea580c; font-size: 0.9rem;"></i>
+                                            <span style="color: #9a3412; font-size: 0.8rem; font-weight: 600;">This course is not yet configured.</span>
                                         </div>
                                     @endif
-                                    <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
-                                <div class="course-footer">
-                                    @php
-                                        $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
-                                        $studentsCount = $course->users
-                                            ? $course->users->filter(fn($u)=>in_array($u->role, $participantRoles))->count()
-                                            : 0;
-                                    @endphp
-                                    <span style="font-size: 0.8rem; color: #777;">
-                                        <i class="fas fa-users"></i> {{ $studentsCount }} Students
-                                    </span>
-                                    <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
-                                </div>
+
+                                 <div class="course-footer">
+                                     <div style="background: #f1f5f9; color: #64748b; padding: 6px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                         <i class="fas fa-users" style="font-size: 0.8rem;"></i>
+                                         <span>{{ $studentsCount }} Students</span>
+                                     </div>
+                                     @if(!$course->trainer_ready)
+                                         <button class="btn-view" onclick="event.stopPropagation(); openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')" style="background: #f97316; border-color: #f97316; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); cursor: pointer; border-radius: 999px;">
+                                             <i class="fas fa-cog" style="margin-right: 4px;"></i> Set Up Now
+                                         </button>
+                                     @else
+                                         <a class="btn-view" href="{{ route('trainer.courses.enter', $course) }}" onclick="event.stopPropagation();">Enter Class</a>
+                                     @endif
+                                 </div>
                             </div>
                         </div>
                     @empty
@@ -2483,6 +2571,42 @@
                 </form>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Set Course Duration Modal -->
+    <div id="durationModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 420px; border-radius: 16px; padding: 0; overflow: hidden; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding: 20px 24px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%); border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
+                <h3 class="modal-title" style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-calendar-alt" style="color: #0f3b8f;"></i> Set Course Duration
+                </h3>
+                <button class="close-modal" onclick="closeDurationModal()" style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #e2e8f0; font-size: 1.1rem; color: #64748b; transition: all 0.2s;">&times;</button>
+            </div>
+            <form id="durationForm" method="POST" style="padding: 24px;">
+                @csrf
+                @method('PUT')
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 0.9rem;">Start Date</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-calendar-day"></i>
+                        <input type="date" name="start_date" id="duration_start_date" class="form-control" required style="border-radius: 10px; border: 1px solid #d1d5db; padding: 12px; font-size: 1rem;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 0.9rem;">End Date</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-calendar-check"></i>
+                        <input type="date" name="end_date" id="duration_end_date" class="form-control" required style="border-radius: 10px; border: 1px solid #d1d5db; padding: 12px; font-size: 1rem;">
+                    </div>
+                </div>
+                <div class="form-footer" style="padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; margin: 0 -24px -24px -24px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="btn-cancel" onclick="closeDurationModal()">Cancel</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -3146,6 +3270,23 @@
 
         function closeUploadModal() {
             document.getElementById('uploadModal').style.display = 'none';
+        }
+
+        function openDurationModal(courseId, startDate, endDate) {
+            const modal = document.getElementById('durationModal');
+            const form = document.getElementById('durationForm');
+            const startInput = document.getElementById('duration_start_date');
+            const endInput = document.getElementById('duration_end_date');
+
+            form.action = `/trainer/courses/${courseId}/duration`;
+            startInput.value = startDate;
+            endInput.value = endDate;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeDurationModal() {
+            document.getElementById('durationModal').style.display = 'none';
         }
 
         function openCreateAssessmentModal() {
