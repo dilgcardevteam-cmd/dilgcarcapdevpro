@@ -1252,7 +1252,13 @@
                             <div class="new-course-card">
                                 <div class="card-banner">
                                     <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
-                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
+                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
+                                            Finished
+                                        @else
+                                            {{ $course->course_status }}
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-content">
                                     <h3 class="card-title">{{ $course->name }}</h3>
@@ -1331,7 +1337,13 @@
                                     }
                                 @endphp
                                 <img src="{{ $courseImage }}" alt="Course Image">
-                                <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
+                                <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                    @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
+                                        Finished
+                                    @else
+                                        {{ $course->course_status }}
+                                    @endif
+                                </div>
                             </div>
                             <div class="card-content">
                                 <h3 class="card-title">{{ $course->name }}</h3>
@@ -1419,7 +1431,13 @@
                             <div class="new-course-card">
                                 <div class="card-banner">
                                     <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
-                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">{{ $course->course_status }}</div>
+                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
+                                            Finished
+                                        @else
+                                            {{ $course->course_status }}
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="card-content">
                                     <h3 class="card-title">{{ $course->name }}</h3>
