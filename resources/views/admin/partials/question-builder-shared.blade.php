@@ -1,8 +1,46 @@
+<style>
+    .nav-block {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.2s ease;
+        border: 1.5px solid transparent;
+        font-size: 0.95rem;
+    }
+    .nav-question {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+    .nav-question:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+        transform: translateY(-1px);
+    }
+    .nav-question.active {
+        background: #10b981;
+        color: #fff;
+        border-color: #10b981;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+    .nav-add {
+        background: #002C76;
+        color: #fff;
+        box-shadow: 0 4px 6px -1px rgba(0, 44, 118, 0.2);
+    }
+    .nav-add:hover {
+        background: #001f54;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 10px -1px rgba(0, 44, 118, 0.25);
+    }
+</style>
 <script>
     window.CAPDEVQuestionBuilderShared = window.CAPDEVQuestionBuilderShared || (function () {
-        const questionButtonStyle = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-        const addButtonStyle = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #0f3b8f;background:#0f3b8f;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(15,59,143,.25);';
-
         function getPointsInput(scope) {
             const type = scope.querySelector('.eq-type')?.value || 'multiple_choice';
             if (type === 'essay') return scope.querySelector('.eq-essay-points');
@@ -37,7 +75,6 @@
             button.type = 'button';
             button.className = 'nav-block nav-question';
             button.textContent = String(index + 1);
-            button.style.cssText = questionButtonStyle;
             button.addEventListener('click', onClick);
             return button;
         }
@@ -46,23 +83,13 @@
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'nav-block nav-add';
-            button.textContent = '+';
-            button.style.cssText = addButtonStyle;
+            button.innerHTML = '<i class="fas fa-plus"></i>';
             button.addEventListener('click', onClick);
             return button;
         }
 
         function applyQuestionButtonState(button, isActive) {
             button.classList.toggle('active', isActive);
-            if (isActive) {
-                button.style.background = '#10b981';
-                button.style.borderColor = '#10b981';
-                button.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
-            } else {
-                button.style.background = '#3b82f6';
-                button.style.borderColor = '#60a5fa';
-                button.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
-            }
         }
 
         return {
