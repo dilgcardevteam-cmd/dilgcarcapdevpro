@@ -1776,6 +1776,7 @@
             
             <!-- Dashboard Home Section -->
             <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
+                {{-- Legacy session filter block kept temporarily during move; hidden intentionally. --}}
                 @if(false)
                 <!-- Academic Year Selector -->
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; background: #fff; padding: 12px 20px; border-radius: 16px; border: 1px solid #e5eef7; box-shadow: 0 4px 15px rgba(0,44,118,0.03);">
@@ -3666,6 +3667,16 @@
             var active=document.querySelector('.content-section.active');
             var id=active?active.id:'dashboard-home';
             updateHeaderTitle(id);
+            try{
+                document.querySelectorAll('#dashboard-home select option').forEach(function(option){
+                    option.textContent = (option.textContent || '').replace(/â€“/g, '-');
+                });
+                document.querySelectorAll('#dashboard-home span').forEach(function(span){
+                    if((span.textContent || '').indexOf('Academic Year') !== -1){
+                        span.textContent = (span.textContent || '').replace(/â€“/g, '-');
+                    }
+                });
+            }catch(_){}
         });
     </script>
 </body>

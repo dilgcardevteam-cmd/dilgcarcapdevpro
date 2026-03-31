@@ -1556,11 +1556,53 @@ class DashboardController extends Controller
         foreach ($rows as $row) {
             $region = $row->region ?? '';
             $g = $row->gender ?? '';
-            $key = $g === 'male' ? 'male' : ($g === 'female' ? 'female' : 'other');
             if (!isset($out[$region])) {
-                $out[$region] = ['male' => 0, 'female' => 0, 'other' => 0];
+                $out[$region] = [
+                    'male_count' => 0,
+                    'female_count' => 0,
+                    'prefer_not_to_say_count' => 0,
+                    'unknown_count' => 0,
+                ];
             }
-            $out[$region][$key] += (int) $row->c;
+            if ($g === 'male') {
+                $out[$region]['male_count'] += (int) $row->c;
+            } elseif ($g === 'female') {
+                $out[$region]['female_count'] += (int) $row->c;
+            } elseif (in_array($g, ['prefer not to say', 'prefer_not_to_say', 'prefer-not-to-say'], true)) {
+                $out[$region]['prefer_not_to_say_count'] += (int) $row->c;
+            } elseif ($g !== '') {
+                $out[$region]['unknown_count'] += (int) $row->c;
+            }
+        }
+        return response()->json(['gender_counts' => $out]);
+    }
+
+    public function userGenderCountsByProvince()
+    {
+        $rows = User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, LOWER(TRIM(COALESCE(gender,""))) as gender, COUNT(*) as c')
+            ->groupBy('province', 'gender')
+            ->get();
+        $out = [];
+        foreach ($rows as $row) {
+            $province = $row->province ?? '';
+            $g = $row->gender ?? '';
+            if (!isset($out[$province])) {
+                $out[$province] = [
+                    'male_count' => 0,
+                    'female_count' => 0,
+                    'prefer_not_to_say_count' => 0,
+                    'unknown_count' => 0,
+                ];
+            }
+            if ($g === 'male') {
+                $out[$province]['male_count'] += (int) $row->c;
+            } elseif ($g === 'female') {
+                $out[$province]['female_count'] += (int) $row->c;
+            } elseif (in_array($g, ['prefer not to say', 'prefer_not_to_say', 'prefer-not-to-say'], true)) {
+                $out[$province]['prefer_not_to_say_count'] += (int) $row->c;
+            } elseif ($g !== '') {
+                $out[$province]['unknown_count'] += (int) $row->c;
+            }
         }
         return response()->json(['gender_counts' => $out]);
     }
@@ -1592,6 +1634,42 @@ class DashboardController extends Controller
                 'users' => (int) ($usersByRegion[$r] ?? 0),
                 'courses_completed' => (int) ($completionsByRegion[$r] ?? 0),
                 'certs_issued' => (int) ($certsByRegion[$r] ?? 0),
+            ];
+        }
+        return response()->json(['analytics' => $out]);
+    }
+
+    public function provinceAnalytics()
+    {
+        $usersByProvince = User::selectRaw('LOWER(TRIM(COALESCE(province,""))) as province, COUNT(*) as c')
+            ->groupBy('province')
+            ->pluck('c', 'province');
+        $certsByProvince = \Illuminate\Support\Facades\Schema::hasTable('certification_user')
+            ? \DB::table('certification_user')
+                ->join('users', 'certification_user.user_id', '=', 'users.id')
+                ->selectRaw('LOWER(TRIM(COALESCE(users.province,""))) as province, COUNT(*) as c')
+                ->groupBy('province')
+                ->pluck('c', 'province')
+            : collect();
+        $completionsByProvince = \Illuminate\Support\Facades\Schema::hasTable('course_user')
+            ? \DB::table('course_user')
+                ->join('users', 'course_user.user_id', '=', 'users.id')
+                ->selectRaw('LOWER(TRIM(COALESCE(users.province,""))) as province, COUNT(*) as c')
+                ->whereIn('course_user.status', ['completed', 'finished', 'done'])
+                ->groupBy('province')
+                ->pluck('c', 'province')
+            : collect();
+        $out = [];
+        $keys = array_unique(array_merge(
+            array_keys($usersByProvince->toArray()),
+            array_keys($certsByProvince->toArray()),
+            array_keys($completionsByProvince->toArray())
+        ));
+        foreach ($keys as $province) {
+            $out[$province] = [
+                'users' => (int) ($usersByProvince[$province] ?? 0),
+                'courses_completed' => (int) ($completionsByProvince[$province] ?? 0),
+                'certs_issued' => (int) ($certsByProvince[$province] ?? 0),
             ];
         }
         return response()->json(['analytics' => $out]);

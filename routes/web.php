@@ -81,7 +81,9 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 Route::get('/stats/users-by-province', [DashboardController::class, 'userCountsByProvince'])->middleware(['auth'])->name('stats.users.by-province');
 Route::get('/stats/users-by-region', [DashboardController::class, 'userCountsByRegion'])->middleware(['auth'])->name('stats.users.by-region');
 Route::get('/stats/users-gender-by-region', [DashboardController::class, 'userGenderCountsByRegion'])->middleware(['auth'])->name('stats.users.gender-by-region');
+Route::get('/stats/users-gender-by-province', [DashboardController::class, 'userGenderCountsByProvince'])->middleware(['auth'])->name('stats.users.gender-by-province');
 Route::get('/stats/region-analytics', [DashboardController::class, 'regionAnalytics'])->middleware(['auth'])->name('stats.region.analytics');
+Route::get('/stats/province-analytics', [DashboardController::class, 'provinceAnalytics'])->middleware(['auth'])->name('stats.province.analytics');
 Route::get('/stats/monthly-growth', [DashboardController::class, 'monthlyGrowth'])->middleware(['auth'])->name('stats.monthly.growth');
 Route::get('/admin/courses/create', [CourseController::class, 'create'])->middleware(['auth'])->name('admin.courses.create');
 Route::get('/admin/courses/{course}/edit', [CourseController::class, 'edit'])->middleware(['auth'])->name('admin.courses.edit');

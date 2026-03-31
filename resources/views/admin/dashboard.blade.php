@@ -4263,10 +4263,14 @@
                                     'https://raw.githubusercontent.com/justinegealogo/philippines-region-province-citymuni-barangay/master/geojson/philippines-province.geojson',
                                     'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/provdists.lowres.geojson'
                                   ],
-                                  counts: '{{ route('stats.users.by-province') }}'
+                                  counts: '{{ route('stats.users.by-province') }}',
+                                  gender: '{{ route('stats.users.gender-by-province') }}'
                                 }
                               };
-                              var regionAnalyticsUrl = '{{ route('stats.region.analytics') }}';
+                              var analyticsUrls = {
+                                region: '{{ route('stats.region.analytics') }}',
+                                province: '{{ route('stats.province.analytics') }}'
+                              };
                               var modeSel = document.getElementById('ph-map-mode');
                               var mode = (modeSel && modeSel.value) || 'region';
                               
@@ -4389,10 +4393,11 @@
                                       tooltip.style.display='block';
                                       var gcounts = {};
                                       if(mode==='region'){ gcounts = (window.__gender || {})[normalizeRegion(label)] || {}; }
-                                      var m = gcounts.male || 0;
-                                      var f = gcounts.female || 0;
-                                      var o = (typeof gcounts.other === 'number') ? gcounts.other : Math.max(0, v - (m + f));
-                                      var a = (window.__analytics || {})[normalizeRegion(label)] || {};
+                                      else { gcounts = (window.__gender || {})[normalizeProvince(label)] || {}; }
+                                      var m = gcounts.male_count || gcounts.male || 0;
+                                      var f = gcounts.female_count || gcounts.female || 0;
+                                      var p = gcounts.prefer_not_to_say_count || gcounts.prefer_not_to_say || 0;
+                                      var a = (window.__analytics || {})[(mode==='region' ? normalizeRegion(label) : normalizeProvince(label))] || {};
                                       var users = a.users || v;
                                       var coursesCompleted = a.courses_completed || 0;
                                       var certsIssued = a.certs_issued || 0;
@@ -4406,7 +4411,7 @@
                                         + '<div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;margin-top:8px">'
                                         +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#93c5fd"><i class="fas fa-mars"></i> '+m+'</span>'
                                         +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#fecaca"><i class="fas fa-venus"></i> '+f+'</span>'
-                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#cbd5e1"><i class="fas fa-circle-notch"></i> '+o+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#cbd5e1"><i class="fas fa-user-shield"></i> '+p+'</span>'
                                         + '</div>';
                                       moveTooltip(event);
                                     }
@@ -4483,7 +4488,7 @@
                                       var total = Object.values(window.__counts || {}).reduce(function(a,b){ return a+(b||0); }, 0);
                                       var totEl = document.getElementById('ph-map-total'); if(totEl){ totEl.textContent = 'Total users: '+total; }
                                     });
-                                  var p2 = (genderUrl && mode==='region')
+                                  var p2 = genderUrl
                                     ? fetch(genderUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
                                         .then(function(res){ return res.ok ? res.json() : null; })
                                         .then(function(data){ 
@@ -4491,15 +4496,24 @@
                                           var gn = {}; 
                                           for (var k in graw) { 
                                             if (!Object.prototype.hasOwnProperty.call(graw, k)) continue; 
-                                            var nk = normalizeRegion(k); 
+                                            var nk = mode==='region' ? normalizeRegion(k) : normalizeProvince(k); 
                                             gn[nk] = graw[k]; 
                                           } 
                                           window.__gender = gn; 
                                         })
                                     : Promise.resolve();
-                                  var p3 = fetch(regionAnalyticsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                  var analyticsUrl = analyticsUrls[mode];
+                                  var p3 = fetch(analyticsUrl, {headers:{'X-Requested-With':'XMLHttpRequest'}})
                                     .then(function(res){ return res.ok ? res.json() : null; })
-                                    .then(function(data){ window.__analytics = (data && data.analytics) ? data.analytics : {}; });
+                                    .then(function(data){
+                                      var araw = (data && data.analytics) ? data.analytics : {};
+                                      var an = {};
+                                      for (var k in araw) {
+                                        if (!Object.prototype.hasOwnProperty.call(araw, k)) continue;
+                                        an[mode==='region' ? normalizeRegion(k) : normalizeProvince(k)] = araw[k];
+                                      }
+                                      window.__analytics = an;
+                                    });
                                   Promise.all([p1,p2,p3]).then(function(){ load(urls[mode].geo.slice()); })
                                     .catch(function(){ load(urls[mode].geo.slice()); });
                                 }catch(e){
