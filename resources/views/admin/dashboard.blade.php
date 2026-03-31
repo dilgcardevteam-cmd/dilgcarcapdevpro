@@ -49,6 +49,26 @@
         .card-muted{color:#64748b}
         .section-title{margin:0;color:#0B2C74;font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
         .muted{color:#64748b}
+        .map-helper-text{margin:10px 0 0;color:#64748b;font-size:.85rem;font-weight:600}
+        .map-selection-panel{margin-top:16px;padding:16px 18px;border:1px solid #dbe7fb;border-radius:16px;background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);box-shadow:0 12px 30px rgba(15,23,42,.05)}
+        .map-selection-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+        .map-selection-kicker{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:#64748b;font-weight:800}
+        .map-selection-title{margin:4px 0 0;color:#0B2C74;font-size:1.2rem;font-weight:800}
+        .map-selection-subtitle{margin:6px 0 0;color:#64748b;font-size:.9rem;font-weight:500}
+        .map-selection-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:#eaf2ff;color:#0B2C74;font-size:.8rem;font-weight:800}
+        .map-selection-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+        .map-selection-stat{padding:14px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}
+        .map-selection-stat-label{font-size:.8rem;color:#64748b;font-weight:700}
+        .map-selection-stat-value{margin-top:6px;font-size:1.5rem;line-height:1;color:#0B2C74;font-weight:800}
+        .map-selection-genders{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px;color:#475569;font-weight:700}
+        .map-selection-genders span{display:inline-flex;align-items:center;gap:7px}
+        .map-selection-actions{display:flex;align-items:center;gap:8px}
+        .map-selection-clear{border:1px solid #dbe7fb;border-radius:999px;background:#fff;color:#0B2C74;padding:8px 12px;font-weight:800;cursor:pointer}
+        .map-selection-clear:hover{background:#f8fbff}
+        .map-legend-note{margin-top:8px;text-align:center;color:#64748b;font-size:.82rem;font-weight:600}
+        @media (max-width: 768px){
+            .map-selection-stats{grid-template-columns:1fr}
+        }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -4182,10 +4202,11 @@
                                     <button type="button" id="btn-zoom-out" style="width:38px;height:38px;background:#ffffff;border:1px solid #cfe0ff;border-radius:10px;box-shadow:0 6px 14px rgba(2,6,23,.12);color:#0b3b8f;cursor:pointer;display:flex;align-items:center;justify-content:center" onmouseover="this.style.background='#f1f5fb';this.style.transform='scale(1.05)'" onmouseout="this.style.background='#ffffff';this.style.transform='scale(1)'"><i class="fas fa-minus"></i></button>
                                     <button type="button" id="btn-reset-zoom" style="width:38px;height:38px;background:#ffffff;border:1px solid #cfe0ff;border-radius:10px;box-shadow:0 6px 14px rgba(2,6,23,.12);color:#0b3b8f;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Reset View" onmouseover="this.style.background='#f1f5fb';this.style.transform='scale(1.05)'" onmouseout="this.style.background='#ffffff';this.style.transform='scale(1)'"><i class="fas fa-expand"></i></button>
                                 </div>
+                                <p class="map-helper-text">Hover to preview a location, or click a region/province to pin its stats below.</p>
 
                                 <div id="ph-map-legend" style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
                                     <div style="display:flex;align-items:center;gap:8px;">
-                                        <div style="width:14px;height:14px;border-radius:999px;background:#fde047;box-shadow:0 0 0 2px rgba(250,204,21,.4)"></div>
+                                        <div style="width:14px;height:14px;border-radius:999px;background:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.45)"></div>
                                         <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Low (0-10)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
@@ -4197,7 +4218,40 @@
                                         <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">High (51+)</span>
                                     </div>
                                 </div>
+                                <div class="map-legend-note">Color intensity is based on total users in the selected map mode.</div>
                                 <div id="ph-map-total" style="margin-top:8px;text-align:center;color:#cbd5e1;font-size:.85rem;font-weight:700"></div>
+                                <div id="ph-map-selection" class="map-selection-panel">
+                                    <div class="map-selection-header">
+                                        <div>
+                                            <div class="map-selection-kicker">Selected Location</div>
+                                            <div id="ph-map-selection-title" class="map-selection-title">No location selected</div>
+                                            <div id="ph-map-selection-subtitle" class="map-selection-subtitle">Choose a region or province on the map to keep its details visible here.</div>
+                                        </div>
+                                        <div class="map-selection-actions">
+                                            <span id="ph-map-selection-badge" class="map-selection-badge"><i class="fas fa-location-dot"></i> Hover or click the map</span>
+                                            <button type="button" id="ph-map-selection-clear" class="map-selection-clear" style="display:none;">Clear</button>
+                                        </div>
+                                    </div>
+                                    <div class="map-selection-stats">
+                                        <div class="map-selection-stat">
+                                            <div class="map-selection-stat-label">Users</div>
+                                            <div id="ph-map-selection-users" class="map-selection-stat-value">0</div>
+                                        </div>
+                                        <div class="map-selection-stat">
+                                            <div class="map-selection-stat-label">Courses Completed</div>
+                                            <div id="ph-map-selection-courses" class="map-selection-stat-value">0</div>
+                                        </div>
+                                        <div class="map-selection-stat">
+                                            <div class="map-selection-stat-label">Certificates Issued</div>
+                                            <div id="ph-map-selection-certs" class="map-selection-stat-value">0</div>
+                                        </div>
+                                    </div>
+                                    <div class="map-selection-genders">
+                                        <span style="color:#2563eb;"><i class="fas fa-mars"></i> Male: <strong id="ph-map-selection-male">0</strong></span>
+                                        <span style="color:#db2777;"><i class="fas fa-venus"></i> Female: <strong id="ph-map-selection-female">0</strong></span>
+                                        <span style="color:#64748b;"><i class="fas fa-user-shield"></i> Prefer not to say: <strong id="ph-map-selection-pnts">0</strong></span>
+                                    </div>
+                                </div>
                                 
                             </div>
                             <div id="ph-map-tooltip" style="position:absolute;display:none;z-index:100;background:rgba(12,20,60,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;box-shadow:0 20px 40px rgba(2,6,23,.6);pointer-events:none;color:#e5e7eb;min-width:220px;"></div>
@@ -4243,6 +4297,7 @@
                               });
                               document.getElementById('btn-reset-zoom').addEventListener('click', function() {
                                   svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+                                  clearSelectionPanel();
                               });
 
                               var tooltip = document.getElementById('ph-map-tooltip');
@@ -4273,6 +4328,19 @@
                               };
                               var modeSel = document.getElementById('ph-map-mode');
                               var mode = (modeSel && modeSel.value) || 'region';
+                              var selectedState = null;
+                              var selectionEls = {
+                                title: document.getElementById('ph-map-selection-title'),
+                                subtitle: document.getElementById('ph-map-selection-subtitle'),
+                                badge: document.getElementById('ph-map-selection-badge'),
+                                clear: document.getElementById('ph-map-selection-clear'),
+                                users: document.getElementById('ph-map-selection-users'),
+                                courses: document.getElementById('ph-map-selection-courses'),
+                                certs: document.getElementById('ph-map-selection-certs'),
+                                male: document.getElementById('ph-map-selection-male'),
+                                female: document.getElementById('ph-map-selection-female'),
+                                pnts: document.getElementById('ph-map-selection-pnts')
+                              };
                               
                               function normalizeRegion(s){
                                 var t = (s || '').toLowerCase();
@@ -4290,6 +4358,61 @@
                                     .replace(/city of /g, '')
                                     .replace(/\./g, '')
                                     .trim();
+                              }
+                              function getLocationData(label){
+                                var key = mode==='region' ? normalizeRegion(label) : normalizeProvince(label);
+                                var gcounts = (window.__gender || {})[key] || {};
+                                var analytics = (window.__analytics || {})[key] || {};
+                                var rawUsers = (window.__counts || {})[key] || 0;
+                                return {
+                                  key: key,
+                                  label: label,
+                                  users: analytics.users || rawUsers || 0,
+                                  coursesCompleted: analytics.courses_completed || 0,
+                                  certsIssued: analytics.certs_issued || 0,
+                                  male: gcounts.male_count || gcounts.male || 0,
+                                  female: gcounts.female_count || gcounts.female || 0,
+                                  pnts: gcounts.prefer_not_to_say_count || gcounts.prefer_not_to_say || 0
+                                };
+                              }
+                              function updateSelectionPanel(data, pinned){
+                                if(!selectionEls.title) return;
+                                if(!data){
+                                  selectionEls.title.textContent = 'No location selected';
+                                  selectionEls.subtitle.textContent = 'Choose a region or province on the map to keep its details visible here.';
+                                  selectionEls.badge.innerHTML = '<i class="fas fa-location-dot"></i> Hover or click the map';
+                                  selectionEls.clear.style.display = 'none';
+                                  selectionEls.users.textContent = '0';
+                                  selectionEls.courses.textContent = '0';
+                                  selectionEls.certs.textContent = '0';
+                                  selectionEls.male.textContent = '0';
+                                  selectionEls.female.textContent = '0';
+                                  selectionEls.pnts.textContent = '0';
+                                  return;
+                                }
+                                selectionEls.title.textContent = data.label;
+                                selectionEls.subtitle.textContent = pinned
+                                  ? 'Pinned selection. Use Clear to return to hover preview mode.'
+                                  : 'Previewing current hover data.';
+                                selectionEls.badge.innerHTML = pinned
+                                  ? '<i class="fas fa-thumbtack"></i> Pinned ' + (mode==='region' ? 'region' : 'province')
+                                  : '<i class="fas fa-arrow-pointer"></i> Hover preview';
+                                selectionEls.clear.style.display = pinned ? 'inline-flex' : 'none';
+                                selectionEls.users.textContent = String(data.users);
+                                selectionEls.courses.textContent = String(data.coursesCompleted);
+                                selectionEls.certs.textContent = String(data.certsIssued);
+                                selectionEls.male.textContent = String(data.male);
+                                selectionEls.female.textContent = String(data.female);
+                                selectionEls.pnts.textContent = String(data.pnts);
+                              }
+                              function clearSelectionPanel(){
+                                selectedState = null;
+                                updateSelectionPanel(null, false);
+                              }
+                              if(selectionEls.clear){
+                                selectionEls.clear.addEventListener('click', function(){
+                                  clearSelectionPanel();
+                                });
                               }
                               function normalizeCounts(src, type){
                                 var out = {};
@@ -4326,7 +4449,7 @@
                                 // 0 handled separately as gray; 1-10 Low, 11-50 Medium, 51+ High
                                 var colorScale = d3.scaleThreshold()
                                     .domain([11, 51])
-                                    .range(['#fde047', '#fb923c', '#e11d48']);
+                                    .range(['#facc15', '#fb923c', '#e11d48']);
 
                                 g.selectAll('path')
                                   .data(geo.features)
@@ -4391,28 +4514,22 @@
                                     
                                     if(tooltip){
                                       tooltip.style.display='block';
-                                      var gcounts = {};
-                                      if(mode==='region'){ gcounts = (window.__gender || {})[normalizeRegion(label)] || {}; }
-                                      else { gcounts = (window.__gender || {})[normalizeProvince(label)] || {}; }
-                                      var m = gcounts.male_count || gcounts.male || 0;
-                                      var f = gcounts.female_count || gcounts.female || 0;
-                                      var p = gcounts.prefer_not_to_say_count || gcounts.prefer_not_to_say || 0;
-                                      var a = (window.__analytics || {})[(mode==='region' ? normalizeRegion(label) : normalizeProvince(label))] || {};
-                                      var users = a.users || v;
-                                      var coursesCompleted = a.courses_completed || 0;
-                                      var certsIssued = a.certs_issued || 0;
+                                      var loc = getLocationData(label);
                                       tooltip.innerHTML = ''
                                         + '<div style="font-weight:800;font-size:1rem;margin-bottom:2px;color:#e5e7eb">'+label+'</div>'
                                         + '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 8px;font-size:0.88rem;color:#cbd5e1;margin-top:6px">'
-                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:6px"></span><span><strong>Users</strong>: '+users+'</span>'
-                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-top:6px"></span><span><strong>Courses Completed</strong>: '+coursesCompleted+'</span>'
-                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#eab308;margin-top:6px"></span><span><strong>Certificates Issued</strong>: '+certsIssued+'</span>'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:6px"></span><span><strong>Users</strong>: '+loc.users+'</span>'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-top:6px"></span><span><strong>Courses Completed</strong>: '+loc.coursesCompleted+'</span>'
+                                        +   '<span style="width:8px;height:8px;border-radius:50%;background:#eab308;margin-top:6px"></span><span><strong>Certificates Issued</strong>: '+loc.certsIssued+'</span>'
                                         + '</div>'
                                         + '<div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;margin-top:8px">'
-                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#93c5fd"><i class="fas fa-mars"></i> '+m+'</span>'
-                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#fecaca"><i class="fas fa-venus"></i> '+f+'</span>'
-                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#cbd5e1"><i class="fas fa-user-shield"></i> '+p+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#93c5fd"><i class="fas fa-mars"></i> '+loc.male+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#fecaca"><i class="fas fa-venus"></i> '+loc.female+'</span>'
+                                        +   '<span style="display:inline-flex;align-items:center;gap:6px;color:#cbd5e1"><i class="fas fa-user-shield"></i> '+loc.pnts+'</span>'
                                         + '</div>';
+                                      if(!selectedState){
+                                        updateSelectionPanel(loc, false);
+                                      }
                                       moveTooltip(event);
                                     }
                                   })
@@ -4430,9 +4547,17 @@
                                       }
                                       return 'none';
                                     });
+                                    if(!selectedState){
+                                      updateSelectionPanel(null, false);
+                                    }
                                     if(tooltip){ tooltip.style.display='none'; }
                                   })
                                   .on('click', function(event, d){
+                                      var label = mode==='region'
+                                        ? (d.properties.REGION || d.properties.REGION_NAME || d.properties.region || d.properties.REGION_NAM || d.properties.NAME_1 || d.properties.name || '').trim()
+                                        : (d.properties.PROVINCE || d.properties.NAME_1 || d.properties.name || '').trim();
+                                      selectedState = getLocationData(label);
+                                      updateSelectionPanel(selectedState, true);
                                       // Optional: Zoom into province on click
                                       var bounds = path.bounds(d);
                                       var dx = bounds[1][0] - bounds[0][0],
@@ -4528,6 +4653,7 @@
                                   mode = this.value || 'region';
                                   var t = document.getElementById('ph-map-title');
                                   if(t){ t.textContent = mode==='region' ? 'Users by Region' : 'Users by Province'; }
+                                  clearSelectionPanel();
                                   g.selectAll('*').remove();
                                   svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
                                   loadCountsAndMap();
