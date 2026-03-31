@@ -532,9 +532,10 @@
                 <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
             </div>
-        </div>
+    </div>
     </div>
     <div id="dmHelp" style="position:absolute;left:-9999px;top:-9999px;">Use Tab/Shift+Tab to move between menu buttons. Press Enter or Space to activate.</div>
+    @include('admin.partials.question-builder-shared')
     <script>
         function handleMaterialsUpload(input) {
             const list = document.getElementById('materialsList');
@@ -3413,23 +3414,20 @@
             const track = nav.querySelector('.nav-track');
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             track.innerHTML = '';
-            const count = items.length;
-            for(let i=0;i<count;i++){
-                const b = document.createElement('button');
-                b.setAttribute('type','button');
-                b.className = 'nav-block';
-                b.textContent = (i+1);
-                b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-                b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
+            items.forEach((_, i)=>{
+                const b = window.CAPDEVQuestionBuilderShared.createNavQuestionButton(i, (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
                 track.appendChild(b);
-            }
-            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(wrap, Math.max(0, getActiveExamIndex(wrap)-1));
-            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(wrap, Math.min(count-1, getActiveExamIndex(wrap)+1));
+            });
+            const addButton = window.CAPDEVQuestionBuilderShared.createNavAddButton((ev)=>{
+                ev.preventDefault();
+                wrap.querySelector('.eq-add')?.click();
+            });
+            track.appendChild(addButton);
             setActiveExamIndex(wrap, getActiveExamIndex(wrap)); 
         }
         function getActiveExamIndex(wrap){
             const track = wrap.querySelector('.nav-track');
-            const blocks = Array.from(track.children);
+            const blocks = Array.from(track.querySelectorAll('.nav-question'));
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
         }
@@ -3440,18 +3438,10 @@
             const i = wrap === wrapOrIndex ? maybeIndex : wrapOrIndex;
             const nav = wrap.querySelector('.exam-nav');
             const track = nav.querySelector('.nav-track');
-            const blocks = Array.from(track.children);
+            const blocks = Array.from(track.querySelectorAll('.nav-question'));
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             // Do not auto-focus builder to avoid focus jumping while typing elsewhere
             const clamped = Math.max(0, Math.min(items.length-1, i));
-            const prev = nav.querySelector('.nav-prev');
-            const next = nav.querySelector('.nav-next');
-            prev.disabled = clamped<=0;
-            next.disabled = clamped>=items.length-1;
-            prev.style.opacity = prev.disabled ? '.45' : '1';
-            next.style.opacity = next.disabled ? '.45' : '1';
-            prev.style.cursor = prev.disabled ? 'default' : 'pointer';
-            next.style.cursor = next.disabled ? 'default' : 'pointer';
             const delBtn = wrap.querySelector('.eq-del');
             if(delBtn){
                 const viewingExisting = clamped < items.length;
@@ -3460,16 +3450,7 @@
                 delBtn.style.cursor = viewingExisting ? 'pointer' : 'default';
             }
             blocks.forEach((b,bi)=>{
-                b.classList.toggle('active', bi===clamped);
-                if(bi===clamped){
-                    b.style.background = '#10b981';
-                    b.style.borderColor = '#10b981';
-                    b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
-                }else{
-                    b.style.background = '#3b82f6';
-                    b.style.borderColor = '#60a5fa';
-                    b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
-                }
+                window.CAPDEVQuestionBuilderShared.applyQuestionButtonState(b, bi===clamped);
             });
             populateBuilderFromItem(wrap, clamped);
         }

@@ -580,9 +580,10 @@
                 <button type="button" class="rail-btn" data-type="structure" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
             </div>
-        </div>
+    </div>
     </div>
     <div id="dmHelp" style="position:absolute;left:-9999px;top:-9999px;">Use Tab/Shift+Tab to move between menu buttons. Press Enter or Space to activate.</div>
+    @include('admin.partials.question-builder-shared')
     <script>
         // IndexedDB for storing draft files (survives refresh)
         const DB_NAME = 'CourseDraftsDB';
@@ -3551,6 +3552,7 @@
                 host.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
                 host.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                window.CAPDEVQuestionBuilderShared.syncPointsValidation(host);
             }
             function syncExamJSON(){
                 const duration = parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0;
@@ -3698,7 +3700,7 @@
                     const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
                     return Math.max(0, items.length - 1);
                 }
-                const blocks = Array.from(track.children);
+                const blocks = Array.from(track.querySelectorAll('.nav-question'));
                 const idx = blocks.findIndex(b=> b.classList.contains('active'));
                 return idx>=0 ? idx : 0;
             }
@@ -3711,28 +3713,9 @@
                 if(items.length===0) return;
                 const clamped = Math.max(0, Math.min(items.length, i));
                 if(nav && track){
-                    const prev = nav.querySelector('.nav-prev');
-                    const next = nav.querySelector('.nav-next');
-                    if(prev && next){
-                        prev.disabled = clamped<=0;
-                        next.disabled = clamped>=items.length;
-                        prev.style.opacity = prev.disabled ? '.45' : '1';
-                        next.style.opacity = next.disabled ? '.45' : '1';
-                        prev.style.cursor = prev.disabled ? 'default' : 'pointer';
-                        next.style.cursor = next.disabled ? 'default' : 'pointer';
-                    }
-                    const blocks = Array.from(track.children);
+                    const blocks = Array.from(track.querySelectorAll('.nav-question'));
                     blocks.forEach((b,bi)=>{
-                        b.classList.toggle('active', bi===clamped);
-                        if(bi===clamped){
-                            b.style.background = '#10b981';
-                            b.style.borderColor = '#10b981';
-                            b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
-                        }else{
-                            b.style.background = '#3b82f6';
-                            b.style.borderColor = '#60a5fa';
-                            b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
-                        }
+                        window.CAPDEVQuestionBuilderShared.applyQuestionButtonState(b, bi===clamped);
                     });
                 }
                 const delBtn = host.querySelector('.eq-del');
@@ -3782,18 +3765,12 @@
                 if(!track) return;
                 const items = Array.from(host.querySelectorAll('.exam-q-list .q-item'));
                 track.innerHTML = '';
-                const count = items.length + 1;
-                for(let i=0;i<count;i++){
-                    const b = document.createElement('button');
-                    b.className = 'nav-block';
-                    b.textContent = (i+1);
-                    b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-                    if(i === items.length){ b.dataset.placeholder='1'; }
-                    b.addEventListener('click', ()=> setActiveIndex(i));
+                items.forEach((_, i)=>{
+                    const b = window.CAPDEVQuestionBuilderShared.createNavQuestionButton(i, ()=> setActiveIndex(i));
                     track.appendChild(b);
-                }
-                nav.querySelector('.nav-prev').onclick = ()=> setActiveIndex(getActiveIndex()-1);
-                nav.querySelector('.nav-next').onclick = ()=> setActiveIndex(getActiveIndex()+1);
+                });
+                const addButton = window.CAPDEVQuestionBuilderShared.createNavAddButton(()=> host.querySelector('.eq-add')?.click());
+                track.appendChild(addButton);
                 setActiveIndex(getActiveIndex());
             }
             
@@ -4586,18 +4563,15 @@
             if(!track){ return; }
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             track.innerHTML = '';
-            const count = items.length;
-            for(let i=0;i<count;i++){
-                const b = document.createElement('button');
-                b.setAttribute('type', 'button');
-                b.className = 'nav-block';
-                b.textContent = (i+1);
-                b.style.cssText = 'min-width:36px;height:36px;border-radius:10px;border:1px solid #60a5fa;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(59,130,246,.25);';
-            b.addEventListener('click', (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
+            items.forEach((_, i)=>{
+                const b = window.CAPDEVQuestionBuilderShared.createNavQuestionButton(i, (ev)=> { ev.preventDefault(); setActiveExamIndex(wrap, i); });
                 track.appendChild(b);
-            }
-            nav.querySelector('.nav-prev').onclick = ()=> setActiveExamIndex(wrap, Math.max(0, getActiveExamIndex(wrap)-1));
-            nav.querySelector('.nav-next').onclick = ()=> setActiveExamIndex(wrap, Math.min(count-1, getActiveExamIndex(wrap)+1));
+            });
+            const addButton = window.CAPDEVQuestionBuilderShared.createNavAddButton((ev)=>{
+                ev.preventDefault();
+                wrap.querySelector('.eq-add')?.click();
+            });
+            track.appendChild(addButton);
             setActiveExamIndex(wrap, getActiveExamIndex(wrap)); 
         }
         function getActiveExamIndex(wrap){
@@ -4606,7 +4580,7 @@
                 const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
                 return Math.max(0, items.length - 1);
             }
-            const blocks = Array.from(track.children);
+            const blocks = Array.from(track.querySelectorAll('.nav-question'));
             const idx = blocks.findIndex(b=> b.classList.contains('active'));
             return idx>=0 ? idx : 0;
         }
@@ -4616,7 +4590,7 @@
             if(!wrap) return;
             const nav = wrap.querySelector('.exam-nav');
             const track = nav ? nav.querySelector('.nav-track') : null;
-            const blocks = track ? Array.from(track.children) : [];
+            const blocks = track ? Array.from(track.querySelectorAll('.nav-question')) : [];
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
             if(items.length===0) return;
             const clamped = Math.max(0, Math.min(items.length-1, i));
@@ -4630,27 +4604,8 @@
                 }catch(_){}
             }
             if(nav && track){
-                const prev = nav.querySelector('.nav-prev');
-                const next = nav.querySelector('.nav-next');
-                if(prev && next){
-                    prev.disabled = clamped<=0;
-                    next.disabled = clamped>=items.length;
-                    prev.style.opacity = prev.disabled ? '.45' : '1';
-                    next.style.opacity = next.disabled ? '.45' : '1';
-                    prev.style.cursor = prev.disabled ? 'default' : 'pointer';
-                    next.style.cursor = next.disabled ? 'default' : 'pointer';
-                }
                 blocks.forEach((b,bi)=>{
-                    b.classList.toggle('active', bi===clamped);
-                    if(bi===clamped){
-                        b.style.background = '#10b981';
-                        b.style.borderColor = '#10b981';
-                        b.style.boxShadow = '0 2px 6px rgba(16,185,129,.25)';
-                    }else{
-                        b.style.background = '#3b82f6';
-                        b.style.borderColor = '#60a5fa';
-                        b.style.boxShadow = '0 2px 6px rgba(59,130,246,.2)';
-                    }
+                    window.CAPDEVQuestionBuilderShared.applyQuestionButtonState(b, bi===clamped);
                 });
             }
             const delBtn = wrap.querySelector('.eq-del');
