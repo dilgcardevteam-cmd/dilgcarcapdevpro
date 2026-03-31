@@ -238,6 +238,121 @@
         .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
         .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
+        
+        /* Sidebar Tabs */
+        .sidebar-tabs {
+            display: flex;
+            background: #002C76;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .sidebar-tab:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+        .sidebar-tab.active {
+            color: #fff;
+            border-bottom-color: #7fb73d;
+            background: rgba(255,255,255,0.08);
+        }
+        .sidebar-tab i {
+            font-size: 1.1rem;
+        }
+        .tab-content {
+            display: none;
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            margin: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .resource-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+        .resource-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff; /* White icon as requested */
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .resource-download {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+        .resource-item:hover .resource-download {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        .resource-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .resource-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .resource-meta {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        
+        /* Specific icon backgrounds like the image */
+        .icon-pdf { background: #ef4444; }
+        .icon-doc { background: #3b82f6; }
+        .icon-xls { background: #22c55e; }
+        .icon-ppt { background: #f97316; }
+        .icon-img { background: #a855f7; }
+        .icon-vid { background: #6366f1; }
+        .icon-other { background: #64748b; }
+
         .mc .mc-option{background:#fff;border:1px solid #e6edf5}
         .mc .mc-option:hover{background:#f5f8ff}
         .mc .mc-option.selected{background:#eef2ff;border-color:#c7d2fe}
@@ -404,14 +519,68 @@
     <!-- removed classroom subheader -->
     <div class="layout" id="modulesPane">
         <aside class="sidebar">
-            <h3>
-                <span style="display:inline-flex;align-items:center;gap:12px"><i class="fas fa-list-ul"></i> Course Outline</span>
-                <a class="back-slim" href="{{ $backUrl }}" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
-            </h3>
-            <div id="outline" class="outline"></div>
+            <div style="display: flex; align-items: center; background: #002C76; border-bottom: 1px solid rgba(255,255,255,0.12); padding: 0 12px;">
+                <div class="sidebar-tabs" style="display:flex; border-bottom: none; flex: 1;">
+                    <div class="sidebar-tab active" data-tab="outlineTab" style="padding: 16px 8px;">
+                        <i class="fas fa-book"></i>
+                        <span style="font-size: 0.85rem;">Course Outline</span>
+                    </div>
+                    <div class="sidebar-tab" data-tab="resourcesTab" style="padding: 16px 8px;">
+                        <i class="fas fa-file-alt"></i>
+                        <span style="font-size: 0.85rem;">Resources</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="outlineTab" class="tab-content active">
+                <div class="search" style="padding: 14px 12px 6px;">
+                    <input type="text" id="outlineSearch" placeholder="Search topics..." style="width: 100%;">
+                </div>
+                <div id="outline" class="outline" style="padding-top: 4px;"></div>
+            </div>
+
+            <div id="resourcesTab" class="tab-content">
+                <div class="outline" style="padding-top: 14px;">
+                    @forelse($course->materials as $material)
+                        @php
+                            $ext = strtolower(pathinfo($material->file_path, PATHINFO_EXTENSION));
+                            $icon = 'fa-file-alt';
+                            $bgClass = 'icon-other';
+                            
+                            if(in_array($ext, ['pdf'])) { $icon = 'fa-file-pdf'; $bgClass = 'icon-pdf'; }
+                            elseif(in_array($ext, ['doc','docx'])) { $icon = 'fa-file-word'; $bgClass = 'icon-doc'; }
+                            elseif(in_array($ext, ['xls','xlsx'])) { $icon = 'fa-file-excel'; $bgClass = 'icon-xls'; }
+                            elseif(in_array($ext, ['ppt','pptx'])) { $icon = 'fa-file-powerpoint'; $bgClass = 'icon-ppt'; }
+                            elseif(in_array($ext, ['jpg','jpeg','png','gif'])) { $icon = 'fa-file-image'; $bgClass = 'icon-img'; }
+                            elseif(in_array($ext, ['mp4','webm','avi'])) { $icon = 'fa-file-video'; $bgClass = 'icon-vid'; }
+                        @endphp
+                        <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" class="resource-item">
+                            <div class="resource-icon {{ $bgClass }}">
+                                <i class="fas {{ $icon }}"></i>
+                            </div>
+                            <div class="resource-info">
+                                <div class="resource-title">{{ $material->title }}</div>
+                                <div class="resource-meta">{{ strtoupper($ext) ?: $material->type }}</div>
+                            </div>
+                            <div class="resource-download">
+                                <i class="fas fa-download"></i>
+                            </div>
+                        </a>
+                    @empty
+                        <div style="padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.4);">
+                            <i class="fas fa-folder-open" style="font-size: 2.5rem; display: block; margin-bottom: 12px;"></i>
+                            <div style="font-weight: 700;">No resources available</div>
+                            <div style="font-size: 0.85rem; margin-top: 4px;">Uploaded files will appear here.</div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </aside>
         <main class="content">
-            <div class="pane">
+            <div class="pane" style="position: relative;">
+                <a href="{{ $backUrl }}" aria-label="Back to Classroom" style="position: absolute; top: 22px; right: 22px; color: #0f3b8f; text-decoration: none; font-weight: 700; font-size: 0.9rem; padding: 8px 16px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); z-index: 10;">
+                    Back to Classroom
+                </a>
                 <div id="videoWrap" style="margin-bottom:12px;"></div>
                 <h2 id="contentTitle">Select a topic</h2>
                 <div id="contentBody" style="min-height:320px;"></div>
@@ -901,6 +1070,28 @@
             modules.forEach((_, idx)=> updateProgressFor(idx));
             recalculateClientAccessState();
         }
+
+        // Tab switching logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.sidebar-tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-tab');
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+        });
+
         async function openTopic(mi,ti){
             if(!canAccessModule(mi)){
                 await syncServerAccessState();
