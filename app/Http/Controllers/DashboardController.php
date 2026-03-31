@@ -686,7 +686,7 @@ class DashboardController extends Controller
             case in_array($user->role, $participantRoles, true):
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
-                $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam'];
+                $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'completed'];
                 $myCoachRoles = [];
                 if ($user->role === 'central_office_participants') {
                     $myCoachRoles = ['central_office_coach'];
@@ -835,7 +835,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $coachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
-        $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam'];
+        $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'completed'];
         
         if (!in_array($user->role, $coachRoles, true)) {
             abort(403, 'Unauthorized access to participant preview.');

@@ -265,7 +265,6 @@
         }
         .sidebar-tab.active {
             color: #fff;
-            border-bottom-color: #7fb73d;
             background: rgba(255,255,255,0.08);
         }
         .sidebar-tab i {
