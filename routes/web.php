@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function(){
 Route::get('/admin/courses/pending', [CourseController::class, 'pending'])->middleware(['auth'])->name('admin.courses.pending');
 Route::resource('courses', CourseController::class)->only(['store', 'update', 'destroy'])->middleware(['auth']);
 Route::get('/admin/courses/{course}', [CourseController::class, 'adminShow'])->middleware(['auth'])->name('admin.courses.show');
+Route::post('/admin/courses/clone', [CourseController::class, 'clone'])->middleware(['auth'])->name('admin.courses.clone');
 // Trainer course creation (submit for admin approval)
 Route::get('/trainer/courses/create', [CourseController::class, 'trainerCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.create');
 Route::post('/trainer/courses', [CourseController::class, 'trainerStore'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.store');

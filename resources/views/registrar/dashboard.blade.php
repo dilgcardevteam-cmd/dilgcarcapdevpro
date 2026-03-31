@@ -1970,7 +1970,22 @@
 
             <!-- Training Management Section -->
             <section id="trainer-trainee-management" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h1 class="welcome-title" style="margin: 0;">Training <strong>Management</strong></h1>
+            <div style="position: relative; width: 220px;">
+                <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                <select id="academicYearFilterTM" onchange="filterByAcademicYearTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                    <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                    @foreach($academicYears as $ay)
+                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                            {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+            </div>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                     @php
                         $totalCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->count() : 0;
                         $unpublishedCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> !(bool)($c->is_published ?? false))->count() : 0;
@@ -2662,6 +2677,13 @@
 
 
 <script>
+    function filterByAcademicYearTM(yearId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('academic_year_id', yearId);
+        url.searchParams.set('tab', 'trainer-trainee-management');
+        window.location.href = url.toString();
+    }
+
     function toggleNotifications() {
         var dropdown = document.getElementById('notificationDropdown');
         if (!dropdown) return;

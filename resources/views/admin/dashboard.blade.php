@@ -2245,6 +2245,13 @@
             backdrop-filter: blur(2px);
         }
 
+        #cloneCourseModal {
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(15, 23, 42, 0.58);
+            backdrop-filter: blur(2px);
+        }
+
         #viewCourseModal {
             align-items: center;
             justify-content: center;
@@ -5566,9 +5573,25 @@
             </section>
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
-                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="courseSearchInput" placeholder="Search courses..." style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h1 class="welcome-title" style="margin: 0;">Course <strong>Management</strong></h1>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div style="position: relative; width: 250px;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <input type="text" id="courseSearchInput" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                        </div>
+                        <div style="position: relative; width: 220px;">
+                            <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <select id="academicYearFilterManagement" onchange="filterByAcademicYearManagement(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                @foreach($academicYears as $ay)
+                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -6121,9 +6144,23 @@
                             <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
                                 <i class="fas fa-layer-group" style="color: #10b981;"></i> Course Library
                             </h2>
-                            <div style="position: relative; width: 350px;">
-                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                                <input type="text" id="librarySearchInput" onkeyup="filterLibraryCourses()" placeholder="Search library..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="position: relative; width: 300px;">
+                                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                    <input type="text" id="librarySearchInput" onkeyup="filterLibraryCourses()" placeholder="Search library..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                                </div>
+                                <div style="position: relative; width: 220px;">
+                                    <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                    <select id="academicYearFilter" onchange="filterByAcademicYear(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                        <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                        @foreach($academicYears as $ay)
+                                            <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                                {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                                </div>
                             </div>
                         </div>
                         <button type="button" class="btn" onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']'))" style="background: #f1f5f9; color: #475569; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
@@ -6131,6 +6168,16 @@
                         </button>
                     </div>
                     <div style="padding: 24px; min-height: 60vh; background: #f8fafc;">
+                        @if(session('success_course'))
+                            <div style="background-color: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #bbf7d0; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-check-circle"></i> {{ session('success_course') }}
+                            </div>
+                        @endif
+                        @if(session('error_course'))
+                            <div style="background-color: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #fecaca; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-exclamation-circle"></i> {{ session('error_course') }}
+                            </div>
+                        @endif
                         <div id="courseLibraryContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
                             @foreach($courses as $course)
                                 @php
@@ -6155,7 +6202,12 @@
                                         <p style="margin: 8px 0 0; font-size: 0.85rem; color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
                                         <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">{{ optional($course->created_at)->format('M Y') }}</span>
-                                            <span style="font-size: 0.8rem; color: #2563eb; font-weight: 700;">View Details <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i></span>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <button type="button" onclick="event.stopPropagation(); openCloneCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name]) }})" style="background: #fff; color: #10b981; border: 1.5px solid #10b981; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                                                    <i class="fas fa-clone"></i> Clone
+                                                </button>
+                                                <span style="font-size: 0.8rem; color: #2563eb; font-weight: 700;">View Details <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -6603,6 +6655,70 @@
     </div>
 
 
+
+    <!-- Clone Course Modal -->
+    <div id="cloneCourseModal" class="modal">
+        <div class="modal-content" style="width: 450px; padding: 0; overflow: hidden; border: none; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+            <div style="padding: 20px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #002C76; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-clone" style="color: #10b981;"></i> Clone Course
+                </h3>
+                <span class="close" onclick="closeCloneCourseModal()" style="font-size: 1.25rem; color: #94a3b8; cursor: pointer;">&times;</span>
+            </div>
+            <form id="cloneCourseForm" method="POST" action="{{ route('admin.courses.clone') }}" style="padding: 24px;">
+                @csrf
+                <input type="hidden" id="clone_course_id" name="course_id">
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Source Course</label>
+                    <input type="text" id="clone_course_name" readonly style="width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.95rem; cursor: not-allowed;">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Target Academic Year</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
+                        <select name="target_academic_year_id" required style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; font-weight: 600; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                            <option value="" disabled selected>Select Target Year</option>
+                            @foreach($academicYears as $ay)
+                                <option value="{{ $ay->id }}">
+                                    {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px; background: #f1f5f9; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 12px; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Cloning Options</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="copy_modules" checked value="1" style="width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cbd5e1; accent-color: #10b981;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Copy all modules</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="copy_lessons" checked value="1" style="width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cbd5e1; accent-color: #10b981;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Copy all lessons/content</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="copy_assessments" checked value="1" style="width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cbd5e1; accent-color: #10b981;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Copy assessments/quizzes</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin-top: 4px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                            <input type="checkbox" name="set_active" value="1" style="width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cbd5e1; accent-color: #10b981;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Set as Active Course</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" onclick="closeCloneCourseModal()" style="flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #64748b; font-weight: 700; cursor: pointer; transition: all 0.2s;">Cancel</button>
+                    <button type="submit" style="flex: 2; padding: 12px; border-radius: 10px; border: none; background: #10b981; color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); transition: all 0.2s;">Clone Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- View/Edit User Modal -->
     <div id="viewUserModal" class="modal">
@@ -9750,6 +9866,30 @@
         }
 
         // Archived Courses Modal
+        function openCloneCourseModal(course) {
+            document.getElementById('clone_course_id').value = course.id;
+            document.getElementById('clone_course_name').value = course.name;
+            document.getElementById('cloneCourseModal').style.display = 'flex';
+        }
+
+        function closeCloneCourseModal() {
+            document.getElementById('cloneCourseModal').style.display = 'none';
+        }
+
+        function filterByAcademicYearManagement(yearId) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('academic_year_id', yearId);
+            url.searchParams.set('tab', 'course-management');
+            window.location.href = url.toString();
+        }
+
+        function filterByAcademicYear(yearId) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('academic_year_id', yearId);
+            url.searchParams.set('tab', 'course-library');
+            window.location.href = url.toString();
+        }
+
         function filterLibraryCourses() {
             const query = document.getElementById('librarySearchInput').value.toLowerCase();
             const items = document.querySelectorAll('.library-course-item');

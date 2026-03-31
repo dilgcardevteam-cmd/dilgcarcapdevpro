@@ -13,6 +13,7 @@ use App\Traits\HandlesCertification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Mail\IncompleteActivityReminder;
 use Illuminate\Support\Facades\Mail;
 
@@ -3757,5 +3758,83 @@ class CourseController extends Controller
             : "No incomplete activities found. No notifications sent.";
 
         return response()->json(['message' => $message]);
+    }
+
+    /**
+     * Clone an existing course to a new academic year.
+     */
+    public function clone(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'target_academic_year_id' => 'required|exists:academic_years,id',
+            'copy_modules' => 'nullable',
+            'copy_lessons' => 'nullable',
+            'copy_assessments' => 'nullable',
+            'set_active' => 'nullable',
+        ]);
+
+        $originalCourse = Course::findOrFail($request->course_id);
+        $targetYearId = $request->target_academic_year_id;
+
+        // Check if course already exists in target academic year
+        $existingCourse = Course::where('name', $originalCourse->name)
+            ->where('academic_year_id', $targetYearId)
+            ->first();
+
+        if ($existingCourse) {
+            return redirect()->back()->with('error_course', 'This course already exists in the selected academic year.');
+        }
+
+        \DB::beginTransaction();
+        try {
+            // 1. Clone the Course record
+            $newCourse = $originalCourse->replicate();
+            $newCourse->academic_year_id = $targetYearId;
+            $newCourse->is_published = $request->has('set_active') ? true : false;
+            
+            // If we don't copy modules, set modules to empty array
+            if (!$request->has('copy_modules')) {
+                $newCourse->modules = [];
+            }
+            
+            $newCourse->save();
+
+            // 2. Clone Materials (Lessons/Content)
+            if ($request->has('copy_lessons')) {
+                foreach ($originalCourse->materials as $material) {
+                    $newMaterial = $material->replicate();
+                    $newMaterial->course_id = $newCourse->id;
+                    $newMaterial->save();
+                }
+            }
+
+            // 3. Clone Assessments
+            if ($request->has('copy_assessments')) {
+                foreach ($originalCourse->assessments as $assessment) {
+                    $newAssessment = $assessment->replicate();
+                    $newAssessment->course_id = $newCourse->id;
+                    $newAssessment->save();
+                }
+            }
+
+            // 4. Copy Users relationship (Maintain creator/trainer)
+            if ($originalCourse->trainer_id) {
+                $newCourse->users()->attach($originalCourse->trainer_id, ['status' => 'active']);
+            }
+
+            \DB::commit();
+
+            $targetYear = AcademicYear::find($targetYearId);
+            $yearLabel = $targetYear->year_start . ' - ' . $targetYear->year_end;
+
+            return redirect()->route('dashboard', ['tab' => 'course-library', 'academic_year_id' => $targetYearId])
+                ->with('success_course', "Course successfully cloned to {$yearLabel}");
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Course cloning failed: ' . $e->getMessage());
+            return redirect()->back()->with('error_course', 'An error occurred while cloning the course: ' . $e->getMessage());
+        }
     }
 }

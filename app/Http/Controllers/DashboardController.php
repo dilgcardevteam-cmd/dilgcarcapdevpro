@@ -30,21 +30,14 @@ class DashboardController extends Controller
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
 
-        $academicYears = collect();
-        $selectedYearId = null;
-        $selectedYear = null;
+        $academicYears = AcademicYear::orderBy('year_start', 'desc')->get();
+        $activeYear = $academicYears->where('is_active', true)->first();
+        $selectedYearId = $request->input('academic_year_id', $activeYear ? $activeYear->id : null);
+        $selectedYear = ($selectedYearId === 'all') ? null : $academicYears->find($selectedYearId);
         $showCourses = true; // Default to true, adjust in role checks
 
         if (in_array($user->role, array_merge($coachRoles, $participantRoles))) {
-            $academicYears = AcademicYear::orderBy('year_start', 'desc')->get();
-            $activeYear = $academicYears->where('is_active', true)->first();
-            $selectedYearId = $request->input('academic_year_id', $activeYear ? $activeYear->id : null);
-            $selectedYear = $academicYears->find($selectedYearId);
-            $showCourses = $selectedYear && $selectedYear->is_active;
-        } else {
-            // For other roles, find the active year to filter their data, but don't pass selector data
-            $activeYear = AcademicYear::where('is_active', true)->first();
-            $selectedYearId = $activeYear ? $activeYear->id : null;
+            $showCourses = ($selectedYearId === 'all') || ($selectedYear && $selectedYear->is_active);
         }
 
         switch (true) {
@@ -92,63 +85,46 @@ class DashboardController extends Controller
                 } else { // default/original admin
                     $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
                 }
-                $courseCount = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->count();
-                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->orderBy('created_at', 'desc')->get();
-                $archivedCourses = Course::onlyTrashed()
-                    ->whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->get();
+
+                $baseCourseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
+                    $q->whereIn('role', $levelRoles);
+                });
+
+                if ($selectedYearId !== 'all') {
+                    $baseCourseQuery->where('academic_year_id', $selectedYearId);
+                }
+
+                $courseCount = (clone $baseCourseQuery)->count();
+                $courses = (clone $baseCourseQuery)->orderBy('created_at', 'desc')->get();
+
+                $archivedCourses = (clone $baseCourseQuery)->onlyTrashed()->get();
                 $certifications = Certification::all();
-                $recentCourses = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->latest()->take(5)->get();
+                $recentCourses = (clone $baseCourseQuery)->latest()->take(5)->get();
+
                 // Pending should only include courses submitted by coaches/trainers for approval,
                 // not courses archived by admins. We approximate this by requiring coach presence
                 // and excluding any course linked to admin-level users.
-                $pendingCourses = \App\Models\Course::onlyTrashed()
+                $pendingCoursesQuery = Course::onlyTrashed()
                     ->whereHas('users', function($q) use ($managedCoachRoles) {
                         $q->whereIn('role', $managedCoachRoles);
                     })
                     ->whereDoesntHave('users', function($q) use ($adminRoles) {
                         $q->whereIn('role', $adminRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->get();
-                $pendingCoursesCount = \App\Models\Course::onlyTrashed()
-                    ->whereHas('users', function($q) use ($managedCoachRoles) {
-                        $q->whereIn('role', $managedCoachRoles);
-                    })
-                    ->whereDoesntHave('users', function($q) use ($adminRoles) {
-                        $q->whereIn('role', $adminRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->count();
+                    });
+
+                if ($selectedYearId !== 'all') {
+                    $pendingCoursesQuery->where('academic_year_id', $selectedYearId);
+                }
+
+                $pendingCourses = (clone $pendingCoursesQuery)->get();
+                $pendingCoursesCount = (clone $pendingCoursesQuery)->count();
+
                 $activeUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count();
                 $pendingUsersTotal = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'pending')->count();
                 $frozenUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'freeze')->count();
                 
-                $publishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->where('is_published', true)->count();
-                $unpublishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })
-                    ->where('academic_year_id', $selectedYearId)
-                    ->where('is_published', false)->count();
+                $publishedCoursesCount = (clone $baseCourseQuery)->where('is_published', true)->count();
+                $unpublishedCoursesCount = (clone $baseCourseQuery)->where('is_published', false)->count();
 
                 $trainersCount = User::whereIn('role', $managedCoachRoles)->where('profile_completed', true)->count();
                 $traineesCount = User::whereIn('role', $managedParticipantRoles)->where('profile_completed', true)->count();
@@ -270,9 +246,15 @@ class DashboardController extends Controller
                 $pendingTraineesCount = User::whereIn('role', $participantRoles)->where('profile_completed', true)->where('status', 'pending')->where($registrarScope)->count();
                 // Registrar manages coach/trainer and participant roles
                 $managedRoles = ['admin', 'training_manager', 'coach', 'trainer', 'participant'];
+                
+                $courseQuery = Course::query();
+                if ($selectedYearId !== 'all') {
+                    $courseQuery->where('academic_year_id', $selectedYearId);
+                }
+
                 // Show all courses to registrar (including those without assigned users yet)
-                $totalCourses = Course::count();
-                $courses = Course::with('users')->orderBy('created_at','desc')->get();
+                $totalCourses = (clone $courseQuery)->count();
+                $courses = $courseQuery->with('users')->orderBy('created_at','desc')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($coachRoles,$participantRoles))->where('status', 'active')->get();
                 
                 // Fetch Notifications
@@ -560,14 +542,23 @@ class DashboardController extends Controller
                 } else {
                     $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
                 }
-                $totalCourses = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })->count();
-                $courses = Course::whereHas('users', function($q) use ($levelRoles) {
-                        $q->whereIn('role', $levelRoles);
-                    })->with('users')->get();
+
+                $courseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
+                    $q->whereIn('role', $levelRoles);
+                });
+
+                if ($selectedYearId !== 'all') {
+                    $courseQuery->where('academic_year_id', $selectedYearId);
+                }
+
+                $totalCourses = (clone $courseQuery)->count();
+                $courses = (clone $courseQuery)->with('users')->get();
                 // Build Published Courses using a direct query; if empty, fallback to filtering $courses
-                $publishedCourses = Course::where('is_published', true)->orderBy('created_at','desc')->get();
+                $publishedCoursesQuery = Course::where('is_published', true);
+                if ($selectedYearId !== 'all') {
+                    $publishedCoursesQuery->where('academic_year_id', $selectedYearId);
+                }
+                $publishedCourses = $publishedCoursesQuery->orderBy('created_at','desc')->get();
                 if ($publishedCourses->isEmpty()) {
                     $publishedCourses = $courses->filter(function($c){
                         return (int)($c->is_published ?? 0) === 1 || $c->is_published === true || $c->is_published === '1';
@@ -627,17 +618,30 @@ class DashboardController extends Controller
                 $rCoaches = User::whereIn('role', $coachRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
                 $rParticipants = User::whereIn('role', $participantRoles)->whereIn('role', $managedRoles)->where('profile_completed', true)->count();
 
-                $publishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                $publishedCoursesCountQuery = Course::whereHas('users', function($q) use ($levelRoles) {
                     $q->whereIn('role', $levelRoles);
-                })->where('is_published', true)->count();
-                $unpublishedCoursesCount = Course::whereHas('users', function($q) use ($levelRoles) {
+                })->where('is_published', true);
+                $unpublishedCoursesCountQuery = Course::whereHas('users', function($q) use ($levelRoles) {
                     $q->whereIn('role', $levelRoles);
-                })->where('is_published', false)->count();
+                })->where('is_published', false);
+
+                if ($selectedYearId !== 'all') {
+                    $publishedCoursesCountQuery->where('academic_year_id', $selectedYearId);
+                    $unpublishedCoursesCountQuery->where('academic_year_id', $selectedYearId);
+                }
+
+                $publishedCoursesCount = $publishedCoursesCountQuery->count();
+                $unpublishedCoursesCount = $unpublishedCoursesCountQuery->count();
 
                 $courseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
                     $q->whereIn('role', $levelRoles);
                 });
-                $cActive = $courseQuery->count();
+
+                if ($selectedYearId !== 'all') {
+                    $courseQuery->where('academic_year_id', $selectedYearId);
+                }
+
+                $cActive = (clone $courseQuery)->count();
                 $cNoCoachNoPart = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })
                     ->whereDoesntHave('users', function($q){ $q->whereIn('role',['participant','trainee']); })
                     ->count();
