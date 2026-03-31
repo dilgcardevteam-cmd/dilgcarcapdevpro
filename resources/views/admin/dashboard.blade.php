@@ -4186,11 +4186,11 @@
                                 <div id="ph-map-legend" style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;">
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:14px;height:14px;border-radius:999px;background:#fde047;box-shadow:0 0 0 2px rgba(250,204,21,.4)"></div>
-                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Low (0â€“10)</span>
+                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Low (0-10)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:14px;height:14px;border-radius:999px;background:#fb923c;box-shadow:0 0 0 2px rgba(245,158,11,.4)"></div>
-                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Medium (11â€“50)</span>
+                                        <span style="font-size:0.9rem;color:#0b3b8f;font-weight:700;">Medium (11-50)</span>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <div style="width:14px;height:14px;border-radius:999px;background:#e11d48;box-shadow:0 0 0 2px rgba(239,68,68,.4)"></div>
