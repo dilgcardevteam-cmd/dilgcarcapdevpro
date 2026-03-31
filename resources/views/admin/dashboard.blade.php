@@ -5709,7 +5709,7 @@
                     </div>
                 </div>
                 <div class="course-create-shell">
-                    <iframe id="courseCreateFrame" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', ['embedded' => 1]) : '' }}"></iframe>
+                    <iframe id="courseCreateFrame" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
                 </div>
             </section>
 
@@ -8963,8 +8963,12 @@
             const url = new URL(window.location.href);
             if (sectionId === 'dashboard-home') {
                 url.searchParams.delete('tab');
+                url.searchParams.delete('step');
             } else {
                 url.searchParams.set('tab', sectionId);
+                if (sectionId !== 'course-create') {
+                    url.searchParams.delete('step');
+                }
             }
             window.history.pushState({}, '', url.toString());
 
@@ -9515,7 +9519,7 @@
 
             if (requestedTab === 'course-create') {
                 const isDraft = sessionStorage.getItem('load_draft') === '1';
-                openAddCourseModal(isDraft);
+                openAddCourseModal(isDraft, { preserveState: true });
             } else if (requestedTab === 'course-management' && params.get('open_add_course') === '1') {
                 openAddCourseModal();
             }
@@ -9562,6 +9566,27 @@
         });
 
         const courseCreateEmbeddedUrl = @json(route('admin.courses.create', ['embedded' => 1]));
+        const COURSE_CREATE_STEP_SLUGS = new Set(['details', 'modules', 'certificate', 'finalize']);
+        function getCourseCreateStepFromUrl(urlLike = window.location.href) {
+            try {
+                const url = new URL(urlLike, window.location.origin);
+                const step = String(url.searchParams.get('step') || '').trim().toLowerCase();
+                return COURSE_CREATE_STEP_SLUGS.has(step) ? step : '';
+            } catch (e) {
+                return '';
+            }
+        }
+        function buildCourseCreateFrameUrl(options = {}) {
+            const { step = getCourseCreateStepFromUrl(), bustCache = false } = options;
+            const url = new URL(courseCreateEmbeddedUrl, window.location.origin);
+            if (step && COURSE_CREATE_STEP_SLUGS.has(step)) {
+                url.searchParams.set('step', step);
+            }
+            if (bustCache) {
+                url.searchParams.set('t', String(Date.now()));
+            }
+            return url.toString();
+        }
 
         const ROLE_ID_BY_NAME = @json(isset($roles) ? $roles->pluck('id','name') : []);
         const ROLE_PERMS = @json(isset($rolePermissions) ? $rolePermissions : []);
@@ -9623,14 +9648,15 @@
         function ensureCourseCreateFrameLoaded() {
             const frame = document.getElementById('courseCreateFrame');
             if (frame && !frame.getAttribute('src')) {
-                frame.setAttribute('src', courseCreateEmbeddedUrl);
+                frame.setAttribute('src', buildCourseCreateFrameUrl());
             }
         }
 
         // Add Course in Dashboard Main Content
-        function openAddCourseModal(forceDraft = false) {
+        function openAddCourseModal(forceDraft = false, options = {}) {
+            const { preserveState = false } = options;
             // Signal to course-create NOT to load any draft unless explicitly told
-            if (!forceDraft) {
+            if (!forceDraft && !preserveState) {
                 sessionStorage.setItem('load_draft', '0');
                 sessionStorage.removeItem('draft_course_key');
                 // Also clear the default draft keys for new courses to ensure it's empty
@@ -9640,9 +9666,14 @@
             
             const frame = document.getElementById('courseCreateFrame');
             if (frame) {
-                // Force reload to ensure a fresh blank form or loaded draft
-                const ts = new Date().getTime();
-                frame.src = courseCreateEmbeddedUrl + (courseCreateEmbeddedUrl.includes('?') ? '&' : '?') + 't=' + ts;
+                const nextSrc = buildCourseCreateFrameUrl({ bustCache: !preserveState });
+                if (preserveState) {
+                    if (!frame.getAttribute('src')) {
+                        frame.src = nextSrc;
+                    }
+                } else {
+                    frame.src = nextSrc;
+                }
             }
             showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
         }

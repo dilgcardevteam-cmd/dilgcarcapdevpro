@@ -602,7 +602,7 @@ class CourseController extends Controller
                 ? ((float) ($summary['final_pct'] ?? 0) >= (float) ($summary['passing_score'] ?? $passingScore))
                 : null);
         $summary['max_attempts_reached'] = $summary['max_attempts_reached']
-            ?? (($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
+            ?? ($maxAttempts !== null && ($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
         $summary['restart_required'] = $summary['restart_required'] ?? false;
         $summary['status_label'] = $summary['status_label']
             ?? match ($summary['status'] ?? 'completed') {
@@ -865,7 +865,7 @@ class CourseController extends Controller
             : 75;
         $maxAttempts = isset($exam['max_attempts']) && $exam['max_attempts'] !== ''
             ? max(1, (int) $exam['max_attempts'])
-            : (isset($exam['attempt_limit']) && $exam['attempt_limit'] !== '' ? max(1, (int) $exam['attempt_limit']) : 3);
+            : (isset($exam['attempt_limit']) && $exam['attempt_limit'] !== '' ? max(1, (int) $exam['attempt_limit']) : null);
 
         return [$passingScore, $maxAttempts];
     }
@@ -1149,7 +1149,9 @@ class CourseController extends Controller
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'passing_score' => (int) ($e['passing_score'] ?? 75),
-                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
+                        'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
+                            ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
+                            : null,
                         'questions' => $qs,
                     ];
                 }
@@ -1180,7 +1182,9 @@ class CourseController extends Controller
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                     'passing_score' => (int) ($e['passing_score'] ?? 75),
-                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
+                    'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
+                        ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
+                        : null,
                     'questions' => $qs,
                 ];
                 $hasModules = !empty($modules);
@@ -1364,7 +1368,9 @@ class CourseController extends Controller
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                         'passing_score' => (int) ($e['passing_score'] ?? 75),
-                        'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
+                        'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
+                            ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
+                            : null,
                         'questions' => $qs,
                     ];
                 }
@@ -1395,7 +1401,9 @@ class CourseController extends Controller
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
                     'passing_score' => (int) ($e['passing_score'] ?? 75),
-                    'max_attempts' => (int) ($e['max_attempts'] ?? ($e['attempt_limit'] ?? 3)),
+                    'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
+                        ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
+                        : null,
                     'questions' => $qs,
                 ];
                 // Remove any previous dedicated 'Course Exam' module
@@ -2113,7 +2121,9 @@ class CourseController extends Controller
                             'description' => (string) ($examDecoded['description'] ?? ''),
                             'timer_minutes' => (int) ($examDecoded['timer_minutes'] ?? 0),
                             'passing_score' => (int) ($examDecoded['passing_score'] ?? 75),
-                            'max_attempts' => (int) ($examDecoded['max_attempts'] ?? ($examDecoded['attempt_limit'] ?? 3)),
+                            'max_attempts' => isset($examDecoded['max_attempts']) || isset($examDecoded['attempt_limit'])
+                                ? (int) ($examDecoded['max_attempts'] ?? $examDecoded['attempt_limit'])
+                                : null,
                             'questions' => $examQuestions,
                         ];
                     }
@@ -2333,7 +2343,7 @@ class CourseController extends Controller
             $attemptsUsed = Grade::where('assessment_id', $assessment->id)
                 ->where('user_id', $user->id)
                 ->count();
-            if ($attemptsUsed >= $maxAttempts) {
+            if ($maxAttempts !== null && $attemptsUsed >= $maxAttempts) {
                 $course->users()->updateExistingPivot($user->id, ['status' => 'attempts_exhausted']);
                 return response()->json([
                     'ok' => false,
@@ -3055,7 +3065,7 @@ class CourseController extends Controller
             : 75;
         $maxAttempts = isset($e['max_attempts']) && $e['max_attempts'] !== ''
             ? max(1, (int) $e['max_attempts'])
-            : (isset($e['attempt_limit']) && $e['attempt_limit'] !== '' ? max(1, (int) $e['attempt_limit']) : 3);
+            : (isset($e['attempt_limit']) && $e['attempt_limit'] !== '' ? max(1, (int) $e['attempt_limit']) : null);
         $qs = is_array($e['questions'] ?? []) ? $e['questions'] : [];
         // Validation per requirements
         if ($title === '') {
@@ -3145,10 +3155,12 @@ class CourseController extends Controller
                 'description' => $description,
                 'timer_minutes' => $timer,
                 'passing_score' => $passingScore,
-                'max_attempts' => $maxAttempts,
-                'attempt_limit' => $maxAttempts,
                 'questions' => $norm,
             ];
+            if ($maxAttempts !== null) {
+                $examArr['max_attempts'] = $maxAttempts;
+                $examArr['attempt_limit'] = $maxAttempts;
+            }
             $hasModules = !empty($mods);
             $hasExamInModules = false;
             foreach ($mods as $m) {

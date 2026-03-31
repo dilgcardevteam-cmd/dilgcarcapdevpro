@@ -2211,27 +2211,92 @@
             tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
             tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
         }
+        const COURSE_CREATE_TAB_QUERY = 'course-create';
+        const COURSE_CREATE_STEP_KEY = 'course_create_current_step';
+        const COURSE_CREATE_TAB_KEY = 'course_create_current_tab';
+        const IS_EMBEDDED_CREATE = @json(request()->boolean('embedded'));
+        const STEP_NAME_BY_TAB = {
+            1: 'details',
+            2: 'modules',
+            3: 'certificate',
+            4: 'finalize',
+        };
+        const TAB_BY_STEP_NAME = Object.fromEntries(Object.entries(STEP_NAME_BY_TAB).map(([tab, step]) => [step, Number(tab)]));
         let CURRENT_TAB = 1;
-        function switchTo(tab){
-            CURRENT_TAB = tab;
-            if (tab === 4) renderSummary();
+        function normalizeCourseCreateTab(tab) {
+            const num = Number(tab);
+            return STEP_NAME_BY_TAB[num] ? num : null;
+        }
+        function getStepNameForTab(tab) {
+            return STEP_NAME_BY_TAB[normalizeCourseCreateTab(tab)] || STEP_NAME_BY_TAB[1];
+        }
+        function getTabFromStepName(step) {
+            return TAB_BY_STEP_NAME[String(step || '').trim().toLowerCase()] || null;
+        }
+        function persistCurrentStepState(tab) {
+            const normalizedTab = normalizeCourseCreateTab(tab) || 1;
+            const step = getStepNameForTab(normalizedTab);
+            try {
+                sessionStorage.setItem(COURSE_CREATE_TAB_KEY, String(normalizedTab));
+                sessionStorage.setItem(COURSE_CREATE_STEP_KEY, step);
+            } catch (e) {}
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', COURSE_CREATE_TAB_QUERY);
+                url.searchParams.set('step', step);
+                window.history.replaceState({ step }, '', url.toString());
+            } catch (e) {}
+            if (IS_EMBEDDED_CREATE) {
+                try {
+                    const topUrl = new URL(window.top.location.href);
+                    topUrl.searchParams.set('tab', COURSE_CREATE_TAB_QUERY);
+                    topUrl.searchParams.set('step', step);
+                    window.top.history.replaceState({ step }, '', topUrl.toString());
+                } catch (e) {}
+            }
+        }
+        function getRequestedTabFromUrl() {
+            try {
+                const url = new URL(window.location.href);
+                return getTabFromStepName(url.searchParams.get('step'));
+            } catch (e) {
+                return null;
+            }
+        }
+        function resolveInitialCourseCreateTab(fallbackTab = null) {
+            const urlTab = getRequestedTabFromUrl();
+            if (urlTab) return urlTab;
+            try {
+                const sessionTab = normalizeCourseCreateTab(sessionStorage.getItem(COURSE_CREATE_TAB_KEY));
+                if (sessionTab) return sessionTab;
+                const sessionStepTab = getTabFromStepName(sessionStorage.getItem(COURSE_CREATE_STEP_KEY));
+                if (sessionStepTab) return sessionStepTab;
+            } catch (e) {}
+            return normalizeCourseCreateTab(fallbackTab) || 1;
+        }
+        function switchTo(tab, options = {}){
+            const normalizedTab = normalizeCourseCreateTab(tab) || 1;
+            const { scroll = true, persist = true, scheduleSave = true } = options;
+            CURRENT_TAB = normalizedTab;
+            if (normalizedTab === 4) renderSummary();
 
             [1,2,3,4].forEach(n => {
                 const t = document.getElementById('tab' + n);
                 const b = document.getElementById('tabBtn' + n);
-                if (t) t.classList.toggle('active', tab === n);
+                if (t) t.classList.toggle('active', normalizedTab === n);
                 if (b) {
-                    b.classList.toggle('active', tab === n);
-                    b.setAttribute('aria-selected', tab === n ? 'true' : 'false');
-                    if (tab === n) b.removeAttribute('tabindex');
+                    b.classList.toggle('active', normalizedTab === n);
+                    b.setAttribute('aria-selected', normalizedTab === n ? 'true' : 'false');
+                    if (normalizedTab === n) b.removeAttribute('tabindex');
                     else b.setAttribute('tabindex', '-1');
                 }
             });
 
-            if(tab === 2){ ensureDefaultModule(); }
+            if(normalizedTab === 2){ ensureDefaultModule(); }
             updateProgress();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            scheduleAutoSave(); // Save current tab index
+            if (persist) persistCurrentStepState(normalizedTab);
+            if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (scheduleSave) scheduleAutoSave();
         }
         function renderSummary() {
             // Course Details
@@ -2587,6 +2652,8 @@
             localStorage.removeItem(key);
             deleteFilesFromDB(key + '_materials');
             sessionStorage.removeItem('draft_course_key');
+            sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
+            sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
             window.location.reload();
         }
 
@@ -2613,6 +2680,7 @@
                 // Save modules correctly via serialization
                 obj['modules'] = serializeModules();
                 obj['current_tab'] = CURRENT_TAB;
+                obj['current_step'] = getStepNameForTab(CURRENT_TAB);
                 
                 // Save materials metadata
                 const materialsInput = document.getElementById('course_materials');
@@ -2668,7 +2736,7 @@
         function restoreDraft(){
             const key = draftKey();
             const raw = localStorage.getItem(key);
-            if(!raw) return;
+            if(!raw) return null;
             try{
                 const obj = JSON.parse(raw);
                 // Restore top-level fields
@@ -2755,17 +2823,12 @@
                     restoreModules(obj['modules']);
                 }
 
-                // Restore tab
-                if(obj['current_tab']){
-                    // Need to wait for DOM to be ready for some components, but switchTo handles basic visibility
-                    setTimeout(() => {
-                        switchTo(Number(obj['current_tab']));
-                    }, 100);
-                }
-                
                 updateProgress();
                 validateDetails();
-            }catch(e){}
+                return normalizeCourseCreateTab(obj['current_tab']) || getTabFromStepName(obj['current_step']);
+            }catch(e){
+                return null;
+            }
         }
         function __bindAutosizeTextareas(root){
             const nodes = (root || document).querySelectorAll('textarea.q-autosize');
@@ -2794,6 +2857,7 @@
         }
         document.addEventListener('DOMContentLoaded', function(){
             bindTabs();
+            let restoredDraftTab = null;
             
             // Check if there's an existing draft for this session or a specific load request
             const key = draftKey();
@@ -2805,17 +2869,26 @@
                 // Explicitly clear the draft for this key to ensure it stays empty
                 localStorage.removeItem(key);
                 deleteFilesFromDB(key + '_materials');
+                sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
+                sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
             } else if (loadDraftSignal === '1' || hasDraft) {
-                restoreDraft();
+                restoredDraftTab = restoreDraft();
             }
             
             // Clear the load_draft signal after processing
             sessionStorage.removeItem('load_draft');
             
             updateProgress();
+            switchTo(resolveInitialCourseCreateTab(restoredDraftTab), { scroll: false, scheduleSave: false });
             __bindAutosizeTextareas(document);
             initDynamicMenu();
             updateClearDraftButtonVisibility();
+            window.addEventListener('popstate', function(){
+                const requestedTab = getRequestedTabFromUrl();
+                if (requestedTab) {
+                    switchTo(requestedTab, { persist: false, scroll: false, scheduleSave: false });
+                }
+            });
             
             const clearBtn = document.getElementById('clearDraftBtn');
             if (clearBtn) clearBtn.onclick = clearCurrentDraft;
@@ -2841,6 +2914,8 @@
                         localStorage.removeItem(key);
                         deleteFilesFromDB(key + '_materials');
                         sessionStorage.removeItem('draft_course_key');
+                        sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
+                        sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
                     }, 1000);
                 });
             }
@@ -3383,6 +3458,10 @@
                             <span class="exam-meta-timer-label">Timer (minutes)</span>
                             <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
+                        <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Passing Rate (%)</span>
+                            <input type="number" min="1" max="100" class="exam-passing-score exam-meta-timer-input" placeholder="e.g., 75">
+                        </label>
                         <div class="exam-meta-title">Exam</div>
                     </div>
                     <div class="exam-questions" style="margin-top:10px">
@@ -3475,12 +3554,13 @@
             }
             function syncExamJSON(){
                 const duration = parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const passingScore = parseInt(host.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
                 const list = host.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                hidden.value = JSON.stringify({ timer_minutes: duration, questions: qs });
+                hidden.value = JSON.stringify({ timer_minutes: duration, passing_score: passingScore, questions: qs });
             }
             host.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             host.addEventListener('input', syncExamJSON);
@@ -3722,6 +3802,7 @@
                 try{
                     const normalizedPrefill = normalizeExamPrefill(prefill);
                     host.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
+                    const pass = host.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
                     const listEl = host.querySelector('.exam-q-list');
                     listEl.innerHTML = '';
                     const box = ensureInputsBox();
@@ -3908,6 +3989,7 @@
                 title: String(prefill.title ?? ''),
                 description: String(prefill.description ?? ''),
                 timer_minutes: parseInt(prefill.timer_minutes || prefill.duration || 0, 10) || 0,
+                passing_score: parseInt(prefill.passing_score || 75, 10) || 75,
                 questions: rawQuestions.map(normalizeExamQuestionShape).filter(Boolean)
             };
         }
@@ -3937,10 +4019,6 @@
                         <label class="exam-meta-timer">
                             <span class="exam-meta-timer-label">Passing Rate (%)</span>
                             <input type="number" min="1" max="100" class="exam-passing-score exam-meta-timer-input" placeholder="e.g., 75">
-                        </label>
-                        <label class="exam-meta-timer">
-                            <span class="exam-meta-timer-label">Max Attempts</span>
-                            <input type="number" min="1" class="exam-max-attempts exam-meta-timer-input" placeholder="e.g., 3">
                         </label>
                         <div class="exam-meta-title">Module Exam</div>
                     </div>
@@ -4127,13 +4205,12 @@
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
                 const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
                 const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
-                const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
                 const list = wrap.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
             }
             function resetTypeSpecificFields(){
                 // Clear type-specific inputs so they never carry over from other questions
@@ -4379,7 +4456,6 @@
                     const normalizedPrefill = normalizeExamPrefill(prefill);
                     wrap.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
                     const pass = wrap.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
-                    const attempts = wrap.querySelector('.exam-max-attempts'); if(attempts) attempts.value = normalizedPrefill?.max_attempts || normalizedPrefill?.attempt_limit || '';
                     if(normalizedPrefill?.title) wrap.querySelector('.exam-title').value = normalizedPrefill.title;
                     if(normalizedPrefill?.description) wrap.querySelector('.exam-desc').value = normalizedPrefill.description;
                     const listEl = wrap.querySelector('.exam-q-list');
@@ -4595,14 +4671,13 @@
             const title = (wrap.querySelector('.exam-title')?.value || '').trim();
             const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
             const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
-            const maxAttempts = parseInt(wrap.querySelector('.exam-max-attempts')?.value || '3', 10) || 3;
             const list = wrap.querySelectorAll('.exam-q-list .q-item');
             const qs = [];
             list.forEach(node=>{
                 try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && (obj.text||obj.title)){ qs.push(obj); } }catch(e){}
             });
             const hidden = wrap.querySelector('.exam-json');
-            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, max_attempts: maxAttempts, attempt_limit: maxAttempts, questions: qs });
+            if(hidden) hidden.value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
         }
         function populateBuilderFromItem(wrap, idx){
             const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
