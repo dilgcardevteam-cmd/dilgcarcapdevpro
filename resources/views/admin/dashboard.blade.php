@@ -4029,7 +4029,7 @@
                     <span class="menu-text">Course Management</span>
                 </li>
                 @endif
-                @if(Auth::user()->hasPermission('view_access_control'))
+                @if(Auth::check() && Auth::user()->role === 'super_admin')
                     <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
                         <div class="menu-icon"><i class="fas fa-key"></i></div>
                         <span class="menu-text">Access Control</span>
@@ -5408,11 +5408,11 @@
             <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
                 @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
                 <div class="insight-panel">
-                    <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                        <div style="display:flex;align-items:center;gap:10px;flex:1">
+                    <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                        <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
                             <span class="muted">Assign system feature access per role</span>
-                            <div style="position:relative;max-width:360px;flex:1">
-                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#64748b"></i>
+                            <div style="position:relative;max-width:380px;min-width:260px;flex:1">
+                                <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#64748b;font-size:0.95rem;pointer-events:none"></i>
                                 <input id="accessRoleSearch" type="text" placeholder="Search rolesâ€¦" 
                                        style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff">
                             </div>
@@ -5544,6 +5544,30 @@
                             if(!section){ return; }
                             var search = document.getElementById('accessRoleSearch');
                             if(search){
+                                var searchWrap = search.parentElement;
+                                if(searchWrap){
+                                    searchWrap.style.maxWidth = '380px';
+                                    searchWrap.style.minWidth = '260px';
+                                    searchWrap.style.flex = '1';
+                                }
+                                search.placeholder = 'Search roles...';
+                                search.style.height = '52px';
+                                search.style.padding = '0 16px 0 42px';
+                                search.style.border = '1px solid #d6deeb';
+                                search.style.borderRadius = '16px';
+                                search.style.background = 'linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)';
+                                search.style.boxShadow = '0 4px 16px rgba(15,23,42,.05)';
+                                search.style.fontSize = '0.98rem';
+                                search.style.color = '#0f172a';
+                                search.style.outline = 'none';
+                                search.addEventListener('focus', function(){
+                                    search.style.borderColor = '#0b3b8f';
+                                    search.style.boxShadow = '0 0 0 4px rgba(11,59,143,.10), 0 8px 20px rgba(15,23,42,.06)';
+                                });
+                                search.addEventListener('blur', function(){
+                                    search.style.borderColor = '#d6deeb';
+                                    search.style.boxShadow = '0 4px 16px rgba(15,23,42,.05)';
+                                });
                                 search.addEventListener('input', function(){
                                     var q = (this.value || '').toLowerCase().trim();
                                     var items = section.querySelectorAll('.accordion-item');

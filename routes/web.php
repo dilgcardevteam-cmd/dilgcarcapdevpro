@@ -72,7 +72,12 @@ Route::resource('/admin/roles', RoleController::class)
     ->middleware(['auth'])
     ->names('admin.roles');
 // Access management (permissions matrix) - Super Admin only
-Route::post('/admin/access', [AccessController::class, 'update'])->middleware(['auth'])->name('admin.access.update');
+Route::middleware(['auth', 'role:super_admin'])->group(function () {
+    Route::post('/admin/access', [AccessController::class, 'update'])->name('admin.access.update');
+    Route::get('/access-control', function () {
+        return redirect()->route('dashboard', ['tab' => 'access-management']);
+    })->name('access-control');
+});
 Route::get('/stats/users-by-province', [DashboardController::class, 'userCountsByProvince'])->middleware(['auth'])->name('stats.users.by-province');
 Route::get('/stats/users-by-region', [DashboardController::class, 'userCountsByRegion'])->middleware(['auth'])->name('stats.users.by-region');
 Route::get('/stats/users-gender-by-region', [DashboardController::class, 'userGenderCountsByRegion'])->middleware(['auth'])->name('stats.users.gender-by-region');

@@ -24,6 +24,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        if ($request->input('tab') === 'access-management' && ($user?->role !== 'super_admin')) {
+            abort(403);
+        }
         $forceProfile = !$user->profile_completed;
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
