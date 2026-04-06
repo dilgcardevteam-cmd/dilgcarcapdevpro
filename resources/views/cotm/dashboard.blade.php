@@ -1121,54 +1121,19 @@
                         </div>
                         <span style="color:#6b7280">Recent</span>
                     </div>
-                    @php
-                        $actorName = (Auth::user() && Auth::user()->role === 'training_manager') ? Auth::user()->name : 'Training Manager';
-                        $logs = collect();
-                        $recent = isset($notifications) ? $notifications->take(20) : collect();
-                        foreach($recent as $n){
-                            $logs->push([
-                                'title' => $n->title,
-                                'desc' => $n->message,
-                                'time' => $n->created_at,
-                            ]);
-                        }
-                        $approvedUsers = \App\Models\User::where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
-                        foreach($approvedUsers as $u){ $logs->push(['title'=>'Approved User','desc'=>$actorName.' approved '.$u->name,'time'=>$u->updated_at]); }
-                        $updatedUsers = \App\Models\User::whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
-                        foreach($updatedUsers as $u){
-                            $logs->push(['title'=>'Edited Status','desc'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'time'=>$u->updated_at]);
-                            $logs->push(['title'=>'Edited Role','desc'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'time'=>$u->updated_at]);
-                        }
-                        $coachAssignments = \DB::table('course_user')
-                            ->join('courses','course_user.course_id','=','courses.id')
-                            ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['coach','trainer'])
-                            ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
-                            ->orderBy('course_user.created_at','desc')
-                            ->take(10)->get();
-                        foreach($coachAssignments as $r){ $logs->push(['title'=>'Assigned Coach','desc'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
-                        $enrollments = \DB::table('course_user')
-                            ->join('courses','course_user.course_id','=','courses.id')
-                            ->join('users','course_user.user_id','=','users.id')
-                            ->whereIn('users.role',['participant','trainee'])
-                            ->where('course_user.status','active')
-                            ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
-                            ->orderBy('course_user.created_at','desc')
-                            ->take(10)->get();
-                        foreach($enrollments as $r){ $logs->push(['title'=>'Enrolled Participant','desc'=>$actorName.' enrolled '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
-                        $logs = $logs->sortByDesc('time')->take(30);
-                    @endphp
                     <ul style="list-style:none;margin:0;padding:0;display:grid;gap:10px">
-                        @forelse($logs as $l)
+                        @forelse($activityLogs ?? [] as $log)
                             <li style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 20px rgba(17,24,39,.06)">
                                 <div style="display:flex;align-items:center;justify-content:space-between">
-                                    <div style="font-weight:800;color:#0B2C74">{{ $l['title'] }}</div>
-                                    <span style="color:#94a3b8;font-size:.78rem">{{ \Carbon\Carbon::parse($l['time'])->diffForHumans() }}</span>
+                                    <div style="font-weight:800;color:#0B2C74">{{ ucfirst($log->action) }} {{ class_basename($log->model_type) }}</div>
+                                    <span style="color:#94a3b8;font-size:.78rem">{{ $log->created_at->diffForHumans() }}</span>
                                 </div>
-                                <div style="color:#64748b;font-size:.9rem;margin-top:6px">{{ $l['desc'] }}</div>
+                                <div style="color:#64748b;font-size:.9rem;margin-top:6px">
+                                    <strong>{{ $log->user->name ?? 'System' }}</strong>: {{ $log->description }}
+                                </div>
                             </li>
                         @empty
-                            <li class="muted">No activity yet.</li>
+                            <li style="padding:20px;text-align:center;color:#64748b">No activity logs yet.</li>
                         @endforelse
                     </ul>
                 </div>

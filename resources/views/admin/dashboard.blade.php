@@ -5270,10 +5270,15 @@
                                                     </td>
                                                     <td style="color:#64748b; font-size:.85rem">{{ $ay->created_at->format('M d, Y') }}</td>
                                                     <td>
-                                                        @if(!$ay->is_active)
+                                                        @php
+                                                            $activeCount = $academicYears->where('is_active', true)->count();
+                                                        @endphp
+                                                        @if(!$ay->is_active || $activeCount > 1)
                                                             <form method="POST" action="{{ route('admin.settings.academic-year.activate', $ay->id) }}" style="display:inline">
                                                                 @csrf
-                                                                <button type="submit" class="btn btn-blue" style="font-size:.75rem; padding:6px 10px">Set as Active</button>
+                                                                <button type="submit" class="btn btn-blue" style="font-size:.75rem; padding:6px 10px">
+                                                                    {{ $ay->is_active ? 'Re-activate (Fix)' : 'Set as Active' }}
+                                                                </button>
                                                             </form>
                                                         @endif
                                                     </td>

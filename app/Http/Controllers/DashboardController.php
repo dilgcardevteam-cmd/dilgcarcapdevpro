@@ -13,14 +13,23 @@ use App\Mail\AccountApproved;
 use App\Models\Announcement;
 use App\Models\CalendarEvent;
 use App\Models\Notification;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\Role;
+use App\Services\DashboardService;
 
 class DashboardController extends Controller
 {
+    protected $dashboardService;
+
+    public function __construct(DashboardService $dashboardService)
+    {
+        $this->dashboardService = $dashboardService;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -34,6 +43,15 @@ class DashboardController extends Controller
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
 
         $academicYears = AcademicYear::orderBy('year_start', 'desc')->get();
+        
+        // Ensure only one is active if multiple were found (e.g. from inconsistent data)
+        $activeYears = $academicYears->where('is_active', true);
+        if ($activeYears->count() > 1) {
+            $latestActive = $activeYears->first();
+            AcademicYear::where('id', '!=', $latestActive->id)->update(['is_active' => false]);
+            $academicYears = AcademicYear::orderBy('year_start', 'desc')->get();
+        }
+
         $activeYear = $academicYears->where('is_active', true)->first();
         $selectedYearId = $request->input('academic_year_id', $activeYear ? $activeYear->id : null);
         $selectedYear = ($selectedYearId === 'all') ? null : $academicYears->find($selectedYearId);
@@ -68,8 +86,6 @@ class DashboardController extends Controller
                 $managedTMRoles = array_values(array_intersect($tmRoles, $managedRoles));
                 $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
 
-                $userCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->count();
-                // Only show courses that belong to the same branch/level
                 $levelRoles = [];
                 if ($user->role === 'central_office_admin') {
                     $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
@@ -78,56 +94,18 @@ class DashboardController extends Controller
                 } elseif ($user->role === 'provincial_office_admin') {
                     $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
                 } elseif ($user->role === 'super_admin') {
-                    // Super admin can see all levels
                     $levelRoles = [
                         'admin','super_admin','training_manager','coach','trainer','participant','trainee',
                         'central_office_admin','central_office_training_manager','central_office_coach','central_office_participants',
                         'regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants',
                         'provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants',
                     ];
-                } else { // default/original admin
+                } else {
                     $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
                 }
 
-                $baseCourseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
-                    $q->whereIn('role', $levelRoles);
-                });
-
-                if ($selectedYearId !== 'all') {
-                    $baseCourseQuery->where('academic_year_id', $selectedYearId);
-                }
-
-                $courseCount = (clone $baseCourseQuery)->count();
-                $courses = (clone $baseCourseQuery)->orderBy('created_at', 'desc')->get();
-
-                $archivedCourses = (clone $baseCourseQuery)->onlyTrashed()->get();
-                $certifications = Certification::all();
-                $recentCourses = (clone $baseCourseQuery)->latest()->take(5)->get();
-
-                // Pending should only include courses submitted by coaches/trainers for approval,
-                // not courses archived by admins. We approximate this by requiring coach presence
-                // and excluding any course linked to admin-level users.
-                $pendingCoursesQuery = Course::onlyTrashed()
-                    ->whereHas('users', function($q) use ($managedCoachRoles) {
-                        $q->whereIn('role', $managedCoachRoles);
-                    })
-                    ->whereDoesntHave('users', function($q) use ($adminRoles) {
-                        $q->whereIn('role', $adminRoles);
-                    });
-
-                if ($selectedYearId !== 'all') {
-                    $pendingCoursesQuery->where('academic_year_id', $selectedYearId);
-                }
-
-                $pendingCourses = (clone $pendingCoursesQuery)->get();
-                $pendingCoursesCount = (clone $pendingCoursesQuery)->count();
-
-                $activeUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count();
-                $pendingUsersTotal = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'pending')->count();
-                $frozenUsersCount = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'freeze')->count();
-                
-                $publishedCoursesCount = (clone $baseCourseQuery)->where('is_published', true)->count();
-                $unpublishedCoursesCount = (clone $baseCourseQuery)->where('is_published', false)->count();
+                $stats = $this->dashboardService->getAdminStats($managedRoles, $levelRoles, $managedCoachRoles, $selectedYearId);
+                extract($stats);
 
                 $trainersCount = User::whereIn('role', $managedCoachRoles)->where('profile_completed', true)->count();
                 $traineesCount = User::whereIn('role', $managedParticipantRoles)->where('profile_completed', true)->count();
@@ -189,6 +167,8 @@ class DashboardController extends Controller
                 $users = $query->paginate(8)->appends($request->query());
                 $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
 
+                $activityLogs = ActivityLog::with('user')->latest()->take(30)->get();
+
                 if ($request->ajax()) {
                     return view('admin.partials.users-table', compact('users','roleDisplay'))->render();
                 }
@@ -234,7 +214,8 @@ class DashboardController extends Controller
                     'unpublishedCoursesCount',
                     'academicYears',
                     'selectedYearId',
-                    'selectedYear'
+                    'selectedYear',
+                    'activityLogs'
                 ));
             case $user->role === 'registrar':
                 $registrarScope = function ($query) {
@@ -2145,8 +2126,8 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        // Deactivate all others
-        AcademicYear::where('is_active', true)->update(['is_active' => false]);
+        // Deactivate all others explicitly by ID to avoid any confusion
+        AcademicYear::where('id', '!=', $academicYear->id)->update(['is_active' => false]);
 
         // Activate this one
         $academicYear->update(['is_active' => true]);
