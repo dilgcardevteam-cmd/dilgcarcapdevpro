@@ -383,4 +383,5 @@ class TrainerController extends Controller
 
         return response()->json(['success' => true]);
     }
+    
 }

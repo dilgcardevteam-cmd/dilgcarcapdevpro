@@ -36,6 +36,8 @@ class CourseController extends Controller
         $html = preg_replace('/<source[^>]*src="blob:[^"]+"[^>]*>/i', '', $html);
         // Remove entire <video> blocks
         $html = preg_replace('/<video[^>]*>.*?<\/video>/is', '<p>[video removed]</p>', $html);
+        // Remove known third-party image hosts that often return 403/hotlink failures.
+        $html = preg_replace('/<(img|source|iframe)[^>]*(src|href)=["\']https?:\/\/[^"\']*googleusercontent\.com[^"\']*["\'][^>]*>/i', '', $html);
         // Safety: collapse long spaces
         $html = preg_replace('/\s{2,}/', ' ', $html);
         // Optional safety cap to avoid oversized payloads
@@ -522,6 +524,7 @@ class CourseController extends Controller
         $earnedPoints = $objectiveCorrect + $essayCheckedScore;
         $finalPct = $totalPossiblePoints > 0 ? (int) round(($earnedPoints / $totalPossiblePoints) * 100) : 0;
         [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
+        $integrity = $this->normalizeExamIntegrityPayload($submission['exam_integrity'] ?? null);
 
         $status = 'completed';
         if ($pendingEssayCount > 0 && $checkedEssayCount === 0) {
@@ -555,6 +558,50 @@ class CourseController extends Controller
             'passed' => $passed,
             'items' => $items,
             'contains_essay' => ($pendingEssayCount + $checkedEssayCount) > 0,
+            'exam_integrity' => $integrity,
+            'violation_count' => (int) ($integrity['violations'] ?? 0),
+            'auto_submitted' => (bool) ($integrity['auto_submitted'] ?? false),
+        ];
+    }
+
+    protected function normalizeExamIntegrityPayload($integrity): array
+    {
+        if (!is_array($integrity)) {
+            return [
+                'violations' => 0,
+                'warning_threshold' => 1,
+                'auto_submit_threshold' => 3,
+                'auto_submitted' => false,
+                'last_reason' => null,
+                'events' => [],
+            ];
+        }
+
+        $events = [];
+        foreach (($integrity['events'] ?? []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+
+            $type = trim((string) ($event['type'] ?? ''));
+            if ($type === '') {
+                continue;
+            }
+
+            $events[] = [
+                'type' => $type,
+                'at' => isset($event['at']) ? (string) $event['at'] : null,
+                'count' => max(1, (int) ($event['count'] ?? 1)),
+            ];
+        }
+
+        return [
+            'violations' => max(0, (int) ($integrity['violations'] ?? count($events))),
+            'warning_threshold' => max(1, (int) ($integrity['warning_threshold'] ?? 1)),
+            'auto_submit_threshold' => max(1, (int) ($integrity['auto_submit_threshold'] ?? 3)),
+            'auto_submitted' => (bool) ($integrity['auto_submitted'] ?? false),
+            'last_reason' => (($reason = trim((string) ($integrity['last_reason'] ?? ''))) !== '') ? $reason : null,
+            'events' => array_slice($events, -20),
         ];
     }
 
@@ -2312,6 +2359,16 @@ class CourseController extends Controller
                 'mi' => 'required|integer|min:0',
                 'answers' => 'nullable|array',
                 'duration_ms' => 'nullable|integer|min:0',
+                'exam_integrity' => 'nullable|array',
+                'exam_integrity.violations' => 'nullable|integer|min:0',
+                'exam_integrity.warning_threshold' => 'nullable|integer|min:1',
+                'exam_integrity.auto_submit_threshold' => 'nullable|integer|min:1',
+                'exam_integrity.auto_submitted' => 'nullable|boolean',
+                'exam_integrity.last_reason' => 'nullable|string|max:120',
+                'exam_integrity.events' => 'nullable|array',
+                'exam_integrity.events.*.type' => 'nullable|string|max:60',
+                'exam_integrity.events.*.at' => 'nullable|string|max:80',
+                'exam_integrity.events.*.count' => 'nullable|integer|min:1',
             ]);
             if ($validator->fails()) {
                 return response()->json([
@@ -2395,6 +2452,7 @@ class CourseController extends Controller
                 'answers' => $answers,
                 'duration_ms' => $data['duration_ms'] ?? null,
                 'submitted_at' => $submittedAt,
+                'exam_integrity' => $this->normalizeExamIntegrityPayload($data['exam_integrity'] ?? null),
             ];
             $dir = storage_path('app/exam_submissions/course_'.$course->id);
             if (!is_dir($dir)) {
@@ -2485,6 +2543,8 @@ class CourseController extends Controller
                         'essay_checked_count' => (int) ($summary['essay_checked_count'] ?? 0),
                         'status' => (string) ($summary['status'] ?? 'completed'),
                         'status_label' => (string) ($summary['status_label'] ?? 'Completed'),
+                        'violation_count' => (int) ($summary['violation_count'] ?? 0),
+                        'auto_submitted' => (bool) ($summary['auto_submitted'] ?? false),
                         'submitted_at' => $j['submitted_at'] ?? null,
                     ];
                 }
@@ -3013,7 +3073,7 @@ class CourseController extends Controller
                 'name' => $course->name,
                 'description' => $course->description,
                 'subject_area' => $course->subject_area,
-                'image_path' => $course->image_path ? asset('storage/' . $course->image_path) : null,
+                'image_path' => $course->image_url,
                 'video_url' => $course->video_url,
                 'created_at' => optional($course->created_at)->format('M d, Y'),
                 'creator_name' => $creator ? $creator->name : 'N/A',

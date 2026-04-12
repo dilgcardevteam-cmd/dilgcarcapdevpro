@@ -267,10 +267,29 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute(): string
     {
-        $pic = $this->profile_picture;
-        if (!$pic) {
+        $pic = trim((string) ($this->profile_picture ?? ''));
+        if ($pic === '') {
             return asset('images/user.png');
         }
+
+        if (filter_var($pic, FILTER_VALIDATE_URL)) {
+            $host = strtolower((string) parse_url($pic, PHP_URL_HOST));
+            $blockedHosts = [
+                'googleusercontent.com',
+                'lh3.googleusercontent.com',
+                'lh4.googleusercontent.com',
+                'lh5.googleusercontent.com',
+                'lh6.googleusercontent.com',
+            ];
+            foreach ($blockedHosts as $blockedHost) {
+                if ($host === $blockedHost || str_ends_with($host, '.' . $blockedHost)) {
+                    return asset('images/user.png');
+                }
+            }
+
+            return $pic;
+        }
+
         $v = optional($this->updated_at)->timestamp ?? time();
         return asset('storage/' . $pic) . '?v=' . $v;
     }

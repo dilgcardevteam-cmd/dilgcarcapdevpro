@@ -1053,9 +1053,7 @@
             <div class="profile-menu">
                 <div class="user-profile" onclick="toggleProfileMenu(event)" style="cursor: pointer;">
                     @php
-                        $avatarSrc = Auth::user()->profile_picture
-                            ? asset('storage/' . Auth::user()->profile_picture)
-                            : asset('images/user.png');
+                        $avatarSrc = Auth::user()->avatar_url;
                     @endphp
                     <img src="{{ $avatarSrc }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
                     <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
@@ -1251,7 +1249,7 @@
                         <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
                             <div class="new-course-card">
                                 <div class="card-banner">
-                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
+                                    <img src="{{ $course->image_url }}" alt="Course Image">
                                     <div class="status-badge-new {{ strtolower($course->course_status) }}">
                                         @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
                                             Finished
@@ -1318,7 +1316,7 @@
                                 @php
                                     $courseImage = null;
                                     if ($course->image_path) {
-                                        $courseImage = asset('storage/' . $course->image_path);
+                                        $courseImage = $course->image_url;
                                     } else {
                                         $courseNameLower = strtolower($course->name);
                                         if (str_contains($courseNameLower, 'research')) {
@@ -1430,7 +1428,7 @@
                         <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="70">
                             <div class="new-course-card">
                                 <div class="card-banner">
-                                    <img src="{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/400x200?text=No+Image' }}" alt="Course Image">
+                                    <img src="{{ $course->image_url }}" alt="Course Image">
                                     <div class="status-badge-new {{ strtolower($course->course_status) }}">
                                         @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
                                             Finished
@@ -2513,11 +2511,7 @@
             })();
             
             const hero = document.getElementById('detail-hero');
-            if (course.image_path) {
-                hero.style.backgroundImage = `url('${storageBaseUrl}/${course.image_path}')`;
-            } else {
-                hero.style.backgroundImage = "url('https://via.placeholder.com/800x300?text=No+Image')";
-            }
+            hero.style.backgroundImage = `url('${course.image_path || "https://via.placeholder.com/800x300?text=No+Image"}')`;
 
             // Render curriculum accordion in Topics tab
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');

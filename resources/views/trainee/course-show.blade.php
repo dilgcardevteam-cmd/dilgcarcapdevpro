@@ -1433,10 +1433,11 @@
                             <ul style="margin:0 0 0 18px;line-height:1.6">
                                 <li>Answer all questions to the best of your knowledge.</li>
                                 <li>Your timer will start when you press Start.</li>
+                                <li>The exam will request fullscreen mode and monitor tab switching while you are taking it.</li>
                             </ul>
                         </div>
                         <div style="display:flex;justify-content:center">
-                            <button id="examStart" class="btn-blue" style="padding:12px 28px;border-radius:16px;box-shadow:0 10px 24px rgba(37,99,235,.22)">Start</button>
+                            <button id="examStart" class="btn-blue" style="padding:12px 28px;border-radius:16px;box-shadow:0 10px 24px rgba(37,99,235,.22)">Start Fullscreen Exam</button>
                         </div>
                     </div>`;
                 const bodyWrap = `<div id="examBody" style="display:none">${html}${IS_TRAINER ? '' : `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="examSubmitAll" class="btn-blue">Submit Exam</button></div>`}</div>`;
@@ -1463,10 +1464,33 @@
                     </div>
                   </div>
                 </div>`;
-                bodyEl.innerHTML = header + `<div id="examResult" style="display:none;margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;font-weight:800"></div>` + preface + bodyWrap + confirmOverlay;
+                const warningOverlay = IS_TRAINER ? '' : `
+                <div id="examViolationOverlay" style="position:fixed;inset:0;background:rgba(15,23,42,.62);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:4100">
+                  <div style="width:min(560px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:20px;box-shadow:0 30px 60px rgba(2,6,23,.28);overflow:hidden">
+                    <div style="padding:16px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#fff7ed 0%,#ffffff 100%)">
+                      <div style="width:40px;height:40px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74;display:flex;align-items:center;justify-content:center">
+                        <i class="fas fa-triangle-exclamation" style="color:#c2410c"></i>
+                      </div>
+                      <div>
+                        <div style="font-weight:900;color:#0f172a;letter-spacing:-.01em">Stay Inside The Exam</div>
+                        <div id="examViolationCount" style="color:#9a3412;font-weight:700;font-size:.95rem"></div>
+                      </div>
+                    </div>
+                    <div style="padding:16px 18px">
+                      <div id="examViolationMessage" style="margin:6px 0 12px;color:#334155;font-weight:700;line-height:1.6"></div>
+                    </div>
+                    <div style="padding:14px 18px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;background:#fff">
+                      <button id="examViolationContinue" class="btn-blue" style="padding:12px 18px;border-radius:12px;min-width:160px">Return To Exam</button>
+                    </div>
+                  </div>
+                </div>`;
+                bodyEl.innerHTML = header + `<div id="examResult" style="display:none;margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;font-weight:800"></div>` + preface + bodyWrap + confirmOverlay + warningOverlay;
             }
             if(!IS_TRAINER){
                 const keyBase = `exam_${course.id}_${mi}`;
+                const fullscreenHost = document.documentElement;
+                const examWarningThreshold = 1;
+                const examAutoSubmitThreshold = 3;
                 const examSignature = JSON.stringify(qs.map(q => ({
                     type: String(q.type || ''),
                     text: String(q.text || q.title || ''),
@@ -1483,14 +1507,204 @@
                         localStorage.removeItem(keyBase+'_submitted');
                         localStorage.removeItem(keyBase+'_start');
                         localStorage.removeItem(keyBase+'_started');
+                        localStorage.removeItem(keyBase+'_integrity');
                         localStorage.setItem(keyBase+'_signature', examSignature);
                     }
                 }catch(e){}
+                function emptyExamIntegrity(){
+                    return {
+                        violations: 0,
+                        warning_threshold: examWarningThreshold,
+                        auto_submit_threshold: examAutoSubmitThreshold,
+                        auto_submitted: false,
+                        last_reason: null,
+                        events: []
+                    };
+                }
+                function readExamIntegrity(){
+                    try{
+                        const parsed = JSON.parse(localStorage.getItem(keyBase+'_integrity') || 'null');
+                        if(parsed && typeof parsed === 'object'){
+                            return {
+                                violations: Math.max(0, parseInt(parsed.violations || 0, 10) || 0),
+                                warning_threshold: Math.max(1, parseInt(parsed.warning_threshold || examWarningThreshold, 10) || examWarningThreshold),
+                                auto_submit_threshold: Math.max(1, parseInt(parsed.auto_submit_threshold || examAutoSubmitThreshold, 10) || examAutoSubmitThreshold),
+                                auto_submitted: !!parsed.auto_submitted,
+                                last_reason: parsed.last_reason || null,
+                                events: Array.isArray(parsed.events) ? parsed.events.slice(-20) : []
+                            };
+                        }
+                    }catch(e){}
+                    return emptyExamIntegrity();
+                }
+                function writeExamIntegrity(next){
+                    const normalized = {
+                        violations: Math.max(0, parseInt(next?.violations || 0, 10) || 0),
+                        warning_threshold: Math.max(1, parseInt(next?.warning_threshold || examWarningThreshold, 10) || examWarningThreshold),
+                        auto_submit_threshold: Math.max(1, parseInt(next?.auto_submit_threshold || examAutoSubmitThreshold, 10) || examAutoSubmitThreshold),
+                        auto_submitted: !!next?.auto_submitted,
+                        last_reason: next?.last_reason || null,
+                        events: Array.isArray(next?.events) ? next.events.slice(-20) : []
+                    };
+                    try{ localStorage.setItem(keyBase+'_integrity', JSON.stringify(normalized)); }catch(e){}
+                    return normalized;
+                }
+                function resetExamIntegrity(){
+                    lastViolationAt = 0;
+                    return writeExamIntegrity(emptyExamIntegrity());
+                }
                 const resultBox = document.getElementById('examResult');
                 const prefaceBox = document.getElementById('examPreface');
                 const loadingBox = document.getElementById('examLoading');
                 const bodyBox = document.getElementById('examBody');
                 const closeBtn = document.getElementById('examClose');
+                const violationOverlay = document.getElementById('examViolationOverlay');
+                const violationCountEl = document.getElementById('examViolationCount');
+                const violationMessageEl = document.getElementById('examViolationMessage');
+                const violationContinueBtn = document.getElementById('examViolationContinue');
+                let examModeActive = false;
+                let suppressNextVisibilityViolation = false;
+                let isHandlingExamSubmit = false;
+                let lastViolationAt = 0;
+                let timerIv = null;
+                let latestExamSummary = null;
+                async function requestExamFullscreen(){
+                    try{
+                        if(document.fullscreenElement || !fullscreenHost?.requestFullscreen){
+                            return true;
+                        }
+                        await fullscreenHost.requestFullscreen();
+                        return true;
+                    }catch(e){
+                        return false;
+                    }
+                }
+                async function exitExamFullscreen(){
+                    try{
+                        if(document.fullscreenElement && document.exitFullscreen){
+                            await document.exitFullscreen();
+                        }
+                    }catch(e){}
+                }
+                function hideViolationOverlay(){
+                    if(violationOverlay){ violationOverlay.style.display = 'none'; }
+                }
+                async function resumeExamFromViolation(){
+                    hideViolationOverlay();
+                    const entered = await requestExamFullscreen();
+                    if(!entered){
+                        setTimeout(()=>{ triggerExamViolation('fullscreen_required'); }, 120);
+                    }
+                }
+                async function triggerExamViolation(reason){
+                    if(!examModeActive || isHandlingExamSubmit){
+                        return;
+                    }
+                    const nowTs = Date.now();
+                    if((nowTs - lastViolationAt) < 1200){
+                        return;
+                    }
+                    lastViolationAt = nowTs;
+                    const integrity = readExamIntegrity();
+                    const nextCount = integrity.violations + 1;
+                    const next = writeExamIntegrity({
+                        ...integrity,
+                        violations: nextCount,
+                        last_reason: reason,
+                        events: [...integrity.events, {
+                            type: reason,
+                            at: new Date().toISOString(),
+                            count: nextCount
+                        }]
+                    });
+                    const reasons = {
+                        hidden: 'You switched away from the exam tab.',
+                        blur: 'The exam window lost focus.',
+                        fullscreen_exit: 'You exited fullscreen during the exam.',
+                        fullscreen_required: 'Fullscreen must stay enabled while the exam is active.'
+                    };
+                    if(nextCount >= examAutoSubmitThreshold){
+                        writeExamIntegrity({
+                            ...next,
+                            auto_submitted: true,
+                            last_reason: reason
+                        });
+                        if(violationOverlay){
+                            violationOverlay.style.display = 'flex';
+                        }
+                        if(violationCountEl){
+                            violationCountEl.textContent = `Violation ${nextCount} of ${examAutoSubmitThreshold}`;
+                        }
+                        if(violationMessageEl){
+                            violationMessageEl.innerHTML = `${reasons[reason] || 'You left the protected exam mode.'}<br><br>You reached the maximum violation limit. The exam will be submitted now.`;
+                        }
+                        if(violationContinueBtn){
+                            violationContinueBtn.disabled = true;
+                            violationContinueBtn.textContent = 'Submitting...';
+                        }
+                        handleSubmit(true);
+                        return;
+                    }
+                    if(violationOverlay){
+                        violationOverlay.style.display = 'flex';
+                    }
+                    if(violationCountEl){
+                        violationCountEl.textContent = `Violation ${nextCount} of ${examAutoSubmitThreshold}`;
+                    }
+                    if(violationMessageEl){
+                        violationMessageEl.innerHTML = `${reasons[reason] || 'You left the protected exam mode.'}<br><br>Please return to fullscreen to continue. Another ${examAutoSubmitThreshold - nextCount} violation${examAutoSubmitThreshold - nextCount === 1 ? '' : 's'} will trigger auto-submit.`;
+                    }
+                    if(violationContinueBtn){
+                        violationContinueBtn.disabled = false;
+                        violationContinueBtn.textContent = 'Return To Exam';
+                    }
+                }
+                function onExamVisibilityChange(){
+                    if(!examModeActive || suppressNextVisibilityViolation || isHandlingExamSubmit){
+                        return;
+                    }
+                    if(document.hidden){
+                        triggerExamViolation('hidden');
+                    }
+                }
+                function onExamBlur(){
+                    if(!examModeActive || suppressNextVisibilityViolation || isHandlingExamSubmit){
+                        return;
+                    }
+                    triggerExamViolation('blur');
+                }
+                function onExamFullscreenChange(){
+                    if(!examModeActive || suppressNextVisibilityViolation || isHandlingExamSubmit){
+                        return;
+                    }
+                    if(!document.fullscreenElement){
+                        triggerExamViolation('fullscreen_exit');
+                    } else {
+                        hideViolationOverlay();
+                    }
+                }
+                function enableExamMonitoring(){
+                    if(examModeActive){
+                        return;
+                    }
+                    examModeActive = true;
+                    document.addEventListener('visibilitychange', onExamVisibilityChange);
+                    window.addEventListener('blur', onExamBlur);
+                    document.addEventListener('fullscreenchange', onExamFullscreenChange);
+                }
+                function disableExamMonitoring(){
+                    hideViolationOverlay();
+                    if(!examModeActive){
+                        return;
+                    }
+                    examModeActive = false;
+                    document.removeEventListener('visibilitychange', onExamVisibilityChange);
+                    window.removeEventListener('blur', onExamBlur);
+                    document.removeEventListener('fullscreenchange', onExamFullscreenChange);
+                }
+                if(violationContinueBtn){
+                    violationContinueBtn.addEventListener('click', ()=>{ resumeExamFromViolation(); });
+                }
                 function saveAnswers(){
                     const blocks = Array.from(bodyEl.querySelectorAll('.field.question'));
                     const answers = blocks.map(b=>{
@@ -1630,9 +1844,11 @@
                 });
                 const submitAll = bodyEl.querySelector('#examSubmitAll');
                 const resetBtn = null;
-                let timerIv = null;
-                let latestExamSummary = null;
-                async function handleSubmit(){
+                async function handleSubmit(triggeredByViolation = false){
+                    if(isHandlingExamSubmit){
+                        return;
+                    }
+                    isHandlingExamSubmit = true;
                     saveAnswers();
                     const {correct,total,pct,essayTotal} = computeGrade();
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitting...'; }
@@ -1649,7 +1865,15 @@
                                     'X-CSRF-TOKEN':'{{ csrf_token() }}'
                                 },
                                 credentials:'same-origin',
-                                body: JSON.stringify({mi: mi, answers: JSON.parse(answersStr), duration_ms: 0})
+                                body: JSON.stringify({
+                                    mi: mi,
+                                    answers: JSON.parse(answersStr),
+                                    duration_ms: 0,
+                                    exam_integrity: writeExamIntegrity({
+                                        ...readExamIntegrity(),
+                                        auto_submitted: triggeredByViolation || readExamIntegrity().auto_submitted
+                                    })
+                                })
                             });
                             const raw = await resp.text();
                             let j = null;
@@ -1659,6 +1883,7 @@
                                     ? j.error
                                     : `Exam submission failed. HTTP ${resp.status}${raw && !j ? ' - ' + raw.slice(0, 180) : ''}`;
                                 if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
+                                isHandlingExamSubmit = false;
                                 alert(msg);
                                 return;
                             }
@@ -1666,6 +1891,7 @@
                             serverCompleted = !!j.completed;
                         }catch(_){
                             if(submitAll){ submitAll.disabled = false; submitAll.textContent = 'Submit Exam'; }
+                            isHandlingExamSubmit = false;
                             alert('Exam submission failed. Please check your connection and try again.');
                             return;
                         }
@@ -1688,12 +1914,20 @@
                             essay_checked_count: 0,
                             status: essayTotal > 0 ? 'pending_review' : 'completed',
                             status_label: essayTotal > 0 ? 'Pending Trainer Review' : 'Completed',
-                            items: []
+                            items: [],
+                            exam_integrity: readExamIntegrity(),
+                            violation_count: readExamIntegrity().violations,
+                            auto_submitted: readExamIntegrity().auto_submitted
                         });
                     }
                     if(serverCompleted) {
                         showCongrats();
                     }
+                    disableExamMonitoring();
+                    suppressNextVisibilityViolation = true;
+                    await exitExamFullscreen();
+                    setTimeout(()=>{ suppressNextVisibilityViolation = false; }, 400);
+                    isHandlingExamSubmit = false;
                 }
                 async function renderExamSummary(summary){
                     let retakeRequested = summary?.retake_requested ?? false;
@@ -1720,6 +1954,8 @@
                     const essayChecked = Number(summary?.essay_checked_count ?? 0) || 0;
                     const status = summary?.status || 'completed';
                     const statusLabel = summary?.status_label || 'Completed';
+                    const violationCount = Number(summary?.violation_count ?? summary?.exam_integrity?.violations ?? 0) || 0;
+                    const wasAutoSubmitted = !!(summary?.auto_submitted ?? summary?.exam_integrity?.auto_submitted);
                     const effectivePassingScore = summary?.passing_score != null && summary?.passing_score !== ''
                         ? (parseInt(summary.passing_score, 10) || 0)
                         : ((typeof passPct === 'number') ? passPct : null);
@@ -1777,8 +2013,12 @@
                               ${essayPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${essayPending} essay pending</span>` : ``}
                               ${essayChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${essayChecked} essay checked</span>` : ``}
                               ${effectivePassingScore!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${effectivePassingScore}%</span>` : ``}
+                              ${violationCount ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#9a3412"><i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i> ${violationCount} integrity violation${violationCount===1?'':'s'}</span>` : ``}
                             </div>
-                            <div style="color:#334155;margin-top:6px">You can review your answers below.</div>
+                            ${wasAutoSubmitted ? `<div style="color:#9a3412;font-weight:800;margin-top:2px">This attempt was auto-submitted after repeated focus/fullscreen violations.</div>` : ``}
+                            <div style="color:#334155;margin-top:6px">
+                                ${passed === false ? 'You can review your attempt below. (Correct answers are hidden until you pass)' : 'You can review your answers below.'}
+                            </div>
                             <div style="display:flex;gap:10px;margin-top:6px">
                               <button id="examReview" class="btn-blue" style="padding:10px 16px;border-radius:12px">Review Assessment</button>
                               ${retakeButtonHtml}
@@ -1798,7 +2038,9 @@
                           rv.onclick = ()=>{
                             resultBox.style.display='none';
                             if(bodyBox){ bodyBox.style.display=''; }
-                            revealAnswers();
+                            // Only show correct answers if passed OR if trainer (trainer should always see answers)
+                            const showCorrect = IS_TRAINER || passed === true;
+                            revealAnswers(showCorrect);
                             // Create/show Back button for review mode
                             let topBar = document.getElementById('reviewTopBar');
                             if(!topBar && bodyBox){
@@ -1840,11 +2082,10 @@
                                     const data = await resp.json().catch(()=>null);
                                     if(data?.ok){
                                         prepareExamRetake();
-                                        // Show exam body immediately without refresh
-                                        showExamBody();
+                                        // Return to the exam start gate so fullscreen only begins on explicit Start.
                                         try {
-                                            localStorage.setItem(keyBase + '_started', '1');
-                                            localStorage.setItem(keyBase + '_start', String(Date.now()));
+                                            localStorage.removeItem(keyBase + '_started');
+                                            localStorage.removeItem(keyBase + '_start');
                                         } catch (e) {}
                                         return;
                                     }
@@ -1890,7 +2131,7 @@
                             };
                         }
                 }
-                function revealAnswers(){
+                function revealAnswers(showCorrect = false){
                     // Show correct answers in-body and lock interactions
                     const blocks = Array.from(bodyBox.querySelectorAll('.field.question'));
                     let ua = null;
@@ -1903,15 +2144,17 @@
                             const ans = Number.isInteger(q.answer_index) ? q.answer_index : null;
                             const mc = b.querySelector('.mc');
                             if(mc!=null && ans!=null){
-                                const opt = mc.querySelector(`.mc-option[data-idx="${ans}"]`);
-                                if(opt){
-                                    opt.classList.add('trainer-answer');
-                                    if(!opt.querySelector('.chip')){
-                                        const chip=document.createElement('span');
-                                        chip.className='chip';
-                                        chip.textContent='Answer';
-                                        chip.style.marginLeft='6px';
-                                        opt.appendChild(chip);
+                                if(showCorrect){
+                                    const opt = mc.querySelector(`.mc-option[data-idx="${ans}"]`);
+                                    if(opt){
+                                        opt.classList.add('trainer-answer');
+                                        if(!opt.querySelector('.chip')){
+                                            const chip=document.createElement('span');
+                                            chip.className='chip';
+                                            chip.textContent='Answer';
+                                            chip.style.marginLeft='6px';
+                                            opt.appendChild(chip);
+                                        }
                                     }
                                 }
                                 // Mark user's selected answer and correctness
@@ -1930,15 +2173,17 @@
                             const val = q.answer===true ? 'true' : (q.answer===false ? 'false' : '');
                             const tf = b.querySelector('.tf');
                             if(tf && val){
-                                const opt = tf.querySelector(`.tf-option[data-val="${val}"]`);
-                                if(opt){
-                                    opt.classList.add('trainer-answer');
-                                    if(!opt.querySelector('.chip')){
-                                        const chip=document.createElement('span');
-                                        chip.className='chip';
-                                        chip.textContent='Answer';
-                                        chip.style.marginLeft='6px';
-                                        opt.appendChild(chip);
+                                if(showCorrect){
+                                    const opt = tf.querySelector(`.tf-option[data-val="${val}"]`);
+                                    if(opt){
+                                        opt.classList.add('trainer-answer');
+                                        if(!opt.querySelector('.chip')){
+                                            const chip=document.createElement('span');
+                                            chip.className='chip';
+                                            chip.textContent='Answer';
+                                            chip.style.marginLeft='6px';
+                                            opt.appendChild(chip);
+                                        }
                                     }
                                 }
                                 // Mark user's selected and correctness
@@ -1972,7 +2217,10 @@
                                 const statusLine = your
                                     ? `<div style="margin-top:6px;color:${isOk? '#059669':'#b91c1c'}"><b>Status:</b> ${isOk ? 'Correct' : 'Incorrect'}</div>`
                                     : '';
-                                info.innerHTML = '<span class="chip">Correct answer</span> '+ ansList.map(a=>String(a)).join(' / ') + statusLine;
+                                const answerLine = showCorrect 
+                                    ? '<span class="chip">Correct answer</span> '+ ansList.map(a=>String(a)).join(' / ') 
+                                    : '';
+                                info.innerHTML = answerLine + statusLine;
                                 b.appendChild(info);
                             }
                         } else if(kind==='enumeration'){
@@ -1990,7 +2238,9 @@
                             const scoreLine = response
                                 ? `<div><span class="chip">Score</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
                                 : '';
-                            const correctLine = correctAnswers.length ? `<div style="margin-top:6px"><b>Correct answers:</b> ${correctAnswers.join(', ')}</div>` : '';
+                            const correctLine = (showCorrect && correctAnswers.length) 
+                                ? `<div style="margin-top:6px"><b>Correct answers:</b> ${correctAnswers.join(', ')}</div>` 
+                                : '';
                             info.innerHTML = `${scoreLine}${correctLine}`;
                             b.appendChild(info);
                         } else if(kind==='essay'){
@@ -2015,8 +2265,12 @@
                     });
                 }
                 if(closeBtn){
-                    closeBtn.onclick = ()=>{
+                    closeBtn.onclick = async ()=>{
                         // Back to outline and reset started state (but keep answers)
+                        disableExamMonitoring();
+                        suppressNextVisibilityViolation = true;
+                        await exitExamFullscreen();
+                        setTimeout(()=>{ suppressNextVisibilityViolation = false; }, 400);
                         if(prefaceBox){ prefaceBox.style.display=''; }
                         if(bodyBox){ bodyBox.style.display='none'; }
                         if(resultBox){ resultBox.style.display='none'; }
@@ -2110,10 +2364,18 @@
                 }
                 restoreAnswers();
                 // Start gate
+                function showExamLoading(){
+                    disableExamMonitoring();
+                    if(resultBox){ resultBox.style.display='none'; }
+                    if(prefaceBox){ prefaceBox.style.display='none'; }
+                    if(bodyBox){ bodyBox.style.display='none'; }
+                    if(loadingBox){ loadingBox.style.display=''; }
+                }
                 function hideExamLoading(){
                     if(loadingBox){ loadingBox.style.display='none'; }
                 }
                 function showExamPreface(){
+                    disableExamMonitoring();
                     hideExamLoading();
                     if(resultBox){ resultBox.style.display='none'; }
                     if(prefaceBox){ prefaceBox.style.display=''; }
@@ -2123,6 +2385,7 @@
                     hideExamLoading();
                     if(prefaceBox) prefaceBox.style.display='none';
                     if(bodyBox) bodyBox.style.display='';
+                    enableExamMonitoring();
                 }
                 function prepareExamRetake(){
                     try{
@@ -2132,6 +2395,8 @@
                         localStorage.removeItem(keyBase+'_start');
                         localStorage.setItem(keyBase+'_retake_mode', '1');
                     }catch(e){}
+                    resetExamIntegrity();
+                    disableExamMonitoring();
                     latestExamSummary = null;
                     setFrozen(false);
                     try{
@@ -2188,6 +2453,7 @@
                         localStorage.removeItem(keyBase+'_started');
                         localStorage.removeItem(keyBase+'_start');
                     }catch(e){}
+                    disableExamMonitoring();
                     hideExamLoading();
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitted'; }
                     setFrozen(true);
@@ -2199,9 +2465,6 @@
                     if(timerIv){ clearInterval(timerIv); timerIv = null; }
                 }
                 function loadExistingAttempt(){
-                    if(localStorage.getItem(keyBase+'_retake_mode')==='1'){
-                        return Promise.resolve(false);
-                    }
                     return fetch("{{ url('/courses/'.$course->id.'/module-exam/attempt') }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'})
                         .then(r=>r.json())
                         .then(j=>{
@@ -2215,23 +2478,35 @@
                 }
                 const startBtn = document.getElementById('examStart');
                 if(startBtn){
-                    startBtn.onclick = ()=>{
+                    startBtn.onclick = async ()=>{
                         if(localStorage.getItem(keyBase+'_submitted')==='1'){ return; }
+                        resetExamIntegrity();
+                        const enteredFullscreen = await requestExamFullscreen();
                         showExamBody();
                         try{
                             localStorage.removeItem(keyBase+'_retake_mode');
                             localStorage.setItem(keyBase+'_started','1');
                             if(!localStorage.getItem(keyBase+'_start')) localStorage.setItem(keyBase+'_start', String(Date.now()));
                         }catch(e){}
+                        if(!enteredFullscreen){
+                            setTimeout(()=>{ triggerExamViolation('fullscreen_required'); }, 120);
+                        }
                     };
                 }
+                showExamLoading();
                 loadExistingAttempt().then(foundAttempt=>{
                     if(foundAttempt){ return; }
-                    const started = localStorage.getItem(keyBase+'_started')==='1';
-                    if(started){ showExamBody(); }
-                    else { showExamPreface(); }
-                    if(localStorage.getItem(keyBase+'_submitted')==='1'){
-                        handleSubmit();
+                    const submitted = localStorage.getItem(keyBase+'_submitted')==='1';
+                    const retakeMode = localStorage.getItem(keyBase+'_retake_mode')==='1';
+                    const started = !submitted && localStorage.getItem(keyBase+'_started')==='1';
+                    if(retakeMode){
+                        showExamPreface();
+                    }
+                    else if(started){
+                        showExamBody();
+                    }
+                    else {
+                        showExamPreface();
                     }
                 }).catch(()=>{
                     showExamPreface();
@@ -2294,12 +2569,13 @@
                                   <td style="text-align:right;font-weight:800">${it.pct}%</td>
                                   <td>${esc((it.correct||0)+'/'+(it.total||0))}</td>
                                   <td>${esc(it.status_label||'Completed')}</td>
+                                  <td>${it.violation_count ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#9a3412">${it.violation_count}${it.auto_submitted ? ' auto' : ''}</span>` : '<span class="muted">0</span>'}</td>
                                   <td>${esc((it.submitted_at||'').replace('T',' ').replace('Z',''))}</td>
                                   <td style="text-align:right"><button type="button" class="btn-ghost trainer-review-btn" data-user-id="${it.user_id}" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">Review</button></td>
                                 </tr>`).join('');
                                 wrap.innerHTML = '<div style="font-weight:800;margin-bottom:6px">Module Exam Results</div>'
                                   + '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse">'
-                                  + '<thead><tr style="text-align:left;border-bottom:1px solid #e5e7eb"><th>Name</th><th>Email</th><th>Score</th><th>Objective</th><th>Status</th><th>Submitted</th><th></th></tr></thead>'
+                                  + '<thead><tr style="text-align:left;border-bottom:1px solid #e5e7eb"><th>Name</th><th>Email</th><th>Score</th><th>Objective</th><th>Status</th><th>Integrity</th><th>Submitted</th><th></th></tr></thead>'
                                   + '<tbody>'+rows+'</tbody></table></div>';
                                 wrap.querySelectorAll('.trainer-review-btn').forEach(reviewBtn=>{
                                     reviewBtn.addEventListener('click', ()=>{
@@ -2427,6 +2703,7 @@
                 let s = String(html||'');
                 s = s.replace(/<(img|source|iframe)[^>]+(src|href)=["']blob:[^"']+["'][^>]*>/gi,'');
                 s = s.replace(/(src|href)=["']blob:[^"']+["']/gi,'$1="#"');
+                s = s.replace(/<(img|source|iframe)[^>]+(src|href)=["']https?:\/\/[^"']*googleusercontent\.com[^"']*["'][^>]*>/gi,'');
                 return s;
             }catch(e){ return html||''; }
         }

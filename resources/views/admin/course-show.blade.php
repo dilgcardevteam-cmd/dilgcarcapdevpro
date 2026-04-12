@@ -377,7 +377,7 @@
                 <div class="image-wrapper">
                     <div class="image-inner">
                         @php
-                            $imageUrl = $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/600x400?text=No+Image';
+                            $imageUrl = $course->image_url;
                             $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
                         @endphp
                         <img src="{{ $course->image_path ? ($imageUrl.'?v='.$ver) : $imageUrl }}" alt="{{ $course->name }}">
