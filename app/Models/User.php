@@ -74,35 +74,19 @@ class User extends Authenticatable
         // Removed auto-generation on creating as per requirement to generate only after approval
     }
 
-    protected static array $rolePermissionsCache = [];
-
     public function hasPermission(string $permission): bool
     {
         $rawRole = strtolower($this->role ?? '');
         if ($rawRole === 'super_admin') return true;
 
-        if (!array_key_exists($rawRole, self::$rolePermissionsCache)) {
-            $roleModel = Role::with('permissions')->where('name', $this->role)
-                ->orWhere('name', $rawRole)
-                ->first();
-                
-            if (!$roleModel) {
-                self::$rolePermissionsCache[$rawRole] = collect();
-            } else {
-                $perms = $roleModel->permissions;
-                
-                // Fallback: If an admin role has ZERO permissions configured in the DB, 
-                // grant all permissions so they don't lose access. Once they configure at least 1, this fallback stops.
-                $adminRoles = ['admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'];
-                if (in_array($rawRole, $adminRoles) && $perms->isEmpty()) {
-                    $perms = \App\Models\Permission::all();
-                }
-                
-                self::$rolePermissionsCache[$rawRole] = collect($perms)->pluck('name');
-            }
-        }
+        // Try to find the role by slug or display name
+        $roleModel = Role::where('name', $this->role)
+            ->orWhere('name', $rawRole)
+            ->first();
+            
+        if (!$roleModel) return false;
 
-        return self::$rolePermissionsCache[$rawRole]->contains($permission);
+        return $roleModel->permissions()->where('name', $permission)->exists();
     }
 
     public function canManageUsers(): bool
