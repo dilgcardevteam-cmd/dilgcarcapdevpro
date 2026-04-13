@@ -383,19 +383,11 @@ class DashboardController extends Controller
                 ));
             case in_array($roleForView, $coachRoles, true):
                 if ($showCourses) {
-                    $myCoursesQuery = Course::query()
-                        ->where(function ($q) use ($user) {
-                            $q->where('trainer_id', $user->id)
-                                ->orWhereHas('users', function ($uq) use ($user) {
-                                    $uq->where('users.id', $user->id);
-                                });
-                        })
+                    $myCourses = Course::where('trainer_id', $user->id)
+                        ->where('academic_year_id', $selectedYearId)
                         ->orderBy('created_at', 'desc')
-                        ->with(['users', 'materials', 'assessments.grades']);
-                    if ($selectedYearId !== 'all') {
-                        $myCoursesQuery->where('academic_year_id', $selectedYearId);
-                    }
-                    $myCourses = $myCoursesQuery->get();
+                        ->with(['users', 'materials', 'assessments.grades'])
+                        ->get();
                 } else {
                     $myCourses = collect([]);
                 }
@@ -435,12 +427,10 @@ class DashboardController extends Controller
                     $availableCoursesQuery = Course::whereHas('users', function($q) use ($levelRoles) {
                             $q->whereIn('role', $levelRoles);
                         })
+                        ->where('academic_year_id', $selectedYearId)
                         ->with(['users' => function($q) use ($levelRoles) {
                             $q->whereIn('role', $levelRoles);
                         }]);
-                    if ($selectedYearId !== 'all') {
-                        $availableCoursesQuery->where('academic_year_id', $selectedYearId);
-                    }
                     if (!empty($excludedIds)) {
                         $availableCoursesQuery = $availableCoursesQuery->whereNotIn('id', $excludedIds);
                     }

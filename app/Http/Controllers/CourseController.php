@@ -3450,40 +3450,11 @@ class CourseController extends Controller
         $coachCapableRoles = array_values(array_unique(array_merge($managedCoachRoles, $coachPermissionRoleNames)));
 
         // 1. Sync Trainers
-<<<<<<< Updated upstream
         $currentTrainerIds = $course->users()->whereIn('role', $coachCapableRoles)->pluck('users.id')->toArray();
         
         $newTrainerIds = $request->trainer_ids
             ? User::whereIn('id', $request->trainer_ids)->whereIn('role', $coachCapableRoles)->pluck('id')->toArray()
             : [];
-=======
-        // Get current trainers associated with the course
-        // We filter by the User's role 'trainer' to ensure we are managing the right subset of users
-        // assuming the relationship is just users() and we distinguish by User role.
-        $currentTrainerIds = $course->users()
-            ->whereIn('role', $managedCoachRoles)
-            ->pluck('users.id')
-            ->map(fn ($id) => (int) $id)
-            ->toArray();
-        
-        $requestedTrainerIds = is_array($request->trainer_ids) ? $request->trainer_ids : [];
-        $validTrainerIds = !empty($requestedTrainerIds)
-            ? User::whereIn('id', $requestedTrainerIds)->whereIn('role', $managedCoachRoles)->pluck('id')->map(fn ($id) => (int) $id)->toArray()
-            : [];
-        $validTrainerSet = array_fill_keys($validTrainerIds, true);
-        $newTrainerIds = [];
-        foreach ($requestedTrainerIds as $id) {
-            $id = (int) $id;
-            if (isset($validTrainerSet[$id])) {
-                $newTrainerIds[] = $id;
-            }
-        }
-        $newTrainerIds = array_values(array_unique($newTrainerIds));
-        if ($course->is_published && count($newTrainerIds) > 1) {
-            $primaryTrainerId = (int) end($newTrainerIds);
-            $newTrainerIds = [$primaryTrainerId];
-        }
->>>>>>> Stashed changes
 
         $trainersToAttach = array_diff($newTrainerIds, $currentTrainerIds);
         $trainersToDetach = array_diff($currentTrainerIds, $newTrainerIds);
@@ -3512,15 +3483,6 @@ class CourseController extends Controller
             if (($pivot->status ?? null) !== 'active') {
                 $course->users()->updateExistingPivot($id, ['status' => 'active']);
             }
-        }
-        if ($course->is_published) {
-            $primaryTrainerId = $newTrainerIds[0] ?? null;
-            if ($primaryTrainerId) {
-                $course->trainer_id = $primaryTrainerId;
-            } elseif ($course->trainer_id) {
-                $course->trainer_id = null;
-            }
-            $course->save();
         }
 
         // 2. Sync Trainees
