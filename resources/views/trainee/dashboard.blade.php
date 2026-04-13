@@ -1309,6 +1309,80 @@
                     </ul>
                 </li>
                 @endif
+                @if(
+                    Auth::user()->hasPermission('view_users')
+                    || Auth::user()->hasPermission('create_users')
+                    || Auth::user()->hasPermission('edit_users')
+                    || Auth::user()->hasPermission('delete_users')
+                    || Auth::user()->hasPermission('view_monitoring')
+                    || Auth::user()->hasPermission('view_access_control')
+                    || Auth::user()->hasPermission('edit_access_control')
+                )
+                <li class="nav-portal" id="portal-dropdown-admin">
+                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Admin Portal</span>
+                        <span class="nav-chevron"></span>
+                    </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-admin">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_users'))
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'user-management']) }}" class="nav-link">
+                                <i class="fas fa-users nav-icon"></i>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_courses'))
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'course-management']) }}" class="nav-link">
+                                <i class="fas fa-book nav-icon"></i>
+                                <span class="nav-text">Course Management</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_certifications'))
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link">
+                                <i class="fas fa-certificate nav-icon"></i>
+                                <span class="nav-text">Certifications</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Auth::user()->role === 'super_admin')
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'access-management']) }}" class="nav-link">
+                                <i class="fas fa-shield-alt nav-icon"></i>
+                                <span class="nav-text">Access Control</span>
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+                @endif
+                @if(Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm'))
+                <li class="nav-portal" id="portal-dropdown-tm">
+                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Training Manager Portal</span>
+                        <span class="nav-chevron"></span>
+                    </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-tm">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'tm']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
             </ul>
         </div>
 

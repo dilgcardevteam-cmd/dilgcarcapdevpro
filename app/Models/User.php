@@ -77,8 +77,7 @@ class User extends Authenticatable
     public function hasPermission(string $permission): bool
     {
         $rawRole = strtolower($this->role ?? '');
-        // Admins have all permissions
-        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+        if ($rawRole === 'super_admin') return true;
 
         // Try to find the role by slug or display name
         $roleModel = Role::where('name', $this->role)
@@ -93,7 +92,7 @@ class User extends Authenticatable
     public function canManageUsers(): bool
     {
         $rawRole = strtolower($this->role ?? '');
-        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+        if ($rawRole === 'super_admin') return true;
 
         if (str_contains($rawRole, 'training_manager') || $rawRole === 'registrar') {
             return $this->hasPermission('view_users_tm');
@@ -105,8 +104,7 @@ class User extends Authenticatable
     public function canUpdateUsers(): bool
     {
         $rawRole = strtolower($this->role ?? '');
-        // Admins have all permissions
-        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+        if ($rawRole === 'super_admin') return true;
 
         // For Training Managers / Registrars, they specifically need update_users_tm
         if ($rawRole === 'training_manager' || $rawRole === 'registrar' || str_contains($rawRole, '_training_manager')) {
@@ -120,8 +118,7 @@ class User extends Authenticatable
     public function canManageTraining(): bool
     {
         $rawRole = strtolower($this->role ?? '');
-        // Admins always have access
-        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+        if ($rawRole === 'super_admin') return true;
 
         // Everyone else must strictly have the 'view_training' permission
         return $this->hasPermission('view_training');
@@ -130,7 +127,7 @@ class User extends Authenticatable
     public function canViewReports(): bool
     {
         $rawRole = strtolower($this->role ?? '');
-        if (in_array($rawRole, ['super_admin', 'admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'], true)) return true;
+        if ($rawRole === 'super_admin') return true;
 
         return $this->hasPermission('view_reports');
     }

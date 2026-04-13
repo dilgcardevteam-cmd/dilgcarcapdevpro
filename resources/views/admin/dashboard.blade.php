@@ -4241,20 +4241,37 @@
             </div>
             <ul class="sidebar-menu">
                 @php
-                    $portalActive = (!request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab')) || request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section', 'course-management', 'pending-courses', 'course-create', 'course-library', 'certification-management']);
-                    $roleKey = strtolower(trim((string) (Auth::user()->role ?? '')));
-                    $portalTitle = 'Admin Portal';
-                    if (strpos($roleKey, 'training') !== false && strpos($roleKey, 'manager') !== false) $portalTitle = 'Training Manager Portal';
-                    if (strpos($roleKey, 'coach') !== false || strpos($roleKey, 'trainer') !== false) $portalTitle = 'Coach Portal';
-                    if (strpos($roleKey, 'participant') !== false || strpos($roleKey, 'trainee') !== false) $portalTitle = 'Participant Portal';
+                    $portalQuery = strtolower((string) request()->query('portal', ''));
+                    $adminPortalActive = ($portalQuery === '' || $portalQuery === 'admin')
+                        && (
+                            (!request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab'))
+                            || request()->hasAny(['search', 'roles', 'statuses', 'page'])
+                            || in_array(request('tab'), ['user-management', 'user-details-section', 'course-management', 'pending-courses', 'course-create', 'course-library', 'certification-management', 'access-management', 'system-settings'], true)
+                        );
+                    $coachPortalActive = ($portalQuery === 'coach');
+                    $participantPortalActive = ($portalQuery === 'participant');
+                    $tmPortalActive = in_array($portalQuery, ['tm', 'training_manager'], true);
+                    $canCoachPortal = Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication');
+                    $canParticipantPortal = Auth::user()->hasPermission('view_modules');
+                    $canAdminPortal = Auth::user()->hasPermission('view_users')
+                        || Auth::user()->hasPermission('create_users')
+                        || Auth::user()->hasPermission('edit_users')
+                        || Auth::user()->hasPermission('delete_users')
+                        || Auth::user()->hasPermission('view_monitoring')
+                        || Auth::user()->hasPermission('view_access_control')
+                        || Auth::user()->hasPermission('edit_access_control');
+                    $canTmPortal = Auth::user()->hasPermission('view_training')
+                        || Auth::user()->hasPermission('view_users_tm')
+                        || Auth::user()->hasPermission('update_users_tm');
                 @endphp
-                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown">
-                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event)">
+                @if($canAdminPortal)
+                <li class="menu-dropdown {{ $adminPortalActive ? 'open' : '' }}" id="portal-dropdown-admin">
+                    <div class="menu-item menu-dropdown-toggle {{ $adminPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
-                        <span class="menu-text">{{ $portalTitle }}</span>
+                        <span class="menu-text">Admin Portal</span>
                         <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
-                    <ul class="menu-dropdown-list" id="portal-dropdown-list">
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
                         <li class="menu-item menu-sub-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
@@ -4279,17 +4296,91 @@
                         @endif
                     </ul>
                 </li>
-                @if(Auth::check() && Auth::user()->role === 'super_admin')
-                    <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
-                        <div class="menu-icon"><i class="fas fa-key"></i></div>
-                        <span class="menu-text">Access Control</span>
-                    </li>
+                @endif
+                @if($canTmPortal)
+                <li class="menu-dropdown {{ $tmPortalActive ? 'open' : '' }}" id="portal-dropdown-tm">
+                    <div class="menu-item menu-dropdown-toggle {{ $tmPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Training Manager Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+                @if($canCoachPortal)
+                <li class="menu-dropdown {{ $coachPortalActive ? 'open' : '' }}" id="portal-dropdown-coach">
+                    <div class="menu-item menu-dropdown-toggle {{ $coachPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Coach Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-coach">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_courses_coach'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">My Courses</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_classes'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_communication'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+                @endif
+                @if($canParticipantPortal)
+                <li class="menu-dropdown {{ $participantPortalActive ? 'open' : '' }}" id="portal-dropdown-participant">
+                    <div class="menu-item menu-dropdown-toggle {{ $participantPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Participant Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Classroom</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
+                        </li>
+                    </ul>
+                </li>
                 @endif
                 @if(Auth::check() && Auth::user()->role === 'super_admin')
-                    <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
-                        <div class="menu-icon"><i class="fas fa-cogs"></i></div>
-                        <span class="menu-text">System Settings</span>
-                    </li>
+                <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
+                    <div class="menu-icon"><i class="fas fa-key"></i></div>
+                    <span class="menu-text">Access Control</span>
+                </li>
+                <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
+                    <div class="menu-icon"><i class="fas fa-cogs"></i></div>
+                    <span class="menu-text">System Settings</span>
+                </li>
                 @endif
             </ul>
         </aside>
@@ -7163,6 +7254,7 @@
             <form id="viewUserForm" class="profile-edit-form" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="return_tab" value="user-details-section">
 
                 @php
                     $roleNamesForAccess = isset($roles) ? $roles->pluck('name')->all() : [];
@@ -9454,14 +9546,15 @@
             const sidebarLogo = document.getElementById('sidebarLogo');
             const collapsed = document.body.classList.contains('sidebar-collapsed');
             if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
-            const dd = document.getElementById('portal-dropdown');
-            if (collapsed && dd) dd.classList.remove('open');
+            if (collapsed) {
+                document.querySelectorAll('.menu-dropdown').forEach(function (p) { p.classList.remove('open'); });
+            }
         }
 
-        function togglePortalDropdown(ev) {
+        function togglePortalDropdown(ev, dropdownId) {
             if (ev) { ev.preventDefault(); ev.stopPropagation(); }
             if (document.body.classList.contains('sidebar-collapsed')) return;
-            const dd = document.getElementById('portal-dropdown');
+            const dd = document.getElementById(dropdownId);
             if (!dd) return;
             dd.classList.toggle('open');
         }
@@ -9484,8 +9577,8 @@
                 });
                 element.classList.add('active');
             }
-            const dd = document.getElementById('portal-dropdown');
-            if (dd && element && dd.contains(element) && !document.body.classList.contains('sidebar-collapsed')) dd.classList.add('open');
+            const portal = element ? element.closest('.menu-dropdown') : null;
+            if (portal && !document.body.classList.contains('sidebar-collapsed')) portal.classList.add('open');
 
             // Keep address bar in sync with selected sidebar section.
             const url = new URL(window.location.href);
@@ -9805,6 +9898,11 @@
 
         document.addEventListener('keydown', function(event) {
             if (event.key !== 'Escape') return;
+            const confirmModal = document.getElementById('confirmUserUpdateModal');
+            if (confirmModal && confirmModal.style.display === 'block') {
+                closeConfirmUserUpdateModal();
+                return;
+            }
             const detailsSection = document.getElementById('user-details-section');
             if (detailsSection && detailsSection.classList.contains('active')) {
                 closeViewModal();
@@ -9991,44 +10089,106 @@
         });
 
         function submitUpdate() {
-            if (confirm('Are you sure you want to update this user?')) {
-                const form = document.getElementById('viewUserForm');
-                
-                // Collect all checked permissions
-                const checkedPerms = Array.from(document.querySelectorAll('.permission-option-input:checked')).map(cb => cb.value);
-                // Collect all possible permissions shown in the UI
-                const allUIPerms = Array.from(document.querySelectorAll('.permission-option-input')).map(cb => cb.value);
-                
-                let permInput = form.querySelector('input[name="permissions_data"]');
-                if (!permInput) {
-                    permInput = document.createElement('input');
-                    permInput.type = 'hidden';
-                    permInput.name = 'permissions_data';
-                    form.appendChild(permInput);
-                }
-                
-                let allPermInput = form.querySelector('input[name="all_ui_permissions"]');
-                if (!allPermInput) {
-                    allPermInput = document.createElement('input');
-                    allPermInput.type = 'hidden';
-                    allPermInput.name = 'all_ui_permissions';
-                    form.appendChild(allPermInput);
-                }
-
-                permInput.value = JSON.stringify(checkedPerms);
-                allPermInput.value = JSON.stringify(allUIPerms);
-
-                const btn = document.getElementById('btnUpdate');
-                if (btn) {
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-                    btn.disabled = true;
-                }
-
-                setTimeout(() => {
-                    form.submit();
-                }, 500);
-            }
+            openConfirmUserUpdateModal();
         }
+
+        function openConfirmUserUpdateModal() {
+            const modal = document.getElementById('confirmUserUpdateModal');
+            if (!modal) return;
+            const nameEl = document.getElementById('confirmUpdateUserName');
+            const liveName = document.getElementById('view_name')?.value;
+            if (nameEl) nameEl.textContent = (liveName && String(liveName).trim()) ? liveName : ((currentViewingUser && currentViewingUser.name) ? currentViewingUser.name : 'this user');
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            const btn = document.getElementById('confirmUpdateProceed');
+            if (btn) btn.focus();
+        }
+
+        function closeConfirmUserUpdateModal() {
+            const modal = document.getElementById('confirmUserUpdateModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function persistUserDetailsForReturn() {
+            if (!currentViewingUser) currentViewingUser = {};
+            const updated = Object.assign({}, currentViewingUser);
+            const viewName = document.getElementById('view_name');
+            const viewEmail = document.getElementById('view_email');
+            const viewRole = document.getElementById('view_role');
+            const viewStatus = document.getElementById('view_status');
+            const viewRegion = document.getElementById('view_region');
+            const viewProvince = document.getElementById('view_province');
+            const viewCity = document.getElementById('view_city');
+            const viewBarangay = document.getElementById('view_barangay');
+            updated.name = viewName ? viewName.value : updated.name;
+            updated.email = viewEmail ? viewEmail.value : updated.email;
+            updated.role = viewRole ? viewRole.value : updated.role;
+            updated.status = viewStatus ? viewStatus.value : updated.status;
+            updated.region = viewRegion ? viewRegion.value : updated.region;
+            updated.province = viewProvince ? viewProvince.value : updated.province;
+            updated.city = viewCity ? viewCity.value : updated.city;
+            updated.barangay = viewBarangay ? viewBarangay.value : updated.barangay;
+            currentViewingUser = updated;
+            sessionStorage.setItem('current_viewing_user', JSON.stringify(updated));
+        }
+
+        function confirmSubmitUpdate() {
+            const form = document.getElementById('viewUserForm');
+            if (!form) return;
+
+            persistUserDetailsForReturn();
+
+            const checkedPerms = Array.from(document.querySelectorAll('.permission-option-input:checked')).map(cb => cb.value);
+            const allUIPerms = Array.from(document.querySelectorAll('.permission-option-input')).map(cb => cb.value);
+
+            let permInput = form.querySelector('input[name="permissions_data"]');
+            if (!permInput) {
+                permInput = document.createElement('input');
+                permInput.type = 'hidden';
+                permInput.name = 'permissions_data';
+                form.appendChild(permInput);
+            }
+
+            let allPermInput = form.querySelector('input[name="all_ui_permissions"]');
+            if (!allPermInput) {
+                allPermInput = document.createElement('input');
+                allPermInput.type = 'hidden';
+                allPermInput.name = 'all_ui_permissions';
+                form.appendChild(allPermInput);
+            }
+
+            permInput.value = JSON.stringify(checkedPerms);
+            allPermInput.value = JSON.stringify(allUIPerms);
+
+            const headerBtn = document.getElementById('btnUpdate');
+            if (headerBtn) {
+                headerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                headerBtn.disabled = true;
+            }
+
+            const confirmBtn = document.getElementById('confirmUpdateProceed');
+            const cancelBtn = document.getElementById('confirmUpdateCancel');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            }
+            if (cancelBtn) cancelBtn.disabled = true;
+
+            setTimeout(() => {
+                form.submit();
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmModal = document.getElementById('confirmUserUpdateModal');
+            if (confirmModal) {
+                confirmModal.addEventListener('click', function (e) {
+                    if (e.target === confirmModal) closeConfirmUserUpdateModal();
+                });
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             initializeUserDetailsSection();
@@ -11031,5 +11191,35 @@
           });
         });
     </script>
+    <div id="confirmUserUpdateModal" class="modal" style="display:none;" aria-hidden="true">
+        <div class="modal-content" style="width:460px;padding:0;overflow:hidden;border:none;border-radius:16px;box-shadow:0 20px 25px -5px rgba(0,0,0,.12),0 10px 10px -5px rgba(0,0,0,.06);">
+            <div style="padding:18px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:rgba(16,185,129,.12);color:#10b981;">
+                        <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <div style="font-weight:900;color:#0f172a;letter-spacing:-.02em;line-height:1.1;">Confirm Update</div>
+                        <div style="font-size:.86rem;color:#64748b;font-weight:700;line-height:1.2;">Review changes before saving</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeConfirmUserUpdateModal()" style="border:none;background:transparent;color:#94a3b8;font-size:1.35rem;line-height:1;cursor:pointer;padding:6px 8px;border-radius:10px;">
+                    &times;
+                </button>
+            </div>
+            <div style="padding:18px 20px;background:#fff;">
+                <div style="color:#0f172a;font-weight:800;margin-bottom:6px;">Update <span id="confirmUpdateUserName" style="color:var(--primary-blue);">this user</span>?</div>
+                <div style="color:#64748b;font-weight:600;line-height:1.5;">This will apply role and permission changes immediately.</div>
+            </div>
+            <div style="padding:16px 20px;background:#fff;border-top:1px solid #e2e8f0;display:flex;gap:10px;justify-content:flex-end;">
+                <button id="confirmUpdateCancel" type="button" onclick="closeConfirmUserUpdateModal()" style="padding:10px 14px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-weight:800;cursor:pointer;">
+                    Cancel
+                </button>
+                <button id="confirmUpdateProceed" type="button" onclick="confirmSubmitUpdate()" style="padding:10px 14px;border-radius:12px;border:none;background:var(--primary-green);color:#fff;font-weight:900;cursor:pointer;box-shadow:0 6px 14px rgba(16,185,129,.18);">
+                    Update User
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

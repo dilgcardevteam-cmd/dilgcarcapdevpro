@@ -44,7 +44,23 @@ class DashboardController extends Controller
         $portal = strtolower((string) $request->query('portal', ''));
         $canCoachPortal = $user->hasPermission('view_courses_coach') || $user->hasPermission('view_classes') || $user->hasPermission('view_communication');
         $canParticipantPortal = $user->hasPermission('view_modules');
+        $canAdminPortal = $user->hasPermission('view_users')
+            || $user->hasPermission('create_users')
+            || $user->hasPermission('edit_users')
+            || $user->hasPermission('delete_users')
+            || $user->hasPermission('view_monitoring')
+            || $user->hasPermission('view_access_control')
+            || $user->hasPermission('edit_access_control');
+        $canTmPortal = $user->hasPermission('view_training')
+            || $user->hasPermission('view_users_tm')
+            || $user->hasPermission('update_users_tm');
         $roleForView = $user->role;
+        if ($portal === 'admin' && $canAdminPortal) {
+            $roleForView = 'admin';
+        }
+        if (in_array($portal, ['tm', 'training_manager'], true) && $canTmPortal) {
+            $roleForView = 'training_manager';
+        }
         if ($portal === 'coach' && $canCoachPortal) {
             $roleForView = 'coach';
         }
@@ -981,6 +997,8 @@ class DashboardController extends Controller
     {
         $actor = Auth::user();
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $returnTab = (string) $request->input('return_tab', '');
+        $redirectToDetails = $returnTab === 'user-details-section';
         
         if ($actor && (in_array($actor->role, $tmRoles) || $actor->role === 'registrar')) {
             if (!$actor->canUpdateUsers()) {
@@ -1010,7 +1028,8 @@ class DashboardController extends Controller
             }
 
             $user->update($validated);
-            return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'User role/status updated.');
+            $tab = $redirectToDetails ? 'user-details-section' : 'user-management';
+            return redirect()->route('dashboard', ['tab' => $tab])->with('success_user', 'User role/status updated.');
         }
 
         $allowedRoles = Role::pluck('name')->toArray();
@@ -1120,7 +1139,8 @@ class DashboardController extends Controller
             }
         }
 
-        return redirect()->route('dashboard', ['tab' => 'user-management'])->with('success_user', 'User updated successfully.');
+        $tab = $redirectToDetails ? 'user-details-section' : 'user-management';
+        return redirect()->route('dashboard', ['tab' => $tab])->with('success_user', 'User updated successfully.');
     }
 
     public function convertRegistrarToTrainingManager(Request $request, User $user)

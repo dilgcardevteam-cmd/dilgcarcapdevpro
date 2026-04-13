@@ -723,14 +723,30 @@
                 <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
-                @php $portalActive = !request('tab') || in_array(request('tab'), ['user-management','trainer-trainee-management','activity-logs'], true); @endphp
-                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown">
-                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event)">
+                @php
+                    $portalQuery = strtolower((string) request()->query('portal', ''));
+                    $tmPortalActive = ($portalQuery === '' || in_array($portalQuery, ['tm', 'training_manager'], true))
+                        && (!request('tab') || in_array(request('tab'), ['user-management','trainer-trainee-management','activity-logs'], true));
+                    $coachPortalActive = ($portalQuery === 'coach');
+                    $participantPortalActive = ($portalQuery === 'participant');
+                    $adminPortalActive = ($portalQuery === 'admin');
+                    $canCoachPortal = Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication');
+                    $canParticipantPortal = Auth::user()->hasPermission('view_modules');
+                    $canAdminPortal = Auth::user()->hasPermission('view_users')
+                        || Auth::user()->hasPermission('create_users')
+                        || Auth::user()->hasPermission('edit_users')
+                        || Auth::user()->hasPermission('delete_users')
+                        || Auth::user()->hasPermission('view_monitoring')
+                        || Auth::user()->hasPermission('view_access_control')
+                        || Auth::user()->hasPermission('edit_access_control');
+                @endphp
+                <li class="menu-dropdown {{ $tmPortalActive ? 'open' : '' }}" id="portal-dropdown-tm">
+                    <div class="menu-item menu-dropdown-toggle {{ $tmPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
                         <span class="menu-text">Training Manager Portal</span>
                         <span class="menu-chevron"></span>
                     </div>
-                    <ul class="menu-dropdown-list" id="portal-dropdown-list">
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
                         <li class="menu-item menu-sub-item {{ !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
@@ -755,6 +771,81 @@
                         @endif
                     </ul>
                 </li>
+                @if($canCoachPortal)
+                <li class="menu-dropdown {{ $coachPortalActive ? 'open' : '' }}" id="portal-dropdown-coach">
+                    <div class="menu-item menu-dropdown-toggle {{ $coachPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Coach Portal</span>
+                        <span class="menu-chevron"></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-coach">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_courses_coach'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">My Courses</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_classes'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_communication'))
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
+                        </li>
+                        @endif
+                    </ul>
+                </li>
+                @endif
+                @if($canParticipantPortal)
+                <li class="menu-dropdown {{ $participantPortalActive ? 'open' : '' }}" id="portal-dropdown-participant">
+                    <div class="menu-item menu-dropdown-toggle {{ $participantPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Participant Portal</span>
+                        <span class="menu-chevron"></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Classroom</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+                @if($canAdminPortal)
+                <li class="menu-dropdown {{ $adminPortalActive ? 'open' : '' }}" id="portal-dropdown-admin">
+                    <div class="menu-item menu-dropdown-toggle {{ $adminPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Admin Portal</span>
+                        <span class="menu-chevron"></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                    </ul>
+                </li>
+                @endif
             </ul>
         </aside>
         <main class="main-content">
@@ -1480,8 +1571,7 @@
                 if (small) logo.src = small;
             }
             if (brand) brand.style.justifyContent = 'center';
-            const dd = document.getElementById('portal-dropdown');
-            if (dd) dd.classList.remove('open');
+            document.querySelectorAll('.menu-dropdown').forEach(function(p){ p.classList.remove('open'); });
         } else {
             sidebar.style.width = '250px';
             if (header) header.style.left = '250px';
@@ -1497,11 +1587,11 @@
             if (brand) brand.style.justifyContent = 'space-between';
         }
     }
-    function togglePortalDropdown(ev){
+    function togglePortalDropdown(ev, dropdownId){
         if(ev){ ev.preventDefault(); ev.stopPropagation(); }
         const sidebar = document.getElementById('sidebar');
         if(sidebar && sidebar.classList.contains('collapsed')) return;
-        const dd = document.getElementById('portal-dropdown');
+        const dd = document.getElementById(dropdownId);
         if(!dd) return;
         dd.classList.toggle('open');
     }
@@ -1517,8 +1607,8 @@
         const menuItems = document.querySelectorAll('.menu-item');
         menuItems.forEach(item => {item.classList.remove('active');});
         if (menuItem) {menuItem.classList.add('active');}
-        const dd = document.getElementById('portal-dropdown');
-        if(dd && menuItem && dd.contains(menuItem)){ dd.classList.add('open'); }
+        const portal = menuItem ? menuItem.closest('.menu-dropdown') : null;
+        if (portal && !(document.getElementById('sidebar')?.classList.contains('collapsed'))) portal.classList.add('open');
         const titles = {'dashboard-home': 'Dashboard','user-management': 'User Management','trainer-trainee-management': 'Training Management'};
         const titleElement = document.getElementById('page-title');
         if (titleElement) {titleElement.textContent = titles[sectionId] || 'Dashboard';}
