@@ -82,6 +82,16 @@
             overflow: hidden;
         }
 
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 850;
+            backdrop-filter: blur(2px);
+        }
+
         /* Header Styles (from Landing) */
         .header {
             background-color: white;
@@ -94,6 +104,7 @@
             box-sizing: border-box;
             z-index: 1000;
             margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
         }
 
         .header-left {
@@ -319,6 +330,124 @@
 
         body.sidebar-collapsed .menu-dropdown-list {
             max-height: 0 !important;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 0px;
+                --header-height: 64px;
+            }
+            .header {
+                margin-left: 0 !important;
+                padding: 0 12px !important;
+                left: 0 !important;
+                height: var(--header-height);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(8px);
+            }
+            .dashboard-container {
+                margin-left: 0 !important;
+                padding-top: var(--header-height);
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                bottom: 0;
+                width: 280px !important;
+                z-index: 2100;
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 20px 0 50px rgba(0,0,0,0.15);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(280px);
+            }
+            .sidebar-overlay {
+                backdrop-filter: blur(4px);
+                background: rgba(15, 23, 42, 0.4);
+                transition: opacity 0.3s ease;
+            }
+            .sidebar-overlay.mobile-open {
+                display: block;
+                opacity: 1;
+            }
+            .main-content {
+                padding: 12px !important;
+            }
+            .header-toggle {
+                display: flex !important;
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                background: #f1f5f9;
+                border: none;
+                color: var(--primary-blue);
+                margin-right: 10px;
+            }
+            .header-logo {
+                height: 32px;
+                margin-right: 8px;
+            }
+            .header-section-title {
+                font-size: 1.05rem;
+                font-weight: 700;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 150px;
+            }
+            .lms-home-hero {
+                padding: 20px 18px;
+                border-radius: 16px;
+                margin-bottom: 12px;
+            }
+            .lms-welcome {
+                font-size: 1.4rem !important;
+                letter-spacing: -0.02em;
+            }
+            .lms-home-subtitle {
+                font-size: 0.88rem;
+                margin-top: 8px;
+                opacity: 0.85;
+            }
+            .admin-hero-stats-grid {
+                grid-template-columns: repeat(1, 1fr) !important;
+                gap: 12px !important;
+            }
+            .admin-hero-stat-card {
+                padding: 16px;
+                min-height: auto;
+                border-radius: 14px;
+            }
+            .admin-hero-stat-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+                border-radius: 12px;
+            }
+            .admin-hero-stat-value {
+                font-size: 1.6rem;
+            }
+            .admin-hero-stat-label {
+                font-size: 0.75rem;
+            }
+            .header-right .user-profile-header span,
+            .header-right .user-profile-header i {
+                display: none;
+            }
+            .user-profile-header div {
+                width: 36px !important;
+                height: 36px !important;
+            }
+            .lms-home-headline {
+                margin-bottom: 16px;
+            }
+            .lms-home-quick {
+                justify-content: flex-start;
+                margin-top: 15px;
+            }
         }
 
         .sidebar.collapsed .sidebar-toggle {
@@ -4061,6 +4190,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 </head>
 <body>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     <!-- Navbar -->
     <header class="header">
         <div class="header-left">
@@ -9308,6 +9438,15 @@
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const isMobile = window.innerWidth <= 992;
+
+            if (isMobile) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('mobile-open');
+                return;
+            }
+
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sidebar-collapsed');
             const LOGO_MAIN = "{{ asset('images/capdev_pro_w-removebg-preview.png') }}";
@@ -9360,6 +9499,16 @@
                 }
             }
             window.history.pushState({}, '', url.toString());
+
+            // Close sidebar on mobile
+            if (window.innerWidth <= 992) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.remove('mobile-open');
+                }
+            }
 
             const titles = {
                 'dashboard-home': 'Dashboard',

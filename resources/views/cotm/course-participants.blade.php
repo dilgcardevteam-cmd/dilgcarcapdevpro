@@ -11,7 +11,52 @@
         body{font-family:'DM Sans', sans-serif;margin:0;background:var(--bg);color:var(--text)}
         .container{max-width:1100px;margin:28px auto;padding:0 18px 40px}
         .dashboard-container{display:flex;min-height:calc(100vh - 80px)}
-        .sidebar{width:260px;background:var(--primary-blue);color:#fff;display:flex;flex-direction:column}
+        .sidebar{width:260px;background:var(--primary-blue);color:#fff;display:flex;flex-direction:column;transition:left 0.3s ease}
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -260px;
+                bottom: 0;
+                z-index: 2000;
+                width: 260px;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1999;
+                backdrop-filter: blur(2px);
+            }
+            .sidebar-overlay.open {
+                display: block;
+            }
+            .header-toggle {
+                display: flex !important;
+                margin-right: 15px;
+            }
+            .header {
+                padding: 10px 15px;
+            }
+        }
+        .header-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            border: 1px solid #d9e3f2;
+            border-radius: 14px;
+            cursor: pointer;
+            color: var(--primary-blue);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 8px 18px rgba(15,23,42,.04);
+        }
         .sidebar .sidebar-toggle{display:none}
         .sidebar .menu{list-style:none;margin:0;padding:12px 0}
         .sidebar .menu li a{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,0.9);text-decoration:none;padding:12px 20px}
@@ -69,6 +114,19 @@
         .tab-panel{display:none}
         .tab-panel.active{display:block}
         .dual{display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);gap:14px;align-items:stretch}
+        @media (max-width: 850px) {
+            .dual {
+                grid-template-columns: 1fr;
+            }
+            .dual .actions {
+                flex-direction: row;
+                justify-content: center;
+                padding: 10px 0;
+            }
+            .dual .actions button {
+                transform: rotate(90deg);
+            }
+        }
         .dual>div{min-width:0}
         .dual .actions{display:grid;gap:10px;justify-content:center;align-content:center}
         .dual .actions button{height:42px;min-width:42px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:#fff;border-radius:10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -90,8 +148,12 @@
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
     <header class="header">
         <div class="header-left">
+            <button class="header-toggle" onclick="toggleMobileSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="header-title">
                 <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
             </div>
@@ -530,6 +592,12 @@
     function toggleNotifications(){
         const dd=document.getElementById('notificationDropdown');
         dd.style.display = dd.style.display==='block' ? 'none' : 'block';
+    }
+    function toggleMobileSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
     }
     function markAsRead(id,link){
         fetch('/notifications/'+id+'/mark-as-read',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({})})
