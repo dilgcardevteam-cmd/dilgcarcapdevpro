@@ -7403,41 +7403,41 @@
                                     'User Management' => [
                                         'desc' => 'Manage users, approvals, roles, activation, and blocking',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_users', 'allowed' => true, 'chosen' => true],
+                                            'view' => ['perm' => 'view_users', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'create_users', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'edit_users', 'allowed' => true, 'chosen' => true],
+                                            'update' => ['perm' => 'edit_users', 'allowed' => true, 'chosen' => false],
                                             'delete' => ['perm' => 'delete_users', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Course Management' => [
                                         'desc' => 'Manage course creation, editing, archiving, and trainer assignment',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_courses', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'create_courses', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'edit_courses', 'allowed' => true, 'chosen' => true],
+                                            'view' => ['perm' => 'view_courses', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'create_courses', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'edit_courses', 'allowed' => true, 'chosen' => false],
                                             'delete' => ['perm' => 'delete_courses', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Certification Management' => [
                                         'desc' => 'Manage certificate templates and issuance',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_certifications', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'create_certifications', 'allowed' => true, 'chosen' => true],
+                                            'view' => ['perm' => 'view_certifications', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'create_certifications', 'allowed' => true, 'chosen' => false],
                                             'update' => ['perm' => 'edit_certifications', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_certifications', 'allowed' => true, 'chosen' => true]
+                                            'delete' => ['perm' => 'delete_certifications', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'System Monitoring' => [
                                         'desc' => 'Monitor dashboards, active users, and system activity',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_monitoring', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_monitoring', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Access Control' => [
                                         'desc' => 'Manage permissions and role access control',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_access_control', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'edit_access_control', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_access_control', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'edit_access_control', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                 ]
@@ -7452,29 +7452,29 @@
                                     'User Management' => [
                                         'desc' => 'Approve, reject, and review users',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_users_tm', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_users_tm', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_users_tm', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_users_tm', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Training Management' => [
                                         'desc' => 'Enroll participants, remove participants, and assign users to courses',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_training', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_training', 'allowed' => true, 'chosen' => true],
-                                            'delete' => ['perm' => 'delete_training', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_training', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_training', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_training', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Course Monitoring' => [
                                         'desc' => 'View course status and readiness tracking',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_course_monitoring', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_course_monitoring', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Reports & Logs' => [
                                         'desc' => 'View activity logs and monitor user actions',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_reports', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_reports', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ]
                                 ]
@@ -7489,34 +7489,34 @@
                                     'Course Management' => [
                                         'desc' => 'Create courses, edit assigned courses, and upload materials',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Class Management' => [
                                         'desc' => 'Manage schedules and handle sessions',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_classes', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_classes', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_classes', 'allowed' => true, 'chosen' => true],
-                                            'delete' => ['perm' => 'delete_classes', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_classes', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_classes', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_classes', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_classes', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Student Monitoring' => [
                                         'desc' => 'Track student progress and view enrolled students',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_students', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_students', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_students', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_students', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Communication' => [
                                         'desc' => 'Post announcements and notify students',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_communication', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_communication', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_communication', 'allowed' => true, 'chosen' => true],
-                                            'delete' => ['perm' => 'delete_communication', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_communication', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_communication', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_communication', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_communication', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ]
                                 ]
@@ -7531,29 +7531,29 @@
                                     'Module Access' => [
                                         'desc' => 'Access training modules and complete exercises',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Assessments' => [
                                         'desc' => 'Take assessments and view results',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_assessments', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_assessments', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_assessments', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_assessments', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Learning Progress' => [
                                         'desc' => 'Track personal achievements and course status',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_progress', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_progress', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Engagement' => [
                                         'desc' => 'Engage with coaches/peers and post discussions',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_engagement', 'allowed' => true, 'chosen' => true],
-                                            'add' => ['perm' => 'add_engagement', 'allowed' => true, 'chosen' => true],
-                                            'update' => ['perm' => 'update_engagement', 'allowed' => true, 'chosen' => true],
-                                            'delete' => ['perm' => 'delete_engagement', 'allowed' => true, 'chosen' => true]
+                                            'view' => ['perm' => 'view_engagement', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_engagement', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_engagement', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_engagement', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ]
                                 ]
@@ -9811,8 +9811,8 @@
             }
 
             // 2. Check permissions based on the database source of truth
-            const roleObj = ALL_ROLES.find(r => r.name === user.role);
-            const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
+        const roleObj = ALL_ROLES.find(r => r.name.toLowerCase() === user.role.toLowerCase());
+        const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
             
             permCheckboxes.forEach(cb => {
                 const val = cb.value;

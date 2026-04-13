@@ -1090,7 +1090,7 @@ class DashboardController extends Controller
         // Update User Role Permissions
         $actor = Auth::user();
         if ($actor && in_array($actor->role, ['super_admin', 'admin'], true)) {
-            $roleModel = \App\Models\Role::where('name', $user->role)->first();
+            $roleModel = \App\Models\Role::whereRaw('LOWER(name) = ?', [strtolower($user->role)])->first();
             if ($roleModel) {
                 if ($request->has('permissions_data')) {
                     $checkedIds = json_decode($request->input('permissions_data'), true);
