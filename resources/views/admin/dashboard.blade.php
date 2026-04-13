@@ -237,11 +237,88 @@
 
         .menu-text {
             transition: opacity 0.3s;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sidebar.collapsed .menu-text {
             opacity: 0;
             display: none;
+        }
+
+        .menu-dropdown {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu-dropdown-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+
+        .menu-chevron {
+            margin-left: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .menu-chevron i {
+            display: none;
+        }
+
+        .menu-chevron::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            transform: rotate(45deg);
+        }
+
+        .menu-dropdown.open .menu-chevron {
+            transform: translateY(-50%) rotate(180deg);
+            background-color: transparent;
+        }
+
+        .menu-dropdown-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .menu-dropdown.open .menu-dropdown-list {
+            max-height: 420px;
+        }
+
+        .menu-item.menu-sub-item {
+            padding: 12px 20px 12px 44px;
+        }
+
+        body.sidebar-collapsed .menu-dropdown-list {
+            max-height: 0 !important;
         }
 
         .sidebar.collapsed .sidebar-toggle {
@@ -4033,33 +4110,50 @@
                 <img id="sidebarLogo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
-                <li class="menu-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
-                    <div class="menu-icon"><i class="fas fa-home"></i></div>
-                    <span class="menu-text">Dashboard</span>
+                @php
+                    $portalActive = (!request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab')) || request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section', 'course-management', 'pending-courses', 'course-create', 'course-library', 'certification-management']);
+                    $roleKey = strtolower(trim((string) (Auth::user()->role ?? '')));
+                    $portalTitle = 'Admin Portal';
+                    if (strpos($roleKey, 'training') !== false && strpos($roleKey, 'manager') !== false) $portalTitle = 'Training Manager Portal';
+                    if (strpos($roleKey, 'coach') !== false || strpos($roleKey, 'trainer') !== false) $portalTitle = 'Coach Portal';
+                    if (strpos($roleKey, 'participant') !== false || strpos($roleKey, 'trainee') !== false) $portalTitle = 'Participant Portal';
+                @endphp
+                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown">
+                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event)">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">{{ $portalTitle }}</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list">
+                        <li class="menu-item menu-sub-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
+                            <div class="menu-icon"><i class="fas fa-home"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_users'))
+                        <li class="menu-item menu-sub-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
+                            <div class="menu-icon"><i class="fas fa-users"></i></div>
+                            <span class="menu-text">User Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_courses'))
+                        <li class="menu-item menu-sub-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_certifications'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
+                            <div class="menu-icon"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
+                        </li>
+                        @endif
+                    </ul>
                 </li>
-                @if(Auth::user()->hasPermission('view_users'))
-                <li class="menu-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
-                    <div class="menu-icon"><i class="fas fa-users"></i></div>
-                    <span class="menu-text">User Management</span>
-                </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_courses'))
-                <li class="menu-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
-                    <div class="menu-icon"><i class="fas fa-book"></i></div>
-                    <span class="menu-text">Course Management</span>
-                </li>
-                @endif
                 @if(Auth::check() && Auth::user()->role === 'super_admin')
                     <li class="menu-item {{ request('tab') == 'access-management' ? 'active' : '' }}" onclick="showContent('access-management', this)">
                         <div class="menu-icon"><i class="fas fa-key"></i></div>
                         <span class="menu-text">Access Control</span>
                     </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_certifications'))
-                <li class="menu-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
-                    <div class="menu-icon"><i class="fas fa-certificate"></i></div>
-                    <span class="menu-text">Certifications</span>
-                </li>
                 @endif
                 @if(Auth::check() && Auth::user()->role === 'super_admin')
                     <li class="menu-item {{ request('tab') == 'system-settings' ? 'active' : '' }}" onclick="showContent('system-settings', this)">
@@ -9221,6 +9315,16 @@
             const sidebarLogo = document.getElementById('sidebarLogo');
             const collapsed = document.body.classList.contains('sidebar-collapsed');
             if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
+            const dd = document.getElementById('portal-dropdown');
+            if (collapsed && dd) dd.classList.remove('open');
+        }
+
+        function togglePortalDropdown(ev) {
+            if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+            if (document.body.classList.contains('sidebar-collapsed')) return;
+            const dd = document.getElementById('portal-dropdown');
+            if (!dd) return;
+            dd.classList.toggle('open');
         }
 
         function showContent(sectionId, element) {
@@ -9241,6 +9345,8 @@
                 });
                 element.classList.add('active');
             }
+            const dd = document.getElementById('portal-dropdown');
+            if (dd && element && dd.contains(element) && !document.body.classList.contains('sidebar-collapsed')) dd.classList.add('open');
 
             // Keep address bar in sync with selected sidebar section.
             const url = new URL(window.location.href);

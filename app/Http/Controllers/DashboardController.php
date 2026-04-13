@@ -41,6 +41,16 @@ class DashboardController extends Controller
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $portal = strtolower((string) $request->query('portal', ''));
+        $canCoachPortal = $user->hasPermission('view_courses_coach') || $user->hasPermission('view_classes') || $user->hasPermission('view_communication');
+        $canParticipantPortal = $user->hasPermission('view_modules');
+        $roleForView = $user->role;
+        if ($portal === 'coach' && $canCoachPortal) {
+            $roleForView = 'coach';
+        }
+        if ($portal === 'participant' && $canParticipantPortal) {
+            $roleForView = 'participant';
+        }
 
         $academicYears = AcademicYear::orderBy('year_start', 'desc')->get();
         
@@ -57,12 +67,12 @@ class DashboardController extends Controller
         $selectedYear = ($selectedYearId === 'all') ? null : $academicYears->find($selectedYearId);
         $showCourses = true; // Default to true, adjust in role checks
 
-        if (in_array($user->role, array_merge($coachRoles, $participantRoles))) {
+        if (in_array($roleForView, array_merge($coachRoles, $participantRoles))) {
             $showCourses = ($selectedYearId === 'all') || ($selectedYear && $selectedYear->is_active);
         }
 
         switch (true) {
-            case in_array($user->role, $adminRoles, true):
+            case in_array($roleForView, $adminRoles, true):
                 $managedRoles = [];
                 if ($user->role === 'central_office_admin') {
                     $managedRoles = ['central_office_admin', 'central_office_training_manager','central_office_coach','central_office_participants'];
@@ -217,7 +227,7 @@ class DashboardController extends Controller
                     'selectedYear',
                     'activityLogs'
                 ));
-            case $user->role === 'registrar':
+            case $roleForView === 'registrar':
                 $registrarScope = function ($query) {
                     $query->where(function ($scoped) {
                         $scoped->whereNull('agency')
@@ -371,13 +381,11 @@ class DashboardController extends Controller
                     'selectedYearId',
                     'selectedYear'
                 ));
-            case in_array($user->role, $coachRoles, true):
-                // Get courses where the trainer is assigned (assuming pivot table handles this)
-                // Also eager load materials and assessments
+            case in_array($roleForView, $coachRoles, true):
                 if ($showCourses) {
-                    $myCourses = $user->courses()
-                        ->where('courses.academic_year_id', $selectedYearId)
-                        ->orderBy('courses.created_at', 'desc')
+                    $myCourses = Course::where('trainer_id', $user->id)
+                        ->where('academic_year_id', $selectedYearId)
+                        ->orderBy('created_at', 'desc')
                         ->with(['users', 'materials', 'assessments.grades'])
                         ->get();
                 } else {
@@ -401,10 +409,8 @@ class DashboardController extends Controller
                     return $course->users->whereIn('role', $myParticipantRoles);
                 })->unique('id')->count();
 
-                // Determine course statuses for current user
-                $courseStatuses = $user->courses()->pluck('course_user.status', 'courses.id')->toArray();
-                // Available courses (exclude already joined or pending)
-                $excludedIds = array_map('intval', array_keys($courseStatuses));
+                $courseStatuses = [];
+                $excludedIds = [];
                 // Limit course visibility to same-level roles (admin/tm/coach/participant)
                 $levelRoles = [];
                 if ($user->role === 'central_office_coach') {
@@ -464,7 +470,7 @@ class DashboardController extends Controller
                     ->count();
 
                 return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
-            case in_array($user->role, $tmRoles, true):
+            case in_array($roleForView, $tmRoles, true):
                 $managedRoles = [];
                 $pendingApplicantScope = null;
                 if ($user->role === 'central_office_training_manager') {
@@ -664,7 +670,7 @@ class DashboardController extends Controller
                     'selectedYearId',
                     'selectedYear'
                 ));
-            case in_array($user->role, $participantRoles, true):
+            case in_array($roleForView, $participantRoles, true):
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
                 $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'completed', 'failed', 'attempts_exhausted'];

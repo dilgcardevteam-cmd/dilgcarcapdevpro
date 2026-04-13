@@ -63,8 +63,18 @@
         .menu-item {padding: 15px 20px;cursor: pointer;display: flex;align-items: center;transition: background-color 0.2s;white-space: nowrap;overflow: hidden;}
         .menu-item:hover, .menu-item.active {background-color: rgba(255,255,255,0.1);}
         .menu-icon {width: 30px;text-align: center;margin-right: 15px;font-size: 1.1rem;}
-        .menu-text {transition: opacity 0.3s;}
+        .menu-text {transition: opacity 0.3s;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
         .sidebar.collapsed .menu-text {opacity: 0;display: none;}
+        .menu-dropdown{list-style:none;margin:0;padding:0;}
+        .menu-dropdown-toggle{width:100%;position:relative;overflow:visible;padding-right:58px;box-sizing:border-box;}
+        .menu-chevron{margin-left:0;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;transition:transform .2s ease, background-color .2s ease, box-shadow .2s ease;background:transparent;color:#fff;flex-shrink:0;box-shadow:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);}
+        .menu-chevron i{display:none;}
+        .menu-chevron::before{content:"";display:block;width:8px;height:8px;border-right:3px solid #fff;border-bottom:3px solid #fff;transform:rotate(45deg);}
+        .menu-dropdown.open .menu-chevron{transform:translateY(-50%) rotate(180deg);background-color:transparent;}
+        .menu-dropdown-list{list-style:none;margin:0;padding:0;max-height:0;overflow:hidden;transition:max-height .25s ease;}
+        .menu-dropdown.open .menu-dropdown-list{max-height:420px;}
+        .menu-item.menu-sub-item{padding:12px 20px 12px 44px;}
+        .sidebar.collapsed .menu-dropdown-list{max-height:0 !important;}
         .main-content {flex: 1;padding: 30px;overflow-y: auto;background-color: var(--bg-color);}
         .content-section {display: none;animation: fadeIn 0.3s ease-out;}
         .content-section.active {display: block;}
@@ -598,28 +608,38 @@
                 <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
-                <li class="menu-item {{ !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
-                    <div class="menu-icon"><i class="fas fa-home"></i></div>
-                    <span class="menu-text">Dashboard</span>
+                @php $portalActive = !request('tab') || in_array(request('tab'), ['user-management','trainer-trainee-management','activity-logs'], true); @endphp
+                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown">
+                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event)">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Training Manager Portal</span>
+                        <span class="menu-chevron"></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list">
+                        <li class="menu-item menu-sub-item {{ !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
+                            <div class="menu-icon"><i class="fas fa-home"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_users_tm'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
+                            <div class="menu-icon"><i class="fas fa-users"></i></div>
+                            <span class="menu-text">User Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_training'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Training Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_reports'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'activity-logs' ? 'active' : '' }}" onclick="showContent('activity-logs', this)">
+                            <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                            <span class="menu-text">Activity Logs</span>
+                        </li>
+                        @endif
+                    </ul>
                 </li>
-                @if(Auth::user()->hasPermission('view_users_tm'))
-                <li class="menu-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
-                    <div class="menu-icon"><i class="fas fa-users"></i></div>
-                    <span class="menu-text">User Management</span>
-                </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_training'))
-                <li class="menu-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
-                    <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                    <span class="menu-text">Training Management</span>
-                </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_reports'))
-                <li class="menu-item {{ request('tab') == 'activity-logs' ? 'active' : '' }}" onclick="showContent('activity-logs', this)">
-                    <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
-                    <span class="menu-text">Activity Logs</span>
-                </li>
-                @endif
             </ul>
         </aside>
         <main class="main-content">
@@ -1336,6 +1356,8 @@
                 if (small) logo.src = small;
             }
             if (brand) brand.style.justifyContent = 'center';
+            const dd = document.getElementById('portal-dropdown');
+            if (dd) dd.classList.remove('open');
         } else {
             sidebar.style.width = '250px';
             if (header) header.style.left = '250px';
@@ -1351,6 +1373,14 @@
             if (brand) brand.style.justifyContent = 'space-between';
         }
     }
+    function togglePortalDropdown(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        const sidebar = document.getElementById('sidebar');
+        if(sidebar && sidebar.classList.contains('collapsed')) return;
+        const dd = document.getElementById('portal-dropdown');
+        if(!dd) return;
+        dd.classList.toggle('open');
+    }
     function showContent(sectionId, menuItem) {
         const sections = document.querySelectorAll('.content-section');
         sections.forEach(section => {section.classList.remove('active');});
@@ -1363,6 +1393,8 @@
         const menuItems = document.querySelectorAll('.menu-item');
         menuItems.forEach(item => {item.classList.remove('active');});
         if (menuItem) {menuItem.classList.add('active');}
+        const dd = document.getElementById('portal-dropdown');
+        if(dd && menuItem && dd.contains(menuItem)){ dd.classList.add('open'); }
         const titles = {'dashboard-home': 'Dashboard','user-management': 'User Management','trainer-trainee-management': 'Training Management'};
         const titleElement = document.getElementById('page-title');
         if (titleElement) {titleElement.textContent = titles[sectionId] || 'Dashboard';}

@@ -500,6 +500,81 @@
             text-align: center;
             margin-right: 15px;
         }
+        
+        .nav-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nav-portal {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-portal-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+        
+        .nav-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .nav-chevron::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            transform: rotate(45deg);
+        }
+        
+        .nav-portal.open .nav-chevron {
+            transform: translateY(-50%) rotate(180deg);
+            background-color: transparent;
+        }
+        
+        .nav-portal-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        
+        .nav-portal.open .nav-portal-list {
+            max-height: 420px;
+        }
+        
+        .nav-portal-list .nav-link {
+            padding: 12px 25px 12px 54px;
+        }
+        
+        .sidebar.collapsed .nav-portal-list {
+            max-height: 0 !important;
+        }
 
         .sidebar.collapsed .nav-text {
             display: none;
@@ -1732,42 +1807,81 @@
                 <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this)">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span class="nav-text">Dashboard</span>
+                @php $portalActive = !request('tab') || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements'], true); @endphp
+                <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-coach">
+                    <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Coach Portal</span>
+                        <span class="nav-chevron"></span>
                     </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-coach">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this)">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        @if(Auth::user()->hasPermission('view_courses_coach'))
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showContent('my-courses', this)">
+                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                                <span class="nav-text">My Courses</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_classes'))
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showContent('calendar', this)">
+                                <i class="fas fa-calendar-alt nav-icon"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_communication'))
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="showContent('announcements', this)">
+                                <i class="fas fa-bullhorn nav-icon"></i>
+                                <span class="nav-text">Announcements</span>
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
                 </li>
-                @if(Auth::user()->hasPermission('view_courses_coach'))
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showContent('my-courses', this)">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span class="nav-text">My Courses</span>
+                @if(Auth::user()->hasPermission('view_modules'))
+                <li class="nav-portal" id="portal-dropdown-participant">
+                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Participant Portal</span>
+                        <span class="nav-chevron"></span>
                     </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-participant">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link">
+                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                                <span class="nav-text">Classroom</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
+                                <i class="fas fa-calendar-alt nav-icon"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
+                                <i class="fas fa-bullhorn nav-icon"></i>
+                                <span class="nav-text">Announcements</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 @endif
-                @if(Auth::user()->hasPermission('view_classes'))
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showContent('calendar', this)">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span class="nav-text">Calendar</span>
-                    </a>
-                </li>
-                @endif
-                @if(Auth::user()->hasPermission('view_communication'))
-                <li class="nav-item">
-                    <a href="#" class="nav-link" onclick="showContent('announcements', this)">
-                        <i class="fas fa-bullhorn nav-icon"></i>
-                        <span class="nav-text">Announcements</span>
-                    </a>
-                </li>
-                @endif
-                <li class="nav-item">
-                    <a href="{{ route('participant.dashboard.preview') }}" class="nav-link">
-                        <i class="fas fa-user-graduate nav-icon"></i>
-                        <span class="nav-text">Go to Participant Dashboard</span>
-                    </a>
-                </li>
             </ul>
         </div>
 
@@ -1952,7 +2066,7 @@
                 <!-- Assigned Courses by Training Manager -->
                 <div style="background:white;border:1px solid #e9edf5;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);padding:18px;margin-bottom:18px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Assigned Courses by the Training Manager</h3>
+                        <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Assigned Courses</h3>
                         <div style="color:#64748b;font-weight:700">{{ isset($myCourses) ? $myCourses->count() : 0 }} assigned</div>
                     </div>
                     <div class="course-grid" style="margin-top:12px">
@@ -2136,7 +2250,7 @@
             @endif
 
             <!-- My Courses Section (Same as above but dedicated page) -->
-            <div id="my-courses" class="content-section">
+            <div id="my-courses" class="content-section {{ request('tab') === 'my-courses' ? 'active' : '' }}">
                 <div class="section-header">
                     <h2 class="section-title">Assigned Courses by the Training Manager</h2>
                 </div>
@@ -2323,7 +2437,7 @@
             </div>
 
             <!-- Calendar Section -->
-            <div id="calendar" class="content-section">
+            <div id="calendar" class="content-section {{ request('tab') === 'calendar' ? 'active' : '' }}">
                 <div class="section-header">
                     <h2 class="section-title">Calendar</h2>
                 </div>
@@ -2437,7 +2551,7 @@
             </div>
 
             <!-- Announcements Section -->
-            <div id="announcements" class="content-section">
+            <div id="announcements" class="content-section {{ request('tab') === 'announcements' ? 'active' : '' }}">
                 <div class="section-header">
                     <h2 class="section-title">Announcements</h2>
                 </div>
@@ -2980,6 +3094,16 @@
                 var small=logo.getAttribute('data-collapsed-src');
                 logo.src=collapsed?small:full;
             }
+            if(collapsed){ document.querySelectorAll('.nav-portal').forEach(function(p){ p.classList.remove('open'); }); }
+        }
+        
+        function togglePortalDropdown(ev, dropdownId){
+            if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+            var s=document.getElementById('sidebar');
+            if(s && s.classList.contains('collapsed')) return;
+            var dd=document.getElementById(dropdownId || 'portal-dropdown-coach');
+            if(!dd) return;
+            dd.classList.toggle('open');
         }
 
         function initProfileLocationDropdowns() {
@@ -3152,6 +3276,8 @@
                 });
                 element.classList.add('active');
             }
+            var portal = element ? element.closest('.nav-portal') : null;
+            if (portal) portal.classList.add('open');
             updateHeaderTitle(id);
         }
 
