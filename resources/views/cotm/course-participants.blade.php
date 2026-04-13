@@ -432,6 +432,23 @@
             if(panel) panel.classList.add('active');
         });
     });
+    const SINGLE_TRAINER_MODE = {{ ($course->is_published ?? false) ? 'true' : 'false' }};
+    function enforceSingleTrainerSelection(){
+        if(!SINGLE_TRAINER_MODE) return;
+        const selTr=document.getElementById('selected_trainers');
+        const availTr=document.getElementById('available_trainers');
+        if(!selTr || !availTr) return;
+        const items=Array.from(selTr.querySelectorAll('.item'));
+        if(items.length<=1) return;
+        const checked=Array.from(selTr.querySelectorAll('.item input[type=checkbox]:checked')).map(cb=>cb.closest('.item')).filter(Boolean);
+        const keep=(checked[checked.length-1]||items[items.length-1]);
+        items.forEach(it=>{
+            if(it===keep) return;
+            const cb=it.querySelector('input[type=checkbox]');
+            if(cb) cb.checked=false;
+            availTr.appendChild(it);
+        });
+    }
     function moveSelected(fromId,toId){
         const from=document.getElementById(fromId);
         const to=document.getElementById(toId);
@@ -440,6 +457,7 @@
             it.querySelector('input[type=checkbox]').checked=false;
             to.appendChild(it);
         });
+        if(toId==='selected_trainers') enforceSingleTrainerSelection();
         syncHiddenInputs();
         syncAllCounts();
         applyFilterGeneric('filter_available','available_trainees','avail_total_count');
@@ -455,6 +473,7 @@
             it.querySelector('input[type=checkbox]').checked=false;
             to.appendChild(it);
         });
+        if(toId==='selected_trainers') enforceSingleTrainerSelection();
         syncHiddenInputs();
         syncAllCounts();
         applyFilterGeneric('filter_available','available_trainees','avail_total_count');
@@ -462,12 +481,21 @@
         applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr');
         applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr');
     }
-    document.getElementById('participantsForm').addEventListener('submit', function(){
-        syncHiddenInputs();
-    });
+    const participantsFormEl=document.getElementById('participantsForm');
+    if(participantsFormEl){
+        participantsFormEl.addEventListener('submit', function(){
+            enforceSingleTrainerSelection();
+            syncHiddenInputs();
+        });
+    }
     function applyFilterGeneric(inputId, listId, totalSpanId){
-        const q=document.getElementById(inputId).value.trim().toLowerCase();
+        const q=(document.getElementById(inputId)?.value||'').trim().toLowerCase();
         const sel=document.getElementById(listId);
+        const totalEl=document.getElementById(totalSpanId);
+        if(!sel){
+            if(totalEl) totalEl.textContent='0';
+            return;
+        }
         let total=0;
         Array.from(sel.querySelectorAll('.item')).forEach(it=>{
             const name=(it.getAttribute('data-name')||it.textContent||'').toLowerCase();
@@ -475,14 +503,17 @@
             it.style.display = match ? '' : 'none';
             if(match) total++;
         });
-        document.getElementById(totalSpanId).textContent=total;
+        if(totalEl) totalEl.textContent=total;
     }
     function updateCounts(listId, selCountId, totalCountId){
         const el=document.getElementById(listId);
+        if(!el) return;
         const selectedVisible=Array.from(el.querySelectorAll('.item input:checked')).filter(cb=>cb.closest('.item').style.display!=='none').length;
         const totalVisible=Array.from(el.querySelectorAll('.item')).filter(it=>it.style.display!=='none').length;
-        document.getElementById(selCountId).textContent=selectedVisible;
-        document.getElementById(totalCountId).textContent=totalVisible;
+        const selCountEl=document.getElementById(selCountId);
+        const totalCountEl=document.getElementById(totalCountId);
+        if(selCountEl) selCountEl.textContent=selectedVisible;
+        if(totalCountEl) totalCountEl.textContent=totalVisible;
     }
     function syncAllCounts(){
         updateCounts('available_trainees','avail_sel_count','avail_total_count');
@@ -492,30 +523,34 @@
     }
     function syncHiddenInputs(){
         const selTr=document.getElementById('selected_trainers');
-        selTr.querySelectorAll('input[type=hidden][name="trainer_ids[]"]').forEach(n=>n.remove());
-        Array.from(selTr.querySelectorAll('.item')).forEach(it=>{
-            const id=it.getAttribute('data-id');
-            const h=document.createElement('input');
-            h.type='hidden'; h.name='trainer_ids[]'; h.value=id;
-            it.appendChild(h);
-        });
+        if(selTr){
+            selTr.querySelectorAll('input[type=hidden][name="trainer_ids[]"]').forEach(n=>n.remove());
+            Array.from(selTr.querySelectorAll('.item')).forEach(it=>{
+                const id=it.getAttribute('data-id');
+                const h=document.createElement('input');
+                h.type='hidden'; h.name='trainer_ids[]'; h.value=id;
+                it.appendChild(h);
+            });
+        }
         const selT=document.getElementById('selected_trainees');
-        selT.querySelectorAll('input[type=hidden][name="trainee_ids[]"]').forEach(n=>n.remove());
-        Array.from(selT.querySelectorAll('.item')).forEach(it=>{
-            const id=it.getAttribute('data-id');
-            const h=document.createElement('input');
-            h.type='hidden'; h.name='trainee_ids[]'; h.value=id;
-            it.appendChild(h);
-        });
+        if(selT){
+            selT.querySelectorAll('input[type=hidden][name="trainee_ids[]"]').forEach(n=>n.remove());
+            Array.from(selT.querySelectorAll('.item')).forEach(it=>{
+                const id=it.getAttribute('data-id');
+                const h=document.createElement('input');
+                h.type='hidden'; h.name='trainee_ids[]'; h.value=id;
+                it.appendChild(h);
+            });
+        }
     }
-    document.getElementById('filter_available').addEventListener('input',()=>applyFilterGeneric('filter_available','available_trainees','avail_total_count'));
-    document.getElementById('filter_selected').addEventListener('input',()=>applyFilterGeneric('filter_selected','selected_trainees','sel_total_count'));
-    document.getElementById('available_trainees').addEventListener('change',syncAllCounts);
-    document.getElementById('selected_trainees').addEventListener('change',syncAllCounts);
-    document.getElementById('filter_available_trainers').addEventListener('input',()=>applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr'));
-    document.getElementById('filter_selected_trainers').addEventListener('input',()=>applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr'));
-    document.getElementById('available_trainers').addEventListener('change',syncAllCounts);
-    document.getElementById('selected_trainers').addEventListener('change',syncAllCounts);
+    document.getElementById('filter_available')?.addEventListener('input',()=>applyFilterGeneric('filter_available','available_trainees','avail_total_count'));
+    document.getElementById('filter_selected')?.addEventListener('input',()=>applyFilterGeneric('filter_selected','selected_trainees','sel_total_count'));
+    document.getElementById('available_trainees')?.addEventListener('change',syncAllCounts);
+    document.getElementById('selected_trainees')?.addEventListener('change',syncAllCounts);
+    document.getElementById('filter_available_trainers')?.addEventListener('input',()=>applyFilterGeneric('filter_available_trainers','available_trainers','avail_total_count_tr'));
+    document.getElementById('filter_selected_trainers')?.addEventListener('input',()=>applyFilterGeneric('filter_selected_trainers','selected_trainers','sel_total_count_tr'));
+    document.getElementById('available_trainers')?.addEventListener('change',syncAllCounts);
+    document.getElementById('selected_trainers')?.addEventListener('change',syncAllCounts);
     // Ensure no items are pre-selected on load for all lists
     ['available_trainers','selected_trainers','available_trainees','selected_trainees'].forEach(function(id){
         var el=document.getElementById(id);
