@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\ExamEssayResponse;
 use App\Models\Grade;
 use App\Models\Notification;
+use App\Models\Role;
 use App\Models\User;
 use App\Traits\HandlesCertification;
 use Illuminate\Http\Request;
@@ -1631,14 +1632,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
-        // Build participants lists for view
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
-        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
-            return in_array($u->role ?? '', $coachRoles, true);
+        $coaches = ($course->users ?? collect([]))->filter(function ($u) use ($coachRoles) {
+            if (in_array($u->role ?? '', $coachRoles, true)) return true;
+            return $u->hasPermission('view_courses_coach')
+                || $u->hasPermission('view_classes')
+                || $u->hasPermission('view_communication');
         })->values();
-        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
-            return in_array($u->role ?? '', $participantRoles, true);
+        $classmates = ($course->users ?? collect([]))->filter(function ($u) use ($participantRoles, $coachRoles) {
+            $isCoach = in_array($u->role ?? '', $coachRoles, true)
+                || $u->hasPermission('view_courses_coach')
+                || $u->hasPermission('view_classes')
+                || $u->hasPermission('view_communication');
+            return !$isCoach && in_array($u->role ?? '', $participantRoles, true);
         })->values();
         \Illuminate\Support\Facades\Log::info('traineeShow: participants resolved', [
             'course_id' => $course->id,
@@ -1810,14 +1817,20 @@ class CourseController extends Controller
             }
             $completion = $total ? round(($done / $total) * 100) : 0;
         }
-        // Build participants lists for trainer landing as well
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
-        $coaches = ($course->users ?? collect([]))->filter(function($u) use ($coachRoles){
-            return in_array($u->role ?? '', $coachRoles, true);
+        $coaches = ($course->users ?? collect([]))->filter(function ($u) use ($coachRoles) {
+            if (in_array($u->role ?? '', $coachRoles, true)) return true;
+            return $u->hasPermission('view_courses_coach')
+                || $u->hasPermission('view_classes')
+                || $u->hasPermission('view_communication');
         })->values();
-        $classmates = ($course->users ?? collect([]))->filter(function($u) use ($participantRoles){
-            return in_array($u->role ?? '', $participantRoles, true);
+        $classmates = ($course->users ?? collect([]))->filter(function ($u) use ($participantRoles, $coachRoles) {
+            $isCoach = in_array($u->role ?? '', $coachRoles, true)
+                || $u->hasPermission('view_courses_coach')
+                || $u->hasPermission('view_classes')
+                || $u->hasPermission('view_communication');
+            return !$isCoach && in_array($u->role ?? '', $participantRoles, true);
         })->values();
         \Illuminate\Support\Facades\Log::info('trainerLanding: participants resolved', [
             'course_id' => $course->id,
@@ -2002,8 +2015,16 @@ class CourseController extends Controller
         }
         $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
         $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
+        $coachPermissionNames = ['view_courses_coach', 'view_classes', 'view_communication'];
+        $coachPermissionRoleNames = Role::whereIn('name', $managedRoles)
+            ->whereHas('permissions', function ($q) use ($coachPermissionNames) {
+                $q->whereIn('name', $coachPermissionNames);
+            })
+            ->pluck('name')
+            ->toArray();
+        $coachCapableRoles = array_values(array_unique(array_merge($managedCoachRoles, $coachPermissionRoleNames)));
         $currentCourseTraineeIds = $course->users()->whereIn('role', $managedParticipantRoles)->pluck('users.id')->toArray();
-        $potentialTrainers = User::whereIn('role', $managedCoachRoles)
+        $potentialTrainers = User::whereIn('role', $coachCapableRoles)
             ->where('status', 'active')
             ->get();
         // Only trainees already enrolled (pivot exists) for this course
@@ -2011,7 +2032,7 @@ class CourseController extends Controller
             ->whereIn('id', $currentCourseTraineeIds)
             ->get();
         // For summary, show ALL active trainers with their courses (not only assigned)
-        $assignedTrainers = User::whereIn('role', $managedCoachRoles)
+        $assignedTrainers = User::whereIn('role', $coachCapableRoles)
             ->where('status', 'active')
             ->with('courses')
             ->get();
@@ -3419,16 +3440,21 @@ class CourseController extends Controller
         }
         $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
         $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
+        $coachPermissionNames = ['view_courses_coach', 'view_classes', 'view_communication'];
+        $coachPermissionRoleNames = Role::whereIn('name', $managedRoles)
+            ->whereHas('permissions', function ($q) use ($coachPermissionNames) {
+                $q->whereIn('name', $coachPermissionNames);
+            })
+            ->pluck('name')
+            ->toArray();
+        $coachCapableRoles = array_values(array_unique(array_merge($managedCoachRoles, $coachPermissionRoleNames)));
 
         // 1. Sync Trainers
-        // Get current trainers associated with the course
-        // We filter by the User's role 'trainer' to ensure we are managing the right subset of users
-        // assuming the relationship is just users() and we distinguish by User role.
-        $currentTrainerIds = $course->users()->get()->filter(function($user) {
-            return in_array($user->role, ['coach','trainer']);
-        })->pluck('id')->toArray();
+        $currentTrainerIds = $course->users()->whereIn('role', $coachCapableRoles)->pluck('users.id')->toArray();
         
-        $newTrainerIds = $request->trainer_ids ? User::whereIn('id', $request->trainer_ids)->whereIn('role', $managedCoachRoles)->pluck('id')->toArray() : [];
+        $newTrainerIds = $request->trainer_ids
+            ? User::whereIn('id', $request->trainer_ids)->whereIn('role', $coachCapableRoles)->pluck('id')->toArray()
+            : [];
 
         $trainersToAttach = array_diff($newTrainerIds, $currentTrainerIds);
         $trainersToDetach = array_diff($currentTrainerIds, $newTrainerIds);
@@ -3604,12 +3630,20 @@ class CourseController extends Controller
         }
         $managedCoachRoles = array_values(array_intersect($coachRoles, $managedRoles));
         $managedParticipantRoles = array_values(array_intersect($participantRoles, $managedRoles));
+        $coachPermissionNames = ['view_courses_coach', 'view_classes', 'view_communication'];
+        $coachPermissionRoleNames = Role::whereIn('name', $managedRoles)
+            ->whereHas('permissions', function ($q) use ($coachPermissionNames) {
+                $q->whereIn('name', $coachPermissionNames);
+            })
+            ->pluck('name')
+            ->toArray();
+        $coachCapableRoles = array_values(array_unique(array_merge($managedCoachRoles, $coachPermissionRoleNames)));
 
         $count = 0;
 
         // Handle Coach
         if ($request->filled('trainer_id')) {
-            $coachId = User::where('id', $request->trainer_id)->whereIn('role', $managedCoachRoles)->value('id');
+            $coachId = User::where('id', $request->trainer_id)->whereIn('role', $coachCapableRoles)->value('id');
             if ($coachId && !$course->users()->where('user_id', $coachId)->exists()) {
                 $course->users()->attach($coachId, ['status' => 'active']);
                 $count++;
