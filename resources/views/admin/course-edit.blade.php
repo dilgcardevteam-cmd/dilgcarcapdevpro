@@ -269,7 +269,7 @@
                                 <div id="imageError" class="error-text" style="display:none;"></div>
                                 <div class="preview-thumb" id="imagePreview">
                                     @if($course->image_path)
-                                        <img src="{{ asset('storage/'.$course->image_path) }}" alt="Course Image">
+                                        <img src="{{ $course->image_url }}" alt="Course Image">
                                     @else
                                         <span style="color:#94a3b8;">No image selected</span>
                                     @endif

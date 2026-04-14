@@ -204,9 +204,9 @@
 
             <div class="divider">Or continue with</div>
 
-            <a href="{{ route('auth.google.redirect') }}" class="google-btn">
+            <a href="#" class="google-btn">
                 <img src="{{ asset('images/google-logo-icon-.png') }}" alt="Google">
-                Sign up with Google
+                Google
             </a>
 
             <div class="signup-link">

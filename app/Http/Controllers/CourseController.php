@@ -1307,13 +1307,6 @@ class CourseController extends Controller
 
     public function trainerStore(Request $request)
     {
-        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
-        if (!$activeYear) {
-            return back()
-                ->withErrors(['academic_year' => 'No active academic year set. Please contact Superadmin.'], 'create_course')
-                ->withInput();
-        }
-
         $validated = $request->validateWithBag('create_course', [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
@@ -1328,10 +1321,6 @@ class CourseController extends Controller
         if (!$request->filled('video_url')) {
             $validated['video_url'] = '';
         }
-
-        $validated['academic_year_id'] = $activeYear->id;
-        $validated['academic_year'] = "{$activeYear->year_start}–{$activeYear->year_end}";
-
         if ($request->hasFile('image')) {
             try {
                 Storage::disk('public')->makeDirectory('course_images');
@@ -1526,7 +1515,7 @@ class CourseController extends Controller
         }
 
         // Notify admins
-        $admins = User::whereIn('role', ['admin', 'super_admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin'])->get();
+        $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
@@ -3329,13 +3318,20 @@ class CourseController extends Controller
 
     public function restore(Request $request, $id)
     {
-        $course = Course::onlyTrashed()->findOrFail($id);
-        $course->restore();
+        $course = Course::withTrashed()->findOrFail($id);
+        $wasTrashed = $course->trashed();
+
+        if ($wasTrashed) {
+            $course->restore();
+        }
+
+        $course->is_published = true;
+        $course->save();
 
         // Activate coach/trainer pivot so they can enter class after admin approval
         try {
             $coachIds = $course->users()
-                ->whereIn('role', ['coach','trainer'])
+                ->whereIn('role', ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'])
                 ->pluck('users.id')
                 ->toArray();
             foreach ($coachIds as $uid) {
@@ -3347,6 +3343,12 @@ class CourseController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+
+        \Log::info('Course approved for publication.', [
+            'course_id' => $course->id,
+            'approved_by' => auth()->id(),
+            'was_trashed' => $wasTrashed,
+        ]);
 
         if ($request->boolean('embedded')) {
             session()->flash('success_course', 'Course unarchived successfully.');
@@ -3373,7 +3375,7 @@ class CourseController extends Controller
         }
 
         return redirect()->route('dashboard', ['tab' => 'course-management'])
-            ->with('success_course', 'Course unarchived successfully.');
+            ->with('success_course', 'Course approved successfully.');
     }
 
     public function forceDelete($id)
