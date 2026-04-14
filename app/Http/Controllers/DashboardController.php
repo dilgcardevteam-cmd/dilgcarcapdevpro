@@ -17,7 +17,6 @@ use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Role;
 use App\Services\DashboardService;
@@ -144,30 +143,6 @@ class DashboardController extends Controller
                 $query = User::query()
                     ->whereIn('role', $managedRoles)
                     ->where('profile_completed', true);
-                if ($request->get('tab') === 'user-management') {
-                    $excludedRoles = [
-                        'provincial_office_coach',
-                        'provincial_office_participants',
-                        'regional_office_coach',
-                        'regional_office_participants',
-                        'provincial_office_admin',
-                        'central_office_coach',
-                        'provincial_office_training_manager',
-                        'central_office_participants',
-                        'regional_office_admin',
-                        'regional_office_training_manager',
-                        'central_office_admin',
-                        'central_office_training_manager',
-                        'super_admin',
-                    ];
-                    
-                    // Don't exclude the current user's role if they are one of these admins
-                    $myRole = $user->role;
-                    $excludedRoles = array_diff($excludedRoles, [$myRole]);
-                    
-                    $query->whereNotIn('role', $excludedRoles);
-                }
-
                 // Search by Name
                 if ($request->filled('search')) {
                     $query->where('name', 'like', '%' . $request->search . '%');
@@ -175,18 +150,16 @@ class DashboardController extends Controller
 
                 // Filter by Role
                 if ($request->has('roles')) {
-                    $selectedRoles = $this->expandManagedRoleFilters(
-                        (array) $request->roles,
-                        $managedRoles,
-                        $managedCoachRoles,
-                        $managedParticipantRoles,
-                        $managedTMRoles,
-                        array_values(array_intersect($adminRoles, $managedRoles))
-                    );
-
-                    if (!empty($selectedRoles)) {
-                        $query->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $selectedRoles));
+                    $roles = (array) $request->roles;
+                    $expanded = [];
+                    foreach ($roles as $r) {
+                        $expanded[] = $r;
+                        if (in_array($r, ['trainer','coach'], true)) { $expanded = array_merge($expanded, $coachRoles); }
+                        if (in_array($r, ['trainee','participant'], true)) { $expanded = array_merge($expanded, $participantRoles); }
+                        if (in_array($r, ['training_manager','registrar'], true)) { $expanded = array_merge($expanded, $tmRoles); }
+                        if ($r === 'admin') { $expanded = array_merge($expanded, $adminRoles); }
                     }
+                    $query->whereIn('role', array_values(array_intersect(array_unique($expanded), $managedRoles)));
                 }
 
                 // Filter by Status
@@ -289,30 +262,6 @@ class DashboardController extends Controller
                     ->count();
 
                 $query = User::query()->where('profile_completed', true)->where($registrarScope);
-                if ($request->get('tab') === 'user-management') {
-                    $excludedRoles = [
-                        'provincial_office_coach',
-                        'provincial_office_participants',
-                        'regional_office_coach',
-                        'regional_office_participants',
-                        'provincial_office_admin',
-                        'central_office_coach',
-                        'provincial_office_training_manager',
-                        'central_office_participants',
-                        'regional_office_admin',
-                        'regional_office_training_manager',
-                        'central_office_admin',
-                        'central_office_training_manager',
-                        'super_admin',
-                    ];
-                    
-                    // Don't exclude the current user's role if they are one of these admins
-                    $myRole = $user->role;
-                    $excludedRoles = array_diff($excludedRoles, [$myRole]);
-                    
-                    $query->whereNotIn('role', $excludedRoles);
-                }
-
                 // Search by Name
                 if ($request->filled('search')) {
                     $query->where('name', 'like', '%' . $request->search . '%');
@@ -595,18 +544,21 @@ class DashboardController extends Controller
                     });
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
                 if ($request->has('roles')) {
-                    $selectedRoles = $this->expandManagedRoleFilters(
-                        (array) $request->roles,
-                        $managedRoles,
-                        $managedCoachRoles,
-                        $managedParticipantRoles,
-                        array_values(array_intersect($tmRoles, $managedRoles)),
-                        array_values(array_intersect($adminRoles, $managedRoles))
-                    );
-
-                    if (!empty($selectedRoles)) {
-                        $query->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $selectedRoles));
+                    $selected = (array) $request->roles;
+                    $expanded = [];
+                    foreach ($selected as $r) {
+                        if (in_array($r, ['coach','trainer'], true)) {
+                            $expanded = array_merge($expanded, $managedCoachRoles);
+                        } elseif (in_array($r, ['participant','trainee'], true)) {
+                            $expanded = array_merge($expanded, $managedParticipantRoles);
+                        } elseif ($r === 'training_manager') {
+                            $expanded = array_merge($expanded, array_values(array_intersect($tmRoles, $managedRoles)));
+                        } else {
+                            $expanded[] = $r;
+                        }
                     }
+                    $expanded = array_values(array_unique($expanded));
+                    $query->whereIn('role', array_intersect($expanded, $managedRoles));
                 }
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
@@ -2374,66 +2326,5 @@ class DashboardController extends Controller
                 ? 'Support ticket submitted successfully.'
                 : 'Support message sent successfully.'
         );
-    }
-
-    protected function expandManagedRoleFilters(
-        array $requestedRoles,
-        array $managedRoles,
-        array $managedCoachRoles = [],
-        array $managedParticipantRoles = [],
-        array $managedTMRoles = [],
-        array $managedAdminRoles = []
-    ): array {
-        $managedLookup = [];
-        foreach ($managedRoles as $managedRole) {
-            $managedLookup[strtolower((string) $managedRole)] = $managedRole;
-        }
-
-        $expanded = [];
-        foreach ($requestedRoles as $requestedRole) {
-            $role = strtolower(trim((string) $requestedRole));
-            if ($role === '') {
-                continue;
-            }
-
-            if (in_array($role, ['coach', 'trainer'], true)) {
-                $expanded = array_merge($expanded, $managedCoachRoles);
-                continue;
-            }
-
-            if (in_array($role, ['participant', 'trainee', 'user', 'users'], true)) {
-                $expanded = array_merge($expanded, $managedParticipantRoles);
-                continue;
-            }
-
-            if (in_array($role, ['training_manager', 'registrar'], true)) {
-                $expanded = array_merge($expanded, $managedTMRoles);
-                if (isset($managedLookup['registrar'])) {
-                    $expanded[] = $managedLookup['registrar'];
-                }
-                continue;
-            }
-
-            if (in_array($role, ['admin', 'super_admin'], true)) {
-                $expanded = array_merge($expanded, $managedAdminRoles);
-                continue;
-            }
-
-            if (isset($managedLookup[$role])) {
-                $expanded[] = $managedLookup[$role];
-            }
-        }
-
-        $normalized = [];
-        foreach ($expanded as $role) {
-            $key = strtolower((string) $role);
-            if ($key === '' || !isset($managedLookup[$key])) {
-                continue;
-            }
-
-            $normalized[$key] = $managedLookup[$key];
-        }
-
-        return array_values($normalized);
     }
 }

@@ -19,31 +19,15 @@ use App\Mail\NewUserRegistered;
 
 class AuthController extends Controller
 {
-    protected function googleRedirectUri(): string
-    {
-        $configured = trim((string) config('services.google.redirect', ''));
-        if ($configured !== '') {
-            return $configured;
-        }
-
-        return rtrim((string) config('app.url', url('/')), '/') . '/auth/google/callback';
-    }
-
     /**
      * Redirect to Google OAuth consent page.
      */
     public function redirectToGoogle(Request $request)
     {
         $clientId = (string) config('services.google.client_id');
-        $redirectUri = $this->googleRedirectUri();
+        $redirectUri = (string) config('services.google.redirect');
 
         if ($clientId === '' || $redirectUri === '') {
-            Log::warning('Google sign-in requested without complete configuration.', [
-                'client_id_present' => $clientId !== '',
-                'redirect_uri' => $redirectUri,
-                'app_url' => config('app.url'),
-            ]);
-
             return redirect()->route('login')->withErrors([
                 'email' => 'Google sign-in is not configured yet. Please contact the administrator.',
             ]);
@@ -72,18 +56,8 @@ class AuthController extends Controller
     {
         $expectedState = (string) $request->session()->pull('google_oauth_state');
         $receivedState = (string) $request->input('state', '');
-        $redirectUri = $this->googleRedirectUri();
 
         if ($expectedState === '' || !hash_equals($expectedState, $receivedState)) {
-            Log::warning('Google OAuth state validation failed.', [
-                'session_id' => $request->session()->getId(),
-                'expected_state_present' => $expectedState !== '',
-                'received_state_present' => $receivedState !== '',
-                'app_url' => config('app.url'),
-                'redirect_uri' => $redirectUri,
-                'ip' => $request->ip(),
-            ]);
-
             return redirect()->route('login')->withErrors([
                 'email' => 'Invalid Google sign-in state. Please try again.',
             ]);
@@ -106,16 +80,12 @@ class AuthController extends Controller
             'code' => $code,
             'client_id' => (string) config('services.google.client_id'),
             'client_secret' => (string) config('services.google.client_secret'),
-            'redirect_uri' => $redirectUri,
+            'redirect_uri' => (string) config('services.google.redirect'),
             'grant_type' => 'authorization_code',
         ]);
 
         if (!$tokenResponse->ok()) {
-            Log::warning('Google token exchange failed.', [
-                'status' => $tokenResponse->status(),
-                'body' => $tokenResponse->body(),
-                'redirect_uri' => $redirectUri,
-            ]);
+            Log::warning('Google token exchange failed.', ['body' => $tokenResponse->body()]);
             return redirect()->route('login')->withErrors([
                 'email' => 'Unable to authenticate with Google right now. Please try again.',
             ]);
@@ -130,10 +100,7 @@ class AuthController extends Controller
 
         $googleUserResponse = Http::withToken($accessToken)->get('https://www.googleapis.com/oauth2/v3/userinfo');
         if (!$googleUserResponse->ok()) {
-            Log::warning('Google userinfo request failed.', [
-                'status' => $googleUserResponse->status(),
-                'body' => $googleUserResponse->body(),
-            ]);
+            Log::warning('Google userinfo request failed.', ['body' => $googleUserResponse->body()]);
             return redirect()->route('login')->withErrors([
                 'email' => 'Unable to fetch your Google profile. Please try again.',
             ]);
@@ -146,11 +113,6 @@ class AuthController extends Controller
         $emailVerified = (bool) ($googleUser['email_verified'] ?? false);
 
         if ($googleId === '' || $email === '') {
-            Log::warning('Google profile missing required fields.', [
-                'google_id_present' => $googleId !== '',
-                'email_present' => $email !== '',
-            ]);
-
             return redirect()->route('login')->withErrors([
                 'email' => 'Google account is missing required profile details.',
             ]);
@@ -564,3 +526,4 @@ class AuthController extends Controller
         }
     }
 }
+

@@ -45,17 +45,8 @@ class CertificationController extends Controller
         }
         return null;
     }
-    protected function certificateBgFileUri(?Certification $certification = null): ?string
+    protected function certificateBgFileUri(): ?string
     {
-        $templatePath = trim((string) ($certification?->file_path ?? ''));
-        if ($templatePath !== '') {
-            $storagePath = Storage::disk('public')->path($templatePath);
-            $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
-            if (is_file($storagePath) && in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
-                return 'file://' . str_replace('\\', '/', $storagePath);
-            }
-        }
-
         $pairs = [
             public_path('images/capdevcert.png'),
             public_path('images/capdevcert.jpg'),
@@ -314,7 +305,7 @@ class CertificationController extends Controller
                         ->where('certification_id',$cert->id)
                         ->first();
                     if ($pivot) {
-                        $bgUri = $this->certificateBgFileUri($cert);
+                        $bgUri = $this->certificateBgFileUri();
                         if ($bgUri) {
                             $items = [[
                                 'name' => $userModel->name,
@@ -463,7 +454,7 @@ class CertificationController extends Controller
         if (!$pivot) {
             abort(404);
         }
-        $bgUri = $this->certificateBgFileUri($certification);
+        $bgUri = $this->certificateBgFileUri();
         if (!$bgUri) {
             abort(404);
         }
@@ -495,7 +486,7 @@ class CertificationController extends Controller
                 'Content-Disposition' => 'attachment; filename="certificate_'.$user->id.'.pdf"',
             ]);
         }
-        $bgUri = $this->certificateBgFileUri($certification);
+        $bgUri = $this->certificateBgFileUri();
         if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }
@@ -520,8 +511,7 @@ class CertificationController extends Controller
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id',
         ]);
-        $certification = Certification::findOrFail($data['certification_id']);
-        $bgUri = $this->certificateBgFileUri($certification);
+        $bgUri = $this->certificateBgFileUri();
         if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }

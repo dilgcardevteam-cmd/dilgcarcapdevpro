@@ -5,7 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Certification;
-use Illuminate\Support\Facades\DB;
+use App\Models\AcademicYear;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardService
 {
@@ -19,10 +20,14 @@ class DashboardService
             $baseCourseQuery->where('academic_year_id', $selectedYearId);
         }
 
-        $pendingCoursesQuery = Course::withTrashed()
-            ->where('is_published', false)
-            ->whereHas('users', function($q) use ($managedCoachRoles) {
-                $q->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $managedCoachRoles));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+
+        $pendingCoursesQuery = Course::onlyTrashed()
+            ->where(function ($query) use ($managedCoachRoles) {
+                $query->whereIn('trainer_id', User::whereIn('role', $managedCoachRoles)->select('id'))
+                    ->orWhereHas('users', function($q) use ($managedCoachRoles) {
+                        $q->whereIn('role', $managedCoachRoles);
+                    });
             });
 
         if ($selectedYearId !== 'all') {
@@ -35,7 +40,7 @@ class DashboardService
             'courses' => (clone $baseCourseQuery)->orderBy('created_at', 'desc')->get(),
             'archivedCourses' => (clone $baseCourseQuery)->onlyTrashed()->get(),
             'recentCourses' => (clone $baseCourseQuery)->latest()->take(5)->get(),
-            'pendingCourses' => (clone $pendingCoursesQuery)->with('users')->orderByDesc('created_at')->get(),
+            'pendingCourses' => (clone $pendingCoursesQuery)->get(),
             'pendingCoursesCount' => (clone $pendingCoursesQuery)->count(),
             'activeUsersCount' => User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'active')->count(),
             'pendingUsersTotal' => User::whereIn('role', $managedRoles)->where('profile_completed', true)->where('status', 'pending')->count(),

@@ -8,7 +8,6 @@ use App\Models\Certification;
 use App\Models\ReflectionResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -21,12 +20,6 @@ trait HandlesCertification
     {
         // 1. Calculate overall progress using Course model helper
         $progress = $course->getCourseProgress($user);
-        Log::info('Checking certificate eligibility.', [
-            'course_id' => $course->id,
-            'user_id' => $user->id,
-            'progress_percentage' => $progress['percentage'] ?? null,
-            'progress_total' => $progress['total'] ?? null,
-        ]);
         
         if ($progress['total'] === 0) return false;
 
@@ -61,16 +54,10 @@ trait HandlesCertification
             'certificate_number' => $certNumber,
             'issued_at' => now(),
         ]);
-        Log::info('Certificate issued.', [
-            'course_id' => $course->id,
-            'user_id' => $user->id,
-            'certification_id' => $certId,
-            'certificate_number' => $certNumber,
-        ]);
 
         // 6. Generate and store PDF
         try {
-            $bgUri = $this->getCertificateBgFileUri($cert);
+            $bgUri = $this->getCertificateBgFileUri();
             if ($bgUri) {
                 $items = [[
                     'name' => $user->name,
@@ -87,26 +74,9 @@ trait HandlesCertification
                 $pdf = $this->renderPdfFromHtml($html);
                 $path = "certificates/course_{$course->id}/cert_{$certId}/" . preg_replace('/[^A-Za-z0-9_\-]/', '_', $certNumber) . ".pdf";
                 Storage::disk('public')->put($path, $pdf);
-                Log::info('Certificate PDF stored.', [
-                    'course_id' => $course->id,
-                    'user_id' => $user->id,
-                    'certification_id' => $certId,
-                    'path' => $path,
-                ]);
-            } else {
-                Log::warning('Certificate background not found. Falling back to on-demand generation only.', [
-                    'course_id' => $course->id,
-                    'user_id' => $user->id,
-                    'certification_id' => $certId,
-                ]);
             }
         } catch (\Throwable $e) {
-            Log::error('Auto certification PDF generation failed.', [
-                'course_id' => $course->id,
-                'user_id' => $user->id,
-                'certification_id' => $certId,
-                'error' => $e->getMessage(),
-            ]);
+            \Log::error("Auto certification PDF generation failed: " . $e->getMessage());
         }
         
         return true; // Indicate that a certificate was newly issued
@@ -123,17 +93,8 @@ trait HandlesCertification
         return 'Cert ' . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
     }
 
-    protected function getCertificateBgFileUri(?Certification $certification = null): ?string
+    protected function getCertificateBgFileUri(): ?string
     {
-        $templatePath = trim((string) ($certification?->file_path ?? ''));
-        if ($templatePath !== '') {
-            $storagePath = Storage::disk('public')->path($templatePath);
-            $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
-            if (is_file($storagePath) && in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
-                return 'file://' . str_replace('\\', '/', $storagePath);
-            }
-        }
-
         $pairs = [
             public_path('images/capdevcert.png'),
             public_path('images/capdevcert.jpg'),

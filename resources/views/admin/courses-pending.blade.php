@@ -44,22 +44,14 @@
         @else
             <div class="grid">
                 @foreach($pendingCourses as $course)
-                    @php
-                        $submitter = $course->users->first(function ($u) {
-                            return in_array(strtolower((string) $u->role), [
-                                'coach',
-                                'trainer',
-                                'central_office_coach',
-                                'regional_office_coach',
-                                'provincial_office_coach',
-                            ], true);
-                        });
-                    @endphp
                     <div class="card">
                         <img src="{{ $course->image_url }}" alt="{{ $course->name }}">
                         <div class="card-body">
                             <h3 class="title">{{ $course->name }}</h3>
                             <p class="desc">{{ Str::limit($course->description, 100) }}</p>
+                            @php
+                                $submitter = $course->users->firstWhere('role', 'trainer');
+                            @endphp
                             @if($submitter)
                                 <p class="desc" style="margin-top:6px;"><i class="fas fa-user"></i> Submitted by {{ $submitter->name }}</p>
                             @endif
