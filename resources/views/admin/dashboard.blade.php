@@ -4415,7 +4415,7 @@
                     <div class="lms-home-hero">
                         <div class="lms-home-headline">
                             <div>
-                                <h1 class="welcome-title lms-welcome">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
+                                <h1 class="welcome-title lms-welcome">Welcome, Malakas na <strong>{{ Auth::user()->name }}</strong></h1>
                                 <p class="lms-home-subtitle">
                                     Monitor learner onboarding, course readiness, and certification output in one view.
                                     Use this board to quickly spot bottlenecks and move training delivery forward.
@@ -6248,38 +6248,22 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
                         @foreach($pendingCourses as $course)
                             @php
-                                $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
                                 $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                $submitter = $course->users->first(function ($u) {
+                                    return in_array(strtolower((string) $u->role), [
+                                        'coach',
+                                        'trainer',
+                                        'central_office_coach',
+                                        'regional_office_coach',
+                                        'provincial_office_coach',
+                                    ], true);
+                                });
                             @endphp
                             <div class="course-card" role="button" tabindex="0" onclick='openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer;">
-                                @php
-                                    $img = null;
-                                    if (!empty($course->image_path)) {
-                                        $path = public_path('storage/' . $course->image_path);
-                                        if (file_exists($path)) {
-                                            $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
-                                        } else {
-                                            $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                            if (file_exists($path2)) {
-                                                $img = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
-                                            }
-                                        }
-                                    }
-                                    if (!$img) {
-                                        $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150"><rect width="300" height="150" rx="18" fill="#eef4ff"/><path d="M98 58h104a10 10 0 0 1 10 10v14a10 10 0 0 1-10 10H98a10 10 0 0 1-10-10V68a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="75" r="12" fill="#93c5fd"/><path d="M110 104l28-25 18 15 18-22 28 32H110Z" fill="#bfdbfe"/><text x="150" y="130" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
-                                    }
-                                    if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
-                                        $img = $course->image_path;
-                                    }
-                                    $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
-                                @endphp
-                                <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
+                                <img src="{{ $course->image_url }}" alt="{{ $course->name }}" style="width: 100%; height: 150px; object-fit: cover;">
                                 <div style="padding: 14px;">
                                     <h3 style="margin: 0 0 6px; color: #002C76; font-size: 1.05rem;">{{ $course->name }}</h3>
                                     <p style="color: #6b7280; font-size: .9rem; margin: 0 0 10px;">{{ Str::limit($course->description, 100) }}</p>
-                                    @php
-                                        $submitter = $course->users->first(function($u){ return in_array($u->role, ['coach','trainer']); });
-                                    @endphp
                                     @if($submitter)
                                         <p style="color: #6b7280; font-size: .9rem; margin: 0 0 10px;">
                                             <i class="fas fa-user"></i> Submitted by {{ $submitter->name }}

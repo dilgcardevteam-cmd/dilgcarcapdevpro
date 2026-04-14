@@ -45,8 +45,17 @@ class CertificationController extends Controller
         }
         return null;
     }
-    protected function certificateBgFileUri(): ?string
+    protected function certificateBgFileUri(?Certification $certification = null): ?string
     {
+        $templatePath = trim((string) ($certification?->file_path ?? ''));
+        if ($templatePath !== '') {
+            $storagePath = Storage::disk('public')->path($templatePath);
+            $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
+            if (is_file($storagePath) && in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                return 'file://' . str_replace('\\', '/', $storagePath);
+            }
+        }
+
         $pairs = [
             public_path('images/capdevcert.png'),
             public_path('images/capdevcert.jpg'),
@@ -291,7 +300,7 @@ class CertificationController extends Controller
             }
             
             if (!$userModel->certifications()->where('certification_id', $cert->id)->wherePivot('course_id',$course->id)->exists()) {
-                $user->certifications()->attach($cert->id, [
+                $userModel->certifications()->attach($cert->id, [
                     'course_id' => $course->id,
                     'certificate_number' => $this->generateCertificateNumber(),
                     'issued_at' => now(),
@@ -300,15 +309,15 @@ class CertificationController extends Controller
                 // Generate and store the PDF immediately
                 try {
                     $pivot = DB::table('certification_user')
-                        ->where('user_id',$user->id)
+                        ->where('user_id',$userModel->id)
                         ->where('course_id',$course->id)
                         ->where('certification_id',$cert->id)
                         ->first();
                     if ($pivot) {
-                        $bgUri = $this->certificateBgFileUri();
+                        $bgUri = $this->certificateBgFileUri($cert);
                         if ($bgUri) {
                             $items = [[
-                                'name' => $user->name,
+                                'name' => $userModel->name,
                                 'course' => $course->name,
                                 'cert_number' => $pivot->certificate_number,
                                 'issued_at' => $pivot->issued_at ? \Carbon\Carbon::parse($pivot->issued_at)->toDateString() : null,
@@ -454,7 +463,7 @@ class CertificationController extends Controller
         if (!$pivot) {
             abort(404);
         }
-        $bgUri = $this->certificateBgFileUri();
+        $bgUri = $this->certificateBgFileUri($certification);
         if (!$bgUri) {
             abort(404);
         }
@@ -486,7 +495,7 @@ class CertificationController extends Controller
                 'Content-Disposition' => 'attachment; filename="certificate_'.$user->id.'.pdf"',
             ]);
         }
-        $bgUri = $this->certificateBgFileUri();
+        $bgUri = $this->certificateBgFileUri($certification);
         if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }
@@ -511,7 +520,8 @@ class CertificationController extends Controller
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'integer|exists:users,id',
         ]);
-        $bgUri = $this->certificateBgFileUri();
+        $certification = Certification::findOrFail($data['certification_id']);
+        $bgUri = $this->certificateBgFileUri($certification);
         if (!$bgUri) {
             return back()->with('error_certification', 'Certificate template image is missing.');
         }

@@ -17,6 +17,7 @@ use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Role;
 use App\Services\DashboardService;
@@ -174,7 +175,18 @@ class DashboardController extends Controller
 
                 // Filter by Role
                 if ($request->has('roles')) {
-                    $query->whereIn('role', array_intersect($request->roles, $managedRoles));
+                    $selectedRoles = $this->expandManagedRoleFilters(
+                        (array) $request->roles,
+                        $managedRoles,
+                        $managedCoachRoles,
+                        $managedParticipantRoles,
+                        $managedTMRoles,
+                        array_values(array_intersect($adminRoles, $managedRoles))
+                    );
+
+                    if (!empty($selectedRoles)) {
+                        $query->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $selectedRoles));
+                    }
                 }
 
                 // Filter by Status
@@ -583,21 +595,18 @@ class DashboardController extends Controller
                     });
                 if ($request->filled('search')) $query->where('name', 'like', '%' . $request->search . '%');
                 if ($request->has('roles')) {
-                    $selected = (array) $request->roles;
-                    $expanded = [];
-                    foreach ($selected as $r) {
-                        if (in_array($r, ['coach','trainer'], true)) {
-                            $expanded = array_merge($expanded, $managedCoachRoles);
-                        } elseif (in_array($r, ['participant','trainee'], true)) {
-                            $expanded = array_merge($expanded, $managedParticipantRoles);
-                        } elseif ($r === 'training_manager') {
-                            $expanded = array_merge($expanded, array_values(array_intersect($tmRoles, $managedRoles)));
-                        } else {
-                            $expanded[] = $r;
-                        }
+                    $selectedRoles = $this->expandManagedRoleFilters(
+                        (array) $request->roles,
+                        $managedRoles,
+                        $managedCoachRoles,
+                        $managedParticipantRoles,
+                        array_values(array_intersect($tmRoles, $managedRoles)),
+                        array_values(array_intersect($adminRoles, $managedRoles))
+                    );
+
+                    if (!empty($selectedRoles)) {
+                        $query->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $selectedRoles));
                     }
-                    $expanded = array_values(array_unique($expanded));
-                    $query->whereIn('role', array_intersect($expanded, $managedRoles));
                 }
                 if ($request->has('statuses')) $query->whereIn('status', $request->statuses);
                 $sort = $request->get('sort', 'newest');
@@ -2365,5 +2374,66 @@ class DashboardController extends Controller
                 ? 'Support ticket submitted successfully.'
                 : 'Support message sent successfully.'
         );
+    }
+
+    protected function expandManagedRoleFilters(
+        array $requestedRoles,
+        array $managedRoles,
+        array $managedCoachRoles = [],
+        array $managedParticipantRoles = [],
+        array $managedTMRoles = [],
+        array $managedAdminRoles = []
+    ): array {
+        $managedLookup = [];
+        foreach ($managedRoles as $managedRole) {
+            $managedLookup[strtolower((string) $managedRole)] = $managedRole;
+        }
+
+        $expanded = [];
+        foreach ($requestedRoles as $requestedRole) {
+            $role = strtolower(trim((string) $requestedRole));
+            if ($role === '') {
+                continue;
+            }
+
+            if (in_array($role, ['coach', 'trainer'], true)) {
+                $expanded = array_merge($expanded, $managedCoachRoles);
+                continue;
+            }
+
+            if (in_array($role, ['participant', 'trainee', 'user', 'users'], true)) {
+                $expanded = array_merge($expanded, $managedParticipantRoles);
+                continue;
+            }
+
+            if (in_array($role, ['training_manager', 'registrar'], true)) {
+                $expanded = array_merge($expanded, $managedTMRoles);
+                if (isset($managedLookup['registrar'])) {
+                    $expanded[] = $managedLookup['registrar'];
+                }
+                continue;
+            }
+
+            if (in_array($role, ['admin', 'super_admin'], true)) {
+                $expanded = array_merge($expanded, $managedAdminRoles);
+                continue;
+            }
+
+            if (isset($managedLookup[$role])) {
+                $expanded[] = $managedLookup[$role];
+            }
+        }
+
+        $normalized = [];
+        foreach ($expanded as $role) {
+            $key = strtolower((string) $role);
+            if ($key === '' || !isset($managedLookup[$key])) {
+                continue;
+            }
+
+            $normalized[$key] = $managedLookup[$key];
+        }
+
+        return array_values($normalized);
     }
 }

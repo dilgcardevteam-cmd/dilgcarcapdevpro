@@ -3318,13 +3318,20 @@ class CourseController extends Controller
 
     public function restore(Request $request, $id)
     {
-        $course = Course::onlyTrashed()->findOrFail($id);
-        $course->restore();
+        $course = Course::withTrashed()->findOrFail($id);
+        $wasTrashed = $course->trashed();
+
+        if ($wasTrashed) {
+            $course->restore();
+        }
+
+        $course->is_published = true;
+        $course->save();
 
         // Activate coach/trainer pivot so they can enter class after admin approval
         try {
             $coachIds = $course->users()
-                ->whereIn('role', ['coach','trainer'])
+                ->whereIn('role', ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'])
                 ->pluck('users.id')
                 ->toArray();
             foreach ($coachIds as $uid) {
@@ -3336,6 +3343,12 @@ class CourseController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+
+        \Log::info('Course approved for publication.', [
+            'course_id' => $course->id,
+            'approved_by' => auth()->id(),
+            'was_trashed' => $wasTrashed,
+        ]);
 
         if ($request->boolean('embedded')) {
             session()->flash('success_course', 'Course unarchived successfully.');
@@ -3362,7 +3375,7 @@ class CourseController extends Controller
         }
 
         return redirect()->route('dashboard', ['tab' => 'course-management'])
-            ->with('success_course', 'Course unarchived successfully.');
+            ->with('success_course', 'Course approved successfully.');
     }
 
     public function forceDelete($id)
