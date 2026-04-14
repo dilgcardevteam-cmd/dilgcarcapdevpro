@@ -43,8 +43,12 @@ class DashboardController extends Controller
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
         $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
         $portal = strtolower((string) $request->query('portal', ''));
-        $canCoachPortal = $user->hasPermission('view_courses_coach') || $user->hasPermission('view_classes') || $user->hasPermission('view_communication');
-        $canParticipantPortal = $user->hasPermission('view_modules');
+        $isSuperAdmin = strtolower((string) ($user?->role ?? '')) === 'super_admin';
+        if ($isSuperAdmin) {
+            $portal = 'admin';
+        }
+        $canCoachPortal = !$isSuperAdmin && ($user->hasPermission('view_courses_coach') || $user->hasPermission('view_classes') || $user->hasPermission('view_communication'));
+        $canParticipantPortal = !$isSuperAdmin && $user->hasPermission('view_modules');
         $canAdminPortal = $user->hasPermission('view_users')
             || $user->hasPermission('create_users')
             || $user->hasPermission('edit_users')
@@ -52,9 +56,9 @@ class DashboardController extends Controller
             || $user->hasPermission('view_monitoring')
             || $user->hasPermission('view_access_control')
             || $user->hasPermission('edit_access_control');
-        $canTmPortal = $user->hasPermission('view_training')
+        $canTmPortal = !$isSuperAdmin && ($user->hasPermission('view_training')
             || $user->hasPermission('view_users_tm')
-            || $user->hasPermission('update_users_tm');
+            || $user->hasPermission('update_users_tm'));
         $roleForView = $user->role;
         if ($portal === 'admin' && $canAdminPortal) {
             $roleForView = 'admin';

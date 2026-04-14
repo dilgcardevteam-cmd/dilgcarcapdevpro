@@ -1943,7 +1943,7 @@
                         @endif
                     </ul>
                 </li>
-                @if(Auth::user()->hasPermission('view_modules'))
+                @if(Auth::user()->role !== 'super_admin' && Auth::user()->hasPermission('view_modules'))
                 <li class="nav-portal" id="portal-dropdown-participant">
                     <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
                         <i class="fas fa-layer-group nav-icon"></i>
@@ -1978,7 +1978,7 @@
                     </ul>
                 </li>
                 @endif
-                @if(Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm'))
+                @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm')))
                 <li class="nav-portal" id="portal-dropdown-tm">
                     <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
                         <i class="fas fa-layer-group nav-icon"></i>

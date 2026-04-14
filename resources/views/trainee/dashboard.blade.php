@@ -1268,7 +1268,7 @@
                         </li>
                     </ul>
                 </li>
-                @if(Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication'))
+                @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication')))
                 <li class="nav-portal" id="portal-dropdown-coach">
                     <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
                         <i class="fas fa-layer-group nav-icon"></i>
@@ -1366,7 +1366,7 @@
                     </ul>
                 </li>
                 @endif
-                @if(Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm'))
+                @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm')))
                 <li class="nav-portal" id="portal-dropdown-tm">
                     <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
                         <i class="fas fa-layer-group nav-icon"></i>

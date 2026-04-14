@@ -4242,6 +4242,7 @@
             <ul class="sidebar-menu">
                 @php
                     $portalQuery = strtolower((string) request()->query('portal', ''));
+                    $isSuperAdmin = Auth::user()->role === 'super_admin';
                     $adminPortalActive = ($portalQuery === '' || $portalQuery === 'admin')
                         && (
                             (!request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab'))
@@ -4251,8 +4252,8 @@
                     $coachPortalActive = ($portalQuery === 'coach');
                     $participantPortalActive = ($portalQuery === 'participant');
                     $tmPortalActive = in_array($portalQuery, ['tm', 'training_manager'], true);
-                    $canCoachPortal = Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication');
-                    $canParticipantPortal = Auth::user()->hasPermission('view_modules');
+                    $canCoachPortal = !$isSuperAdmin && (Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication'));
+                    $canParticipantPortal = !$isSuperAdmin && Auth::user()->hasPermission('view_modules');
                     $canAdminPortal = Auth::user()->hasPermission('view_users')
                         || Auth::user()->hasPermission('create_users')
                         || Auth::user()->hasPermission('edit_users')
@@ -4260,9 +4261,9 @@
                         || Auth::user()->hasPermission('view_monitoring')
                         || Auth::user()->hasPermission('view_access_control')
                         || Auth::user()->hasPermission('edit_access_control');
-                    $canTmPortal = Auth::user()->hasPermission('view_training')
+                    $canTmPortal = !$isSuperAdmin && (Auth::user()->hasPermission('view_training')
                         || Auth::user()->hasPermission('view_users_tm')
-                        || Auth::user()->hasPermission('update_users_tm');
+                        || Auth::user()->hasPermission('update_users_tm'));
                 @endphp
                 @if($canAdminPortal)
                 <li class="menu-dropdown {{ $adminPortalActive ? 'open' : '' }}" id="portal-dropdown-admin">
