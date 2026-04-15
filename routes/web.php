@@ -15,6 +15,7 @@ use App\Http\Controllers\ClassAnnouncementController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AccessController;
+use App\Http\Controllers\MediaController;
 
 Route::get('/', function () {
     $displayUsers = \App\Models\User::where('display_type', 'our_team')->get();
@@ -22,6 +23,10 @@ Route::get('/', function () {
     $pastTrainees = \App\Models\User::where('display_type', 'past_trainees')->get();
     return view('landing', compact('displayUsers', 'certifications', 'pastTrainees'));
 });
+
+Route::get('/media/{path}', [MediaController::class, 'public'])
+    ->where('path', '.*')
+    ->name('media.public');
 
 Route::get('/subject/{slug}', [SubjectController::class, 'show'])->name('subject.show');
 

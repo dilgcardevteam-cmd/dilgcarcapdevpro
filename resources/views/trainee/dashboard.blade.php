@@ -2799,7 +2799,10 @@
             })();
             
             const hero = document.getElementById('detail-hero');
-            hero.style.backgroundImage = `url('${course.image_path || "https://via.placeholder.com/800x300?text=No+Image"}')`;
+            const heroUrl = course.image_url
+                || (course.image_path ? `${storageBaseUrl}/${course.image_path}` : null)
+                || "https://via.placeholder.com/800x300?text=No+Image";
+            hero.style.backgroundImage = `url('${heroUrl}')`;
 
             // Render curriculum accordion in Topics tab
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');

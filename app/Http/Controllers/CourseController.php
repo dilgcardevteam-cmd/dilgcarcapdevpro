@@ -2252,7 +2252,7 @@ class CourseController extends Controller
             $path = $request->file('image')->store('course_images', 'public');
             $course->update(['image_path' => $path]);
             $ver = optional($course->updated_at)->timestamp ?? time();
-            $url = asset('storage/' . $path) . '?v=' . $ver;
+            $url = route('media.public', ['path' => $path]) . '?v=' . $ver;
             return response()->json(['ok' => true, 'url' => $url]);
         } catch (\Throwable $e) {
             \Log::error('trainerUpdateImage failed', ['course' => $course->id, 'error' => $e->getMessage()]);
@@ -3009,7 +3009,7 @@ class CourseController extends Controller
             $path = $request->file('image')->store('course_content', 'public');
             return response()->json([
                 'ok' => true,
-                'url' => asset('storage/' . $path),
+                'url' => route('media.public', ['path' => $path]),
                 'path' => $path,
             ]);
         } catch (\Throwable $e) {

@@ -391,8 +391,14 @@ class User extends Authenticatable
             return $pic;
         }
 
+        if (str_starts_with($pic, 'storage/')) {
+            $pic = substr($pic, strlen('storage/'));
+        }
+        if (str_starts_with($pic, 'public/')) {
+            $pic = substr($pic, strlen('public/'));
+        }
         $v = optional($this->updated_at)->timestamp ?? time();
-        return asset('storage/' . $pic) . '?v=' . $v;
+        return route('media.public', ['path' => $pic]) . '?v=' . $v;
     }
 
     public function setAvatarFromUpload($file): void

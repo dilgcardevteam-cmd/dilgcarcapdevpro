@@ -13,6 +13,8 @@ class Course extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
+    protected $appends = ['image_url'];
+
     protected $fillable = [
         'name',
         'description',
@@ -135,10 +137,25 @@ class Course extends Model
         }
 
         if (filter_var($path, FILTER_VALIDATE_URL)) {
+            $parsedPath = (string) (parse_url($path, PHP_URL_PATH) ?? '');
+            if (str_contains($parsedPath, '/storage/')) {
+                $after = substr($parsedPath, strpos($parsedPath, '/storage/') + strlen('/storage/'));
+                $after = ltrim($after, '/');
+                if ($after !== '') {
+                    $v = optional($this->updated_at)->timestamp ?? time();
+                    return route('media.public', ['path' => $after]) . '?v=' . $v;
+                }
+            }
             return $path;
         }
 
         $normalized = ltrim($path, '/');
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, strlen('storage/'));
+        }
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, strlen('public/'));
+        }
         $extension = strtolower(pathinfo($normalized, PATHINFO_EXTENSION));
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
@@ -155,7 +172,7 @@ class Course extends Model
         }
 
         $v = optional($this->updated_at)->timestamp ?? time();
-        return asset('storage/' . $normalized) . '?v=' . $v;
+        return route('media.public', ['path' => $normalized]) . '?v=' . $v;
     }
 
     public function users()
