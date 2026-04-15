@@ -5211,8 +5211,8 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse(($roles ?? []) as $role)
-                                            @php $formId = 'roleForm-'.$role->id; @endphp
+                                        @forelse(collect($roles ?? [])->filter(fn ($role) => is_object($role)) as $role)
+                                            @php $formId = 'roleForm-'.($role->id ?? '0'); @endphp
                                             <tr>
                                                 <td>
                                                     <input class="input-pro" type="text" name="name" value="{{ $role->name }}" disabled form="{{ $formId }}">
@@ -5796,9 +5796,9 @@
                                 <select id="filterDropdown" onchange="addFilter(this.value)" class="filter-select">
                                     <option value="">+ Add Filter</option>
                                     <optgroup label="Roles">
-                                        @foreach(($roles ?? []) as $role)
-                                            <option value="role:{{ $role->name }}">
-                                                {{ $role->display_name ?? ucfirst(str_replace('_',' ', $role->name)) }}
+                                        @foreach(collect($roles ?? [])->filter(fn ($role) => is_object($role)) as $role)
+                                            <option value="role:{{ $role->name ?? '' }}">
+                                                {{ $role->display_name ?? ucfirst(str_replace('_',' ', $role->name ?? '')) }}
                                             </option>
                                         @endforeach
                                     </optgroup>
@@ -5829,8 +5829,8 @@
 
                         <!-- Hidden inputs for form submission -->
                         <div id="hiddenFilterInputs">
-                            @foreach(($roles ?? []) as $role)
-                                <input type="checkbox" name="roles[]" value="{{ $role->name }}" class="filter-checkbox" {{ in_array($role->name, request('roles', [])) ? 'checked' : '' }} hidden>
+                            @foreach(collect($roles ?? [])->filter(fn ($role) => is_object($role)) as $role)
+                                <input type="checkbox" name="roles[]" value="{{ $role->name ?? '' }}" class="filter-checkbox" {{ in_array($role->name ?? '', request('roles', [])) ? 'checked' : '' }} hidden>
                             @endforeach
                             
                             <input type="checkbox" name="statuses[]" value="active" class="filter-checkbox" {{ in_array('active', request('statuses', [])) ? 'checked' : '' }} hidden>

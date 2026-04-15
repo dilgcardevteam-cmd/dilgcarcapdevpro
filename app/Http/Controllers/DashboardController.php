@@ -184,7 +184,7 @@ class DashboardController extends Controller
                     $query->orderBy('created_at', 'desc');
                 }
                 $users = $query->paginate(8)->appends($request->query());
-                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
+                $roleDisplay = Role::pluck('display_name','name')->toArray();
 
                 $activityLogs = ActivityLog::with('user')->latest()->take(30)->get();
 
@@ -328,13 +328,13 @@ class DashboardController extends Controller
                     $query->orderBy('created_at', 'desc');
                 }
                 $users = $query->paginate(8)->appends($request->query());
-                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
+                $roleDisplay = Role::pluck('display_name','name')->toArray();
 
                 if ($request->ajax()) {
                     return view('registrar.partials.users-table', compact('users', 'roleDisplay'))->render();
                 }
 
-                $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
+                $availableRoles = Role::whereIn('name', $managedRoles)->get();
 
                 // Calculate counts for the dashboard donut charts
                 $userQuery = User::whereIn('role', $managedRoles)->where($registrarScope);
@@ -595,12 +595,12 @@ class DashboardController extends Controller
                 elseif ($sort === 'alpha') $query->orderBy('name', 'asc');
                 else $query->orderBy('created_at', 'desc');
                 $users = $query->paginate(8)->appends($request->query());
-                $roleDisplay = \App\Models\Role::pluck('display_name','name')->toArray();
+                $roleDisplay = Role::pluck('display_name','name')->toArray();
                 if ($request->ajax()) {
                     return view('registrar.partials.users-table', compact('users','roleDisplay'))->render();
                 }
 
-                $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
+                $availableRoles = Role::whereIn('name', $managedRoles)->get();
 
                 // Calculate counts for the dashboard donut charts scoped to TM
                 $userQuery = User::whereIn('role', $managedRoles)->where('profile_completed', true);
@@ -726,6 +726,10 @@ class DashboardController extends Controller
 
                 $progressData = [];
                 foreach ($classroomCourses as $course) {
+                    if (!$course instanceof Course) {
+                        continue;
+                    }
+
                     $progress = $course->getCourseProgress($user);
                     $progress['total_modules'] = count($course->modules ?? []);
                     $progressData[$course->id] = $progress;
@@ -790,18 +794,18 @@ class DashboardController extends Controller
                 // Add Course start and end dates as calendar events
                 foreach ($myCourses as $course) {
                     if ($course->start_date) {
-                        $calendarEvents->push(new CalendarEvent([
+                        $calendarEvents->push((object) [
                             'title' => $course->name . ' (Starts)',
-                            'start_time' => $course->start_date->startOfDay(),
+                            'start_time' => \Illuminate\Support\Carbon::parse($course->start_date)->startOfDay(),
                             'type' => 'class',
-                        ]));
+                        ]);
                     }
                     if ($course->end_date) {
-                        $calendarEvents->push(new CalendarEvent([
+                        $calendarEvents->push((object) [
                             'title' => $course->name . ' (Ends)',
-                            'start_time' => $course->end_date->endOfDay(),
+                            'start_time' => \Illuminate\Support\Carbon::parse($course->end_date)->endOfDay(),
                             'type' => 'deadline',
-                        ]));
+                        ]);
                     }
                 }
 
@@ -865,6 +869,10 @@ class DashboardController extends Controller
 
         $progressData = [];
         foreach ($classroomCourses as $course) {
+            if (!$course instanceof Course) {
+                continue;
+            }
+
             $progress = $course->getCourseProgress($user);
             $progress['total_modules'] = count($course->modules ?? []);
             $progressData[$course->id] = $progress;
@@ -888,18 +896,18 @@ class DashboardController extends Controller
 
         foreach ($myCourses as $course) {
             if ($course->start_date) {
-                $calendarEvents->push(new CalendarEvent([
+                $calendarEvents->push((object) [
                     'title' => $course->name . ' (Starts)',
-                    'start_time' => $course->start_date->startOfDay(),
+                    'start_time' => \Illuminate\Support\Carbon::parse($course->start_date)->startOfDay(),
                     'type' => 'class',
-                ]));
+                ]);
             }
             if ($course->end_date) {
-                $calendarEvents->push(new CalendarEvent([
+                $calendarEvents->push((object) [
                     'title' => $course->name . ' (Ends)',
-                    'start_time' => $course->end_date->endOfDay(),
+                    'start_time' => \Illuminate\Support\Carbon::parse($course->end_date)->endOfDay(),
                     'type' => 'deadline',
-                ]));
+                ]);
             }
         }
 
@@ -1080,7 +1088,9 @@ class DashboardController extends Controller
         // Update User Role Permissions
         $actor = Auth::user();
         if ($actor && in_array($actor->role, ['super_admin', 'admin'], true)) {
-            $roleModel = \App\Models\Role::whereRaw('LOWER(name) = ?', [strtolower($user->role)])->first();
+            $roleModel = Role::where('name', $user->role)
+                ->orWhere('name', strtolower((string) $user->role))
+                ->first();
             if ($roleModel) {
                 if ($request->has('permissions_data')) {
                     $checkedIds = json_decode($request->input('permissions_data'), true);
@@ -1125,7 +1135,7 @@ class DashboardController extends Controller
             try {
                 Mail::to($user->email)->send(new AccountApproved($user));
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send approval email to ' . $user->email . ': ' . $e->getMessage());
+                Log::error('Failed to send approval email to ' . $user->email . ': ' . $e->getMessage());
             }
         }
 
@@ -1163,8 +1173,8 @@ class DashboardController extends Controller
                 'to_role' => 'training_manager',
                 'meta_json' => json_encode(['ip' => $request->ip()]),
             ]);
-            foreach (\App\Models\User::where('role','admin')->get() as $admin) {
-                \App\Models\Notification::create([
+            foreach (User::where('role','admin')->get() as $admin) {
+                Notification::create([
                     'user_id' => $admin->id,
                     'title' => 'Role Change',
                     'message' => "{$user->name} has been converted from Registrar to Training Manager.",
@@ -1173,7 +1183,7 @@ class DashboardController extends Controller
                     'link' => route('dashboard', ['tab' => 'user-management', 'search' => $user->name]),
                 ]);
             }
-            \App\Models\Notification::create([
+            Notification::create([
                 'user_id' => $user->id,
                 'title' => 'Role Updated',
                 'message' => "Your account has been converted to Training Manager.",
@@ -1422,19 +1432,19 @@ class DashboardController extends Controller
         if ($request->filled('profile_picture_cropped')) {
             $data = $request->input('profile_picture_cropped');
             if ($user->profile_picture) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
+                Storage::disk('public')->delete($user->profile_picture);
             }
             if (preg_match('/^data:image\\/(png|jpeg);base64,/', $data, $m)) {
                 $data = substr($data, strpos($data, ',') + 1);
                 $bin = base64_decode($data);
                 $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
                 $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $bin);
+                Storage::disk('public')->put($path, $bin);
                 $user->profile_picture = $path;
             }
         } elseif ($request->hasFile('profile_picture')) {
             if ($user->profile_picture) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
+                Storage::disk('public')->delete($user->profile_picture);
             }
             $path = $request->file('profile_picture')->store('profile_pictures', 'public');
             $user->profile_picture = $path;
@@ -1506,7 +1516,7 @@ class DashboardController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function courseTrainees(\App\Models\Course $course)
+    public function courseTrainees(Course $course)
     {
         $actor = Auth::user();
         $scopedParticipantRoles = [];
