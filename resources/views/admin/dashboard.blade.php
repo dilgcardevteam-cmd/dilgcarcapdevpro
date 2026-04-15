@@ -7253,7 +7253,7 @@
                     };
                     $adminAccessRole = $pickAccessRole(['admin', 'central_office_admin', 'regional_office_admin', 'provincial_office_admin', 'registrar'], 'admin');
                     $managerAccessRole = $pickAccessRole(['training_manager', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'], 'training_manager');
-                    $coachAccessRole = $pickAccessRole(['trainer', 'coach', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'], 'trainer');
+                    $coachAccessRole = $pickAccessRole(['coach', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'], 'coach');
                     $participantAccessRole = $pickAccessRole(['participant', 'trainee', 'central_office_participants', 'regional_office_participants', 'provincial_office_participants'], 'participant');
                 @endphp
                 <div class="modal-tabs" role="tablist" style="display:flex;gap:8px;border-bottom:1px solid #e5e7eb;margin:8px 0 14px;">

@@ -71,7 +71,10 @@ class User extends Authenticatable
 
     protected static function booted()
     {
-        // Removed auto-generation on creating as per requirement to generate only after approval
+        static::saving(function (self $user) {
+            $user->normalizeRoleForOffice();
+            $user->ensureStandardAccountId();
+        });
     }
 
     public function hasPermission(string $permission): bool
@@ -132,47 +135,148 @@ class User extends Authenticatable
         return $this->hasPermission('view_reports');
     }
 
-    public static function generateAccountId(string $role): string
+    public static function generateAccountId(string $role, ?string $region = null): string
     {
         $yy = now()->format('y');
-        
-        $roleCodes = [
-            // Normal Users
-            'admin' => 'LOA',
-            'training_manager' => 'LOT',
-            'coach' => 'LOC',
-            'participant' => 'LOP',
-            'trainee' => 'LOP', // Mapping trainee to LOP as per request pattern
-            
-            // DILG Central Office
-            'central_office_admin' => 'COA',
-            'central_office_training_manager' => 'COT',
-            'central_office_coach' => 'COC',
-            'central_office_participants' => 'COP',
-            
-            // DILG Regional Office
-            'regional_office_admin' => 'ROA',
-            'regional_office_training_manager' => 'ROT',
-            'regional_office_coach' => 'ROC',
-            'regional_office_participants' => 'ROP',
-            
-            // DILG Provincial Office
-            'provincial_office_admin' => 'POA',
-            'provincial_office_training_manager' => 'POT',
-            'provincial_office_coach' => 'POC',
-            'provincial_office_participants' => 'POP',
-        ];
-
-        $code = $roleCodes[$role] ?? 'USER';
+        $code = self::roleCodeFor($role, $region);
         
         // Loop until we find a unique random ID
         do {
-            $randomNum = str_pad((string)rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $randomNum = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             $accountId = "{$yy}-{$randomNum}-{$code}";
             $exists = self::where('account_id', $accountId)->exists();
         } while ($exists);
 
         return $accountId;
+    }
+
+    public static function roleCodeFor(string $role, ?string $region = null): string
+    {
+        $key = strtolower(trim($role));
+        $regionKey = strtolower(trim((string) $region));
+        $office = '';
+        if ($regionKey === 'dilg central office' || str_contains($regionKey, 'central office')) $office = 'co';
+        if ($regionKey === 'dilg regional office' || str_contains($regionKey, 'regional office')) $office = 'ro';
+        if ($regionKey === 'dilg provincial office' || str_contains($regionKey, 'provincial office')) $office = 'po';
+
+        if ($office !== '') {
+            if (in_array($key, ['admin'], true)) return strtoupper($office) . 'A';
+            if (in_array($key, ['training_manager', 'registrar'], true)) return strtoupper($office) . 'T';
+            if (in_array($key, ['coach', 'trainer'], true)) return strtoupper($office) . 'C';
+            if (in_array($key, ['participant', 'trainee'], true)) return strtoupper($office) . 'P';
+        }
+
+        $roleCodes = [
+            'super_admin' => 'LOA',
+            'admin' => 'LOA',
+            'training_manager' => 'LOT',
+            'coach' => 'LOC',
+            'trainer' => 'LOC',
+            'participant' => 'LOP',
+            'trainee' => 'LOP',
+
+            'central_office_admin' => 'COA',
+            'central_office_training_manager' => 'COT',
+            'central_office_coach' => 'COC',
+            'central_office_participant' => 'COP',
+            'central_office_participants' => 'COP',
+
+            'regional_office_admin' => 'ROA',
+            'regional_office_training_manager' => 'ROT',
+            'regional_office_coach' => 'ROC',
+            'regional_office_participant' => 'ROP',
+            'regional_office_participants' => 'ROP',
+
+            'provincial_office_admin' => 'POA',
+            'provincial_office_training_manager' => 'POT',
+            'provincial_office_coach' => 'POC',
+            'provincial_office_participant' => 'POP',
+            'provincial_office_participants' => 'POP',
+        ];
+
+        return $roleCodes[$key] ?? 'UNK';
+    }
+
+    public static function isStandardAccountId(?string $accountId): bool
+    {
+        if ($accountId === null) return false;
+        $accountId = trim($accountId);
+        if ($accountId === '') return false;
+        return (bool) preg_match('/^\d{2}-\d{4}-[A-Z]{3}$/', $accountId);
+    }
+
+    public function ensureStandardAccountId(): bool
+    {
+        $status = strtolower((string) ($this->status ?? ''));
+        $role = trim((string) ($this->role ?? ''));
+        if ($status !== 'active' || $role === '') {
+            return false;
+        }
+
+        $expectedCode = self::roleCodeFor($role, $this->region);
+        $current = trim((string) ($this->account_id ?? ''));
+        if (!self::isStandardAccountId($current)) {
+            $this->account_id = self::generateAccountId($role, $this->region);
+            return true;
+        }
+
+        $parts = explode('-', $current);
+        $code = $parts[2] ?? '';
+        if ($code !== $expectedCode) {
+            $this->account_id = self::generateAccountId($role, $this->region);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function normalizeRoleForOffice(): bool
+    {
+        $rawRole = strtolower(trim((string) ($this->role ?? '')));
+        if ($rawRole === '') return false;
+
+        $changed = false;
+
+        if ($rawRole === 'trainer') {
+            $rawRole = 'coach';
+            $changed = true;
+        }
+
+        if ($rawRole === 'registrar') {
+            $rawRole = 'training_manager';
+            $changed = true;
+        }
+
+        $regionKey = strtolower(trim((string) ($this->region ?? '')));
+        $office = '';
+        if ($regionKey === 'dilg central office' || str_contains($regionKey, 'central office')) $office = 'central';
+        if ($regionKey === 'dilg regional office' || str_contains($regionKey, 'regional office')) $office = 'regional';
+        if ($regionKey === 'dilg provincial office' || str_contains($regionKey, 'provincial office')) $office = 'provincial';
+
+        if ($office !== '') {
+            $alreadyOfficeRole = str_starts_with($rawRole, 'central_office_')
+                || str_starts_with($rawRole, 'regional_office_')
+                || str_starts_with($rawRole, 'provincial_office_');
+
+            if (!$alreadyOfficeRole) {
+                $mapped = null;
+                if ($rawRole === 'admin') $mapped = "{$office}_office_admin";
+                if ($rawRole === 'training_manager') $mapped = "{$office}_office_training_manager";
+                if ($rawRole === 'coach') $mapped = "{$office}_office_coach";
+                if ($rawRole === 'participant' || $rawRole === 'trainee') $mapped = "{$office}_office_participants";
+
+                if ($mapped) {
+                    $rawRole = $mapped;
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed) {
+            $this->role = $rawRole;
+        }
+
+        return $changed;
     }
 
     public function courses()

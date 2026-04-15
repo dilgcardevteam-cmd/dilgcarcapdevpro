@@ -148,29 +148,6 @@ class DashboardController extends Controller
                 $query = User::query()
                     ->whereIn('role', $managedRoles)
                     ->where('profile_completed', true);
-                if ($request->get('tab') === 'user-management') {
-                    $excludedRoles = [
-                        'provincial_office_coach',
-                        'provincial_office_participants',
-                        'regional_office_coach',
-                        'regional_office_participants',
-                        'provincial_office_admin',
-                        'central_office_coach',
-                        'provincial_office_training_manager',
-                        'central_office_participants',
-                        'regional_office_admin',
-                        'regional_office_training_manager',
-                        'central_office_admin',
-                        'central_office_training_manager',
-                        'super_admin',
-                    ];
-                    
-                    // Don't exclude the current user's role if they are one of these admins
-                    $myRole = $user->role;
-                    $excludedRoles = array_diff($excludedRoles, [$myRole]);
-                    
-                    $query->whereNotIn('role', $excludedRoles);
-                }
 
                 // Search by Name
                 if ($request->filled('search')) {
@@ -1037,7 +1014,7 @@ class DashboardController extends Controller
 
             // Auto-generate Account ID if approving for the first time
             if ($validated['status'] === 'active' && empty($user->account_id)) {
-                $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role);
+                $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role, $user->region);
             }
 
             $user->update($validated);
@@ -1095,7 +1072,7 @@ class DashboardController extends Controller
         $becomingActive = isset($validated['status']) && $validated['status'] === 'active';
 
         if ($becomingActive && empty($user->account_id)) {
-            $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role);
+            $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role, $validated['region'] ?? $user->region);
         }
 
         $user->update($validated);

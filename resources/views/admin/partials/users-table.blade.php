@@ -22,6 +22,15 @@
                             ? trim($user->region ?? '')
                             : trim(($user->city ?? '') . (($user->city && $user->province) ? ', ' : '') . ($user->province ?? ''));
                         $roleMap = isset($roleDisplay) && is_array($roleDisplay) ? $roleDisplay : [];
+                        if ($rawRole === 'trainer') {
+                            $roleMap['trainer'] = 'Coach';
+                        }
+                        if ($rawRole === 'training_manager') {
+                            $regionName = trim((string) ($user->region ?? ''));
+                            if ($regionName === 'DILG Central Office') $roleMap['training_manager'] = 'Central Office Training Manager';
+                            if ($regionName === 'DILG Regional Office') $roleMap['training_manager'] = 'Regional Office Training Manager';
+                            if ($regionName === 'DILG Provincial Office') $roleMap['training_manager'] = 'Provincial Office Training Manager';
+                        }
                         $knownRoles = [
                             'super_admin','admin','registrar',
                             'training_manager','coach','trainer','trainee','participant',
