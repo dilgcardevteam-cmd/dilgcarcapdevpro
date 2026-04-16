@@ -143,7 +143,7 @@ class Course extends Model
                 $after = ltrim($after, '/');
                 if ($after !== '') {
                     $v = optional($this->updated_at)->timestamp ?? time();
-                    return route('media.public', ['path' => $after]) . '?v=' . $v;
+                    return route('media.public', ['path' => $after], false) . '?v=' . $v;
                 }
             }
             return $path;
@@ -172,7 +172,7 @@ class Course extends Model
         }
 
         $v = optional($this->updated_at)->timestamp ?? time();
-        return route('media.public', ['path' => $normalized]) . '?v=' . $v;
+        return route('media.public', ['path' => $normalized], false) . '?v=' . $v;
     }
 
     public function users()

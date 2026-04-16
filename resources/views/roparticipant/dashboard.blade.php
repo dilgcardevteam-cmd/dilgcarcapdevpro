@@ -605,7 +605,7 @@
                 <div class="course-grid">
                     @forelse($myCourses as $course)
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainee.courses.show', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainee.courses.show', $course) }}';}">
-                            <div class="course-image" style="background-image: url('{{ $course->image_path ? asset('storage/' . $course->image_path) : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
+                            <div class="course-image" style="background-image: url('{{ $course->image_path ? $course->image_url : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
@@ -638,7 +638,7 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $courseImage = asset('storage/' . $course->image_path);
+                                    $courseImage = $course->image_url;
                                 } else {
                                     $courseNameLower = strtolower($course->name);
                                     if (str_contains($courseNameLower, 'research')) {
@@ -736,18 +736,7 @@
                         @endphp
                         <div class="course-card" style="cursor: pointer;" role="link" tabindex="0" onclick="{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();{{ $st === 'pending' ? "openCourseDetails({$course->id})" : "window.location.href='" . route('trainee.courses.show', $course) . "'" }};}">
                             @php
-                                $img = null;
-                                if (!empty($course->image_path)) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $img = asset('storage/' . $course->image_path);
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $img = asset('images/' . ltrim($course->image_path, '/'));
-                                        }
-                                    }
-                                }
+                                $img = !empty($course->image_path) ? $course->image_url : null;
                                 if (!$img) {
                                     $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
                                 }
@@ -1625,11 +1614,7 @@
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
             document.getElementById('detail-trainer').innerText = "Coach: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
             const hero = document.getElementById('detail-hero');
-            if (course.image_path) {
-                hero.style.backgroundImage = `url('${storageBaseUrl}/${course.image_path}')`;
-            } else {
-                hero.style.backgroundImage = "url('https://via.placeholder.com/800x300?text=No+Image')";
-            }
+            hero.style.backgroundImage = `url('${course.image_url || "https://via.placeholder.com/800x300?text=No+Image"}')`;
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');
             enableCurriculumSelection('curriculum-list');
             const status = courseStatuses[courseId] || null;

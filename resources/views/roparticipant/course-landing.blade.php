@@ -809,19 +809,7 @@
             <div class="hero">
                 <div class="hero-top">
                     @php
-                        $hero = null;
-                        if (!empty($course->image_path)) {
-                            $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
-                            $p1 = public_path('storage/' . $course->image_path);
-                            if (file_exists($p1)) {
-                                $hero = asset('storage/' . $course->image_path) . '?v=' . $ver;
-                            } else {
-                                $p2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                if (file_exists($p2)) {
-                                    $hero = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
-                                }
-                            }
-                        }
+                        $hero = $course->image_path ? $course->image_url : null;
                     @endphp
                     @if ($hero)
                         <img src="{{ $hero }}" alt="Course banner">

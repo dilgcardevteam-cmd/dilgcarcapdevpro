@@ -2244,15 +2244,7 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $courseImage = asset('storage/' . $course->image_path);
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
-                                        }
-                                    }
+                                    $courseImage = $course->image_url;
                                 }
                                 if (!$courseImage) {
                                     $courseNameLower = strtolower($course->name);
@@ -2339,15 +2331,7 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $courseImage = asset('storage/' . $course->image_path);
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
-                                        }
-                                    }
+                                    $courseImage = $course->image_url;
                                 }
                                 if (!$courseImage) {
                                     // Fallback to local images based on course name
@@ -2435,15 +2419,7 @@
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $courseImage = asset('storage/' . $course->image_path);
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $courseImage = asset('images/' . ltrim($course->image_path, '/'));
-                                        }
-                                    }
+                                    $courseImage = $course->image_url;
                                 }
                                 if (!$courseImage) {
                                     // Fallback to local images based on course name
@@ -3502,11 +3478,7 @@
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
             
             const hero = document.getElementById('detail-hero');
-            if (course.image_path) {
-                hero.style.backgroundImage = `url('${storageBaseUrl}/${course.image_path}')`;
-            } else {
-                hero.style.backgroundImage = "url('https://via.placeholder.com/800x300?text=No+Image')";
-            }
+            hero.style.backgroundImage = `url('${course.image_url || "https://via.placeholder.com/800x300?text=No+Image"}')`;
 
             // Populate People
             renderPeople(course.users);

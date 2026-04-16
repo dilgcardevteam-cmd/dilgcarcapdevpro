@@ -6169,18 +6169,7 @@
                              onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
                              style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
                             @php
-                                $img = null;
-                                if (!empty($course->image_path)) {
-                                    $path = public_path('storage/' . $course->image_path);
-                                    if (file_exists($path)) {
-                                        $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
-                                    } else {
-                                        $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                        if (file_exists($path2)) {
-                                            $img = asset('images/' . ltrim($course->image_path, '/')) . '?v=' . $ver;
-                                        }
-                                    }
-                                }
+                                $img = !empty($course->image_path) ? $course->image_url : null;
                                 if (!$img) {
                                     $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
                                 }
@@ -6576,13 +6565,7 @@
                                 <div class="cert-card">
                                     @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
                                     @php
-                                        $img = null;
-                                        if (!empty($course->image_path)) {
-                                            $path = public_path('storage/' . $course->image_path);
-                                            if (file_exists($path)) {
-                                                $img = asset('storage/' . $course->image_path) . '?v=' . $ver;
-                                            }
-                                        }
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
                                         if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
                                         if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
                                         $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
@@ -6650,11 +6633,7 @@
                         <div id="courseLibraryContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
                             @foreach($courses as $course)
                                 @php
-                                    $img = null;
-                                    if (!empty($course->image_path)) {
-                                        $path = public_path('storage/' . $course->image_path);
-                                        if (file_exists($path)) { $img = asset('storage/' . $course->image_path); }
-                                    }
+                                    $img = !empty($course->image_path) ? $course->image_url : null;
                                     if (!$img) {
                                         $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><text x="150" y="80" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="14" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
                                     }

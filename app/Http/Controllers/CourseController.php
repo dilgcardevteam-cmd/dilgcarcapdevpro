@@ -39,6 +39,7 @@ class CourseController extends Controller
         $html = preg_replace('/<video[^>]*>.*?<\/video>/is', '<p>[video removed]</p>', $html);
         // Remove known third-party image hosts that often return 403/hotlink failures.
         $html = preg_replace('/<(img|source|iframe)[^>]*(src|href)=["\']https?:\/\/[^"\']*googleusercontent\.com[^"\']*["\'][^>]*>/i', '', $html);
+        $html = $this->normalizeRichHtmlMediaUrls($html);
         // Safety: collapse long spaces
         $html = preg_replace('/\s{2,}/', ' ', $html);
         // Optional safety cap to avoid oversized payloads
@@ -46,6 +47,100 @@ class CourseController extends Controller
             $html = substr($html, 0, 50000) . '…';
         }
         return $html;
+    }
+
+    /**
+     * Convert editor media URLs to this app's streaming media route.
+     *
+     * Hostinger/shared hosting deployments can fail to serve /storage symlinks,
+     * and a stale APP_URL can save localhost/full-domain URLs into course HTML.
+     * Keeping course content on relative /media URLs makes trainee display
+     * independent from both issues without changing where files are stored.
+     */
+    protected function normalizeRichHtmlMediaUrls(?string $html): string
+    {
+        if (!$html) {
+            return '';
+        }
+
+        return preg_replace_callback(
+            '/\b(src|href)=([\'"])([^\'"]+)\2/i',
+            function ($matches) {
+                $attribute = $matches[1];
+                $quote = $matches[2];
+                $url = trim((string) $matches[3]);
+                $mediaPath = $this->extractPublicMediaPath($url);
+
+                if ($mediaPath === null) {
+                    return $matches[0];
+                }
+
+                return $attribute . '=' . $quote . route('media.public', ['path' => $mediaPath], false) . $quote;
+            },
+            $html
+        );
+    }
+
+    protected function extractPublicMediaPath(string $url): ?string
+    {
+        $url = trim($url);
+        if ($url === '' || str_starts_with($url, 'data:') || str_starts_with($url, 'blob:')) {
+            return null;
+        }
+
+        $path = $url;
+        if (preg_match('#^https?://#i', $url)) {
+            $parsedPath = parse_url($url, PHP_URL_PATH);
+            $path = is_string($parsedPath) ? $parsedPath : '';
+            if (!preg_match('#/(media|storage|public)/#i', $path)) {
+                return null;
+            }
+        } elseif (!preg_match('#^(media|storage|public)/#i', ltrim($path, '/'))) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+        foreach (['media/', 'storage/', 'public/'] as $prefix) {
+            $position = stripos($path, $prefix);
+            if ($position !== false) {
+                $path = substr($path, $position + strlen($prefix));
+                break;
+            }
+        }
+
+        $path = ltrim($path, '/');
+        if ($path === '' || str_contains($path, '..')) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'], true) ? $path : null;
+    }
+
+    protected function normalizeCourseMediaUrls(Course $course): void
+    {
+        $modules = $course->modules;
+        if (is_string($modules)) {
+            $modules = json_decode($modules, true) ?: [];
+        }
+        if (!is_array($modules)) {
+            return;
+        }
+
+        $course->modules = $this->normalizeModuleMediaUrls($modules);
+    }
+
+    protected function normalizeModuleMediaUrls(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if ($key === 'html' && is_string($item)) {
+                $value[$key] = $this->normalizeRichHtmlMediaUrls($item);
+            } elseif (is_array($item)) {
+                $value[$key] = $this->normalizeModuleMediaUrls($item);
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -1562,6 +1657,7 @@ class CourseController extends Controller
             'user_count' => $course->users->count(),
             'roles' => $course->users->pluck('role')->all(),
         ]);
+        $this->normalizeCourseMediaUrls($course);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -1683,6 +1779,7 @@ class CourseController extends Controller
     public function trainerView(Course $course)
     {
         $course->load(['users', 'materials', 'assessments']);
+        $this->normalizeCourseMediaUrls($course);
         // Coach view normalization: split embedded exams into a dedicated module that follows the parent module
         $mods = $course->modules;
         if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
@@ -1770,6 +1867,7 @@ class CourseController extends Controller
             'user_count' => $course->users->count(),
             'roles' => $course->users->pluck('role')->all(),
         ]);
+        $this->normalizeCourseMediaUrls($course);
         $announcements = \App\Models\ClassAnnouncement::with(['user','comments.user'])
             ->where('course_id', $course->id)
             ->orderBy('created_at', 'desc')
@@ -1861,6 +1959,7 @@ class CourseController extends Controller
             }
         }
         $course->load(['users', 'materials', 'assessments']);
+        $this->normalizeCourseMediaUrls($course);
         // Normalize modules for display for trainees as well
         $mods = $course->modules;
         if (is_string($mods)) { try { $mods = json_decode($mods, true); } catch (\Throwable $e) { $mods = []; } }
@@ -2252,7 +2351,7 @@ class CourseController extends Controller
             $path = $request->file('image')->store('course_images', 'public');
             $course->update(['image_path' => $path]);
             $ver = optional($course->updated_at)->timestamp ?? time();
-            $url = route('media.public', ['path' => $path]) . '?v=' . $ver;
+            $url = route('media.public', ['path' => $path], false) . '?v=' . $ver;
             return response()->json(['ok' => true, 'url' => $url]);
         } catch (\Throwable $e) {
             \Log::error('trainerUpdateImage failed', ['course' => $course->id, 'error' => $e->getMessage()]);
@@ -3009,7 +3108,7 @@ class CourseController extends Controller
             $path = $request->file('image')->store('course_content', 'public');
             return response()->json([
                 'ok' => true,
-                'url' => route('media.public', ['path' => $path]),
+                'url' => route('media.public', ['path' => $path], false),
                 'path' => $path,
             ]);
         } catch (\Throwable $e) {
