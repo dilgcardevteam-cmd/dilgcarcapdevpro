@@ -2323,23 +2323,11 @@
                                 @endphp
                                 <div class="course-card" style="cursor:pointer;position:relative" onclick="if(!event.target.closest('button') && !event.target.closest('form')) window.location='{{ route('registrar.courses.participants', $course) }}'">
                                     @php
-                                        $img = null;
-                                        if (!empty($course->image_path)) {
-                                            $path = public_path('storage/' . $course->image_path);
-                                            if (file_exists($path)) {
-                                                $img = asset('storage/' . $course->image_path);
-                                            } else {
-                                                $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                                if (file_exists($path2)) {
-                                                    $img = asset('images/' . ltrim($course->image_path, '/'));
-                                                }
-                                            }
-                                        }
-                                        if (!$img) {
-                                            $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
-                                        }
+                                        $img = $course->image_url;
                                     @endphp
-                                    <div class="course-image" style="background-image: url('{{ $img }}');"></div>
+                                    <div class="course-image">
+                                        <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
                                     <div class="course-content">
                                         <div class="course-title">{{ $course->name }}</div>
                                         <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
@@ -2537,24 +2525,12 @@
                                     $traineeCount = $course->users
                                         ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status === 'active')->count()
                                         : 0;
-                                    $img = null;
-                                    if (!empty($course->image_path)) {
-                                        $path = public_path('storage/' . $course->image_path);
-                                        if (file_exists($path)) {
-                                            $img = asset('storage/' . $course->image_path);
-                                        } else {
-                                            $path2 = public_path('images/' . ltrim($course->image_path, '/'));
-                                            if (file_exists($path2)) {
-                                                $img = asset('images/' . ltrim($course->image_path, '/'));
-                                            }
-                                        }
-                                    }
-                                    if (!$img) {
-                                        $img = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
-                                    }
+                                    $img = $course->image_url;
                                 @endphp
                                 <div class="course-card" style="cursor:pointer;position:relative" onclick="if(!event.target.closest('button') && !event.target.closest('form')) window.location='{{ route('registrar.courses.participants', $course, false) }}'">
-                                    <div class="course-image" style="background-image: url('{{ $img }}');"></div>
+                                    <div class="course-image">
+                                         <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                     </div>
                                     <div class="course-content">
                                         <div class="course-title">{{ $course->name }}</div>
                                         <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>

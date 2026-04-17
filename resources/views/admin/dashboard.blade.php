@@ -6059,8 +6059,8 @@
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1 class="welcome-title" style="margin: 0;">Course <strong>Management</strong></h1>
-                    <div style="display: flex; gap: 12px; align-items: center;">
+                    <h1 class="welcome-title" style="margin: 0;"> <strong>Course Management</strong></h1>
+                    <div style="display: flex; gap: 55px; align-items: center;">
                         <div style="position: relative; width: 250px;">
                             <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
                             <input type="text" id="courseSearchInput" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
@@ -6596,7 +6596,7 @@
                             <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
                                 <i class="fas fa-layer-group" style="color: #10b981;"></i> Course Library
                             </h2>
-                            <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 55px;">
                                 <div style="position: relative; width: 300px;">
                                     <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
                                     <input type="text" id="librarySearchInput" onkeyup="filterLibraryCourses()" placeholder="Search library..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">

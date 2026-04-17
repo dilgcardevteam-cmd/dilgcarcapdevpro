@@ -2266,7 +2266,8 @@
                                 $studentsCount = $course->users ? $course->users->whereIn('role', $participantRoles)->count() : 0;
                             @endphp
                             <div class="course-card" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
-                                <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                                <div class="course-image">
+                                    <img src="{{ $courseImage }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                     @if(!$course->trainer_ready)
                                         <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
                                             <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
@@ -2351,7 +2352,8 @@
                                     }
                                 }
                             @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                            <div class="course-image">
+                                <img src="{{ $courseImage }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 @if(!$course->trainer_ready)
                                     <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
                                         <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
@@ -2439,7 +2441,8 @@
                                     }
                                 }
                             @endphp
-                            <div class="course-image" style="background-image: url('{{ $courseImage }}');">
+                            <div class="course-image">
+                                <img src="{{ $courseImage }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 @if(!$course->trainer_ready)
                                     <div style="position: absolute; top: 12px; right: 12px; background: #f97316; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
                                         <i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i> Not Set
