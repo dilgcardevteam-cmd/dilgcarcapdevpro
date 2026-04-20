@@ -11,8 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfTokens(except: [
-            'logout',
+        $middleware->web(append: [
+            \App\Http\Middleware\InjectSessionTimeoutModal::class,
         ]);
 
         $middleware->alias([

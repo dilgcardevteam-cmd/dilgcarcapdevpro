@@ -551,7 +551,25 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Logged out successfully.',
+                'redirect' => route('login'),
+            ]);
+        }
+
         return redirect('/');
+    }
+
+    public function keepAlive(Request $request)
+    {
+        $request->session()->put('last_activity_keep_alive', now()->timestamp);
+        $request->session()->save();
+
+        return response()->json([
+            'ok' => true,
+            'expires_at' => now()->addMinutes(5)->timestamp,
+        ]);
     }
 
     private function sendWelcomeEmail(User $user): void
