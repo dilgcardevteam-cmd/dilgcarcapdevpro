@@ -353,7 +353,7 @@
                                     <input type="radio" name="certification_id" value="{{ $cert->id }}" {{ $course->certification_id == $cert->id ? 'checked' : '' }} style="position:absolute; opacity:0;" onchange="updateCertSelection(this)">
                                     <div class="cert-preview" style="height:160px; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                                         @if($cert->file_path)
-                                            <img src="{{ asset('storage/'.$cert->file_path) }}" alt="{{ $cert->name }}" style="width:100%; height:100%; object-fit:cover;">
+                                            <img src="{{ route('media.public', ['path' => $cert->file_path]) }}" alt="{{ $cert->name }}" style="width:100%; height:100%; object-fit:cover;">
                                         @else
                                             <i class="fas fa-certificate" style="font-size:3rem; color:#e2e8f0;"></i>
                                         @endif

@@ -6530,7 +6530,7 @@
                                     @endphp
                                     <div style="padding:14px 16px;border-top:1px solid #eef2f7">
                                         @if(in_array($ext, ['png','jpg','jpeg']))
-                                            <img src="{{ route('certifications.download', ['certification'=>$cert->id, 'inline'=>1]) }}" alt="Certificate Template" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer" onclick="openCertImagePreview('{{ route('certifications.download', ['certification'=>$cert->id, 'inline'=>1]) }}')">
+                                            <img src="{{ route('media.public', ['path' => $cert->file_path]) }}" alt="Certificate Template" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer" onclick="openCertImagePreview('{{ route('media.public', ['path' => $cert->file_path]) }}')">
                                         @else
                                             <div class="cert-empty" style="gap:12px;flex-direction:column">
                                                 <i class="fas fa-file-pdf" style="font-size:2rem;color:#0f3b8f"></i>

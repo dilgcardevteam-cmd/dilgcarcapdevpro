@@ -226,10 +226,10 @@
                                     $ext = strtolower(pathinfo($c->file_path ?? '', PATHINFO_EXTENSION));
                                     $isImg = in_array($ext, ['png','jpg','jpeg']);
                                 @endphp
-                                <div onclick="chooseCert({{ $c->id }}, '{{ addslashes($c->name) }}', '{{ addslashes($c->category ?? '—') }}')" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
+                                <div onclick="chooseCert({{ $c->id }}, '{{ addslashes($c->name) }}', '{{ addslashes($c->category ?? '—') }}', '{{ route('media.public', ['path' => $c->file_path]) }}')" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
                                     <div style="height:140px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">
                                         @if($isImg)
-                                            <img src="{{ route('certifications.download', ['certification'=>$c->id, 'inline'=>1]) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
+                                            <img src="{{ route('media.public', ['path' => $c->file_path]) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
                                         @else
                                             <div style="text-align:center;color:#0f3b8f;font-weight:800">
                                                 <i class="fas fa-file-{{ $ext==='pdf'?'pdf':'alt' }}" style="font-size:2rem"></i><div>{{ strtoupper($ext) }}</div>
@@ -387,7 +387,7 @@
         function closeCertSelectModal(){
             var m=document.getElementById('selectCertModal'); if(m){ m.style.display='none'; }
         }
-        function chooseCert(id, name, category){
+        function chooseCert(id, name, category, url){
             var hid=document.getElementById('selectedCertId');
             var nameEl=document.getElementById('certSelectedName');
             var typeEl=document.getElementById('certSelectedType');
@@ -399,8 +399,6 @@
             var ph=document.getElementById('certSelectedPlaceholder');
             var noPrev=document.getElementById('certSelectedNoPreview');
             if(img){
-                var tmpl = "{{ route('certifications.download', ['certification' => '__CID__', 'inline' => 1]) }}";
-                var url = tmpl.replace('__CID__', id);
                 if(ph){ ph.style.display='flex'; }
                 img.onerror = function(){ if(noPrev){ noPrev.style.display='block'; } img.style.display='none'; if(ph){ ph.style.display='none'; } };
                 img.onload = function(){ img.style.display='block'; if(noPrev){ noPrev.style.display='none'; } if(ph){ ph.style.display='none'; } };

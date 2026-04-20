@@ -2417,18 +2417,18 @@
                             @endif
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:32px;">
-                            <div>
+                        <div style="display:flex; gap:50px; margin-bottom:32px;">
+                            <div style="flex:1;">
                                 <label for="enrollStart" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
                                     <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Start Date
                                 </label>
-                                <input id="enrollStart" name="enrollment_start_at" type="date" style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                                <input id="enrollStart" name="enrollment_start_at" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
-                            <div>
+                            <div style="flex:1;">
                                 <label for="enrollEnd" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
                                     <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> End Date
                                 </label>
-                                <input id="enrollEnd" name="enrollment_end_at" type="date" style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                                <input id="enrollEnd" name="enrollment_end_at" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
                         </div>
 
