@@ -262,4 +262,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/discussions/{discussion}', [DiscussionController::class, 'destroyDiscussion'])->name('discussions.destroy');
     Route::delete('/admin/discussions/{discussion}/force', [DiscussionController::class, 'forceDestroyDiscussion'])->name('discussions.force-destroy');
     Route::get('/courses/{course}/discussions/updates', [DiscussionController::class, 'updates'])->name('courses.discussions.updates');
+    
 });
+
