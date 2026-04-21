@@ -58,7 +58,6 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     <i class="fas fa-chevron-down profile-caret" style="margin-left:8px"></i>
     <div id="profileDropdown" class="profile-dropdown">
       <a class="dropdown-item" href="{{ route('profile.setup') }}"><i class="fas fa-user-cog"></i> <span>Profile</span></a>
-      <a class="dropdown-item" href="{{ route('trainer.courses.create') }}"><i class="fas fa-plus-circle"></i> <span>Create Course</span></a>
       <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
       <form method="POST" action="{{ route('logout') }}" style="margin:0">@csrf<button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button></form>
     </div>
@@ -72,6 +71,9 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     <ul class="nav-menu" style="list-style:none;padding:0;margin:0">
       <li class="nav-item" style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}" class="nav-link" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-tachometer-alt nav-icon" style="width:25px;text-align:center;margin-right:15px"></i><span class="nav-text">Dashboard</span></a></li>
       <li class="nav-item" style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=my-courses" class="nav-link" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-chalkboard-teacher nav-icon" style="width:25px;text-align:center;margin-right:15px"></i><span class="nav-text">My Courses</span></a></li>
+      @if(strtolower((string) Auth::user()->role) === 'coach' && Auth::user()->hasPermission('add_courses_coach'))
+      <li class="nav-item" style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('trainer.courses.create') }}" class="nav-link {{ request()->routeIs('trainer.courses.create') ? 'active' : '' }}" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-plus-circle nav-icon" style="width:25px;text-align:center;margin-right:15px"></i><span class="nav-text">Create Course</span></a></li>
+      @endif
       <li class="nav-item" style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=calendar" class="nav-link" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-calendar-alt nav-icon" style="width:25px;text-align:center;margin-right:15px"></i><span class="nav-text">Calendar</span></a></li>
       <li class="nav-item" style="border-bottom:1px solid rgba(255,255,255,0.1)"><a href="{{ route('dashboard') }}?tab=announcements" class="nav-link" style="display:flex;align-items:center;padding:15px 25px;color:rgba(255,255,255,0.9);text-decoration:none"><i class="fas fa-bullhorn nav-icon" style="width:25px;text-align:center;margin-right:15px"></i><span class="nav-text">Announcements</span></a></li>
     </ul>

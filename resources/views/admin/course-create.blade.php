@@ -178,6 +178,50 @@
         #dynamicMenu.is-editing .dm-rail { display:none; }
         .active-section { outline:2px solid #6366f1; border-radius:10px; }
         .toggle { display:inline-flex; align-items:center; gap:6px; }
+        .course-create-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .course-create-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid #dbe4f3;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #002C76;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.92rem;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+            transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+        }
+        .course-create-back:hover {
+            background: #f8fbff;
+            border-color: #b8cae6;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+        }
+        .course-create-back i {
+            font-size: 0.95rem;
+        }
+        .course-create-page-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+        @media (max-width: 640px) {
+            .course-create-topline {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
         body.embedded-create {
             background-color: transparent;
         }
@@ -220,6 +264,20 @@
     @endif
     <div class="page-container">
         <div class="card" aria-live="polite">
+            @if(!request()->boolean('embedded'))
+                @php
+                    $courseCreateBackRoute = !empty($forTrainer)
+                        ? route('dashboard', ['tab' => 'my-courses'])
+                        : route('dashboard', ['tab' => 'course-management']);
+                @endphp
+                <div class="course-create-topline">
+                    <a href="{{ $courseCreateBackRoute }}" class="course-create-back">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>{{ !empty($forTrainer) ? 'Back to My Courses' : 'Back to Course Management' }}</span>
+                    </a>
+                    <h1 class="course-create-page-title">Create Course</h1>
+                </div>
+            @endif
             <div class="progress" role="status" aria-live="polite" aria-label="Course setup progress">
                 <div class="progress-track" aria-hidden="true">
                     <div id="courseProgressFill" class="progress-fill"></div>

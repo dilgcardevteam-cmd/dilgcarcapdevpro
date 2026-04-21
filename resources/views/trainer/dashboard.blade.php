@@ -1877,11 +1877,6 @@
                     <a class="dropdown-item" href="{{ route('profile.setup') }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
-                    @if(Auth::user()->hasPermission('add_courses_coach'))
-                    <a class="dropdown-item" href="{{ route('trainer.courses.create') }}">
-                        <i class="fas fa-plus-circle"></i> <span>Create Course</span>
-                    </a>
-                    @endif
                     <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
@@ -1903,7 +1898,14 @@
                 <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="nav-menu">
-                @php $portalActive = !request('tab') || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements'], true); @endphp
+                @php
+                    $coachCreateCourseActive = request()->routeIs('trainer.courses.create');
+                    $coachCreateCourseVisible = strtolower((string) Auth::user()->role) === 'coach'
+                        && Auth::user()->hasPermission('add_courses_coach');
+                    $portalActive = $coachCreateCourseActive
+                        || !request('tab')
+                        || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements'], true);
+                @endphp
                 <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-coach">
                     <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
                         <i class="fas fa-layer-group nav-icon"></i>
@@ -1912,22 +1914,30 @@
                     </a>
                     <ul class="nav-portal-list" id="portal-dropdown-list-coach">
                         <li class="nav-item">
-                            <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this)">
+                            <a href="{{ route('dashboard') }}" class="nav-link {{ (!request('tab') && ! $coachCreateCourseActive) || request('tab') === 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                                 <i class="fas fa-tachometer-alt nav-icon"></i>
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
                         @if(Auth::user()->hasPermission('view_courses_coach'))
                         <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('my-courses', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link {{ request('tab') === 'my-courses' ? 'active' : '' }}" onclick="showContent('my-courses', this)">
                                 <i class="fas fa-chalkboard-teacher nav-icon"></i>
                                 <span class="nav-text">My Courses</span>
                             </a>
                         </li>
                         @endif
+                        @if($coachCreateCourseVisible)
+                        <li class="nav-item">
+                            <a href="{{ route('trainer.courses.create') }}" class="nav-link {{ $coachCreateCourseActive ? 'active' : '' }}">
+                                <i class="fas fa-plus-circle nav-icon"></i>
+                                <span class="nav-text">Create Course</span>
+                            </a>
+                        </li>
+                        @endif
                         @if(Auth::user()->hasPermission('view_classes'))
                         <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('calendar', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'calendar']) }}" class="nav-link {{ request('tab') === 'calendar' ? 'active' : '' }}" onclick="showContent('calendar', this)">
                                 <i class="fas fa-calendar-alt nav-icon"></i>
                                 <span class="nav-text">Calendar</span>
                             </a>
@@ -1935,7 +1945,7 @@
                         @endif
                         @if(Auth::user()->hasPermission('view_communication'))
                         <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('announcements', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'announcements']) }}" class="nav-link {{ request('tab') === 'announcements' ? 'active' : '' }}" onclick="showContent('announcements', this)">
                                 <i class="fas fa-bullhorn nav-icon"></i>
                                 <span class="nav-text">Announcements</span>
                             </a>
