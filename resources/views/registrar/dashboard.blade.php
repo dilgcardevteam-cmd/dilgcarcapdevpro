@@ -2903,8 +2903,8 @@
                     <label for="edit_role" style="font-weight:600; color:#495057;">Role</label>
                     <select name="role" id="edit_role" required
                             style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px;">
-                        @foreach(collect($availableRoles ?? [])->filter(fn ($role) => is_object($role)) as $role)
-                            <option value="{{ $role->name ?? '' }}">{{ $role->display_name ?? ($role->name ?? '') }}</option>
+                        @foreach($availableRoles ?? [] as $role)
+                            <option value="{{ $role->name }}">{{ $role->display_name }}</option>
                         @endforeach
                     </select>
                 </div>
