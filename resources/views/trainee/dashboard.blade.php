@@ -398,7 +398,7 @@
         /* Course List */
         .course-grid{
             display:grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap:24px;
             align-items:stretch;
         }
@@ -1141,7 +1141,7 @@
         .new-course-card-link { text-decoration: none; color: inherit; }
 
         /* Responsive Grid */
-        @media (min-width: 1024px) { .course-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1024px) { .course-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 768px) and (max-width: 1023px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 767px) { .course-grid { grid-template-columns: 1fr; } }
 

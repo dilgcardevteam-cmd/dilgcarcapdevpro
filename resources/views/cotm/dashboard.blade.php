@@ -193,6 +193,9 @@
         .main-content {flex: 1;padding: 30px;overflow-y: auto;background-color: var(--bg-color);}
         .content-section {display: none;animation: fadeIn 0.3s ease-out;}
         .content-section.active {display: block;}
+        .course-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;align-items:stretch}
+        @media (max-width:1100px){.course-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media (max-width:700px){.course-grid{grid-template-columns:1fr;}}
         @keyframes fadeIn {from { opacity: 0; transform: translateY(10px); }to { opacity: 1; transform: translateY(0); }}
         .welcome-title {font-size: 2rem;color: var(--primary-blue);margin-bottom: 30px;font-weight: 300;}
         .welcome-title strong {font-weight: 700;}

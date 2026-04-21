@@ -121,7 +121,7 @@
         .content-section.active { display: block; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .section-title { font-size: 1.5rem; color: var(--primary-blue); font-weight: 700; margin: 0; }
-        .course-grid{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:24px;align-items:stretch}
+        .course-grid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:24px;align-items:stretch}
         @media (max-width:1100px){.course-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
         @media (max-width:700px){.course-grid{grid-template-columns:1fr;}}
         .course-card { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; border: 1px solid #eef2f7; }
