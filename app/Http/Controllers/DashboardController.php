@@ -1012,12 +1012,26 @@ class DashboardController extends Controller
                 'status' => 'required|string|in:active,freeze,pending',
             ]);
 
+            // Check for status change to active
+            $wasNotActive = $user->status !== 'active';
+            $becomingActive = $validated['status'] === 'active';
+
             // Auto-generate Account ID if approving for the first time
-            if ($validated['status'] === 'active' && empty($user->account_id)) {
+            if ($becomingActive && empty($user->account_id)) {
                 $validated['account_id'] = User::generateAccountId($validated['role'] ?? $user->role, $user->region);
             }
 
             $user->update($validated);
+
+            // Send approval email if activated
+            if ($wasNotActive && $becomingActive) {
+                try {
+                    Mail::to($user->email)->send(new AccountApproved($user));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send approval email to ' . $user->email . ': ' . $e->getMessage());
+                }
+            }
+
             $tab = $redirectToDetails ? 'user-details-section' : 'user-management';
             return redirect()->route('dashboard', ['tab' => $tab])->with('success_user', 'User role/status updated.');
         }
