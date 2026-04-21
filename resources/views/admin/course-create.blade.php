@@ -178,6 +178,20 @@
         #dynamicMenu.is-editing .dm-rail { display:none; }
         .active-section { outline:2px solid #6366f1; border-radius:10px; }
         .toggle { display:inline-flex; align-items:center; gap:6px; }
+        .capdev-question-card { border:0; border-radius:0; background:transparent; overflow:visible; transition:border-color .18s ease, box-shadow .18s ease; }
+        .capdev-question-card.is-expanded { box-shadow:none; }
+        .q-summary-toggle { width:100%; border:0; background:#f8fbff; color:#0f172a; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 14px; cursor:pointer; text-align:left; font:inherit; }
+        .capdev-question-card.is-expanded > .q-summary-toggle { display:none; }
+        .capdev-question-card.is-collapsed { border:1px solid #dbe4f3; border-radius:12px; background:#fff; overflow:hidden; }
+        .q-summary-main { min-width:0; display:flex; align-items:center; gap:10px; flex:1; }
+        .q-summary-number { flex:0 0 auto; color:#002C76; font-weight:800; font-size:.86rem; }
+        .q-summary-preview { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#1f2937; font-weight:700; }
+        .q-summary-meta { flex:0 0 auto; border-radius:999px; background:#eaf2ff; color:#0f3b8f; font-size:.76rem; font-weight:800; padding:5px 9px; }
+        .q-summary-chevron { color:#64748b; transition:transform .2s ease; }
+        .capdev-question-card.is-collapsed .q-summary-chevron { transform:rotate(-90deg); }
+        .q-collapse-body { max-height:1600px; opacity:1; padding:0; transition:max-height .24s ease, opacity .18s ease, padding .2s ease; }
+        .capdev-question-card.is-collapsed .q-collapse-body { max-height:0; opacity:0; padding-top:0; padding-bottom:0; overflow:hidden; }
+        @media (max-width:640px) { .q-summary-toggle { align-items:flex-start; flex-direction:column; } .q-summary-meta { align-self:flex-start; } }
         .course-create-topline {
             display: flex;
             align-items: center;
@@ -434,23 +448,6 @@
                     </div>
                 </div>
                 <div id="tab2" class="tab-content">
-                    <div class="form-group" style="margin-bottom: 24px;">
-                        <label style="margin-bottom:8px; display:block; font-weight:700; color:#002C76;">Materials & Sources</label>
-                        <div class="materials-panel" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; background: #f8fafc; transition: all 0.2s ease;">
-                            <div id="materialsList" style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-                                <div style="color: #94a3b8; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                    <i class="fas fa-file-circle-plus" style="font-size: 2rem; color: #e2e8f0;"></i>
-                                    <span>No materials uploaded yet (Optional)</span>
-                                </div>
-                            </div>
-                            <button type="button" class="btn" onclick="document.getElementById('course_materials').click()" style="padding:10px 24px; font-size:0.9rem; margin:0; background:#ffffff; border:1.5px solid #e2e8f0; color:#002C76; font-weight:700; border-radius:10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                                <i class="fas fa-paperclip" style="margin-right:8px;"></i>Attach Files (PDF, Docs, Sheets)
-                            </button>
-                            <input id="course_materials" type="file" name="materials[]" multiple style="display:none;" onchange="handleMaterialsUpload(this)">
-                            <p style="margin-top: 12px; font-size: 0.75rem; color: #64748b; font-weight: 500;">Supported: PDF, DOCX, XLSX, PPTX (Max 10MB each)</p>
-                        </div>
-                    </div>
-
                     <div class="form-group">
                         <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:8px;">
                             <label style="margin:0;">Modules & Topics</label>
@@ -1440,6 +1437,72 @@
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
         }
+        function capdevQuestionCardShell(bodyHtml){
+            return `
+                <div class="q-block capdev-question-card is-expanded">
+                    <button type="button" class="q-summary-toggle" onclick="toggleQuestionCard(this)" aria-expanded="true">
+                        <span class="q-summary-main">
+                            <span class="q-summary-number">Question</span>
+                            <span class="q-summary-preview">Untitled question</span>
+                        </span>
+                        <span class="q-summary-meta">Multiple Choice</span>
+                        <i class="fas fa-chevron-down q-summary-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="q-collapse-body">
+                        ${bodyHtml}
+                    </div>
+                </div>
+            `;
+        }
+        function questionTypeLabel(value){
+            return String(value || 'multiple_choice').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        function updateQuestionCardSummary(block){
+            if(!block) return;
+            const index = Array.from(block.parentElement?.querySelectorAll('.field-block[data-type="question"]') || []).indexOf(block) + 1;
+            const number = block.querySelector('.q-summary-number');
+            const preview = block.querySelector('.q-summary-preview');
+            const meta = block.querySelector('.q-summary-meta');
+            const text = (block.querySelector('.q-title')?.value || '').trim();
+            const type = block.querySelector('.q-type')?.value || 'multiple_choice';
+            if(number) number.textContent = index > 0 ? `Question ${index}` : 'Question';
+            if(preview) preview.textContent = text || 'Untitled question';
+            if(meta) meta.textContent = questionTypeLabel(type);
+        }
+        function collapseQuestionCard(block){
+            const card = block?.querySelector('.capdev-question-card');
+            const toggle = block?.querySelector('.q-summary-toggle');
+            if(!card) return;
+            updateQuestionCardSummary(block);
+            card.classList.remove('is-expanded');
+            card.classList.add('is-collapsed');
+            if(toggle) toggle.setAttribute('aria-expanded', 'false');
+        }
+        function expandQuestionCard(block){
+            const card = block?.querySelector('.capdev-question-card');
+            const toggle = block?.querySelector('.q-summary-toggle');
+            if(!card) return;
+            const panel = block.closest('.fields-panel');
+            panel?.querySelectorAll('.field-block[data-type="question"]').forEach(other => {
+                if(other !== block) collapseQuestionCard(other);
+            });
+            card.classList.remove('is-collapsed');
+            card.classList.add('is-expanded');
+            if(toggle) toggle.setAttribute('aria-expanded', 'true');
+            updateQuestionCardSummary(block);
+        }
+        function toggleQuestionCard(button){
+            const block = button.closest('.field-block');
+            const card = button.closest('.capdev-question-card');
+            if(!block || !card) return;
+            if(card.classList.contains('is-collapsed')) expandQuestionCard(block);
+            else collapseQuestionCard(block);
+        }
+        function bindQuestionCard(block, panel){
+            updateQuestionCardSummary(block);
+            block.addEventListener('input', () => updateQuestionCardSummary(block));
+            block.addEventListener('change', () => updateQuestionCardSummary(block));
+        }
         function addQuestionField(origin){
             const panel = (origin && origin.classList && origin.classList.contains('fields-panel'))
                 ? origin
@@ -1449,8 +1512,7 @@
             block.className = 'field-block';
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
-            block.innerHTML = `
-                <div class="q-block">
+            block.innerHTML = capdevQuestionCardShell(`
                     <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
@@ -1482,11 +1544,12 @@
                             <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                         </div>
                     </div>
-                </div>
-            `;
+            `);
             list.appendChild(block);
             __bindAutosizeTextareas(block);
             setupDefaultOptions(block);
+            bindQuestionCard(block, panel);
+            expandQuestionCard(block);
             const qInput = block.querySelector('.q-title'); if(qInput){ qInput.focus(); }
             block.querySelector('.q-type').addEventListener('change', function(){
                 setupDefaultOptions(block);
@@ -1536,8 +1599,7 @@
             block.className = 'field-block';
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
-            block.innerHTML = `
-                <div class="q-block">
+            block.innerHTML = capdevQuestionCardShell(`
                     <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
@@ -1569,11 +1631,13 @@
                             <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                         </div>
                     </div>
-                </div>
-            `;
+            `);
             current.parentElement.insertBefore(block, current.nextSibling);
             __bindAutosizeTextareas(block);
             setupDefaultOptions(block);
+            bindQuestionCard(block, panel);
+            collapseQuestionCard(current);
+            expandQuestionCard(block);
             const qInput = block.querySelector('.q-title'); if(qInput){ qInput.focus(); }
             block.querySelector('.q-type').addEventListener('change', function(){
                 setupDefaultOptions(block);
@@ -1617,6 +1681,10 @@
             clone.querySelectorAll('.q-correct').forEach(r => { r.name = newGroup; r.checked = false; });
             clone.addEventListener('input', ()=> syncFieldsJSON(panel));
             clone.addEventListener('click', (e)=> { if(!e.target.closest('.field-move-controls')) setSelectedField(clone); });
+            if(clone.getAttribute('data-type') === 'question'){
+                bindQuestionCard(clone, panel);
+                expandQuestionCard(clone);
+            }
             bindFieldDrag(clone);
             ensureReflectionLast(panel);
             syncFieldsJSON(panel);
@@ -1857,6 +1925,7 @@
                     const html = b.querySelector('.editor').innerHTML;
                     nonRef.push({ type:'text', html });
                 } else if(t === 'question'){
+                    updateQuestionCardSummary(b);
                     const qb = b.querySelector('.q-block');
                     const type = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice';
                     const title = qb.querySelector('.q-title').value || 'Untitled Question';
@@ -2731,24 +2800,27 @@
                                                             if (f.question.type === 'multiple_choice' && f.question.options) {
                                                                 const optsDiv = block.querySelector('.q-options');
                                                                 optsDiv.innerHTML = '';
+                                                                let correctIndex = Number.isInteger(f.question.answer_index)
+                                                                    ? f.question.answer_index
+                                                                    : (f.question.correct_answer !== undefined && f.question.correct_answer !== null && f.question.correct_answer !== '' && !isNaN(Number(f.question.correct_answer))
+                                                                        ? Number(f.question.correct_answer)
+                                                                        : null);
+                                                                if (correctIndex === null && typeof f.question.correct_answer === 'string') {
+                                                                    const savedAnswer = f.question.correct_answer.trim().toLowerCase();
+                                                                    correctIndex = f.question.options.findIndex(opt => String(opt || '').trim().toLowerCase() === savedAnswer);
+                                                                    if (correctIndex < 0) correctIndex = null;
+                                                                }
                                                                 f.question.options.forEach((opt, optIdx) => {
-                                                                    const div = document.createElement('div');
-                                                                    div.className = 'q-option-row';
-                                                                    const isCorrect = f.question.correct_answer == optIdx;
-                                                                    div.innerHTML = `<input type="radio" name="q-opt-${Date.now()}-${i}-${j}-${k}" ${isCorrect ? 'checked' : ''} disabled><input type="text" class="q-option" value="${opt.replace(/"/g, '&quot;')}" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                    optsDiv.appendChild(div);
+                                                                    addOptionRow(optsDiv, '');
+                                                                    const row = optsDiv.querySelectorAll('.q-option-row')[optIdx];
+                                                                    if(row){
+                                                                        const input = row.querySelector('.q-option');
+                                                                        const radio = row.querySelector('.q-correct');
+                                                                        if(input) input.value = opt;
+                                                                        if(radio && correctIndex === optIdx) radio.checked = true;
+                                                                    }
                                                                 });
-                                                                const addBtn = document.createElement('button');
-                                                                addBtn.type = 'button';
-                                                                addBtn.className = 'btn-add-option';
-                                                                addBtn.innerText = '+ Add Option';
-                                                                addBtn.onclick = function() {
-                                                                    const div = document.createElement('div');
-                                                                    div.className = 'q-option-row';
-                                                                    div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                    optsDiv.insertBefore(div, addBtn);
-                                                                };
-                                                                optsDiv.appendChild(addBtn);
+                                                                ensureAddOptionLink(optsDiv);
                                                             } else if (f.question.type === 'true_false') {
                                                                 const optsDiv = block.querySelector('.q-options');
                                                                 if (optsDiv) {
@@ -2763,6 +2835,8 @@
                                                                 if (ansInput) ansInput.value = f.question.answer || '';
                                                             }
                                                         }
+                                                        updateQuestionCardSummary(block);
+                                                        collapseQuestionCard(block);
                                                     }
                                                 });
                                             }
