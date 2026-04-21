@@ -1547,84 +1547,9 @@
                     </div>
                 </div>
 
-                <!-- Enrolled Courses (Active Only) -->
                 <div class="section-header">
-                    <h2 class="section-title">Enrolled Courses</h2>
-                </div>
-                <div id="participantEnrolledCoursesGrid" class="course-grid">
-                    @forelse($myCourses as $course)
-                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
-                            <div class="new-course-card">
-                                <div class="card-banner">
-                                    <img src="{{ $course->image_url }}" alt="Course Image">
-                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
-                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
-                                            Finished
-                                        @else
-                                            {{ $course->course_status }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="card-content">
-                                    <h3 class="card-title">{{ $course->name }}</h3>
-                                    @php
-                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
-                                    @endphp
-                                    @if($subjectAreaText !== '')
-                                        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 10px;color:#475569;font-size:0.82rem;font-weight:700;">
-                                            <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
-                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
-                                        </div>
-                                    @endif
-                                    <div class="progress-section">
-                                        <div class="progress-labels">
-                                            <span>Progress</span>
-                                            <span>{{ round($progressData[$course->id]['percentage'] ?? 0) }}%</span>
-                                        </div>
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] ?? 0 }}%;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="module-progress" style="display: flex; flex-direction: column; gap: 4px;">
-                                        @if($progressData[$course->id]['topics_total'] > 0)
-                                            <span>Topics: {{ $progressData[$course->id]['topics_completed'] }} / {{ $progressData[$course->id]['topics_total'] }}</span>
-                                        @endif
-                                        @if($progressData[$course->id]['assessments_total'] > 0)
-                                            <span>Assessments: {{ $progressData[$course->id]['assessments_completed'] }} / {{ $progressData[$course->id]['assessments_total'] }}</span>
-                                        @endif
-                                        <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
-                                    </div>
-                                    <div class="card-meta">
-                                        @php
-                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
-                                        @endphp
-                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
-                                        <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
-                                        <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
-                                    </div>
-                                    <div class="btn-gradient">Enter Class</div>
-                                </div>
-                            </div>
-                        </a>
-                    @empty
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6b7280; background: #f8fafc; border-radius: 16px; border: 1px dashed #e5eef7;">
-                            <i class="fas fa-graduation-cap" style="font-size: 3rem; opacity: 0.2; color: #002C76; margin-bottom: 15px; display: block;"></i>
-                            @if($selectedYear && !$selectedYear->is_active)
-                                <div style="font-weight: 700; color: #002C76; font-size: 1.1rem;">Historical Archive</div>
-                                <div style="margin-top: 8px; font-size: 0.95rem;">Courses are only displayed for the currently active academic year.</div>
-                            @else
-                                <div style="font-weight: 700; color: #002C76; font-size: 1.1rem;">No Active Enrollments</div>
-                                <div style="margin-top: 8px; font-size: 0.95rem;">You are not enrolled in any active courses for this academic year yet.</div>
-                            @endif
-                        </div>
-                    @endforelse
-                </div>
-
-                <!-- Available Courses List -->
-                <div class="section-header" style="margin-top: 30px;">
                     <h2 class="section-title">Available Courses</h2>
                 </div>
-
                 <div id="participantAvailableCoursesGrid" class="course-grid">
                     @forelse($availableCourses as $course)
                         <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
@@ -1714,6 +1639,200 @@
                         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
                             <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
                             <p>No available courses at the moment.</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                @php
+                    $enrolledSubjectAreas = [];
+                    foreach ($myCourses as $c) {
+                        $raw = is_string($c->subject_area ?? null) ? (string) $c->subject_area : '';
+                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
+                            $enrolledSubjectAreas[strtolower($piece)] = true;
+                        }
+                    }
+                    $likedCourses = $availableCourses->filter(function ($course) use ($enrolledSubjectAreas) {
+                        if (empty($enrolledSubjectAreas)) {
+                            return false;
+                        }
+                        $raw = is_string($course->subject_area ?? null) ? (string) $course->subject_area : '';
+                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
+                            if (isset($enrolledSubjectAreas[strtolower($piece)])) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    if ($likedCourses->isEmpty()) {
+                        $likedCourses = $availableCourses->take(8);
+                    } else {
+                        $likedCourses = $likedCourses->take(8);
+                    }
+                @endphp
+                <div class="section-header" style="margin-top: 30px;">
+                    <h2 class="section-title">Courses that you will like</h2>
+                </div>
+                <div id="participantLikedCoursesGrid" class="course-grid">
+                    @forelse($likedCourses as $course)
+                        <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
+                            <div class="card-banner">
+                                @php
+                                    $courseImage = null;
+                                    if ($course->image_path) {
+                                        $courseImage = $course->image_url;
+                                    } else {
+                                        $courseNameLower = strtolower($course->name);
+                                        if (str_contains($courseNameLower, 'research')) {
+                                            $courseImage = asset('images/Basic Research.png');
+                                        } elseif (str_contains($courseNameLower, 'services') || str_contains($courseNameLower, 'facilities')) {
+                                            $courseImage = asset('images/Basic Services.png');
+                                        } elseif (str_contains($courseNameLower, 'nature') || str_contains($courseNameLower, 'types')) {
+                                            $courseImage = asset('images/Nature and Types.png');
+                                        } elseif (str_contains($courseNameLower, 'creation') || str_contains($courseNameLower, 'lgu')) {
+                                            $courseImage = asset('images/Creation.png');
+                                        } elseif (str_contains($courseNameLower, 'autonomy') || str_contains($courseNameLower, 'decentralization')) {
+                                            $courseImage = asset('images/Local Autonomy.png');
+                                        } else {
+                                            $courseImage = 'https://via.placeholder.com/300x160?text=' . urlencode($course->name);
+                                        }
+                                    }
+                                @endphp
+                                <img src="{{ $courseImage }}" alt="Course Image">
+                                <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                    @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
+                                        Finished
+                                    @else
+                                        {{ $course->course_status }}
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">{{ $course->name }}</h3>
+                                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                    @if($course->course_type === 'free')
+                                        <span style="background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0;">
+                                            <i class="fas fa-unlock"></i> Free Enrollment
+                                        </span>
+                                    @else
+                                        <span style="background: #fff7ed; color: #9a3412; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fed7aa;">
+                                            <i class="fas fa-lock"></i> Controlled
+                                        </span>
+                                    @endif
+                                </div>
+                                @php
+                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                @endphp
+                                @if($subjectAreaText !== '')
+                                    <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                        <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                    </div>
+                                @endif
+                                <p class="course-desc" style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px;">{{ Str::limit($course->description, 100) }}</p>
+
+                                <div class="card-meta" style="margin-bottom: 15px;">
+                                    @php
+                                        $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
+                                        $enrollable = $course->isEnrollable();
+                                        $awaitingTrainerAssignment = !$coachNames;
+                                    @endphp
+                                    <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
+                                    <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px; margin-top: auto;">
+                                    @if(!$enrollable)
+                                        <button class="btn-gradient" style="{{ $awaitingTrainerAssignment ? 'background:#FFF4DB;color:#B4690E;border:1px solid #F7C66A;box-shadow:none;' : 'background:#94a3b8;color:#ffffff;border:none;' }} cursor: not-allowed; opacity: 0.95; flex: 1;" disabled title="{{ $awaitingTrainerAssignment ? 'Trainer assignment is still pending for this course.' : 'This course is not yet open for enrollment.' }}">{{ $awaitingTrainerAssignment ? 'Awaiting Trainer Assignment' : 'Not Yet Available' }}</button>
+                                    @else
+                                        @if($course->course_type === 'free')
+                                            <form action="{{ route('courses.enroll.free', $course) }}" method="POST" style="flex: 1;">
+                                                @csrf
+                                                <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll</button>
+                                            </form>
+                                        @else
+                                            <button class="btn-gradient" style="background: #4f46e5; box-shadow: 0 10px 18px rgba(79,70,229,0.24); flex: 1;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Join Class</button>
+                                        @endif
+                                    @endif
+                                    <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation(); openCourseDetails({{ $course->id }})">Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
+                            <i class="fas fa-heart" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.35;"></i>
+                            <p>No recommendations available yet.</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <div class="section-header" style="margin-top: 30px;">
+                    <h2 class="section-title">Enrolled Courses</h2>
+                </div>
+                <div id="participantEnrolledCoursesGrid" class="course-grid">
+                    @forelse($myCourses as $course)
+                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
+                            <div class="new-course-card">
+                                <div class="card-banner">
+                                    <img src="{{ $course->image_url }}" alt="Course Image">
+                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
+                                            Finished
+                                        @else
+                                            {{ $course->course_status }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <h3 class="card-title">{{ $course->name }}</h3>
+                                    @php
+                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    @endphp
+                                    @if($subjectAreaText !== '')
+                                        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 10px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                            <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="progress-section">
+                                        <div class="progress-labels">
+                                            <span>Progress</span>
+                                            <span>{{ round($progressData[$course->id]['percentage'] ?? 0) }}%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: {{ $progressData[$course->id]['percentage'] ?? 0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-progress" style="display: flex; flex-direction: column; gap: 4px;">
+                                        @if($progressData[$course->id]['topics_total'] > 0)
+                                            <span>Topics: {{ $progressData[$course->id]['topics_completed'] }} / {{ $progressData[$course->id]['topics_total'] }}</span>
+                                        @endif
+                                        @if($progressData[$course->id]['assessments_total'] > 0)
+                                            <span>Assessments: {{ $progressData[$course->id]['assessments_completed'] }} / {{ $progressData[$course->id]['assessments_total'] }}</span>
+                                        @endif
+                                        <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
+                                    </div>
+                                    <div class="card-meta">
+                                        @php
+                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
+                                        @endphp
+                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                        <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
+                                    </div>
+                                    <div class="btn-gradient">Enter Class</div>
+                                </div>
+                            </div>
+                        </a>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6b7280; background: #f8fafc; border-radius: 16px; border: 1px dashed #e5eef7;">
+                            <i class="fas fa-graduation-cap" style="font-size: 3rem; opacity: 0.2; color: #002C76; margin-bottom: 15px; display: block;"></i>
+                            @if($selectedYear && !$selectedYear->is_active)
+                                <div style="font-weight: 700; color: #002C76; font-size: 1.1rem;">Historical Archive</div>
+                                <div style="margin-top: 8px; font-size: 0.95rem;">Courses are only displayed for the currently active academic year.</div>
+                            @else
+                                <div style="font-weight: 700; color: #002C76; font-size: 1.1rem;">No Active Enrollments</div>
+                                <div style="margin-top: 8px; font-size: 0.95rem;">You are not enrolled in any active courses for this academic year yet.</div>
+                            @endif
                         </div>
                     @endforelse
                 </div>
@@ -3603,11 +3722,12 @@
     document.addEventListener('DOMContentLoaded', function(){
         var enrolledGrid = document.getElementById('participantEnrolledCoursesGrid');
         var availableGrid = document.getElementById('participantAvailableCoursesGrid');
+        var likedGrid = document.getElementById('participantLikedCoursesGrid');
         var searchInput = document.getElementById('participantCourseSearch');
         var subjectSelect = document.getElementById('participantSubjectFilter');
         var sortSelect = document.getElementById('participantCourseSort');
         var resetBtn = document.getElementById('participantCourseReset');
-        if(!enrolledGrid || !availableGrid || !searchInput || !subjectSelect || !sortSelect || !resetBtn) return;
+        if(!enrolledGrid || !availableGrid || !likedGrid || !searchInput || !subjectSelect || !sortSelect || !resetBtn) return;
 
         function toInt(v){
             var n = parseInt(v, 10);
@@ -3644,6 +3764,7 @@
 
             sortGrid(enrolledGrid);
             sortGrid(availableGrid);
+            sortGrid(likedGrid);
         }
 
         function resetFilters(){
