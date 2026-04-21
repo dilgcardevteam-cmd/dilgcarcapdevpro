@@ -61,10 +61,10 @@
                                             </td>
                                             <td style="padding:10px;border-bottom:1px solid #e5eef7">
                                                 <button type="submit" style="background:#0B2C74;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">Save</button>
-                                                <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline">
+                                                <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline" data-confirm-message="Delete this role?" data-confirm-title="Delete Role">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" style="background:#dc2626;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer" onclick="return confirm('Delete this role?')">Delete</button>
+                                                    <button type="submit" style="background:#dc2626;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">Delete</button>
                                                 </form>
                                             </td>
                                         </form>

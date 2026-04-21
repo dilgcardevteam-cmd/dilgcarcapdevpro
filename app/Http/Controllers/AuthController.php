@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\CheckInactivityTimeout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Notification;
@@ -563,12 +564,17 @@ class AuthController extends Controller
 
     public function keepAlive(Request $request)
     {
-        $request->session()->put('last_activity_keep_alive', now()->timestamp);
+        $now = now()->timestamp;
+        $timeoutSeconds = CheckInactivityTimeout::resolveTimeoutSeconds((string) (Auth::user()->role ?? ''));
+
+        $request->session()->put('last_activity_at', $now);
+        $request->session()->put('last_activity_keep_alive', $now);
         $request->session()->save();
 
         return response()->json([
             'ok' => true,
-            'expires_at' => now()->addMinutes(5)->timestamp,
+            'timeout_seconds' => $timeoutSeconds,
+            'expires_at' => $now + $timeoutSeconds,
         ]);
     }
 

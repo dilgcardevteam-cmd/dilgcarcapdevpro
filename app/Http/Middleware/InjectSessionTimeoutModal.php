@@ -14,7 +14,7 @@ class InjectSessionTimeoutModal
     {
         $response = $next($request);
 
-        if (! Auth::check() || ! $this->shouldInject($request, $response)) {
+        if (! $this->shouldInject($request, $response)) {
             return $response;
         }
 
@@ -25,8 +25,13 @@ class InjectSessionTimeoutModal
             return $response;
         }
 
-        $modal = View::make('components.session-timeout')->render();
-        $content = preg_replace('/<\/body>/i', $modal . PHP_EOL . '</body>', $content, 1);
+        $injected = View::make('components.app-dialogs')->render();
+
+        if (Auth::check()) {
+            $injected .= PHP_EOL . View::make('components.session-timeout')->render();
+        }
+
+        $content = preg_replace('/<\/body>/i', $injected . PHP_EOL . '</body>', $content, 1);
 
         if (is_string($content)) {
             $response->setContent($content);

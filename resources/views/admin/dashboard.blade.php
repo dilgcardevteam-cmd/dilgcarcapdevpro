@@ -5228,10 +5228,10 @@
                                                             <button type="button" class="btn btn-primary btn-role role-edit-btn" data-mode="view" data-form="{{ $formId }}" data-row="{{ $role->id }}"><i class="fas fa-pen"></i>&nbsp;Edit</button>
                                                             <button type="submit" class="btn btn-primary btn-role role-save-btn" data-form="{{ $formId }}" data-row="{{ $role->id }}" style="display:none"><i class="fas fa-save"></i>&nbsp;Save</button>
                                                         </form>
-                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex">
+                                                        <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" style="display:inline-flex" data-confirm-message="Delete this role?" data-confirm-title="Delete Role">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-role" onclick="return confirm('Delete this role?')"><i class="fas fa-trash"></i>&nbsp;Delete</button>
+                                                            <button type="submit" class="btn btn-danger btn-role"><i class="fas fa-trash"></i>&nbsp;Delete</button>
                                                         </form>
                                                     </div>
                                                 </td>
@@ -5484,7 +5484,7 @@
                                                     <td>
                                                         <div class="backup-actions" style="display:flex;gap:8px">
                                                             <a class="btn" href="{{ url('/admin/system-settings/backup/download/'.$bk['name']) }}"><i class="fas fa-download"></i> Download</a>
-                                                            <form method="POST" action="{{ url('/admin/system-settings/backup/delete/'.$bk['name']) }}" onsubmit="return confirm('Delete this backup?')">
+                                                            <form method="POST" action="{{ url('/admin/system-settings/backup/delete/'.$bk['name']) }}" data-confirm-message="Delete this backup?" data-confirm-title="Delete Backup">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn danger"><i class="fas fa-trash"></i> Delete</button>
@@ -5499,7 +5499,7 @@
                                     </table>
                                 </div>
                                 <div style="margin-top:16px">
-                                    <form method="POST" action="{{ url('/admin/system-settings/backup/restore') }}" enctype="multipart/form-data" onsubmit="return confirm('Restoring will replace the current database. Continue?')">
+                                    <form method="POST" action="{{ url('/admin/system-settings/backup/restore') }}" enctype="multipart/form-data" data-confirm-message="Restoring will replace the current database. Continue?" data-confirm-title="Restore Backup">
                                         @csrf
                                         <div style="display:flex;align-items:center;gap:10px">
                                             <input type="file" name="backup_file" accept=".zip,.sql" required>
@@ -6263,7 +6263,7 @@
                                         <button type="button" onclick='event.stopPropagation(); openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' style="background: #17a2b8; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
                                             View
                                         </button>
-                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Approve this course? It will be moved to Active.')" style="margin: 0;">
+                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin: 0;" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course" data-confirm-stop-propagation="true">
                                             @csrf
                                             <button type="submit" style="background: #28a745; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
                                                 Approve
@@ -6305,11 +6305,11 @@
                                     <button type="button" class="kebab" onclick="event.stopPropagation(); toggleCertMenu('arch-{{ $course->id }}')" style="position:absolute;right:12px;top:12px"><i class="fas fa-ellipsis-v"></i></button>
                                     <div id="menu-arch-{{ $course->id }}" class="menu" style="right:12px;top:46px">
                                         <a href="#" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null)]) }}); toggleCertMenu('arch-{{ $course->id }}'); return false;"><i class="fas fa-eye"></i> View</a>
-                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Unarchive this course?')">
+                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Unarchive this course?" data-confirm-title="Unarchive Course" data-confirm-stop-propagation="true">
                                             @csrf
                                             <button type="submit"><i class="fas fa-rotate-left"></i> Unarchive</button>
                                         </form>
-                                        <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Permanently delete this course? This cannot be undone.')">
+                                        <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" data-confirm-message="Permanently delete this course? This cannot be undone." data-confirm-title="Delete Course" data-confirm-stop-propagation="true" data-confirm-ok="Delete">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"><i class="fas fa-trash"></i> Delete</button>
@@ -6518,7 +6518,7 @@
                                         <button class="kebab" type="button" onclick="toggleCertMenu({{ $cert->id }})"><i class="fas fa-ellipsis-v"></i></button>
                                         <div id="menu-{{ $cert->id }}" class="menu">
                                             <a href="{{ route('certifications.download', $cert->id) }}"><i class="fas fa-download"></i> Download</a>
-                                            <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" onsubmit="return confirm('Delete this certificate?')">
+                                            <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" data-confirm-message="Delete this certificate?" data-confirm-title="Delete Certificate">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"><i class="fas fa-trash"></i> Delete</button>
@@ -6785,7 +6785,7 @@
                                         <p id="pro_view_archive_title" style="margin: 0; font-weight: 700; color: #1e293b;">Archive Course</p>
                                         <p id="pro_view_archive_desc" style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Archived courses are hidden from participants but can be restored later.</p>
                                     </div>
-                                    <form id="pro_view_archive_form" method="POST" action="">
+                                    <form id="pro_view_archive_form" method="POST" action="" data-confirm-message="" data-confirm-title="Archive Course">
                                         @csrf
                                         <input type="hidden" name="_method" id="pro_view_archive_method" value="DELETE">
                                         <button type="submit" id="pro_view_archive_btn" class="btn" style="background: #f8fafc; border: 1.5px solid #e2e8f0; color: #64748b; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
@@ -6799,7 +6799,7 @@
                                         <p style="margin: 0; font-weight: 700; color: #991b1b;">Delete Course</p>
                                         <p style="margin: 4px 0 0; font-size: 0.85rem; color: #b91c1c;">Permanently remove this course and all its data. This action cannot be undone.</p>
                                     </div>
-                                    <form id="pro_view_delete_form" method="POST" action="" onsubmit="return confirm('PERMANENTLY DELETE this course? This will remove all modules, assessments, and participant progress. THIS ACTION CANNOT BE UNDONE.');">
+                                    <form id="pro_view_delete_form" method="POST" action="" data-confirm-message="PERMANENTLY DELETE this course? This will remove all modules, assessments, and participant progress. THIS ACTION CANNOT BE UNDONE." data-confirm-title="Permanent Delete" data-confirm-ok="Delete">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn" style="background: #ef4444; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);">
@@ -9674,8 +9674,8 @@
             }
         }
 
-        function removeDisplayDetails() {
-            if (!confirm('Are you sure you want to remove this user from the landing page display?')) return;
+        async function removeDisplayDetails() {
+            if (!await window.capdevConfirm('Are you sure you want to remove this user from the landing page display?', { title: 'Remove User' })) return;
             
             const form = document.getElementById('landingPageDisplayForm');
             const input = document.createElement('input');
@@ -10369,8 +10369,8 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
         }
-        function createModule() {
-            const title = prompt('Enter module title');
+        async function createModule() {
+            const title = await window.capdevPrompt('Enter module title', '', { title: 'Create Module', inputLabel: 'Module title', confirmText: 'Create' });
             if (!title) return;
             const index = moduleCount++;
             const container = document.getElementById('modulesContainer');
@@ -10396,8 +10396,8 @@
             if(!body) return;
             body.style.display = (body.style.display === 'none' || body.style.display === '') ? 'block' : 'none';
         }
-        function addTopic(btn, moduleIndex){
-            const title = prompt('Enter topic title');
+        async function addTopic(btn, moduleIndex){
+            const title = await window.capdevPrompt('Enter topic title', '', { title: 'Add Topic', inputLabel: 'Topic title', confirmText: 'Add' });
             if (!title) return;
             const topics = btn.parentElement.querySelector('.topics');
             const idx = topics.children.length;
@@ -10812,7 +10812,8 @@
                     if (result.course.trashed) {
                         if (archiveForm) {
                             archiveForm.action = `/courses/${c.id}/restore`;
-                            archiveForm.onsubmit = () => confirm('Unarchive this course?');
+                            archiveForm.dataset.confirmMessage = 'Unarchive this course?';
+                            archiveForm.dataset.confirmTitle = 'Unarchive Course';
                         }
                         if (archiveMethod) archiveMethod.value = 'POST';
                         if (archiveTitle) archiveTitle.innerText = 'Restore Course';
@@ -10826,7 +10827,8 @@
                     } else {
                         if (archiveForm) {
                             archiveForm.action = `/courses/${c.id}`;
-                            archiveForm.onsubmit = () => confirm('Are you sure you want to archive this course?');
+                            archiveForm.dataset.confirmMessage = 'Are you sure you want to archive this course?';
+                            archiveForm.dataset.confirmTitle = 'Archive Course';
                         }
                         if (archiveMethod) archiveMethod.value = 'DELETE';
                         if (archiveTitle) archiveTitle.innerText = 'Archive Course';
@@ -10839,7 +10841,9 @@
                         }
                     }
 
-                    if (deleteForm) deleteForm.action = `/courses/${c.id}/force`;
+                    if (deleteForm) {
+                        deleteForm.action = `/courses/${c.id}/force`;
+                    }
 
                     const visibilityBadge = document.getElementById('pro_view_course_visibility_badge');
                     if (visibilityBadge) {
@@ -11131,8 +11135,8 @@
                 alert('Error loading draft');
             }
         }
-        function deleteDraftCourse(storageKey){
-            if(!confirm('Delete this draft?')) return;
+        async function deleteDraftCourse(storageKey){
+            if(!await window.capdevConfirm('Delete this draft?', { title: 'Delete Draft', confirmText: 'Delete' })) return;
             localStorage.removeItem(storageKey);
             renderDraftCoursesInMain();
             refreshDraftCoursesDashboardCount();

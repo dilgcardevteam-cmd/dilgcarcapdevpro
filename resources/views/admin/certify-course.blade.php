@@ -370,9 +370,9 @@
                 else { alert(j.message || 'Update failed'); }
             }).catch(function(){ alert('Update failed'); });
         }
-        function confirmRevokeCert(userId, certId){
+        async function confirmRevokeCert(userId, certId){
             if(!userId || !certId){ return; }
-            if(!confirm('Revoke this certification?')) return;
+            if(!await window.capdevConfirm('Revoke this certification?', { title: 'Revoke Certification', confirmText: 'Revoke' })) return;
             var urlTmpl = "{{ route('admin.certifications.course.cert.delete', [$course, 'user' => '__UID__']) }}";
             var url = urlTmpl.replace('__UID__', userId);
             fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': CSRF_TOKEN,'Accept':'application/json','Content-Type':'application/json'}, body: JSON.stringify({ certification_id: certId }) })

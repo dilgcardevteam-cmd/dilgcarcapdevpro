@@ -362,7 +362,7 @@
                     <a href="{{ route('admin.courses.edit', $course) }}" class="btn btn-edit">
                         <i class="fas fa-pen"></i> Edit
                     </a>
-                    <form action="{{ route('courses.destroy', $course) }}" method="POST" onsubmit="return confirm('Archive this course?');" style="margin:0;">
+                    <form action="{{ route('courses.destroy', $course) }}" method="POST" style="margin:0;" data-confirm-message="Archive this course?" data-confirm-title="Archive Course">
                         @csrf
                         @method('DELETE')
                         @if(request()->boolean('embedded'))

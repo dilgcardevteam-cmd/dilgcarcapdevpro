@@ -2554,7 +2554,7 @@
                                                     Published
                                                 </span>
                                                 @if(Auth::user()->canManageTraining())
-                                                <form method="POST" action="{{ route('courses.publish', $course, false) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
+                                                <form method="POST" action="{{ route('courses.publish', $course, false) }}" style="margin:0" data-confirm-message="Are you sure?" data-confirm-title="Confirm Action">
                                                     @csrf
                                                     <input type="hidden" name="return_tab" value="trainer-trainee-management">
                                                     <input type="hidden" name="published" value="0">

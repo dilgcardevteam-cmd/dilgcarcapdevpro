@@ -1891,8 +1891,8 @@
                 }
             }).catch(function(){});
         }
-        function deleteReply(replyId){
-            if(!confirm('Delete this reply?')) return;
+        async function deleteReply(replyId){
+            if(!await window.capdevConfirm('Delete this reply?', { title: 'Delete Reply', confirmText: 'Delete' })) return;
             fetch('{{ url('/replies') }}/'+replyId, {
                 method:'DELETE',
                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}
@@ -2313,7 +2313,7 @@
                             btn.addEventListener('click', async ()=>{
                                 const userId = Number(btn.getAttribute('data-user-id'));
                                 const moduleIndex = Number(btn.getAttribute('data-module-index'));
-                                if (!confirm('Allow this participant to retake the exam?')) return;
+                                if (!await window.capdevConfirm('Allow this participant to retake the exam?', { title: 'Allow Retake', confirmText: 'Allow' })) return;
                                 
                                 btn.disabled = true;
                                 btn.textContent = 'Allowing...';
@@ -2496,8 +2496,8 @@
             document.getElementById('enrollmentModal').classList.remove('active');
         }
 
-        function notifyIndividual(userId, btn) {
-            if (confirm('Send an email reminder to this participant about their incomplete activities?')) {
+        async function notifyIndividual(userId, btn) {
+            if (await window.capdevConfirm('Send an email reminder to this participant about their incomplete activities?', { title: 'Send Reminder', confirmText: 'Send' })) {
                 const originalContent = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -2599,9 +2599,9 @@
     </script>
 
 <script>
-document.getElementById('notifyIncompleteBtn').addEventListener('click', function() {
+document.getElementById('notifyIncompleteBtn').addEventListener('click', async function() {
     // Show a confirmation dialog
-    if (confirm('Are you sure you want to send email reminders to all participants with incomplete activities?')) {
+    if (await window.capdevConfirm('Are you sure you want to send email reminders to all participants with incomplete activities?', { title: 'Send Reminders', confirmText: 'Send' })) {
         // Disable the button to prevent multiple clicks
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';

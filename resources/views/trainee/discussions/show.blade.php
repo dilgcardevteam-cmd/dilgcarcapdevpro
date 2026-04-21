@@ -213,8 +213,8 @@
                 }
             }).catch(function(){});
         }
-        function deleteReply(replyId){
-            if(!confirm('Delete this reply?')) return;
+        async function deleteReply(replyId){
+            if(!await window.capdevConfirm('Delete this reply?', { title: 'Delete Reply', confirmText: 'Delete' })) return;
             fetch('{{ url('/replies') }}/'+replyId, {
                 method:'DELETE',
                 headers:{'X-CSRF-TOKEN': csrf,'Accept':'application/json'}

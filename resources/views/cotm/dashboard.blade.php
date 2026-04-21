@@ -1308,7 +1308,7 @@
                                                 <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;{{ $pub ? 'background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0' : 'background:#fff7ed;color:#9a3412;border:1px solid #fed7aa' }}">
                                                     {{ $pub ? 'Published' : 'Unpublished' }}
                                                 </span>
-                                                <form method="POST" action="{{ route('courses.publish', $course) }}" onsubmit="return confirm('Are you sure?')" style="margin:0">
+                                                <form method="POST" action="{{ route('courses.publish', $course) }}" style="margin:0" data-confirm-message="Are you sure?" data-confirm-title="Confirm Action">
                                                     @csrf
                                                     <input type="hidden" name="return_tab" value="trainer-trainee-management">
                                                     <input type="hidden" name="published" value="{{ $pub ? '0':'1' }}">

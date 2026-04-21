@@ -367,8 +367,8 @@ function update_image()
 /**
  * ADMIN COURSE DELETE
  * **/
-$(document).on('click','#delete__the_course',function(){
-  var confirmDelete = confirm("Are you sure you want to delete this course?");
+$(document).on('click','#delete__the_course', async function(){
+  var confirmDelete = await window.capdevConfirm("Are you sure you want to delete this course?", { title: 'Delete Course', confirmText: 'Delete' });
 
   if (confirmDelete) {
     openLoadingModal();
@@ -497,7 +497,7 @@ $(document).on('click','#_get_add_course',function(event){
 /**
  * ADMIN DELETE COURSE
  * **/
-$(document).on('click','#delete_course_list', function(){
+$(document).on('click','#delete_course_list', async function(){
     const formData = new FormData();
     var data1 = event.target.getAttribute('get_id_course');
     var data2 = event.target.getAttribute('get_id_course1');
@@ -506,7 +506,7 @@ $(document).on('click','#delete_course_list', function(){
     if (event.target.tagName === 'BUTTON') {
         // console.log("Runing");
 
-        var result = window.confirm('Are you sure you want to delete this activity?');
+        var result = await window.capdevConfirm('Are you sure you want to delete this activity?', { title: 'Delete Activity', confirmText: 'Delete' });
 
         if (result) {
             openLoadingModal();
@@ -547,7 +547,7 @@ $(document).on('click','#delete_course_list', function(){
 });
 
 
-$(document).on('click','#delete_course_list1', function(){
+$(document).on('click','#delete_course_list1', async function(){
     const formData = new FormData();
     var data1 = event.target.getAttribute('get_id_course');
     var data3 = event.target.getAttribute('get_id_course3');
@@ -556,7 +556,7 @@ $(document).on('click','#delete_course_list1', function(){
     if (event.target.tagName === 'BUTTON') {
         // console.log("Runing");
 
-        var result = window.confirm('Are you sure you want to delete this activity?');
+        var result = await window.capdevConfirm('Are you sure you want to delete this activity?', { title: 'Delete Activity', confirmText: 'Delete' });
 
         if (result) {
             openLoadingModal();
@@ -938,8 +938,8 @@ $(document).on('click','#update_act_file',function(){
 /**
  * DELETE ACTIVITY FILE
  * **/
-$(document).on('click', '#del_act_file', function() {
-    var confirmDelete = confirm("Are you sure you want to delete this activity file?");
+$(document).on('click', '#del_act_file', async function() {
+    var confirmDelete = await window.capdevConfirm("Are you sure you want to delete this activity file?", { title: 'Delete File', confirmText: 'Delete' });
     if (confirmDelete) {
         openLoadingModal();
         var get_file_id = $(this).data('file_id');
@@ -1079,8 +1079,8 @@ $(document).on('click', '#teacher_add_act_work', function() {
 /**
  * DELETE ACTIVITY WORK
  * **/
-$(document).on('click', '#del_work', function() {
-    var confirmDelete = confirm("Are you sure you want to delete this activity file?");
+$(document).on('click', '#del_work', async function() {
+    var confirmDelete = await window.capdevConfirm("Are you sure you want to delete this activity file?", { title: 'Delete File', confirmText: 'Delete' });
     if (confirmDelete) {
         openLoadingModal();
         var get_work_id = $(this).data('work_id');
@@ -1416,14 +1416,14 @@ function openLoadingModal1() {
 /**
  * ADMIN RESET PASSWORD
  * **/
-$(document).on('click', '#resset_pass_user_columns', function(){
+$(document).on('click', '#resset_pass_user_columns', async function(){
 
 
   // var data = $(this).closest('.row_user_data');
   const formData = new FormData();
   formData.append('key1', event.target.getAttribute('get_the_user'));
 
-  var confirmDelete = confirm("Are you sure you want to reset the password");
+  var confirmDelete = await window.capdevConfirm("Are you sure you want to reset the password", { title: 'Reset Password', confirmText: 'Reset' });
   if(confirmDelete)
   {
     openLoadingModal1();

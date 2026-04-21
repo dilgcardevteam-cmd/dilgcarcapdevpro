@@ -830,8 +830,8 @@
                 } else if(typeof setActiveAnchor === 'function'){ setActiveAnchor(lastTopic); }
             }
         }
-        function removeTopicRow(btn){
-            if(!confirm('Remove this topic and its fields?')) return;
+        async function removeTopicRow(btn){
+            if(!await window.capdevConfirm('Remove this topic and its fields?', { title: 'Remove Topic', confirmText: 'Remove' })) return;
             const row = btn.closest('.topic-row');
             const topics = row.parentElement;
             row.remove();
@@ -859,16 +859,16 @@
         function kebabAddModule(el){
             createModule(); el.closest('.kebab-menu').classList.remove('open');
         }
-        function kebabDeleteModule(el){
-            if(!confirm('Delete this module?')) return;
+        async function kebabDeleteModule(el){
+            if(!await window.capdevConfirm('Delete this module?', { title: 'Delete Module', confirmText: 'Delete' })) return;
             const wrapper = el.closest('.module-wrapper'); if(wrapper){ wrapper.remove(); reindexModules(); updateProgress(); scheduleAutoSave(); }
         }
         function kebabAddSubtopic(el){
             const topicRow = el.closest('.topic-row'); if(topicRow){ addSubtopicRow(topicRow); }
             el.closest('.kebab-menu').classList.remove('open');
         }
-        function kebabDeleteTopic(el){
-            if(!confirm('Delete this topic?')) return;
+        async function kebabDeleteTopic(el){
+            if(!await window.capdevConfirm('Delete this topic?', { title: 'Delete Topic', confirmText: 'Delete' })) return;
             const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); scheduleAutoSave(); }
             el.closest('.kebab-menu').classList.remove('open');
         }
@@ -1034,8 +1034,8 @@
             if(active==='text'){ textBox.style.display='flex'; insBox.style.display='none'; }
             else { textBox.style.display='none'; insBox.style.display='flex'; }
         }
-        function insertLink(btn){
-            const url = prompt('Enter URL');
+        async function insertLink(btn){
+            const url = await window.capdevPrompt('Enter URL', '', { title: 'Insert Link', inputLabel: 'URL', confirmText: 'Insert' });
             if(!url) return;
             const editor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
             editor.focus();
@@ -2647,8 +2647,8 @@
             btn.style.display = localStorage.getItem(key) ? 'inline-flex' : 'none';
         }
 
-        function clearCurrentDraft() {
-            if (!confirm('Sigurado ka bang gusto mong burahin ang draft na ito? Mawawala ang lahat ng iyong nasimulan.')) return;
+        async function clearCurrentDraft() {
+            if (!await window.capdevConfirm('Sigurado ka bang gusto mong burahin ang draft na ito? Mawawala ang lahat ng iyong nasimulan.', { title: 'Burahin ang Draft', confirmText: 'Burahin', cancelText: 'Cancel' })) return;
             const key = draftKey();
             localStorage.removeItem(key);
             deleteFilesFromDB(key + '_materials');

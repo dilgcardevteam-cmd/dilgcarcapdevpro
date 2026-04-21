@@ -2684,7 +2684,7 @@
                                         @endif
                                     </div>
                                     @if($event->id)
-                                    <form action="{{ route('trainer.calendar-events.destroy', $event->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event?');">
+                                    <form action="{{ route('trainer.calendar-events.destroy', $event->id) }}" method="POST" data-confirm-message="Are you sure you want to delete this event?" data-confirm-title="Delete Event">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" style="background: none; border: none; color: #dc3545; cursor: pointer;">

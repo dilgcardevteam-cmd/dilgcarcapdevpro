@@ -65,7 +65,7 @@
                             @endif
                             <div class="actions">
                                 <a class="btn btn-view" href="{{ route('admin.courses.show', $course) }}">View</a>
-                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" onsubmit="return confirm('Approve this course? It will be moved to Active.')">
+                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course">
                                     @csrf
                                     <button type="submit" class="btn btn-approve">Approve</button>
                                 </form>

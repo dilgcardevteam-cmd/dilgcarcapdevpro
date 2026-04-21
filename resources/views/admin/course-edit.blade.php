@@ -701,8 +701,8 @@
         function kebabAddModule(el){
             createModule(); el.closest('.kebab-menu').classList.remove('open');
         }
-        function kebabDeleteModule(el){
-            if(!confirm('Delete this module?')) return;
+        async function kebabDeleteModule(el){
+            if(!await window.capdevConfirm('Delete this module?', { title: 'Delete Module', confirmText: 'Delete' })) return;
             const wrapper = el.closest('.module-wrapper'); if(wrapper){ wrapper.remove(); reindexModules(); updateProgress(); }
         }
         function kebabAddSubtopic(el){
@@ -714,8 +714,8 @@
             }
             el.closest('.kebab-menu').classList.remove('open');
         }
-        function kebabDeleteTopic(el){
-            if(!confirm('Delete this topic?')) return;
+        async function kebabDeleteTopic(el){
+            if(!await window.capdevConfirm('Delete this topic?', { title: 'Delete Topic', confirmText: 'Delete' })) return;
             const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); }
             el.closest('.kebab-menu').classList.remove('open');
         }
@@ -923,8 +923,8 @@
             if(active==='text'){ textBox.style.display='flex'; insBox.style.display='none'; }
             else { textBox.style.display='none'; insBox.style.display='flex'; }
         }
-        function insertLink(btn){
-            const url = prompt('Enter URL');
+        async function insertLink(btn){
+            const url = await window.capdevPrompt('Enter URL', '', { title: 'Insert Link', inputLabel: 'URL', confirmText: 'Insert' });
             if(!url) return;
             const editor = btn.closest('.text-block')?.querySelector('.editor') || btn.closest('.materials-panel')?.querySelector('.editor');
             editor.focus();

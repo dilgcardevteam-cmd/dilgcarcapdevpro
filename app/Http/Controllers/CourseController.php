@@ -3477,17 +3477,16 @@ class CourseController extends Controller
             ->with('success_course', 'Course approved successfully.');
     }
 
-    public function forceDelete($id)
+    public function forceDelete(Request $request, $id)
     {
         $course = Course::withTrashed()->findOrFail($id);
-        if (!$course->trashed()) {
-            $course->delete();
-            return redirect()->route('dashboard', ['tab' => 'course-management'])
-                ->with('success_course', 'Course archived. Open Archived Courses to delete permanently.')
-                ->with('open_archived_modal', true);
-        }
+
         try {
             \DB::transaction(function () use ($course) {
+                if (! $course->trashed()) {
+                    $course->delete();
+                }
+
                 // Detach users
                 $course->users()->detach();
                 // Remove assessments and grades
@@ -3514,14 +3513,62 @@ class CourseController extends Controller
                 // Permanently delete course
                 $course->forceDelete();
             });
+
+            if ($request->boolean('embedded')) {
+                session()->flash('success_course', 'Course permanently deleted.');
+                $target = route('dashboard', ['tab' => 'course-management']);
+                $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+                return response(
+                    "<!doctype html><html><body><script>
+                        try {
+                            if (window.top && window.top !== window) {
+                                if (typeof window.top.closeViewCourseModal === 'function') {
+                                    window.top.closeViewCourseModal();
+                                }
+                                window.top.location.href = {$encodedTarget};
+                            } else {
+                                window.location.href = {$encodedTarget};
+                            }
+                        } catch (e) {
+                            window.location.href = {$encodedTarget};
+                        }
+                    </script></body></html>",
+                    200,
+                    ['Content-Type' => 'text/html; charset=UTF-8']
+                );
+            }
+
             return redirect()->route('dashboard', ['tab' => 'course-management'])
-                ->with('success_course', 'Course permanently deleted.')
-                ->with('open_archived_modal', true);
+                ->with('success_course', 'Course permanently deleted.');
         } catch (\Throwable $e) {
             \Log::error('Force delete course failed', ['course_id' => $course->id, 'error' => $e->getMessage()]);
+
+            if ($request->boolean('embedded')) {
+                session()->flash('error_course', 'Failed to permanently delete course. Some related records may prevent deletion.');
+                $target = route('dashboard', ['tab' => 'course-management']);
+                $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+                return response(
+                    "<!doctype html><html><body><script>
+                        try {
+                            if (window.top && window.top !== window) {
+                                if (typeof window.top.closeViewCourseModal === 'function') {
+                                    window.top.closeViewCourseModal();
+                                }
+                                window.top.location.href = {$encodedTarget};
+                            } else {
+                                window.location.href = {$encodedTarget};
+                            }
+                        } catch (e) {
+                            window.location.href = {$encodedTarget};
+                        }
+                    </script></body></html>",
+                    200,
+                    ['Content-Type' => 'text/html; charset=UTF-8']
+                );
+            }
+
             return redirect()->route('dashboard', ['tab' => 'course-management'])
-                ->with('error_course', 'Failed to permanently delete course. Some related records may prevent deletion.')
-                ->with('open_archived_modal', true);
+                ->with('error_course', 'Failed to permanently delete course. Some related records may prevent deletion.');
         }
     }
 

@@ -23,7 +23,7 @@ class CheckInactivityTimeout
         $session = $request->session();
         $now = now()->getTimestamp();
         $lastActivity = (int) $session->get('last_activity_at', $now);
-        $timeoutSeconds = $this->resolveTimeoutSeconds((string) (Auth::user()->role ?? ''));
+        $timeoutSeconds = static::resolveTimeoutSeconds((string) (Auth::user()->role ?? ''));
 
         if (($now - $lastActivity) >= $timeoutSeconds) {
             Auth::logout();
@@ -47,7 +47,7 @@ class CheckInactivityTimeout
         return $next($request);
     }
 
-    private function resolveTimeoutSeconds(string $role): int
+    public static function resolveTimeoutSeconds(string $role): int
     {
         $role = strtolower(trim($role));
         $isAdmin = $role === 'admin'

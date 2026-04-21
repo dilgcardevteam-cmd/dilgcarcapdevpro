@@ -434,7 +434,7 @@
                                     @endphp
                                     <div class="summary-cell">{{ $enrolledAt }}</div>
                                     <div class="summary-cell" style="text-align:right">
-                                        <form action="{{ route('courses.participants.detach', [$course->id, $t->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this participant?')">
+                                        <form action="{{ route('courses.participants.detach', [$course->id, $t->id]) }}" method="POST" data-confirm-message="Are you sure you want to remove this participant?" data-confirm-title="Remove Participant">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" style="background:none;border:none;color:#dc3545;cursor:pointer;" title="Remove"><i class="fas fa-user-minus"></i></button>

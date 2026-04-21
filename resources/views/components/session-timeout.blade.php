@@ -227,9 +227,17 @@
 </style>
 
 <script>
+    @php
+        $sessionTimeoutSeconds = \App\Http\Middleware\CheckInactivityTimeout::resolveTimeoutSeconds((string) (auth()->user()->role ?? ''));
+        $warningLeadSeconds = min(60, max(0, $sessionTimeoutSeconds));
+        $warningAfterMilliseconds = max(0, ($sessionTimeoutSeconds - $warningLeadSeconds) * 1000);
+        $logoutAfterMilliseconds = $sessionTimeoutSeconds * 1000;
+    @endphp
+
     window.CAPDEV_SESSION_TIMEOUT = {
-        warningAfter: 60000,
-        logoutAfter: 300000,
+        warningAfter: {{ $warningAfterMilliseconds }},
+        logoutAfter: {{ $logoutAfterMilliseconds }},
+        keepAliveThrottle: 60000,
         keepAliveUrl: @json(route('session.keep-alive')),
         logoutUrl: @json(route('logout')),
         loginUrl: @json(route('login')),
@@ -262,6 +270,8 @@
         let logoutAt = 0;
         let warningVisible = false;
         let sessionEnded = false;
+        let keepAliveInFlight = false;
+        let lastKeepAliveAt = Date.now();
 
         function headers() {
             return {
@@ -331,7 +341,12 @@
             scheduleTimers();
         }
 
-        function keepSessionAlive() {
+        function keepSessionAlive(onSuccess, onFailure) {
+            if (keepAliveInFlight || sessionEnded) {
+                return;
+            }
+
+            keepAliveInFlight = true;
             fetch(config.keepAliveUrl, {
                 method: 'POST',
                 headers: headers(),
@@ -342,9 +357,20 @@
                     throw new Error('Session keep-alive failed.');
                 }
 
+                lastKeepAliveAt = Date.now();
                 resetLocalTimer();
+                if (typeof onSuccess === 'function') {
+                    onSuccess(response);
+                }
             }).catch(function () {
+                if (typeof onFailure === 'function') {
+                    onFailure();
+                    return;
+                }
+
                 showTimedOut();
+            }).finally(function () {
+                keepAliveInFlight = false;
             });
         }
 
@@ -386,14 +412,24 @@
 
         activityEvents.forEach(function (eventName) {
             window.addEventListener(eventName, function () {
-                if (!warningVisible && !sessionEnded) {
+                if (sessionEnded) {
+                    return;
+                }
+
+                if (!warningVisible) {
                     scheduleTimers();
+                }
+
+                if (!warningVisible && (Date.now() - lastKeepAliveAt) >= (config.keepAliveThrottle || 60000)) {
+                    keepSessionAlive(function () {}, function () {});
                 }
             }, { passive: true });
         });
 
         continueButtons.forEach(function (button) {
-            button.addEventListener('click', keepSessionAlive);
+            button.addEventListener('click', function () {
+                keepSessionAlive(null, showTimedOut);
+            });
         });
 
         if (logoutButton) {
