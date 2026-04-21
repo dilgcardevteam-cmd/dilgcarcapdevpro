@@ -2286,6 +2286,15 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
+                                    @php
+                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    @endphp
+                                    @if($subjectAreaText !== '')
+                                        <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                            <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                        </div>
+                                    @endif
                                     <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                     
                                     @if(!$course->trainer_ready)
@@ -2372,6 +2381,15 @@
                             </div>
                             <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
+                                    @php
+                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    @endphp
+                                    @if($subjectAreaText !== '')
+                                        <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                            <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                        </div>
+                                    @endif
                                     <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
 
                                     @if(!$course->trainer_ready)

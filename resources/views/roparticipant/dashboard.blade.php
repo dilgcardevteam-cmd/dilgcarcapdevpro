@@ -608,6 +608,15 @@
                             <div class="course-image" style="background-image: url('{{ $course->image_path ? $course->image_url : 'https://via.placeholder.com/300x160?text=No+Image' }}');"></div>
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
+                                @php
+                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                @endphp
+                                @if($subjectAreaText !== '')
+                                    <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                        <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                    </div>
+                                @endif
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
                                 @php
                                     $teacherNames = $course->users ? $course->users->pluck('name')->join(', ') : null;
@@ -632,9 +641,56 @@
                 <div class="section-header">
                     <h2 class="section-title">Available Courses</h2>
                 </div>
-                <div class="course-grid">
+                @php
+                    $subjectAreaOptions = [];
+                    foreach ($availableCourses as $c) {
+                        $raw = is_string($c->subject_area ?? null) ? (string) $c->subject_area : '';
+                        if (trim($raw) === '') {
+                            continue;
+                        }
+                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
+                            $subjectAreaOptions[$piece] = true;
+                        }
+                    }
+                    $subjectAreaOptions = array_keys($subjectAreaOptions);
+                    sort($subjectAreaOptions);
+                @endphp
+                <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 14px;padding:12px 14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.04);">
+                    <div style="flex:1;min-width:220px;">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Search Name</div>
+                        <div style="position:relative;">
+                            <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+                            <input id="participantCourseSearch" type="text" placeholder="Search by name..." style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;">
+                        </div>
+                    </div>
+                    <div style="min-width:220px;">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Filters</div>
+                        <select id="participantSubjectFilter" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;">
+                            <option value="">+ Add Filter</option>
+                            @foreach($subjectAreaOptions as $opt)
+                                <option value="{{ strtolower($opt) }}">{{ $opt }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="min-width:200px;">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Sort By</div>
+                        <select id="participantCourseSort" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="az">A - Z</option>
+                            <option value="za">Z - A</option>
+                        </select>
+                    </div>
+                    <div style="min-width:160px;">
+                        <button id="participantCourseReset" type="button" style="width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;color:#334155;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+                            <i class="fas fa-undo" style="color:#64748b;"></i>
+                            <span>Reset Filters</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="participantAvailableCoursesGrid" class="course-grid">
                     @forelse($availableCourses as $course)
-                        <div class="course-card" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
+                        <div class="course-card js-available-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -669,6 +725,15 @@
                                 @endphp
                                 <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
+                                @php
+                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                @endphp
+                                @if($subjectAreaText !== '')
+                                    <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
+                                        <i class="fas fa-layer-group" style="color:#94a3b8;"></i>
+                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ Str::limit($subjectAreaText, 70) }}</span>
+                                    </div>
+                                @endif
                                 <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
 
                                 <div class="course-schedule">
@@ -2089,6 +2154,62 @@
         if(menu && d && !menu.contains(ev.target)){
             d.style.display = 'none';
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function(){
+        var grid = document.getElementById('participantAvailableCoursesGrid');
+        var searchInput = document.getElementById('participantCourseSearch');
+        var subjectSelect = document.getElementById('participantSubjectFilter');
+        var sortSelect = document.getElementById('participantCourseSort');
+        var resetBtn = document.getElementById('participantCourseReset');
+        if(!grid || !searchInput || !subjectSelect || !sortSelect || !resetBtn) return;
+
+        function toInt(v){
+            var n = parseInt(v, 10);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function applyFilters(){
+            var q = (searchInput.value || '').trim().toLowerCase();
+            var subj = (subjectSelect.value || '').trim().toLowerCase();
+            var sort = (sortSelect.value || 'newest').trim();
+
+            var cards = Array.prototype.slice.call(grid.querySelectorAll('.js-available-course-card'));
+            cards.forEach(function(card){
+                var name = (card.dataset.name || '').toLowerCase();
+                var subjects = (card.dataset.subjects || '').toLowerCase();
+                var matchName = !q || name.indexOf(q) !== -1;
+                var matchSubject = !subj || subjects.indexOf(subj) !== -1;
+                card.style.display = (matchName && matchSubject) ? '' : 'none';
+            });
+
+            var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+            var hidden = cards.filter(function(c){ return c.style.display === 'none'; });
+
+            visible.sort(function(a, b){
+                if (sort === 'oldest') return toInt(a.dataset.created) - toInt(b.dataset.created);
+                if (sort === 'az') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                if (sort === 'za') return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+                return toInt(b.dataset.created) - toInt(a.dataset.created);
+            });
+
+            visible.forEach(function(c){ grid.appendChild(c); });
+            hidden.forEach(function(c){ grid.appendChild(c); });
+        }
+
+        function resetFilters(){
+            searchInput.value = '';
+            subjectSelect.value = '';
+            sortSelect.value = 'newest';
+            applyFilters();
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        subjectSelect.addEventListener('change', applyFilters);
+        sortSelect.addEventListener('change', applyFilters);
+        resetBtn.addEventListener('click', resetFilters);
+
+        applyFilters();
     });
     </script>
 </body>
