@@ -228,14 +228,13 @@
 
 <script>
     @php
-        $sessionTimeoutSeconds = \App\Http\Middleware\CheckInactivityTimeout::resolveTimeoutSeconds((string) (auth()->user()->role ?? ''));
-        $warningAfterMilliseconds = min(60, max(0, $sessionTimeoutSeconds)) * 1000;
-        $logoutAfterMilliseconds = $sessionTimeoutSeconds * 1000;
+        $inactivityWarningMilliseconds = \App\Http\Middleware\CheckInactivityTimeout::INACTIVITY_WARNING_SECONDS * 1000;
+        $logoutCountdownMilliseconds = \App\Http\Middleware\CheckInactivityTimeout::LOGOUT_COUNTDOWN_SECONDS * 1000;
     @endphp
 
     window.CAPDEV_SESSION_TIMEOUT = {
-        warningAfter: {{ $warningAfterMilliseconds }},
-        logoutAfter: {{ $logoutAfterMilliseconds }},
+        inactivityWarningAfter: {{ $inactivityWarningMilliseconds }},
+        logoutCountdown: {{ $logoutCountdownMilliseconds }},
         keepAliveThrottle: 60000,
         keepAliveUrl: @json(route('session.keep-alive')),
         logoutUrl: @json(route('logout')),
@@ -246,10 +245,26 @@
 
 <script>
     (function () {
-        const config = window.CAPDEV_SESSION_TIMEOUT || {};
-        const root = document.getElementById('cdp-session-timeout-root');
+        if (window.sessionTimeoutInitialized === true) {
+            document.querySelectorAll('#cdp-session-timeout-root').forEach(function (node, index) {
+                if (index > 0) node.remove();
+            });
+            return;
+        }
 
-        if (!root || root.dataset.bound === 'true') {
+        window.sessionTimeoutInitialized = true;
+
+        const config = window.CAPDEV_SESSION_TIMEOUT || {};
+        const roots = document.querySelectorAll('#cdp-session-timeout-root');
+        const root = roots[0];
+
+        roots.forEach(function (node, index) {
+            if (index > 0) {
+                node.remove();
+            }
+        });
+
+        if (!root) {
             return;
         }
 
@@ -274,13 +289,16 @@
             'wheel'
         ];
 
-        let warningTimer = null;
-        let logoutTimer = null;
+        const inactivityWarningAfter = Number(config.inactivityWarningAfter || 1800000);
+        const logoutCountdownDuration = Number(config.logoutCountdown || 60000);
+
+        let inactivityTimer = null;
         let countdownTimer = null;
         let logoutAt = 0;
         let warningVisible = false;
         let sessionEnded = false;
         let keepAliveInFlight = false;
+        let logoutInFlight = false;
         let lastKeepAliveAt = Date.now();
 
         function headers() {
@@ -306,25 +324,32 @@
         }
 
         function clearTimers() {
-            window.clearTimeout(warningTimer);
-            window.clearTimeout(logoutTimer);
+            window.clearTimeout(inactivityTimer);
             window.clearInterval(countdownTimer);
+            inactivityTimer = null;
+            countdownTimer = null;
         }
 
         function openWarning() {
-            if (sessionEnded) {
+            if (sessionEnded || warningVisible) {
                 return;
             }
 
             warningVisible = true;
-            logoutAt = Date.now() + Math.max(0, (config.logoutAfter || 300000) - (config.warningAfter || 240000));
+            window.clearInterval(countdownTimer);
+            logoutAt = Date.now() + logoutCountdownDuration;
             warningPanel.hidden = false;
             endedPanel.hidden = true;
             closeButton.hidden = false;
             root.classList.add('is-open');
             root.setAttribute('aria-hidden', 'false');
             setCountdown();
-            countdownTimer = window.setInterval(setCountdown, 1000);
+            countdownTimer = window.setInterval(function () {
+                setCountdown();
+                if (Date.now() >= logoutAt) {
+                    performTimeoutLogout();
+                }
+            }, 1000);
         }
 
         function closeWarning() {
@@ -334,12 +359,9 @@
             window.clearInterval(countdownTimer);
         }
 
-        function scheduleTimers() {
+        function scheduleInactivityTimer() {
             clearTimers();
-            warningTimer = window.setTimeout(openWarning, config.warningAfter || 240000);
-            logoutTimer = window.setTimeout(function () {
-                performTimeoutLogout();
-            }, config.logoutAfter || 300000);
+            inactivityTimer = window.setTimeout(openWarning, inactivityWarningAfter);
         }
 
         function resetLocalTimer() {
@@ -348,7 +370,7 @@
             }
 
             closeWarning();
-            scheduleTimers();
+            scheduleInactivityTimer();
         }
 
         function keepSessionAlive(onSuccess, onFailure) {
@@ -405,14 +427,21 @@
         }
 
         function performTimeoutLogout() {
-            if (sessionEnded) {
+            if (sessionEnded || logoutInFlight) {
                 return;
             }
 
+            logoutInFlight = true;
+            clearTimers();
             postLogout().finally(showTimedOut);
         }
 
         function performManualLogout() {
+            if (logoutInFlight) {
+                return;
+            }
+
+            logoutInFlight = true;
             sessionEnded = true;
             clearTimers();
             postLogout().finally(function () {
@@ -427,7 +456,7 @@
                 }
 
                 if (!warningVisible) {
-                    scheduleTimers();
+                    scheduleInactivityTimer();
                 }
 
                 if (!warningVisible && (Date.now() - lastKeepAliveAt) >= (config.keepAliveThrottle || 60000)) {
@@ -446,6 +475,6 @@
             logoutButton.addEventListener('click', performManualLogout);
         }
 
-        scheduleTimers();
+        scheduleInactivityTimer();
     })();
 </script>

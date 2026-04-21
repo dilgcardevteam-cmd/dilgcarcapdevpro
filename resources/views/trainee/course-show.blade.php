@@ -1316,21 +1316,39 @@
                 return;
             }
             function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+            function isMultipleChoiceQuestion(kind){ return ['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(String(kind || '')); }
+            function normalizeMcKind(kind){ return String(kind || '') === 'multiple_choice_multiple' ? 'multiple_choice_multiple' : 'multiple_choice_single'; }
+            function mcCorrectIndexes(q){
+                const choices = Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : []);
+                let raw = Array.isArray(q.correct_answers) ? q.correct_answers.slice() : [];
+                if(!raw.length && q.correct_answer !== undefined && q.correct_answer !== null && q.correct_answer !== '') raw = [q.correct_answer];
+                if(!raw.length && q.answer_index !== undefined && q.answer_index !== null && q.answer_index !== '') raw = [q.answer_index];
+                return Array.from(new Set(raw.map(value => {
+                    if(!isNaN(Number(value))) return Number(value);
+                    const text = String(value || '').trim();
+                    if(/^[A-Za-z]$/.test(text)) return text.toUpperCase().charCodeAt(0) - 65;
+                    return choices.findIndex(choice => String(choice || '').trim().toLowerCase() === text.toLowerCase());
+                }).filter(index => Number.isInteger(index) && index >= 0 && index < choices.length)));
+            }
             const html = qs.map((q,qi)=>{
                 const kind = q.type || 'multiple_choice';
                 const showTrainerAnswer = (IS_TRAINER===true);
-                if(kind==='multiple_choice'){
+                if(isMultipleChoiceQuestion(kind)){
+                    const mcKind = normalizeMcKind(kind);
+                    const correctIndexes = mcCorrectIndexes(q);
                     const opts = (q.choices||q.options||[]).map((o,oi)=>{
-                        const isAns = Number.isInteger(q.answer_index) && oi===q.answer_index;
+                        const isAns = correctIndexes.includes(oi);
                         const chip = showTrainerAnswer && isAns ? '<span class="chip">Answer</span>' : '';
                         return `<div class="mc-option${isAns&&showTrainerAnswer?' trainer-answer':''}" data-idx="${oi}"><span class="mc-radio"></span><span class="mc-label">${esc(o)}</span> ${chip}</div>`;
                     }).join('');
+                    const helper = mcKind === 'multiple_choice_multiple' ? '<div class="muted" style="margin-bottom:8px">Select all that apply.</div>' : '';
                     if(showTrainerAnswer){
-                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div><div class="mc" data-answer="${Number.isInteger(q.answer_index)?q.answer_index:''}">${opts}</div></div>`;
+                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div>${helper}<div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div></div>`;
                     }
                     return `<div class="field question" data-kind="mc">
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div>
-                        <div class="mc" data-answer="${Number.isInteger(q.answer_index)?q.answer_index:''}">${opts}</div>
+                        ${helper}
+                        <div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div>
                     </div>`;
                 }else if(kind==='identification'){
                     const ans = q.answer||'';
@@ -1710,8 +1728,9 @@
                     const answers = blocks.map(b=>{
                         const kind = b.getAttribute('data-kind') || 'mc';
                         if(kind==='mc'){
-                            const sel = b.querySelector('.mc .mc-option.selected');
-                            return sel ? parseInt(sel.getAttribute('data-idx'),10) : null;
+                            const mc = b.querySelector('.mc');
+                            const selections = Array.from(b.querySelectorAll('.mc .mc-option.selected')).map(opt => parseInt(opt.getAttribute('data-idx'),10)).filter(Number.isInteger);
+                            return mc?.dataset.mode === 'multiple_choice_multiple' ? selections : (selections.length ? selections[0] : null);
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
                         }else if(kind==='enum'){
@@ -1734,10 +1753,11 @@
                         const kind = b.getAttribute('data-kind') || 'mc';
                         const val = arr[i];
                         if(kind==='mc'){
-                            if(Number.isInteger(val)){
-                                const opt = b.querySelector(`.mc .mc-option[data-idx="${val}"]`);
+                            const values = Array.isArray(val) ? val : (Number.isInteger(val) ? [val] : []);
+                            values.forEach(idx => {
+                                const opt = b.querySelector(`.mc .mc-option[data-idx="${idx}"]`);
                                 if(opt){ opt.classList.add('selected'); }
-                            }
+                            });
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='enum'){
@@ -1783,10 +1803,18 @@
                         const q = qs[i]||{};
                         const kind = q.type || 'multiple_choice';
                         const a = answers[i];
-                        if(kind==='multiple_choice'){
+                        if(isMultipleChoiceQuestion(kind)){
                             const maxPoints = Number(q.max_points || 1) || 1;
                             total += maxPoints;
-                            if(Number.isInteger(q.answer_index) && Number.isInteger(a) && a===q.answer_index) correct += maxPoints;
+                            const correctIndexes = mcCorrectIndexes(q).sort((x,y)=>x-y);
+                            const submittedIndexes = (Array.isArray(a) ? a : (Number.isInteger(a) ? [a] : [])).filter(Number.isInteger).sort((x,y)=>x-y);
+                            const exact = correctIndexes.length === submittedIndexes.length && correctIndexes.every((value, idx) => value === submittedIndexes[idx]);
+                            if(exact) correct += maxPoints;
+                            else if(normalizeMcKind(kind) === 'multiple_choice_multiple' && correctIndexes.length){
+                                const correctSet = new Set(correctIndexes);
+                                const matched = submittedIndexes.filter(index => correctSet.has(index)).length;
+                                correct += (matched / correctIndexes.length) * maxPoints;
+                            }
                         }else if(kind==='true_false'){
                             const maxPoints = Number(q.max_points || 1) || 1;
                             total += maxPoints;
@@ -1818,8 +1846,12 @@
                         const wrap = opt.closest('.mc');
                         const submitted = localStorage.getItem(keyBase+'_submitted')==='1';
                         if(submitted) return;
-                        wrap.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
-                        opt.classList.add('selected');
+                        if(wrap.dataset.mode === 'multiple_choice_multiple'){
+                            opt.classList.toggle('selected');
+                        }else{
+                            wrap.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
+                            opt.classList.add('selected');
+                        }
                         saveAnswers();
                     });
                 });
@@ -2140,33 +2172,37 @@
                         const q = qs[i] || {};
                         const kind = (q.type||'multiple_choice');
                         b.style.pointerEvents = 'none';
-                        if(kind==='multiple_choice'){
-                            const ans = Number.isInteger(q.answer_index) ? q.answer_index : null;
+                        if(isMultipleChoiceQuestion(kind)){
+                            const correctIndexes = mcCorrectIndexes(q);
                             const mc = b.querySelector('.mc');
-                            if(mc!=null && ans!=null){
+                            if(mc!=null && correctIndexes.length){
                                 if(showCorrect){
-                                    const opt = mc.querySelector(`.mc-option[data-idx="${ans}"]`);
-                                    if(opt){
-                                        opt.classList.add('trainer-answer');
-                                        if(!opt.querySelector('.chip')){
-                                            const chip=document.createElement('span');
-                                            chip.className='chip';
-                                            chip.textContent='Answer';
-                                            chip.style.marginLeft='6px';
-                                            opt.appendChild(chip);
+                                    correctIndexes.forEach(ans => {
+                                        const opt = mc.querySelector(`.mc-option[data-idx="${ans}"]`);
+                                        if(opt){
+                                            opt.classList.add('trainer-answer');
+                                            if(!opt.querySelector('.chip')){
+                                                const chip=document.createElement('span');
+                                                chip.className='chip';
+                                                chip.textContent='Answer';
+                                                chip.style.marginLeft='6px';
+                                                opt.appendChild(chip);
+                                            }
                                         }
-                                    }
+                                    });
                                 }
                                 // Mark user's selected answer and correctness
-                                const selIdx = (Array.isArray(ua) && Number.isInteger(ua[i])) ? ua[i] : null;
-                                if(selIdx!==null){
-                                    const selOpt = mc.querySelector(`.mc-option[data-idx="${selIdx}"]`);
-                                    if(selOpt){
-                                        selOpt.classList.add('selected');
-                                        mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
-                                        if(ans!==null && selIdx===ans){ selOpt.classList.add('submitted-correct'); }
-                                        else { selOpt.classList.add('submitted-wrong'); }
-                                    }
+                                const selectedIndexes = Array.isArray(ua?.[i]) ? ua[i] : (Number.isInteger(ua?.[i]) ? [ua[i]] : []);
+                                if(selectedIndexes.length){
+                                    const correctSet = new Set(correctIndexes);
+                                    mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
+                                    selectedIndexes.forEach(selIdx => {
+                                        const opt = mc.querySelector(`.mc-option[data-idx="${selIdx}"]`);
+                                        if(opt){
+                                            opt.classList.add('selected');
+                                            opt.classList.add(correctSet.has(selIdx) ? 'submitted-correct' : 'submitted-wrong');
+                                        }
+                                    });
                                 }
                             }
                         } else if(kind==='true_false'){
@@ -2733,7 +2769,7 @@
                         </div>`;
                     } else {
                         const kind = (q.type||'multiple_choice');
-                        if(kind==='multiple_choice'){
+                        if(['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(kind)){
                             return `<div class="field question" data-kind="mc">
                                 <div class="q-title">${q.title||'Question'}</div>
                                 <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>

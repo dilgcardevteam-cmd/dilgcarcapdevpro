@@ -232,25 +232,39 @@ class CourseController extends Controller
         }
 
         if ($type === 'multiple_choice') {
+            $type = 'multiple_choice_single';
+        }
+
+        if ($type === 'multiple_choice_single' || $type === 'multiple_choice_multiple') {
             $choices = $question['choices'] ?? ($question['options'] ?? []);
             $choices = array_values(array_filter(array_map(fn ($value) => trim((string) $value), (array) $choices), fn ($value) => $value !== ''));
-            $answerIndex = isset($question['answer_index']) && is_numeric($question['answer_index'])
-                ? (int) $question['answer_index']
-                : null;
+            $correctIndexes = $this->normalizeMultipleChoiceCorrectIndexes($question, $choices);
 
-            if (count($choices) < 2 || $answerIndex === null || $answerIndex < 0 || $answerIndex >= count($choices)) {
+            if (count($choices) < 2) {
+                return null;
+            }
+            $correctIndexes = array_values(array_filter($correctIndexes, fn ($index) => $index >= 0 && $index < count($choices)));
+            $requiredCount = $type === 'multiple_choice_single' ? 1 : 1;
+            if (count($correctIndexes) < $requiredCount || ($type === 'multiple_choice_single' && count($correctIndexes) !== 1)) {
                 return null;
             }
 
-            return [
-                'type' => 'multiple_choice',
+            $correctAnswers = array_map(fn ($index) => $this->choiceIndexToLetter($index), $correctIndexes);
+
+            $normalized = [
+                'type' => $type,
                 'text' => $text,
                 'choices' => $choices,
-                'answer_index' => $answerIndex,
+                'correct_answers' => $correctAnswers,
                 'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
                     ? max(1, (float) $question['max_points'])
                     : 1.0,
             ];
+            if ($type === 'multiple_choice_single') {
+                $normalized['answer_index'] = $correctIndexes[0];
+            }
+
+            return $normalized;
         }
 
         if ($type === 'identification') {
@@ -326,6 +340,63 @@ class CourseController extends Controller
         return mb_strtolower($value, 'UTF-8');
     }
 
+    protected function choiceIndexToLetter(int $index): string
+    {
+        return chr(65 + $index);
+    }
+
+    protected function choiceLetterToIndex(string $letter): ?int
+    {
+        $letter = strtoupper(trim($letter));
+        if (!preg_match('/^[A-Z]$/', $letter)) {
+            return null;
+        }
+        return ord($letter) - 65;
+    }
+
+    protected function normalizeMultipleChoiceCorrectIndexes(array $question, array $choices): array
+    {
+        $rawAnswers = $question['correct_answers'] ?? null;
+        if (!is_array($rawAnswers)) {
+            $rawAnswers = $rawAnswers === null || $rawAnswers === ''
+                ? []
+                : preg_split('/\s*,\s*/', (string) $rawAnswers, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        if (empty($rawAnswers) && array_key_exists('correct_answer', $question)) {
+            $rawAnswers = [$question['correct_answer']];
+        }
+        if (empty($rawAnswers) && isset($question['answer_index'])) {
+            $rawAnswers = [$question['answer_index']];
+        }
+
+        $choiceLookup = [];
+        foreach ($choices as $index => $choice) {
+            $choiceLookup[$this->normalizeComparableAnswer($choice)] = $index;
+        }
+
+        $indexes = [];
+        foreach ($rawAnswers as $rawAnswer) {
+            if (is_numeric($rawAnswer)) {
+                $indexes[] = (int) $rawAnswer;
+                continue;
+            }
+
+            $stringAnswer = trim((string) $rawAnswer);
+            $letterIndex = $this->choiceLetterToIndex($stringAnswer);
+            if ($letterIndex !== null) {
+                $indexes[] = $letterIndex;
+                continue;
+            }
+
+            $key = $this->normalizeComparableAnswer($stringAnswer);
+            if ($key !== '' && array_key_exists($key, $choiceLookup)) {
+                $indexes[] = $choiceLookup[$key];
+            }
+        }
+
+        return array_values(array_unique(array_filter($indexes, fn ($index) => is_int($index) && $index >= 0)));
+    }
+
     protected function normalizeEnumerationAnswers($answers): array
     {
         if (!is_array($answers)) {
@@ -364,13 +435,30 @@ class CourseController extends Controller
         $meta = [];
 
         if ($type === 'multiple_choice') {
+            $type = 'multiple_choice_single';
+        }
+
+        if ($type === 'multiple_choice_single' || $type === 'multiple_choice_multiple') {
             $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
                 ? max(1, (float) $question['max_points'])
                 : 1.0;
-            $isCorrect = is_numeric($answer)
-                && isset($question['answer_index'])
-                && (int) $answer === (int) $question['answer_index'];
+            $choices = array_values((array) ($question['choices'] ?? $question['options'] ?? []));
+            $correctIndexes = $this->normalizeMultipleChoiceCorrectIndexes($question, $choices);
+            $submittedIndexes = is_array($answer) ? $answer : ($answer === null || $answer === '' ? [] : [$answer]);
+            $submittedIndexes = $this->normalizeMultipleChoiceCorrectIndexes(['correct_answers' => $submittedIndexes], $choices);
+            sort($correctIndexes);
+            sort($submittedIndexes);
+            $isCorrect = $correctIndexes === $submittedIndexes;
             $score = $isCorrect ? $maxPoints : 0.0;
+            if ($type === 'multiple_choice_multiple' && !$isCorrect && count($correctIndexes) > 0) {
+                $correctSet = array_fill_keys($correctIndexes, true);
+                $matchedCount = count(array_filter($submittedIndexes, fn ($index) => isset($correctSet[$index])));
+                $score = ($matchedCount / count($correctIndexes)) * $maxPoints;
+            }
+            $meta = [
+                'submitted_answers' => array_map(fn ($index) => $this->choiceIndexToLetter($index), $submittedIndexes),
+                'correct_answers' => array_map(fn ($index) => $this->choiceIndexToLetter($index), $correctIndexes),
+            ];
         } elseif ($type === 'true_false') {
             $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
                 ? max(1, (float) $question['max_points'])
@@ -1304,9 +1392,9 @@ class CourseController extends Controller
                             ->withInput();
                     }
                     // Optional: strip essay types if present
-                    $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
-                    }));
+                    $qs = array_values(array_filter(array_map(function($q){
+                        return is_array($q) ? $this->normalizeExamQuestion($q) : null;
+                    }, ($e['questions'] ?? []))));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
                         'description' => (string) ($e['description'] ?? ''),
@@ -1337,9 +1425,9 @@ class CourseController extends Controller
                         ->withErrors(['create_course' => 'Course exam title is required.'], 'create_course')
                         ->withInput();
                 }
-                $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
-                }));
+                $qs = array_values(array_filter(array_map(function($q){
+                    return is_array($q) ? $this->normalizeExamQuestion($q) : null;
+                }, ($e['questions'] ?? []))));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
@@ -1527,9 +1615,9 @@ class CourseController extends Controller
                             ->withErrors(['create_course' => 'Exam title is required for exams.'], 'create_course')
                             ->withInput();
                     }
-                    $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                        return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
-                    }));
+                    $qs = array_values(array_filter(array_map(function($q){
+                        return is_array($q) ? $this->normalizeExamQuestion($q) : null;
+                    }, ($e['questions'] ?? []))));
                     $exam = [
                         'title' => (string) ($e['title'] ?? ''),
                         'description' => (string) ($e['description'] ?? ''),
@@ -1560,9 +1648,9 @@ class CourseController extends Controller
                         ->withErrors(['create_course' => 'Course exam title is required.'], 'create_course')
                         ->withInput();
                 }
-                $qs = array_values(array_filter(($e['questions'] ?? []), function($q){
-                    return isset($q['type']) && in_array($q['type'], ['multiple_choice','identification','true_false','essay','enumeration'], true);
-                }));
+                $qs = array_values(array_filter(array_map(function($q){
+                    return is_array($q) ? $this->normalizeExamQuestion($q) : null;
+                }, ($e['questions'] ?? []))));
                 $examArr = [
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
@@ -2308,9 +2396,9 @@ class CourseController extends Controller
                 if ($examRaw !== '') {
                     $examDecoded = json_decode($examRaw, true);
                     if (is_array($examDecoded)) {
-                        $examQuestions = array_values(array_filter(($examDecoded['questions'] ?? []), function ($q) {
-                            return isset($q['type']) && in_array($q['type'], ['multiple_choice', 'identification', 'true_false', 'essay', 'enumeration'], true);
-                        }));
+                        $examQuestions = array_values(array_filter(array_map(function ($q) {
+                            return is_array($q) ? $this->normalizeExamQuestion($q) : null;
+                        }, ($examDecoded['questions'] ?? []))));
                         $mArr['exam'] = [
                             'title' => (string) ($examDecoded['title'] ?? ''),
                             'description' => (string) ($examDecoded['description'] ?? ''),
@@ -3298,22 +3386,48 @@ class CourseController extends Controller
                     ? max(1, (float) $q['max_points'])
                     : 1.0;
                 $norm[] = ['type'=>'identification','text'=>$text,'answer'=>$ans,'max_points'=>$maxPoints];
-            } elseif ($type === 'multiple_choice') {
+            } elseif ($type === 'multiple_choice' || $type === 'multiple_choice_single' || $type === 'multiple_choice_multiple') {
+                if ($type === 'multiple_choice') {
+                    $type = 'multiple_choice_single';
+                }
                 $choices = $q['choices'] ?? ($q['options'] ?? []);
-                $choices = array_values(array_filter(array_map('strval', (array) $choices), fn($v)=>trim($v)!==''));
-                $ai = isset($q['answer_index']) ? (int)$q['answer_index'] : -1;
+                $choices = array_values(array_filter(array_map(fn($v)=>trim((string)$v), (array) $choices), fn($v)=>$v!==''));
+                $choiceKeys = array_map(fn($v)=>$this->normalizeComparableAnswer($v), $choices);
+                $correctIndexes = $this->normalizeMultipleChoiceCorrectIndexes($q, $choices);
                 if (count($choices) < 2) {
                     $errors[] = "Question #".($i+1)." must have at least two choices";
                     continue;
                 }
-                if ($ai < 0 || $ai >= count($choices)) {
-                    $errors[] = "Question #".($i+1)." must specify a valid correct choice";
+                if (count($choiceKeys) !== count(array_unique($choiceKeys))) {
+                    $errors[] = "Question #".($i+1)." has duplicate choices";
+                    continue;
+                }
+                if ($type === 'multiple_choice_single' && count($correctIndexes) !== 1) {
+                    $errors[] = "Question #".($i+1)." must have exactly one correct answer";
+                    continue;
+                }
+                if ($type === 'multiple_choice_multiple' && count($correctIndexes) < 1) {
+                    $errors[] = "Question #".($i+1)." must have at least one correct answer";
+                    continue;
+                }
+                if (array_filter($correctIndexes, fn($index)=>$index < 0 || $index >= count($choices))) {
+                    $errors[] = "Question #".($i+1)." must specify valid correct choices";
                     continue;
                 }
                 $maxPoints = isset($q['max_points']) && is_numeric($q['max_points'])
                     ? max(1, (float) $q['max_points'])
                     : 1.0;
-                $norm[] = ['type'=>'multiple_choice','text'=>$text,'choices'=>$choices,'answer_index'=>$ai,'max_points'=>$maxPoints];
+                $item = [
+                    'type'=>$type,
+                    'text'=>$text,
+                    'choices'=>$choices,
+                    'correct_answers'=>array_map(fn($index)=>$this->choiceIndexToLetter($index), $correctIndexes),
+                    'max_points'=>$maxPoints,
+                ];
+                if ($type === 'multiple_choice_single') {
+                    $item['answer_index'] = $correctIndexes[0];
+                }
+                $norm[] = $item;
             } elseif ($type === 'true_false') {
                 $ans = isset($q['answer']) ? (bool)$q['answer'] : null;
                 if (!is_bool($ans)) { $ans = ($q['answer']==='true'); }

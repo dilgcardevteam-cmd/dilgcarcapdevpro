@@ -25,10 +25,16 @@ class InjectSessionTimeoutModal
             return $response;
         }
 
-        $injected = View::make('components.app-dialogs')->render();
+        $injected = str_contains($content, 'id="capdev-app-dialog-root"')
+            ? ''
+            : View::make('components.app-dialogs')->render();
 
-        if (Auth::check()) {
+        if (Auth::check() && ! str_contains($content, 'id="cdp-session-timeout-root"')) {
             $injected .= PHP_EOL . View::make('components.session-timeout')->render();
+        }
+
+        if (trim($injected) === '') {
+            return $response;
         }
 
         $content = preg_replace('/<\/body>/i', $injected . PHP_EOL . '</body>', $content, 1);

@@ -1455,7 +1455,7 @@
             `;
         }
         function questionTypeLabel(value){
-            return String(value || 'multiple_choice').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return String(value || 'multiple_choice_single').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
         function updateQuestionCardSummary(block){
             if(!block) return;
@@ -1464,7 +1464,7 @@
             const preview = block.querySelector('.q-summary-preview');
             const meta = block.querySelector('.q-summary-meta');
             const text = (block.querySelector('.q-title')?.value || '').trim();
-            const type = block.querySelector('.q-type')?.value || 'multiple_choice';
+            const type = block.querySelector('.q-type')?.value || 'multiple_choice_single';
             if(number) number.textContent = index > 0 ? `Question ${index}` : 'Question';
             if(preview) preview.textContent = text || 'Untitled question';
             if(meta) meta.textContent = questionTypeLabel(type);
@@ -1521,7 +1521,8 @@
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
-                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
@@ -1608,7 +1609,8 @@
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
-                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
@@ -1927,16 +1929,22 @@
                 } else if(t === 'question'){
                     updateQuestionCardSummary(b);
                     const qb = b.querySelector('.q-block');
-                    const type = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice';
+                    const type = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice_single';
                     const title = qb.querySelector('.q-title').value || 'Untitled Question';
                     const required = false;
                     const q = { type, title, required };
-                    if(type === 'multiple_choice' || type === 'true_false'){
+                    if(isMultipleChoiceType(type) || type === 'true_false'){
                         const opts = Array.from(qb.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
                         q.options = opts.length ? opts : (type==='true_false' ? ['True','False'] : []);
                         const rows = Array.from(qb.querySelectorAll('.q-option-row'));
-                        const answerIndex = rows.findIndex(r => r.querySelector('.q-correct') && r.querySelector('.q-correct').checked);
-                        if(answerIndex >= 0) q.answer_index = answerIndex;
+                        const answerIndexes = rows.map((r, index) => (r.querySelector('.q-correct') && r.querySelector('.q-correct').checked) ? index : null).filter(index => index !== null);
+                        if(isMultipleChoiceType(type)){
+                            q.type = normalizeMcType(type);
+                            q.correct_answers = answerIndexes.map(choiceIndexToLetter);
+                            if(q.type === 'multiple_choice_single' && answerIndexes.length) q.answer_index = answerIndexes[0];
+                        }else if(answerIndexes.length){
+                            q.answer_index = answerIndexes[0];
+                        }
                     } else if(type === 'identification'){
                         const answers = Array.from(qb.querySelectorAll('.q-blanks .q-blank-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
                         q.answers = answers;
@@ -1987,7 +1995,8 @@
                     <label class="q-col" style="display:block">
                         <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                         <select class="q-type">
-                            <option value="multiple_choice">Multiple Choice</option>
+                            <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                            <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                             <option value="identification">Identification</option>
                             <option value="true_false">True or False</option>
                             <option value="essay">Essay</option>
@@ -2015,7 +2024,7 @@
             syncQuestionsJSON(panel);
         }
         function setupDefaultOptions(block){
-            const type = block.querySelector('.q-type') ? block.querySelector('.q-type').value : 'multiple_choice';
+            const type = block.querySelector('.q-type') ? block.querySelector('.q-type').value : 'multiple_choice_single';
             const options = block.querySelector('.q-options');
             options.innerHTML = '';
             const oldGuide = block.querySelector('.q-correct-guide');
@@ -2027,8 +2036,8 @@
                 g.textContent = text;
                 options.parentElement.insertBefore(g, options);
             }
-            if(type === 'multiple_choice'){
-                addGuide('Mark the circle for the correct answer.');
+            if(isMultipleChoiceType(type)){
+                addGuide(type === 'multiple_choice_multiple' ? 'Select all correct answers.' : 'Select one correct answer.');
                 addOptionRow(options, 'Choice A');
                 addOptionRow(options, 'Choice B');
                 addOptionRow(options, 'Choice C');
@@ -2064,7 +2073,7 @@
             }
             row.innerHTML = `
                 <label style="display:flex;align-items:center;gap:8px;flex:1;">
-                    <input type="radio" class="q-correct" name="${group}">
+                    <input type="${container.closest('.q-block')?.querySelector('.q-type')?.value === 'multiple_choice_multiple' ? 'checkbox' : 'radio'}" class="q-correct" name="${group}">
                     <input type="text" class="q-option" placeholder="${placeholder||'Add option'}">
                 </label>
                 <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="removeOptionRow(this)">X</button>
@@ -2210,9 +2219,13 @@
                 const title = b.querySelector('.q-title').value || 'Untitled Question';
                 const required = false;
                 const q = { type, title, required };
-                if(type === 'multiple_choice'){
+                if(isMultipleChoiceType(type)){
                     const opts = Array.from(b.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
                     q.options = opts;
+                    q.type = normalizeMcType(type);
+                    const correctIndexes = Array.from(b.querySelectorAll('.q-option-row')).map((row, index) => row.querySelector('.q-correct')?.checked ? index : null).filter(index => index !== null);
+                    q.correct_answers = correctIndexes.map(choiceIndexToLetter);
+                    if(q.type === 'multiple_choice_single' && correctIndexes.length) q.answer_index = correctIndexes[0];
                 } else if(type === 'true_false'){
                     q.options = ['True','False'];
                 } else if(type === 'identification'){
@@ -2678,6 +2691,13 @@
                 updateProgress();
                 if(!validateDetails()) { e.preventDefault(); switchTo(1); return; }
                 if(!validateModules()) { e.preventDefault(); switchTo(2); return; }
+                const examError = validateExamQuestionPayloads();
+                if(examError) {
+                    e.preventDefault();
+                    switchTo(2);
+                    alert(examError);
+                    return;
+                }
                 if(!isCertificateStepComplete()) { 
                     e.preventDefault(); 
                     switchTo(3);
@@ -2695,6 +2715,25 @@
                     ev.preventDefault();
                 }
             });
+        }
+        function validateExamQuestionPayloads(){
+            const fields = Array.from(document.querySelectorAll('.exam-json, .module-exam-json'));
+            for(const field of fields){
+                const raw = String(field.value || '').trim();
+                if(!raw) continue;
+                let payload = null;
+                try { payload = JSON.parse(raw); } catch(e) { return 'Exam data is invalid. Please review your questions.'; }
+                const questions = Array.isArray(payload.questions) ? payload.questions : [];
+                for(let i = 0; i < questions.length; i++){
+                    const q = questions[i] || {};
+                    if(!String(q.text || q.title || '').trim()) return `Question ${i + 1} text is required.`;
+                    if(isMultipleChoiceType(q.type)){
+                        const message = validateMultipleChoicePayload(Object.assign({}, q, { type: normalizeMcType(q.type) }));
+                        if(message) return `Question ${i + 1}: ${message}`;
+                    }
+                }
+            }
+            return '';
         }
         function serializeModules() {
             const modules = [];
@@ -2795,21 +2834,17 @@
                                                         const qType = block.querySelector('.q-type');
                                                         if (qTitle) qTitle.value = f.question.title || '';
                                                         if (qType) {
-                                                            qType.value = f.question.type || 'multiple_choice';
+                                                            qType.value = isMultipleChoiceType(f.question.type) ? normalizeMcType(f.question.type) : (f.question.type || 'multiple_choice_single');
                                                             setupDefaultOptions(block); 
-                                                            if (f.question.type === 'multiple_choice' && f.question.options) {
+                                                            if (isMultipleChoiceType(f.question.type) && Array.isArray(f.question.options) && f.question.options.length > 0) {
                                                                 const optsDiv = block.querySelector('.q-options');
                                                                 optsDiv.innerHTML = '';
-                                                                let correctIndex = Number.isInteger(f.question.answer_index)
-                                                                    ? f.question.answer_index
-                                                                    : (f.question.correct_answer !== undefined && f.question.correct_answer !== null && f.question.correct_answer !== '' && !isNaN(Number(f.question.correct_answer))
-                                                                        ? Number(f.question.correct_answer)
-                                                                        : null);
-                                                                if (correctIndex === null && typeof f.question.correct_answer === 'string') {
-                                                                    const savedAnswer = f.question.correct_answer.trim().toLowerCase();
-                                                                    correctIndex = f.question.options.findIndex(opt => String(opt || '').trim().toLowerCase() === savedAnswer);
-                                                                    if (correctIndex < 0) correctIndex = null;
-                                                                }
+                                                                const correctIndexes = normalizeCorrectAnswerIndexes({
+                                                                    choices: f.question.options,
+                                                                    correct_answers: f.question.correct_answers,
+                                                                    correct_answer: f.question.correct_answer,
+                                                                    answer_index: f.question.answer_index
+                                                                });
                                                                 f.question.options.forEach((opt, optIdx) => {
                                                                     addOptionRow(optsDiv, '');
                                                                     const row = optsDiv.querySelectorAll('.q-option-row')[optIdx];
@@ -2817,7 +2852,7 @@
                                                                         const input = row.querySelector('.q-option');
                                                                         const radio = row.querySelector('.q-correct');
                                                                         if(input) input.value = opt;
-                                                                        if(radio && correctIndex === optIdx) radio.checked = true;
+                                                                        if(radio && correctIndexes.includes(optIdx)) radio.checked = true;
                                                                     }
                                                                 });
                                                                 ensureAddOptionLink(optsDiv);
@@ -3724,6 +3759,63 @@
             syncFieldsJSON(panel);
             block.scrollIntoView({behavior:'smooth', block:'center'});
         }
+        function isMultipleChoiceType(type){
+            return ['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(String(type || ''));
+        }
+        function normalizeMcType(type){
+            return String(type || 'multiple_choice_single') === 'multiple_choice_multiple' ? 'multiple_choice_multiple' : 'multiple_choice_single';
+        }
+        function choiceIndexToLetter(index){
+            return String.fromCharCode(65 + Number(index || 0));
+        }
+        function normalizeCorrectAnswerIndexes(payload){
+            const choices = Array.isArray(payload?.choices) ? payload.choices : (Array.isArray(payload?.options) ? payload.options : []);
+            let raw = Array.isArray(payload?.correct_answers) ? payload.correct_answers.slice() : [];
+            if(raw.length === 0 && payload?.correct_answer !== undefined && payload.correct_answer !== null && payload.correct_answer !== '') raw = [payload.correct_answer];
+            if(raw.length === 0 && payload?.answer_index !== undefined && payload.answer_index !== null && payload.answer_index !== '') raw = [payload.answer_index];
+            const indexes = [];
+            raw.forEach(value => {
+                if(value === null || value === undefined || value === '') return;
+                if(!isNaN(Number(value))){
+                    indexes.push(Number(value));
+                    return;
+                }
+                const s = String(value).trim();
+                if(/^[A-Za-z]$/.test(s)){
+                    indexes.push(s.toUpperCase().charCodeAt(0) - 65);
+                    return;
+                }
+                const found = choices.findIndex(choice => String(choice || '').trim().toLowerCase() === s.toLowerCase());
+                if(found >= 0) indexes.push(found);
+            });
+            return Array.from(new Set(indexes)).filter(index => Number.isInteger(index) && index >= 0 && index < choices.length);
+        }
+        function buildMultipleChoicePayload(type, text, choices, correctIndexes, maxPoints){
+            const mcType = normalizeMcType(type);
+            const uniqueIndexes = Array.from(new Set(correctIndexes.filter(index => Number.isInteger(index))));
+            const payload = {
+                type: mcType,
+                text,
+                choices,
+                correct_answers: uniqueIndexes.map(choiceIndexToLetter),
+                max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints
+            };
+            if(mcType === 'multiple_choice_single'){
+                payload.answer_index = uniqueIndexes.length ? uniqueIndexes[0] : null;
+            }
+            return payload;
+        }
+        function validateMultipleChoicePayload(obj){
+            const choices = Array.isArray(obj?.choices) ? obj.choices.map(choice => String(choice || '').trim()) : [];
+            const filled = choices.filter(Boolean);
+            const keys = filled.map(choice => choice.toLowerCase());
+            const correct = Array.isArray(obj?.correct_answers) ? obj.correct_answers : [];
+            if(filled.length < 2) return 'Add at least two non-empty choices.';
+            if(keys.length !== new Set(keys).size) return 'Choices must be unique.';
+            if(obj.type === 'multiple_choice_single' && correct.length !== 1) return 'Select exactly one correct answer.';
+            if(obj.type === 'multiple_choice_multiple' && correct.length < 1) return 'Select at least one correct answer.';
+            return '';
+        }
         function ensureModuleExam(wrapper, prefill){
             const body = wrapper.querySelector('.module-body');
             const host = body.querySelector('.module-exam');
@@ -3758,7 +3850,8 @@
                                 <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                                     <select class="eq-type">
-                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                        <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
                                         <option value="essay">Essay</option>
@@ -3821,13 +3914,13 @@
             }
             function syncBuilderBoxes(){
                 const t = host.querySelector('.eq-type').value;
-                host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
+                host.querySelector('.eq-choices').style.display = isMultipleChoiceType(t) ? 'block':'none';
                 host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
                 host.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
                 host.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 host.querySelector('.eq-enum').style.display = (t==='enumeration') ? 'block':'none';
-                if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                if(isMultipleChoiceType(t) && host.querySelectorAll('.eq-option').length===0){ ensureChoiceRows(host); }
                 if(t==='enumeration' && host.querySelectorAll('.eq-enum-answer').length===0){ renderEnumerationAnswers(); }
                 window.CAPDEVQuestionBuilderShared.syncPointsValidation(host);
             }
@@ -3882,16 +3975,16 @@
                 const div = document.createElement('div');
                 div.className = 'exam-input-group';
                 div.dataset.index = String(idx);
-                const t = String(type||'multiple_choice');
+                const t = String(type||'multiple_choice_single');
                 let html = '';
                 html += '<input type="hidden" name="questions['+idx+'][type]" value="'+t+'">';
                 html += '<input type="text" name="questions['+idx+'][question]" value="">';
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
-                    html += '<input type="hidden" name="questions['+idx+'][correct_answer]" value="">';
+                    html += '<input type="hidden" name="questions['+idx+'][correct_answers][]" value="">';
                 }else if(t==='identification'){
                     html += '<input type="text" name="questions['+idx+'][answer]" value="">';
                 }else if(t==='true_false'){
@@ -3914,13 +4007,13 @@
                 if(!g) return;
                 const base = 'questions['+idx+']';
                 const q = g.querySelector('input[name="'+base+'[question]"]'); if(q) q.value = obj.text||'';
-                const t = g.querySelector('input[name="'+base+'[type]"]'); if(t) t.value = obj.type||'multiple_choice';
-                if(obj.type==='multiple_choice'){
+                const t = g.querySelector('input[name="'+base+'[type]"]'); if(t) t.value = obj.type||'multiple_choice_single';
+                if(isMultipleChoiceType(obj.type)){
                     const opts = g.querySelectorAll('input[name="'+base+'[options][]"]');
                     const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
                     opts.forEach((o,i)=>{ o.value = arr[i]||''; });
-                    const ca = g.querySelector('input[name="'+base+'[correct_answer]"]');
-                    if(ca) ca.value = (obj.answer_index==null || isNaN(obj.answer_index)) ? '' : String(obj.answer_index);
+                    const ca = g.querySelector('input[name="'+base+'[correct_answers][]"]') || g.querySelector('input[name="'+base+'[correct_answer]"]');
+                    if(ca) ca.value = Array.isArray(obj.correct_answers) ? obj.correct_answers.join(',') : '';
                 }else{
                     const ans = g.querySelector('input[name="'+base+'[answer]"]');
                     if(ans){
@@ -3935,18 +4028,18 @@
                 const node = items[idx]; if(!node) return;
                 let payload = {}; try{ payload = JSON.parse(node.dataset.payload||'{}'); }catch(e){}
                 const text = String(payload.text||'');
-                const type = String(payload.type||'multiple_choice');
+                const type = String(payload.type||'multiple_choice_single');
                 const txt = host.querySelector('.eq-text'); if(txt) txt.value = text;
-                const sel = host.querySelector('.eq-type'); if(sel) sel.value = type;
+                const sel = host.querySelector('.eq-type'); if(sel) sel.value = isMultipleChoiceType(type) ? normalizeMcType(type) : type;
                 syncBuilderBoxes();
-                if(type==='multiple_choice'){
-                    if(host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                if(isMultipleChoiceType(type)){
+                    if(host.querySelectorAll('.eq-option').length===0){ ensureChoiceRows(host); }
                     const rows = Array.from(host.querySelectorAll('.eq-choices .q-option-row'));
                     const choices = Array.isArray(payload.choices) ? payload.choices : (Array.isArray(payload.options) ? payload.options : []);
                     rows.forEach((row,i)=>{ const inp=row.querySelector('.eq-option'); if(inp) inp.value=choices[i]||''; });
-                    const radios = Array.from(host.querySelectorAll('.eq-correct')); radios.forEach(r=> r.checked=false);
-                    const ai = typeof payload.answer_index==='number' ? payload.answer_index : null;
-                    if(ai!=null && radios[ai]) radios[ai].checked=true;
+                    const correctIndexes = normalizeCorrectAnswerIndexes(Object.assign({}, payload, { choices }));
+                    const inputs = Array.from(host.querySelectorAll('.eq-correct'));
+                    inputs.forEach(input => { input.checked = correctIndexes.includes(Number(input.value)); });
                 }else if(type==='identification'){
                     const ans = String(payload.answer||''); const a = host.querySelector('.eq-id-answer'); if(a) a.value = ans;
                     const commonPoints = host.querySelector('.eq-common-points');
@@ -3956,12 +4049,6 @@
                     }
                 }else if(type==='true_false'){
                     const a = host.querySelector('.eq-tf-answer'); if(a) a.value = payload.answer===false ? 'false' : 'true';
-                    const commonPoints = host.querySelector('.eq-common-points');
-                    if(commonPoints){
-                        const maxPoints = payload.max_points;
-                        commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
-                    }
-                }else if(type==='multiple_choice'){
                     const commonPoints = host.querySelector('.eq-common-points');
                     if(commonPoints){
                         const maxPoints = payload.max_points;
@@ -4028,16 +4115,16 @@
                 if(clamped < items.length){
                     populateFromItem(clamped);
                 } else {
-                    const tVal = host.querySelector('.eq-type') ? host.querySelector('.eq-type').value : 'multiple_choice';
+                    const tVal = host.querySelector('.eq-type') ? host.querySelector('.eq-type').value : 'multiple_choice_single';
                     let obj = null;
-                    if(tVal==='multiple_choice'){
-                        obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: '' };
+                    if(isMultipleChoiceType(tVal)){
+                        obj = buildMultipleChoicePayload(tVal, '', ['', '', '', ''], [], '');
                     }else if(tVal==='identification'){
                         obj = { type:'identification', text:'', answer: '', max_points: '' };
                     }else if(tVal==='true_false'){
                         obj = { type:'true_false', text:'', answer: null, max_points: '' };
                     } else {
-                        obj = { type:String(tVal||'multiple_choice'), text:'', max_points: '' };
+                        obj = { type:String(tVal||'multiple_choice_single'), text:'', max_points: '' };
                     }
                     const listEl = host.querySelector('.exam-q-list');
                     const node = document.createElement('div');
@@ -4133,8 +4220,8 @@
                 const t = host.querySelector('.eq-type').value;
                 // Create a brand-new blank question object (independent state)
                 let obj = null;
-                if(t==='multiple_choice'){
-                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: '' };
+                if(isMultipleChoiceType(t)){
+                    obj = buildMultipleChoicePayload(t, '', ['', '', '', ''], [], '');
                 }else if(t==='identification'){
                     obj = { type:'identification', text:'', answer: '', max_points: '' };
                 }else if(t==='true_false'){
@@ -4144,7 +4231,7 @@
                 }else if(t==='enumeration'){
                     obj = { type:'enumeration', text:'', answers:['', ''], max_points: '' };
                 } else {
-                    obj = { type:String(t||'multiple_choice'), text:'' };
+                    obj = { type:String(t||'multiple_choice_single'), text:'' };
                 }
                 const listEl = host.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
@@ -4179,13 +4266,12 @@
                     const t = host.querySelector('.eq-type').value;
                     const text = (host.querySelector('.eq-text').value||'').trim();
                     let obj = null;
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     const opts = Array.from(host.querySelectorAll('.eq-option')).map(i=>i.value.trim());
-                    const checked = host.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : null;
+                    const checked = Array.from(host.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value, 10)).filter(Number.isInteger);
                     const maxPointsVal = host.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                     }else if(t==='identification'){
                         const ans = (host.querySelector('.eq-id-answer').value||'').trim();
                         const maxPointsVal = host.querySelector('.eq-common-points')?.value;
@@ -4207,7 +4293,7 @@
                         const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                         obj = { type:'enumeration', text, answers, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     } else {
-                        obj = { type:String(t||'multiple_choice'), text };
+                        obj = { type:String(t||'multiple_choice_single'), text };
                     }
                     const node = items[idx];
                     node.dataset.payload = JSON.stringify(obj);
@@ -4228,16 +4314,15 @@
         }
         function normalizeExamQuestionShape(q){
             if(!q || typeof q !== 'object') return null;
-            const type = String(q.type || 'multiple_choice');
+            const type = String(q.type || 'multiple_choice_single');
             const text = String(q.text ?? q.title ?? q.question ?? '').trim();
-            if(type === 'multiple_choice'){
+            if(isMultipleChoiceType(type)){
+                const mcType = normalizeMcType(type);
                 const rawChoices = Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : []);
                 const choices = [0,1,2,3].map(function(i){ return String(rawChoices[i] ?? ''); });
-                let answerIndex = null;
-                if(typeof q.answer_index === 'number' && !isNaN(q.answer_index)) answerIndex = q.answer_index;
-                else if(q.correct_answer !== undefined && q.correct_answer !== null && q.correct_answer !== '' && !isNaN(Number(q.correct_answer))) answerIndex = Number(q.correct_answer);
+                const correctIndexes = normalizeCorrectAnswerIndexes(Object.assign({}, q, { choices }));
                 const maxPoints = Number(q.max_points ?? 1);
-                return { type:'multiple_choice', text, choices, answer_index: answerIndex, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                return buildMultipleChoicePayload(mcType, text, choices, correctIndexes, (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1);
             }
             if(type === 'identification'){
                 const maxPoints = Number(q.max_points ?? 1);
@@ -4337,7 +4422,8 @@
                                 <div>
                                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Question Type</label>
                                     <select class="eq-type" style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;background:#fff;outline:none;cursor:pointer;">
-                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                        <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
                                         <option value="essay">Essay</option>
@@ -4444,22 +4530,40 @@
             __bindAutosizeTextareas(wrap);
             function renderChoices(){
                 const wrapChoices = wrap.querySelector('.eq-choices');
+                const currentType = normalizeMcType(wrap.querySelector('.eq-type')?.value);
+                const inputType = currentType === 'multiple_choice_multiple' ? 'checkbox' : 'radio';
+                const helperText = currentType === 'multiple_choice_multiple' ? 'Select all that apply' : 'Select one correct answer';
+                const currentChoices = Array.from(wrapChoices.querySelectorAll('.eq-option')).map(input => input.value);
+                const currentCorrect = Array.from(wrapChoices.querySelectorAll('.eq-correct:checked')).map(input => Number(input.value));
                 wrapChoices.innerHTML = '';
                 const group = 'course_exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                const helper = document.createElement('div');
+                helper.className = 'mc-helper-text';
+                helper.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;color:#475569;font-size:.88rem;font-weight:700;';
+                helper.innerHTML = '<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:4px 10px;">'+helperText+'</span>';
+                wrapChoices.appendChild(helper);
                 ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
                     const row = document.createElement('div');
                     row.className = 'q-option-row';
                     row.style.cssText = 'display:flex; align-items:center; gap:12px; background:#fff; padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:12px; transition:all .2s;';
                     row.innerHTML = `
                         <label style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;margin:0;">
-                            <input type="radio" class="eq-correct" name="${group}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
                             <input type="text" class="eq-option" placeholder="${ph}" style="flex:1;border:none;outline:none;font-size:0.95rem;font-weight:600;background:transparent;padding:4px 0;">
                         </label>
                     `;
+                    const optionInput = row.querySelector('.eq-option');
+                    const correctInput = row.querySelector('.eq-correct');
+                    if(optionInput) optionInput.value = currentChoices[i] || '';
+                    if(correctInput) correctInput.checked = currentCorrect.includes(i);
                     // Add focus effect to row
                     const input = row.querySelector('.eq-option');
                     input.addEventListener('focus', () => row.style.borderColor = '#002C76');
                     input.addEventListener('blur', () => row.style.borderColor = '#e2e8f0');
+                    row.addEventListener('change', () => {
+                        row.style.borderColor = correctInput.checked ? '#10b981' : '#e2e8f0';
+                        row.style.background = correctInput.checked ? '#ecfdf5' : '#fff';
+                    });
                     wrapChoices.appendChild(row);
                 });
             }
@@ -4481,13 +4585,13 @@
             }
             function syncBuilderBoxes(){
                 const t = wrap.querySelector('.eq-type').value;
-                wrap.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
+                wrap.querySelector('.eq-choices').style.display = isMultipleChoiceType(t) ? 'block':'none';
                 wrap.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 wrap.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
                 wrap.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
                 wrap.querySelector('.eq-essay').style.display = (t==='essay') ? 'block':'none';
                 wrap.querySelector('.eq-enum').style.display = (t==='enumeration') ? 'block':'none';
-                if(t==='multiple_choice' && wrap.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                if(isMultipleChoiceType(t)){ renderChoices(); }
                 if(t==='enumeration' && wrap.querySelectorAll('.eq-enum-answer').length===0){ renderEnumerationAnswers(); }
             }
             wrap.addEventListener('click', function(e){
@@ -4547,10 +4651,10 @@
                 if(idx < items.length){
                     const text = (wrap.querySelector('.eq-text').value||'').trim();
                     let obj = null;
-                    if(t==='multiple_choice'){
-                        const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
-                        const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                        obj = { type:'multiple_choice', text, choices:['','','',''], answer_index: null, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                if(isMultipleChoiceType(t)){
+                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
+                    obj = buildMultipleChoicePayload(t, text, ['', '', '', ''], [], maxPoints);
                     }else if(t==='identification'){
                         const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                         const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
@@ -4568,7 +4672,7 @@
                         const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                         obj = { type:'enumeration', text, answers:['', ''], max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     } else {
-                        obj = { type:String(t||'multiple_choice'), text };
+                        obj = { type:String(t||'multiple_choice_single'), text };
                     }
                     const node = items[idx];
                     node.dataset.payload = JSON.stringify(obj);
@@ -4609,16 +4713,16 @@
                 const div = document.createElement('div');
                 div.className = 'exam-input-group';
                 div.dataset.index = String(idx);
-                const t = String(type||'multiple_choice');
+                const t = String(type||'multiple_choice_single');
                 let html = '';
                 html += '<input type="hidden" name="questions['+idx+'][type]" value="'+t+'">';
                 html += '<input type="text" name="questions['+idx+'][question]" value="">';
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
                     html += '<input type="text" name="questions['+idx+'][options][]" value="">';
-                    html += '<input type="hidden" name="questions['+idx+'][correct_answer]" value="">';
+                    html += '<input type="hidden" name="questions['+idx+'][correct_answers][]" value="">';
                 }
                 if(t==='identification'){
                     html += '<input type="text" name="questions['+idx+'][answer]" value="">';
@@ -4651,17 +4755,17 @@
                 const groups = Array.from(box.querySelectorAll('.exam-input-group'));
                 const g = groups[idx];
                 if(!g) return;
-                const t = String(obj.type||'multiple_choice');
+                const t = String(obj.type||'multiple_choice_single');
                 const tInput = g.querySelector('input[name="questions['+idx+'][type]"]');
                 if(tInput) tInput.value = t;
                 const qInput = g.querySelector('input[name="questions['+idx+'][question]"]');
                 if(qInput) qInput.value = String(obj.text||'');
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     const opts = g.querySelectorAll('input[name="questions['+idx+'][options][]"]');
                     const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
                     opts.forEach((o, i)=>{ o.value = arr[i]||''; });
-                    const ca = g.querySelector('input[name="questions['+idx+'][correct_answer]"]');
-                    if(ca) ca.value = (obj.answer_index==null || isNaN(obj.answer_index)) ? '' : String(obj.answer_index);
+                    const ca = g.querySelector('input[name="questions['+idx+'][correct_answers][]"]');
+                    if(ca) ca.value = Array.isArray(obj.correct_answers) ? obj.correct_answers.join(',') : '';
                 } else if(t==='identification'){
                     const ans = g.querySelector('input[name="questions['+idx+'][answer]"]');
                     if(ans) ans.value = String(obj.answer||'');
@@ -4677,13 +4781,12 @@
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
                 let obj = null;
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
-                    const checked = wrap.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : null;
+                    const checked = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value, 10)).filter(Number.isInteger);
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
@@ -4705,7 +4808,7 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'enumeration', text, answers, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 } else {
-                    obj = { type:String(t||'multiple_choice'), text };
+                    obj = { type:String(t||'multiple_choice_single'), text };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);
@@ -4718,8 +4821,8 @@
                 const t = wrap.querySelector('.eq-type').value;
                 // Create a brand new blank question object (independent)
                 let obj = null;
-                if(t==='multiple_choice'){
-                    obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: '' };
+                if(isMultipleChoiceType(t)){
+                    obj = buildMultipleChoicePayload(t, '', ['', '', '', ''], [], '');
                 }else if(t==='identification'){
                     obj = { type:'identification', text:'', answer: '', max_points: '' };
                 }else if(t==='true_false'){
@@ -4729,7 +4832,7 @@
                 }else if(t==='enumeration'){
                     obj = { type:'enumeration', text:'', answers:['', ''], max_points: '' };
                 } else {
-                    obj = { type:String(t||'multiple_choice'), text:'', max_points: '' };
+                    obj = { type:String(t||'multiple_choice_single'), text:'', max_points: '' };
                 }
                 const listEl = wrap.querySelector('.exam-q-list');
                 const idx2 = listEl.children.length + 1;
@@ -4755,14 +4858,14 @@
                 const listEl = wrap.querySelector('.exam-q-list');
                 if(listEl.children.length>0) return;
                 const tSel = wrap.querySelector('.eq-type');
-                const tVal = tSel ? tSel.value : 'multiple_choice';
+                const tVal = tSel ? tSel.value : 'multiple_choice_single';
                 let obj = null;
-                if(tVal==='multiple_choice'){ obj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: '' }; }
+                if(isMultipleChoiceType(tVal)){ obj = buildMultipleChoicePayload(tVal, '', ['', '', '', ''], [], ''); }
                 else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '', max_points: '' }; }
                 else if(tVal==='true_false'){ obj = { type:'true_false', text:'', answer: null, max_points: '' }; }
                 else if(tVal==='essay'){ obj = { type:'essay', text:'', max_points: '' }; }
                 else if(tVal==='enumeration'){ obj = { type:'enumeration', text:'', answers:['', ''], max_points: '' }; }
-                else { obj = { type:String(tVal||'multiple_choice'), text:'', max_points: '' }; }
+                else { obj = { type:String(tVal||'multiple_choice_single'), text:'', max_points: '' }; }
                 const node = document.createElement('div');
                 node.className = 'q-item';
                 node.innerHTML = '<div class="qi-title" style="font-weight:700">1. </div><div class="muted" style="margin-top:6px">'+obj.type.replace('_',' ').toUpperCase()+'</div>';
@@ -4792,7 +4895,7 @@
                             + '<div class="muted" style="margin-top:6px">'+String(q.type||'').replace('_',' ').toUpperCase()+'</div>';
                         node.dataset.payload = JSON.stringify(q);
                         listEl.appendChild(node);
-                        addExamInputGroupFor(q.type||'multiple_choice');
+                        addExamInputGroupFor(q.type||'multiple_choice_single');
                         updateExamInputGroup(i2, q);
                     });
                     syncExamJSON();
@@ -4987,12 +5090,15 @@
             let payload = {};
             try{ payload = JSON.parse(node.dataset.payload||'{}'); }catch(e){}
             const text = String(payload.text||'');
-            const type = String(payload.type||'multiple_choice');
+            const type = String(payload.type||'multiple_choice_single');
+            const displayType = isMultipleChoiceType(type) ? normalizeMcType(type) : type;
             wrap.querySelector('.eq-text').value = text;
             const typeSel = wrap.querySelector('.eq-type');
-            if(typeSel){ typeSel.value = type; }
+            if(typeSel){ typeSel.value = displayType; }
             showBuilderBoxes(wrap);
-            if(type==='multiple_choice'){
+            if(isMultipleChoiceType(type)){
+                const normalizedType = normalizeMcType(type);
+                if(typeSel){ typeSel.value = normalizedType; }
                 ensureChoiceRows(wrap);
                 const choices = Array.isArray(payload.choices) ? payload.choices
                                  : Array.isArray(payload.options) ? payload.options
@@ -5002,10 +5108,9 @@
                     const inp = row.querySelector('.eq-option');
                     if(inp) inp.value = choices[i] || '';
                 });
-                const radios = Array.from(wrap.querySelectorAll('.eq-correct'));
-                radios.forEach(r=> r.checked = false);
-                const ai = typeof payload.answer_index==='number' ? payload.answer_index : 0;
-                if(radios[ai]) radios[ai].checked = true;
+                const correctIndexes = normalizeCorrectAnswerIndexes(Object.assign({}, payload, { choices }));
+                const inputs = Array.from(wrap.querySelectorAll('.eq-correct'));
+                inputs.forEach(input => { input.checked = correctIndexes.includes(Number(input.value)); });
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -5021,12 +5126,6 @@
                 }
             }else if(type==='true_false'){
                 wrap.querySelector('.eq-tf-answer').value = payload.answer===false ? 'false' : 'true';
-                const commonPoints = wrap.querySelector('.eq-common-points');
-                if(commonPoints){
-                    const maxPoints = payload.max_points;
-                    commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
-                }
-            }else if(type==='multiple_choice'){
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -5055,15 +5154,14 @@
             const boxPoints = wrap.querySelector('.eq-points');
             const boxEssay = wrap.querySelector('.eq-essay');
             const boxEnum = wrap.querySelector('.eq-enum');
-            if(boxChoices) boxChoices.style.display = (t==='multiple_choice') ? 'block' : 'none';
+            if(boxChoices) boxChoices.style.display = isMultipleChoiceType(t) ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
             if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration') ? 'none' : 'block';
             if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
             if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
-            if(t==='multiple_choice'){
-                const rows = wrap.querySelectorAll('.eq-choices .q-option-row');
-                if(rows.length===0) ensureChoiceRows(wrap);
+            if(isMultipleChoiceType(t)){
+                ensureChoiceRows(wrap);
             }
             if(t==='enumeration' && wrap.querySelectorAll('.eq-enum-answer').length===0){
                 ensureEnumerationRows(wrap);
@@ -5072,17 +5170,32 @@
         function ensureChoiceRows(wrap){
             const wrapChoices = wrap.querySelector('.eq-choices');
             if(!wrapChoices) return;
-            if(wrapChoices.querySelectorAll('.q-option-row').length>0) return;
+            const mcType = normalizeMcType(wrap.querySelector('.eq-type')?.value);
+            const inputType = mcType === 'multiple_choice_multiple' ? 'checkbox' : 'radio';
+            const existing = Array.from(wrapChoices.querySelectorAll('.q-option-row'));
+            const existingType = wrapChoices.querySelector('.eq-correct')?.type;
+            if(existing.length>0 && existingType === inputType) return;
+            const currentChoices = Array.from(wrapChoices.querySelectorAll('.eq-option')).map(input => input.value);
+            const currentCorrect = Array.from(wrapChoices.querySelectorAll('.eq-correct:checked')).map(input => Number(input.value));
+            wrapChoices.innerHTML = '';
             const group = 'exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const helper = document.createElement('div');
+            helper.style.cssText = 'margin:0 0 8px;color:#475569;font-size:.88rem;font-weight:700;';
+            helper.innerHTML = '<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:4px 10px;">'+(inputType === 'checkbox' ? 'Select all that apply' : 'Select one correct answer')+'</span>';
+            wrapChoices.appendChild(helper);
             ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
                 const row = document.createElement('div');
                 row.className = 'q-option-row';
                 row.innerHTML = `
                     <label style="display:flex;align-items:center;gap:8px;flex:1;">
-                        <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                        <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}">
                         <input type="text" class="eq-option" placeholder="${ph}">
                     </label>
                 `;
+                const optionInput = row.querySelector('.eq-option');
+                const correctInput = row.querySelector('.eq-correct');
+                if(optionInput) optionInput.value = currentChoices[i] || '';
+                if(correctInput) correctInput.checked = currentCorrect.includes(i);
                 wrapChoices.appendChild(row);
             });
         }
@@ -5148,13 +5261,12 @@
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
                 let obj = null;
-                if(t==='multiple_choice'){
+                if(isMultipleChoiceType(t)){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
-                    const checked = wrap.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : null;
+                    const checked = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value, 10)).filter(Number.isInteger);
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
                     const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
@@ -5191,13 +5303,13 @@
                             const q = iGroup.querySelector('input[name="'+base+'[question]"]');
                             if(q) q.value = obj.text||'';
                             const tI = iGroup.querySelector('input[name="'+base+'[type]"]');
-                            if(tI) tI.value = obj.type||'multiple_choice';
-                            if(obj.type==='multiple_choice'){
+                            if(tI) tI.value = obj.type||'multiple_choice_single';
+                            if(isMultipleChoiceType(obj.type)){
                                 const opts = iGroup.querySelectorAll('input[name="'+base+'[options][]"]');
                                 const arr = Array.isArray(obj.choices)?obj.choices:['','','',''];
                                 opts.forEach((o,i)=>{ o.value = arr[i]||''; });
-                                const ca = iGroup.querySelector('input[name="'+base+'[correct_answer]"]');
-                                if(ca) ca.value = (obj.answer_index==null||isNaN(obj.answer_index))?'':String(obj.answer_index);
+                                const ca = iGroup.querySelector('input[name="'+base+'[correct_answers][]"]') || iGroup.querySelector('input[name="'+base+'[correct_answer]"]');
+                                if(ca) ca.value = Array.isArray(obj.correct_answers) ? obj.correct_answers.join(',') : '';
                             }else{
                                 const opts = iGroup.querySelectorAll('input[name="'+base+'[options][]"]');
                                 opts.forEach(o=>{ o.value=''; });

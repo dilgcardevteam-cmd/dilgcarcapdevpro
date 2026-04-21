@@ -9,11 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckInactivityTimeout
 {
-    private const TIMEOUT_SECONDS = 3600;
+    public const INACTIVITY_WARNING_SECONDS = 1800;
+    public const LOGOUT_COUNTDOWN_SECONDS = 60;
+    private const TIMEOUT_SECONDS = self::INACTIVITY_WARNING_SECONDS + self::LOGOUT_COUNTDOWN_SECONDS;
 
     /**
-     * Enforce role-based inactivity timeout on every request.
-     * Users are logged out after 1 hour of inactivity.
+     * Enforce inactivity timeout on every request.
+     * The browser warning appears after 30 minutes, then logout follows after a 60-second countdown.
      */
     public function handle(Request $request, Closure $next): Response
     {
