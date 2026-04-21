@@ -5,14 +5,15 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckInactivityTimeout
 {
+    private const TIMEOUT_SECONDS = 3600;
+
     /**
      * Enforce role-based inactivity timeout on every request.
-     * Admin-like roles: 5 minutes. Others: 10 minutes.
+     * Users are logged out after 1 hour of inactivity.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -49,12 +50,7 @@ class CheckInactivityTimeout
 
     public static function resolveTimeoutSeconds(string $role): int
     {
-        $role = strtolower(trim($role));
-        $isAdmin = $role === 'admin'
-            || $role === 'super_admin'
-            || Str::contains($role, 'admin');
-
-        return $isAdmin ? 300 : 600;
+        return self::TIMEOUT_SECONDS;
     }
     
 }

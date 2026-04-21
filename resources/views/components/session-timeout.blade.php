@@ -229,8 +229,7 @@
 <script>
     @php
         $sessionTimeoutSeconds = \App\Http\Middleware\CheckInactivityTimeout::resolveTimeoutSeconds((string) (auth()->user()->role ?? ''));
-        $warningLeadSeconds = min(60, max(0, $sessionTimeoutSeconds));
-        $warningAfterMilliseconds = max(0, ($sessionTimeoutSeconds - $warningLeadSeconds) * 1000);
+        $warningAfterMilliseconds = min(60, max(0, $sessionTimeoutSeconds)) * 1000;
         $logoutAfterMilliseconds = $sessionTimeoutSeconds * 1000;
     @endphp
 
@@ -262,7 +261,18 @@
         const continueButtons = root.querySelectorAll('[data-session-timeout-continue]');
         const logoutButton = root.querySelector('[data-session-timeout-logout]');
         const closeButton = root.querySelector('.cdp-session-timeout-close');
-        const activityEvents = ['mousemove', 'click', 'keypress', 'touchstart', 'scroll'];
+        const activityEvents = [
+            'mousemove',
+            'pointermove',
+            'click',
+            'mousedown',
+            'keydown',
+            'keypress',
+            'input',
+            'touchstart',
+            'scroll',
+            'wheel'
+        ];
 
         let warningTimer = null;
         let logoutTimer = null;
