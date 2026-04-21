@@ -230,6 +230,13 @@
             margin: 0;
             padding: 6px 10px 12px;
         }
+        html, body { scrollbar-width: none; -ms-overflow-style: none; }
+        html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; }
+        #subjectAreaDropdown { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        #subjectAreaDropdown::-webkit-scrollbar { width: 10px; height: 10px; }
+        #subjectAreaDropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 2px solid #ffffff; }
+        #subjectAreaDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        #subjectAreaDropdown::-webkit-scrollbar-track { background: transparent; }
     </style>
     @if($errors->create_course->any())
         <script>
@@ -324,23 +331,20 @@
                                 <textarea id="description" name="description" rows="4" maxlength="1000" required aria-describedby="descError" placeholder="Describe what learners will achieve"></textarea>
                                 <div id="descError" class="error-text" style="display:none;"></div>
                             </div>
+                            <div class="section" style="margin-top:12px;">
+                                <div class="section-title"><i class="fas fa-image"></i> Course Image</div>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                    <button type="button" class="btn btn-cancel" onclick="document.getElementById('image').click()" style="padding:8px 16px; font-size:0.85rem; margin:0; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:600;">Choose File</button>
+                                    <span id="fileNameDisplay" style="color:#64748b; font-size:0.85rem;">No file chosen</span>
+                                </div>
+                                <input id="image" type="file" name="image" accept="image/*" required aria-describedby="imageError" style="display:none;">
+                                <input type="hidden" id="image_draft_data" name="image_draft_data">
+                                <div id="imageError" class="error-text" style="display:none;"></div>
+                                <div class="preview-thumb" id="imagePreview"><span style="color:#94a3b8;">No image selected</span></div>
+                            </div>
                         </div>
                         <div class="right">
                             <div class="section">
-                                <div class="section-title"><i class="fas fa-tags"></i> Course Type</div>
-                                <div style="display:flex; gap:16px;">
-                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                                        <input type="radio" name="course_type" value="free" required>
-                                        <span>Free</span>
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                                        <input type="radio" name="course_type" value="controlled" required>
-                                        <span>Controlled</span>
-                                    </label>
-                                </div>
-                                <div id="courseTypeError" class="error-text" style="display:none;"></div>
-                            </div>
-                            <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-calendar-check"></i> Academic Year</div>
                                 @php
                                     $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
@@ -367,31 +371,60 @@
                                 @endif
                                 <div id="academicYearError" class="error-text" style="display:none;"></div>
                             </div>
-                            <div class="section" style="margin-top:12px;">
-                                <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
-                                <select id="subject_area" name="subject_area" required aria-describedby="subjectError">
-                                    <option value="" disabled selected>Select Subject Area</option>
-                                    <option value="Core Governance & Administration">Core Governance & Administration</option>
-                                    <option value="Finance & Compliance">Finance & Compliance</option>
-                                    <option value="Digital Transformation">Digital Transformation</option>
-                                    <option value="ICT & Technical Skills">ICT & Technical Skills</option>
-                                    <option value="Human Capital & Leadership">Human Capital & Leadership</option>
-                                    <option value="Community & Development Planning">Community & Development Planning</option>
-                                    <option value="Economic & Business Development">Economic & Business Development</option>
-                                    <option value="Social Governance">Social Governance</option>
-                                </select>
-                                <div id="subjectError" class="error-text" style="display:none;"></div>
+                            <div class="section">
+                                <div class="section-title"><i class="fas fa-tags"></i> Course Type</div>
+                                <div style="display:flex; gap:16px;">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="radio" name="course_type" value="free" required>
+                                        <span>Free</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="radio" name="course_type" value="controlled" required>
+                                        <span>Controlled</span>
+                                    </label>
+                                </div>
+                                <div id="courseTypeError" class="error-text" style="display:none;"></div>
                             </div>
                             <div class="section" style="margin-top:12px;">
-                                <div class="section-title"><i class="fas fa-image"></i> Course Image</div>
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                                    <button type="button" class="btn btn-cancel" onclick="document.getElementById('image').click()" style="padding:8px 16px; font-size:0.85rem; margin:0; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:600;">Choose File</button>
-                                    <span id="fileNameDisplay" style="color:#64748b; font-size:0.85rem;">No file chosen</span>
+                                <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
+                                @php
+                                    $subjectAreas = [
+                                        'Core Governance & Administration',
+                                        'Finance & Compliance',
+                                        'Digital Transformation',
+                                        'ICT & Technical Skills',
+                                        'Human Capital & Leadership',
+                                        'Community & Development Planning',
+                                        'Economic & Business Development',
+                                        'Social Governance',
+                                    ];
+                                    $sel = old('subject_area', []);
+                                    if (!is_array($sel)) {
+                                        $sel = is_string($sel) ? array_filter(array_map('trim', explode(',', $sel))) : [];
+                                    }
+                                @endphp
+                                <div id="subject_area_group" style="position:relative;">
+                                    <button type="button" id="subjectAreaToggle" class="pro-input" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;background:#fff;" aria-haspopup="listbox" aria-expanded="false">
+                                        <span id="subjectAreaToggleLabel">Select Subject Area</span>
+                                        <i class="fas fa-chevron-down" style="color:#64748b;"></i>
+                                    </button>
+                                    <div id="subjectAreaDropdown" style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;box-shadow:0 18px 40px rgba(2,6,23,.12);z-index:50;max-height:320px;overflow:auto;">
+                                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+                                            @foreach($subjectAreas as $area)
+                                                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;cursor:pointer;user-select:none;">
+                                                    <input type="checkbox" name="subject_area[]" value="{{ $area }}" {{ in_array($area, $sel, true) ? 'checked' : '' }}>
+                                                    <span style="font-weight:700;color:#0f172a">{{ $area }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                        <div style="position:sticky;bottom:-12px;margin-top:12px;padding-top:12px;background:linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 40%);">
+                                            <div style="display:flex;justify-content:flex-end;">
+                                                <button type="button" id="subjectAreaDoneBtn" class="btn btn-submit" style="padding:10px 16px;border-radius:12px;">Done</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <input id="image" type="file" name="image" accept="image/*" required aria-describedby="imageError" style="display:none;">
-                                <input type="hidden" id="image_draft_data" name="image_draft_data">
-                                <div id="imageError" class="error-text" style="display:none;"></div>
-                                <div class="preview-thumb" id="imagePreview"><span style="color:#94a3b8;">No image selected</span></div>
+                                <div id="subjectError" class="error-text" style="display:none;"></div>
                             </div>
                         </div>
                     </div>
@@ -2125,16 +2158,104 @@
             const textarea = panel.querySelector('textarea[name$="[questions_json]"]');
             textarea.value = JSON.stringify(questions);
         }
+        function getSelectedSubjectAreas(){
+            return Array.from(document.querySelectorAll('input[name="subject_area[]"]:checked'))
+                .map(i => (i.value || '').trim())
+                .filter(v => v !== '');
+        }
+        function updateSubjectAreaDropdownLabel(){
+            const labelEl = document.getElementById('subjectAreaToggleLabel');
+            if (!labelEl) return;
+            const vals = getSelectedSubjectAreas();
+            let label = 'Select Subject Area';
+            if (vals.length === 1) label = vals[0];
+            else if (vals.length === 2) label = vals.join(', ');
+            else if (vals.length > 2) label = vals.slice(0, 2).join(', ') + ' +' + (vals.length - 2);
+            labelEl.textContent = label;
+        }
+        function setSubjectAreaDropdownOpen(open){
+            const dd = document.getElementById('subjectAreaDropdown');
+            const btn = document.getElementById('subjectAreaToggle');
+            if (!dd || !btn) return;
+            const wrap = document.getElementById('subject_area_group');
+            if (!wrap) return;
+            if (open) {
+                if (!dd.__origParent) {
+                    dd.__origParent = dd.parentElement;
+                    dd.__origNext = dd.nextSibling;
+                }
+                const r = btn.getBoundingClientRect();
+                const margin = 8;
+                dd.style.display = 'block';
+                dd.style.position = 'fixed';
+                dd.style.left = Math.max(12, Math.round(r.left)) + 'px';
+                dd.style.top = Math.round(r.bottom + margin) + 'px';
+                dd.style.width = Math.round(r.width) + 'px';
+                dd.style.zIndex = '5000';
+                const maxH = Math.max(180, window.innerHeight - (r.bottom + margin) - 16);
+                dd.style.maxHeight = Math.round(maxH) + 'px';
+                document.body.appendChild(dd);
+            } else {
+                dd.style.display = 'none';
+                dd.style.position = '';
+                dd.style.left = '';
+                dd.style.top = '';
+                dd.style.width = '';
+                dd.style.zIndex = '';
+                dd.style.maxHeight = '320px';
+                if (dd.__origParent) {
+                    dd.__origParent.insertBefore(dd, dd.__origNext || null);
+                } else {
+                    wrap.appendChild(dd);
+                }
+            }
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        function bindSubjectAreaDropdown(){
+            const wrap = document.getElementById('subject_area_group');
+            const btn = document.getElementById('subjectAreaToggle');
+            const dd = document.getElementById('subjectAreaDropdown');
+            const doneBtn = document.getElementById('subjectAreaDoneBtn');
+            if (!wrap || !btn) return;
+            updateSubjectAreaDropdownLabel();
+            btn.addEventListener('click', function(ev){
+                ev.preventDefault();
+                ev.stopPropagation();
+                const isOpen = btn.getAttribute('aria-expanded') === 'true';
+                setSubjectAreaDropdownOpen(!isOpen);
+            });
+            document.addEventListener('click', function(ev){
+                if (btn.contains(ev.target)) return;
+                if (dd && dd.contains(ev.target)) return;
+                setSubjectAreaDropdownOpen(false);
+            });
+            document.addEventListener('keydown', function(ev){
+                if (ev.key === 'Escape') setSubjectAreaDropdownOpen(false);
+            });
+            if (dd) {
+                dd.addEventListener('click', function(ev){ ev.stopPropagation(); });
+            }
+            if (doneBtn) {
+                doneBtn.addEventListener('click', function(ev){
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    setSubjectAreaDropdownOpen(false);
+                });
+            }
+            wrap.querySelectorAll('input[name="subject_area[]"]').forEach(cb => {
+                cb.addEventListener('change', updateSubjectAreaDropdownLabel);
+            });
+        }
         function validateDetails(){
             let ok = true;
             const name = document.getElementById('name');
             const desc = document.getElementById('description');
-            const subj = document.getElementById('subject_area');
+            const subjGroup = document.getElementById('subject_area_group');
             const image = document.getElementById('image');
             const setError = (el, msgId, msg) => { const n = document.getElementById(msgId); if(msg){ n.style.display='block'; n.textContent = msg; el.setAttribute('aria-invalid', 'true'); } else { n.style.display='none'; n.textContent=''; el.removeAttribute('aria-invalid'); } };
             if(!name.value.trim() || name.value.length > 100){ ok = false; setError(name,'nameError','Name is required (max 100).'); } else setError(name,'nameError','');
             if(!desc.value.trim() || desc.value.length > 1000){ ok = false; setError(desc,'descError','Description is required, max 1000 characters.'); } else setError(desc,'descError','');
-            if(!subj.value){ ok = false; setError(subj,'subjectError','Select a subject area.'); } else setError(subj,'subjectError','');
+            if(getSelectedSubjectAreas().length === 0){ ok = false; setError(subjGroup,'subjectError','Select at least one subject area.'); } else setError(subjGroup,'subjectError','');
             const courseType = document.querySelector('input[name="course_type"]:checked');
             if(!courseType){ ok = false; setError(document.querySelector('input[name="course_type"]'),'courseTypeError','Select a course type.'); } else { setError(document.querySelector('input[name="course_type"]'),'courseTypeError',''); }
             
@@ -2196,12 +2317,11 @@
         function isDetailsStepComplete(){
             const name = document.getElementById('name');
             const desc = document.getElementById('description');
-            const subj = document.getElementById('subject_area');
             const image = document.getElementById('image');
 
             const validName = !!name && !!name.value.trim() && name.value.trim().length <= 100;
             const validDesc = !!desc && !!desc.value.trim() && desc.value.trim().length <= 1000;
-            const validSubj = !!subj && !!subj.value;
+            const validSubj = getSelectedSubjectAreas().length > 0;
 
             if (!validName || !validDesc || !validSubj) return false;
 
@@ -2361,8 +2481,8 @@
             // Course Details
             document.getElementById('summaryName').textContent = document.getElementById('name').value || '(Untitled Course)';
             document.getElementById('summaryDescription').textContent = document.getElementById('description').value || '(No description)';
-            const subj = document.getElementById('subject_area');
-            document.getElementById('summarySubject').textContent = subj.options[subj.selectedIndex]?.text || '(No subject area)';
+            const selectedSubjects = getSelectedSubjectAreas();
+            document.getElementById('summarySubject').textContent = selectedSubjects.length ? selectedSubjects.join(', ') : '(No subject area)';
             document.getElementById('summaryAcademicYear').textContent = document.querySelector('input[name="academic_year"]').value || '(Not set)';
             const courseType = document.querySelector('input[name="course_type"]:checked');
             document.getElementById('summaryCourseType').textContent = courseType ? courseType.value.charAt(0).toUpperCase() + courseType.value.slice(1) : '(No course type selected)';
@@ -2474,12 +2594,16 @@
             document.getElementById('saveDraftBtn3').addEventListener('click', saveDraft);
             document.getElementById('saveDraftBtn4').addEventListener('click', saveDraft);
 
-            ['name','description','subject_area','image'].forEach(id=>{
+            ['name','description','image'].forEach(id=>{
                 const el = document.getElementById(id);
                 if(el) {
                     el.addEventListener('input', updateProgress);
                     el.addEventListener('change', updateProgress);
                 }
+            });
+            document.querySelectorAll('input[name="subject_area[]"]').forEach(el => {
+                el.addEventListener('change', updateProgress);
+                el.addEventListener('change', updateSubjectAreaDropdownLabel);
             });
             document.getElementById('courseForm').addEventListener('submit', (e)=>{
                 updateProgress();
@@ -2672,7 +2796,15 @@
                 const form = document.getElementById('courseForm');
                 const data = new FormData(form);
                 const obj = {};
-                data.forEach((v,k)=>{ if(!(v instanceof File)) obj[k]=v; });
+                data.forEach((v, k) => {
+                    if (v instanceof File) return;
+                    if (k === 'subject_area[]') {
+                        if (!Array.isArray(obj.subject_area)) obj.subject_area = [];
+                        obj.subject_area.push(v);
+                        return;
+                    }
+                    obj[k] = v;
+                });
                 
                 // Save image draft if present
                 const imgPreview = document.getElementById('imagePreview');
@@ -2725,6 +2857,11 @@
                 // Collect only non-module fields to avoid duplication
                 data.forEach((v, k) => {
                     if (!(v instanceof File) && !k.startsWith('modules[')) {
+                        if (k === 'subject_area[]') {
+                            if (!Array.isArray(obj.subject_area)) obj.subject_area = [];
+                            obj.subject_area.push(v);
+                            return;
+                        }
                         obj[k] = v;
                     }
                 });
@@ -2799,22 +2936,30 @@
             try{
                 const obj = JSON.parse(raw);
                 // Restore top-level fields
-                ['name','description','subject_area','video_url','certification_id'].forEach(k=>{
-                    if(obj[k] !== undefined){ 
-                        const el = document.querySelector(`[name="${k}"]`); 
-                        if(el) {
-                            el.value = obj[k];
-                            // Trigger selection styling for certificate
-                            if(k === 'certification_id') {
-                                const input = document.querySelector(`input[name="certification_id"][value="${obj[k]}"]`);
-                                if(input) {
-                                    input.checked = true;
-                                    updateCertSelection(input);
-                                }
-                            }
+                ['name','description','video_url','certification_id'].forEach(k=>{
+                    if(obj[k] === undefined) return;
+                    const el = document.querySelector(`[name="${k}"]`);
+                    if(!el) return;
+                    el.value = obj[k];
+                    if(k === 'certification_id') {
+                        const input = document.querySelector(`input[name="certification_id"][value="${obj[k]}"]`);
+                        if(input) {
+                            input.checked = true;
+                            updateCertSelection(input);
                         }
                     }
                 });
+                if (obj.subject_area !== undefined) {
+                    const rawAreas = obj.subject_area;
+                    const areas = Array.isArray(rawAreas)
+                        ? rawAreas
+                        : (typeof rawAreas === 'string' ? rawAreas.split(',').map(s => s.trim()).filter(Boolean) : []);
+                    document.querySelectorAll('input[name="subject_area[]"]').forEach(cb => {
+                        cb.checked = areas.includes(cb.value);
+                    });
+                }
+                updateSubjectAreaDropdownLabel();
+                setSubjectAreaDropdownOpen(false);
                 
                 // Restore image draft if present
                 if(obj['image_draft_data']) {
@@ -2936,6 +3081,7 @@
             
             // Clear the load_draft signal after processing
             sessionStorage.removeItem('load_draft');
+            bindSubjectAreaDropdown();
             
             updateProgress();
             switchTo(resolveInitialCourseCreateTab(restoredDraftTab), { scroll: false, scheduleSave: false });

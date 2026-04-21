@@ -7751,17 +7751,38 @@
                 </div>
                 <div class="form-group">
                     <label>Subject Area Category</label>
-                    <select name="subject_area" required>
-                        <option value="" disabled selected>Select Subject Area</option>
-                        <option value="Core Governance & Administration">Core Governance & Administration</option>
-                        <option value="Finance & Compliance">Finance & Compliance</option>
-                        <option value="Digital Transformation">Digital Transformation</option>
-                        <option value="ICT & Technical Skills">ICT & Technical Skills</option>
-                        <option value="Human Capital & Leadership">Human Capital & Leadership</option>
-                        <option value="Community & Development Planning">Community & Development Planning</option>
-                        <option value="Economic & Business Development">Economic & Business Development</option>
-                        <option value="Social Governance">Social Governance</option>
-                    </select>
+                    <div id="add_course_subject_area_group" style="position:relative;">
+                        <details style="border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;padding:10px 12px;">
+                            <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;color:#0f172a;">
+                                <span>Select Subject Area</span>
+                                <i class="fas fa-chevron-down" style="color:#64748b;"></i>
+                            </summary>
+                            <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+                        @php
+                            $subjectAreas = [
+                                'Core Governance & Administration',
+                                'Finance & Compliance',
+                                'Digital Transformation',
+                                'ICT & Technical Skills',
+                                'Human Capital & Leadership',
+                                'Community & Development Planning',
+                                'Economic & Business Development',
+                                'Social Governance',
+                            ];
+                            $sel = old('subject_area', []);
+                            if (!is_array($sel)) {
+                                $sel = is_string($sel) ? array_filter(array_map('trim', explode(',', $sel))) : [];
+                            }
+                        @endphp
+                        @foreach($subjectAreas as $area)
+                            <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;cursor:pointer;user-select:none;">
+                                <input type="checkbox" name="subject_area[]" value="{{ $area }}" {{ in_array($area, $sel, true) ? 'checked' : '' }}>
+                                <span style="font-weight:700;color:#0f172a">{{ $area }}</span>
+                            </label>
+                        @endforeach
+                            </div>
+                        </details>
+                    </div>
                 </div>
                 <!-- Module Builder -->
                 <div class="form-group">
@@ -7813,17 +7834,34 @@
                 </div>
                 <div class="form-group">
                     <label>Subject Area Category</label>
-                    <select id="edit_course_subject_area" name="subject_area" required>
-                        <option value="" disabled selected>Select Subject Area</option>
-                        <option value="Core Governance & Administration">Core Governance & Administration</option>
-                        <option value="Finance & Compliance">Finance & Compliance</option>
-                        <option value="Digital Transformation">Digital Transformation</option>
-                        <option value="ICT & Technical Skills">ICT & Technical Skills</option>
-                        <option value="Human Capital & Leadership">Human Capital & Leadership</option>
-                        <option value="Community & Development Planning">Community & Development Planning</option>
-                        <option value="Economic & Business Development">Economic & Business Development</option>
-                        <option value="Social Governance">Social Governance</option>
-                    </select>
+                    <div id="edit_course_subject_area_group" style="position:relative;">
+                        <details style="border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;padding:10px 12px;">
+                            <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;color:#0f172a;">
+                                <span>Select Subject Area</span>
+                                <i class="fas fa-chevron-down" style="color:#64748b;"></i>
+                            </summary>
+                            <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
+                        @php
+                            $subjectAreas = [
+                                'Core Governance & Administration',
+                                'Finance & Compliance',
+                                'Digital Transformation',
+                                'ICT & Technical Skills',
+                                'Human Capital & Leadership',
+                                'Community & Development Planning',
+                                'Economic & Business Development',
+                                'Social Governance',
+                            ];
+                        @endphp
+                        @foreach($subjectAreas as $area)
+                            <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;cursor:pointer;user-select:none;">
+                                <input type="checkbox" name="subject_area[]" value="{{ $area }}">
+                                <span style="font-weight:700;color:#0f172a">{{ $area }}</span>
+                            </label>
+                        @endforeach
+                            </div>
+                        </details>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Course Image (Leave blank to keep current)</label>
@@ -10359,7 +10397,14 @@
             form.action = `/courses/${course.id}`;
             document.getElementById('edit_course_name').value = course.name;
             document.getElementById('edit_course_description').value = course.description;
-            document.getElementById('edit_course_subject_area').value = course.subject_area;
+            const subjectsRaw = typeof course.subject_area === 'string' ? course.subject_area : '';
+            const subjects = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean);
+            const group = document.getElementById('edit_course_subject_area_group');
+            if (group) {
+                group.querySelectorAll('input[name="subject_area[]"]').forEach(cb => {
+                    cb.checked = subjects.includes(cb.value);
+                });
+            }
             modal.style.display = "block";
         }
         function closeEditCourseModal() {

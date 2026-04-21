@@ -17,10 +17,25 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Mail\IncompleteActivityReminder;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class CourseController extends Controller
 {
     use HandlesCertification;
+
+    private function allowedSubjectAreas(): array
+    {
+        return [
+            'Core Governance & Administration',
+            'Finance & Compliance',
+            'Digital Transformation',
+            'ICT & Technical Skills',
+            'Human Capital & Leadership',
+            'Community & Development Planning',
+            'Economic & Business Development',
+            'Social Governance',
+        ];
+    }
 
     /**
      * Remove large inline media from rich HTML to keep JSON small and safe.
@@ -1149,10 +1164,12 @@ class CourseController extends Controller
             return back()->withErrors(['academic_year' => 'No active academic year set. Please contact Superadmin.'], 'create_course')->withInput();
         }
 
+        $allowedSubjectAreas = $this->allowedSubjectAreas();
         $validated = $request->validateWithBag('create_course', [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'subject_area' => 'required|string',
+            'subject_area' => 'required|array|min:1',
+            'subject_area.*' => ['string', Rule::in($allowedSubjectAreas)],
             'academic_year' => 'nullable|string|max:20',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
@@ -1162,6 +1179,8 @@ class CourseController extends Controller
             'course_type' => 'required|in:free,controlled',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
+
+        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
 
         // Automatically assign active academic year
         $validated['academic_year_id'] = $activeYear->id;
@@ -1402,16 +1421,20 @@ class CourseController extends Controller
 
     public function trainerStore(Request $request)
     {
+        $allowedSubjectAreas = $this->allowedSubjectAreas();
         $validated = $request->validateWithBag('create_course', [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'subject_area' => 'required|string',
+            'subject_area' => 'required|array|min:1',
+            'subject_area.*' => ['string', Rule::in($allowedSubjectAreas)],
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
+
+        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
 
         if (!$request->filled('video_url')) {
             $validated['video_url'] = '';
@@ -2164,16 +2187,20 @@ class CourseController extends Controller
      */
     public function update(Request $request, Course $course)
     {
+        $allowedSubjectAreas = $this->allowedSubjectAreas();
         $validated = $request->validateWithBag('update_course', [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'subject_area' => 'required|string',
+            'subject_area' => 'required|array|min:1',
+            'subject_area.*' => ['string', Rule::in($allowedSubjectAreas)],
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
+
+        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
 
         if ($request->hasFile('image')) {
             // Delete old image
