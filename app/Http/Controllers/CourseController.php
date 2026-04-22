@@ -1394,6 +1394,7 @@ class CourseController extends Controller
                         'title' => (string) ($e['title'] ?? ''),
                         'description' => (string) ($e['description'] ?? ''),
                         'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                        'timer_mode' => (string) ($e['timer_mode'] ?? 'timed'),
                         'passing_score' => (int) ($e['passing_score'] ?? 75),
                         'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
                             ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
@@ -1427,6 +1428,7 @@ class CourseController extends Controller
                     'title' => (string) ($e['title'] ?? ''),
                     'description' => (string) ($e['description'] ?? ''),
                     'timer_minutes' => (int) ($e['timer_minutes'] ?? 0),
+                    'timer_mode' => (string) ($e['timer_mode'] ?? 'timed'),
                     'passing_score' => (int) ($e['passing_score'] ?? 75),
                     'max_attempts' => isset($e['max_attempts']) || isset($e['attempt_limit'])
                         ? (int) ($e['max_attempts'] ?? $e['attempt_limit'])
@@ -2412,6 +2414,7 @@ class CourseController extends Controller
                             'title' => (string) ($examDecoded['title'] ?? ''),
                             'description' => (string) ($examDecoded['description'] ?? ''),
                             'timer_minutes' => (int) ($examDecoded['timer_minutes'] ?? 0),
+                            'timer_mode' => (string) ($examDecoded['timer_mode'] ?? 'timed'),
                             'passing_score' => (int) ($examDecoded['passing_score'] ?? 75),
                             'max_attempts' => isset($examDecoded['max_attempts']) || isset($examDecoded['attempt_limit'])
                                 ? (int) ($examDecoded['max_attempts'] ?? $examDecoded['attempt_limit'])

@@ -3837,6 +3837,14 @@
                 <div class="q-block">
                     <div class="q-header exam-meta-row">
                         <label class="exam-meta-timer">
+                            <span class="exam-meta-timer-label">Timer Mode</span>
+                            <select class="exam-timer-mode exam-meta-timer-input">
+                                <option value="timed">Timed</option>
+                                <option value="untimed">No Timer</option>
+                            </select>
+                            <div class="exam-untimed-helper" style="display:none;font-size:0.7rem;color:#64748b;margin-top:4px;">This exam has no time limit.</div>
+                        </label>
+                        <label class="exam-meta-timer exam-duration-wrapper">
                             <span class="exam-meta-timer-label">Timer (minutes)</span>
                             <input type="number" min="1" max="600" class="exam-duration exam-meta-timer-input" placeholder="e.g., 30">
                         </label>
@@ -3958,15 +3966,32 @@
                     host.dispatchEvent(ev);
                 }
             });
+            host.querySelector('.exam-timer-mode').addEventListener('change', (e)=>{
+                const mode = e.target.value;
+                const wrapper = host.querySelector('.exam-duration-wrapper');
+                const helper = host.querySelector('.exam-untimed-helper');
+                const input = host.querySelector('.exam-duration');
+                if(mode === 'untimed'){
+                    wrapper.style.display = 'none';
+                    helper.style.display = 'block';
+                    input.required = false;
+                } else {
+                    wrapper.style.display = 'block';
+                    helper.style.display = 'none';
+                    input.required = true;
+                }
+                syncExamJSON();
+            });
             function syncExamJSON(){
-                const duration = parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const timerMode = host.querySelector('.exam-timer-mode').value;
+                const duration = timerMode === 'timed' ? (parseInt(host.querySelector('.exam-duration')?.value || '0', 10) || 0) : 0;
                 const passingScore = parseInt(host.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
                 const list = host.querySelectorAll('.exam-q-list .q-item');
                 const qs = [];
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                hidden.value = JSON.stringify({ timer_minutes: duration, passing_score: passingScore, questions: qs });
+                hidden.value = JSON.stringify({ timer_minutes: duration, timer_mode: timerMode, passing_score: passingScore, questions: qs });
             }
             host.querySelector('.eq-type').addEventListener('change', ()=>{ syncBuilderBoxes(); syncExamJSON(); });
             host.addEventListener('input', syncExamJSON);
@@ -4176,7 +4201,18 @@
             if(prefill){
                 try{
                     const normalizedPrefill = normalizeExamPrefill(prefill);
-                    host.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
+                    const timerMode = normalizedPrefill?.timer_mode || (normalizedPrefill?.timer_minutes > 0 ? 'timed' : 'untimed');
+                    const modeEl = host.querySelector('.exam-timer-mode');
+                    if(modeEl) modeEl.value = timerMode;
+                    const wrapper = host.querySelector('.exam-duration-wrapper');
+                    const input = host.querySelector('.exam-duration');
+                    if(timerMode === 'untimed'){
+                        if(wrapper) wrapper.style.display = 'none';
+                        if(input) { input.required = false; input.value = ''; }
+                    } else {
+                        if(wrapper) wrapper.style.display = 'block';
+                        if(input) { input.required = true; input.value = normalizedPrefill?.timer_minutes || ''; }
+                    }
                     const pass = host.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
                     const listEl = host.querySelector('.exam-q-list');
                     listEl.innerHTML = '';
@@ -4363,10 +4399,12 @@
         function normalizeExamPrefill(prefill){
             if(!prefill || typeof prefill !== 'object') return null;
             const rawQuestions = Array.isArray(prefill.questions) ? prefill.questions : [];
+            const timerMinutes = parseInt(prefill.timer_minutes || prefill.duration || 0, 10) || 0;
             return {
                 title: String(prefill.title ?? ''),
                 description: String(prefill.description ?? ''),
-                timer_minutes: parseInt(prefill.timer_minutes || prefill.duration || 0, 10) || 0,
+                timer_minutes: timerMinutes,
+                timer_mode: prefill.timer_mode || (timerMinutes > 0 ? 'timed' : 'untimed'),
                 passing_score: parseInt(prefill.passing_score || 75, 10) || 75,
                 questions: rawQuestions.map(normalizeExamQuestionShape).filter(Boolean)
             };
@@ -4399,6 +4437,14 @@
                             <textarea class="exam-desc" rows="2" placeholder="Briefly describe what this exam covers..." style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;transition:border-color .2s;"></textarea>
                         </div>
                         <div>
+                            <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Timer Mode</label>
+                            <select class="exam-timer-mode" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;background:#fff;outline:none;cursor:pointer;">
+                                <option value="timed">Timed</option>
+                                <option value="untimed">No Timer</option>
+                            </select>
+                            <div class="exam-untimed-helper" style="display:none;font-size:0.7rem;color:#64748b;margin-top:4px;">This exam has no time limit.</div>
+                        </div>
+                        <div class="exam-duration-wrapper">
                             <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Timer (Minutes)</label>
                             <div style="position:relative;">
                                 <i class="far fa-clock" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
@@ -4629,8 +4675,25 @@
                     wrap.dispatchEvent(ev);
                 }
             });
+            wrap.querySelector('.exam-timer-mode').addEventListener('change', (e)=>{
+                const mode = e.target.value;
+                const wrapper = wrap.querySelector('.exam-duration-wrapper');
+                const helper = wrap.querySelector('.exam-untimed-helper');
+                const input = wrap.querySelector('.exam-duration');
+                if(mode === 'untimed'){
+                    wrapper.style.display = 'none';
+                    helper.style.display = 'block';
+                    input.required = false;
+                } else {
+                    wrapper.style.display = 'block';
+                    helper.style.display = 'none';
+                    input.required = true;
+                }
+                syncExamJSON();
+            });
             function syncExamJSON(){
-                const duration = parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0;
+                const timerMode = wrap.querySelector('.exam-timer-mode').value;
+                const duration = timerMode === 'timed' ? (parseInt(wrap.querySelector('.exam-duration')?.value || '0', 10) || 0) : 0;
                 const title = (wrap.querySelector('.exam-title')?.value || '').trim();
                 const description = (wrap.querySelector('.exam-desc')?.value || '').trim();
                 const passingScore = parseInt(wrap.querySelector('.exam-passing-score')?.value || '75', 10) || 75;
@@ -4639,7 +4702,7 @@
                 list.forEach(node=>{
                     try{ const obj = JSON.parse(node.dataset.payload||'{}'); if(obj && obj.type && obj.text){ qs.push(obj); } }catch(e){}
                 });
-                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, passing_score: passingScore, questions: qs });
+                wrap.querySelector('.exam-json').value = JSON.stringify({ title, description, timer_minutes: duration, timer_mode: timerMode, passing_score: passingScore, questions: qs });
             }
             function resetTypeSpecificFields(){
                 // Clear type-specific inputs so they never carry over from other questions
@@ -4893,7 +4956,21 @@
             if(prefill){
                 try{
                     const normalizedPrefill = normalizeExamPrefill(prefill);
-                    wrap.querySelector('.exam-duration').value = normalizedPrefill?.timer_minutes || '';
+                    const timerMode = normalizedPrefill?.timer_mode || (normalizedPrefill?.timer_minutes > 0 ? 'timed' : 'untimed');
+                    const modeEl = wrap.querySelector('.exam-timer-mode');
+                    if(modeEl) modeEl.value = timerMode;
+                    const wrapper = wrap.querySelector('.exam-duration-wrapper');
+                    const helper = wrap.querySelector('.exam-untimed-helper');
+                    const input = wrap.querySelector('.exam-duration');
+                    if(timerMode === 'untimed'){
+                        if(wrapper) wrapper.style.display = 'none';
+                        if(helper) helper.style.display = 'block';
+                        if(input) { input.required = false; input.value = ''; }
+                    } else {
+                        if(wrapper) wrapper.style.display = 'block';
+                        if(helper) helper.style.display = 'none';
+                        if(input) { input.required = true; input.value = normalizedPrefill?.timer_minutes || ''; }
+                    }
                     const pass = wrap.querySelector('.exam-passing-score'); if(pass) pass.value = normalizedPrefill?.passing_score || '';
                     if(normalizedPrefill?.title) wrap.querySelector('.exam-title').value = normalizedPrefill.title;
                     if(normalizedPrefill?.description) wrap.querySelector('.exam-desc').value = normalizedPrefill.description;
