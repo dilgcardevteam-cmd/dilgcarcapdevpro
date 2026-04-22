@@ -1307,6 +1307,8 @@
             }
             const m = (course.modules||[])[mi]||{};
             const ex = m.exam||{};
+            const timerMode = ex.timer_mode || (ex.timer_minutes > 0 ? 'timed' : 'untimed');
+            const timerMins = timerMode === 'timed' ? (parseInt(ex.timer_minutes||0,10) || 0) : 0;
             const qs = Array.isArray(ex.questions)? ex.questions : [];
             const titleEl = document.getElementById('contentTitle');
             const bodyEl = document.getElementById('contentBody');
@@ -1417,7 +1419,6 @@
                     return `<div class="field"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div><div class="muted">Unsupported question type.</div></div>`;
                 }
             }).join('');
-            const timerMins = parseInt(ex.timer_minutes||0,10) || 0;
             const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;
             // Optional trainer-only Results button
             const resultsBtn = IS_TRAINER ? '<button id="examResultsBtn" class="btn-ghost" style="padding:8px 12px;border-radius:10px;border:1px solid #dbe4ef;background:#fff;font-weight:800">View Results</button>' : '';
@@ -1427,7 +1428,7 @@
                     <span>${titleText}</span>
                     <div style="display:flex;align-items:center;gap:8px">
                         <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#002C76"></i> ${qs.length} question${qs.length===1?'':'s'}</span>
-                        ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#002C76"></i> <span id="examTimer"></span></span>` : ``}
+                        ${timerMins && timerMode === 'timed' ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#002C76"></i> <span id="examTimer"></span></span>` : ``}
                         ${resultsBtn}
                     </div>
                 </div>`;
@@ -1444,7 +1445,7 @@
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap">
                                 <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-list" style="margin-right:6px;color:#0f3b8f"></i> ${qs.length} item${qs.length===1?'':'s'}</span>
-                                ${timerMins ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#0f3b8f"></i> ${timerMins} min</span>` : `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-infinity" style="margin-right:6px;color:#0f3b8f"></i> No time limit</span>`}
+                                ${timerMins && timerMode === 'timed' ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-clock" style="margin-right:6px;color:#0f3b8f"></i> ${timerMins} min</span>` : `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-infinity" style="margin-right:6px;color:#0f3b8f"></i> No time limit</span>`}
                                 ${passPct!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check-circle" style="margin-right:6px;color:#0f3b8f"></i> Passing ${passPct}%</span>` : ``}
                             </div>
                         </div>
@@ -2537,7 +2538,7 @@
                 }).catch(()=>{
                     showExamPreface();
                 });
-                if(timerMins>0){
+                if(timerMins>0 && timerMode === 'timed'){
                     const tEl = document.getElementById('examTimer');
                     function ensureStart(){
                         const started = localStorage.getItem(keyBase+'_started')==='1';
