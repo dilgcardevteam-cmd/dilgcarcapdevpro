@@ -261,15 +261,10 @@ class CourseController extends Controller
         }
 
         if ($type === 'identification') {
-            $answer = trim((string) ($question['answer'] ?? ''));
-            if ($answer === '') {
-                return null;
-            }
-
             return [
                 'type' => 'identification',
                 'text' => $text,
-                'answer' => $answer,
+                'teacher_notes' => trim((string) ($question['teacher_notes'] ?? $question['answer'] ?? '')),
                 'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
                     ? max(1, (float) $question['max_points'])
                     : 1.0,
@@ -300,6 +295,7 @@ class CourseController extends Controller
             return [
                 'type' => 'essay',
                 'text' => $text,
+                'instructions' => trim((string) ($question['instructions'] ?? $question['notes'] ?? '')),
                 'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
                     ? max(1, (float) $question['max_points'])
                     : 1.0,
@@ -307,17 +303,10 @@ class CourseController extends Controller
         }
 
         if ($type === 'enumeration') {
-            $answers = $this->normalizeEnumerationAnswers(
-                $question['answers'] ?? ($question['correct_answers'] ?? [])
-            );
-            if (count($answers) === 0) {
-                return null;
-            }
-
             return [
                 'type' => 'enumeration',
                 'text' => $text,
-                'answers' => $answers,
+                'expected_guide' => trim((string) ($question['expected_guide'] ?? '')),
                 'max_points' => isset($question['max_points']) && is_numeric($question['max_points'])
                     ? max(1, (float) $question['max_points'])
                     : 1.0,
@@ -419,6 +408,30 @@ class CourseController extends Controller
         return array_values($normalized);
     }
 
+    protected function isManualExamQuestionType(string $type): bool
+    {
+        return in_array($type, ['essay', 'enumeration', 'identification'], true);
+    }
+
+    protected function isObjectiveExamQuestionType(string $type): bool
+    {
+        if ($type === 'multiple_choice') {
+            $type = 'multiple_choice_single';
+        }
+
+        return in_array($type, ['multiple_choice_single', 'multiple_choice_multiple', 'true_false'], true);
+    }
+
+    protected function formatManualExamAnswerForStorage(string $type, $answer): string
+    {
+        if ($type === 'enumeration') {
+            $answers = is_array($answer) ? $answer : [];
+            return implode("\n", array_map(fn ($value) => trim((string) $value), $answers));
+        }
+
+        return trim((string) $answer);
+    }
+
     protected function scoreObjectiveQuestion(array $question, $answer): array
     {
         $type = (string) ($question['type'] ?? 'multiple_choice');
@@ -429,6 +442,19 @@ class CourseController extends Controller
 
         if ($type === 'multiple_choice') {
             $type = 'multiple_choice_single';
+        }
+
+        if ($this->isManualExamQuestionType($type)) {
+            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
+                ? max(1, (float) $question['max_points'])
+                : 1.0;
+
+            return [
+                'score' => 0,
+                'max_points' => round($maxPoints, 2),
+                'is_correct' => false,
+                'meta' => ['manual_review_required' => true],
+            ];
         }
 
         if ($type === 'multiple_choice_single' || $type === 'multiple_choice_multiple') {
@@ -459,48 +485,6 @@ class CourseController extends Controller
             $expected = $question['answer'] === true ? 'true' : 'false';
             $isCorrect = $answer !== null && strtolower((string) $answer) === $expected;
             $score = $isCorrect ? $maxPoints : 0.0;
-        } elseif ($type === 'identification') {
-            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
-                ? max(1, (float) $question['max_points'])
-                : 1.0;
-            $expectedAnswers = isset($question['answers']) && is_array($question['answers'])
-                ? $question['answers']
-                : [($question['answer'] ?? '')];
-            $normalizedAnswer = $this->normalizeComparableAnswer($answer);
-            $isCorrect = collect($expectedAnswers)->contains(function ($expectedAnswer) use ($normalizedAnswer) {
-                return $this->normalizeComparableAnswer($expectedAnswer) === $normalizedAnswer;
-            });
-            $score = $isCorrect ? $maxPoints : 0.0;
-        } elseif ($type === 'enumeration') {
-            $correctAnswers = $this->normalizeEnumerationAnswers($question['answers'] ?? []);
-            $submittedAnswers = $this->normalizeEnumerationAnswers($answer);
-            $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
-                ? max(1, (float) $question['max_points'])
-                : 1.0;
-
-            $correctLookup = [];
-            foreach ($correctAnswers as $correctAnswer) {
-                $correctLookup[$this->normalizeComparableAnswer($correctAnswer)] = $correctAnswer;
-            }
-
-            $matchedKeys = [];
-            foreach ($submittedAnswers as $submittedAnswer) {
-                $key = $this->normalizeComparableAnswer($submittedAnswer);
-                if ($key !== '' && isset($correctLookup[$key])) {
-                    $matchedKeys[$key] = true;
-                }
-            }
-
-            $matchedCount = count($matchedKeys);
-            $correctCount = count($correctAnswers);
-            $score = $correctCount > 0 ? ($matchedCount / $correctCount) * $maxPoints : 0.0;
-            $isCorrect = $correctCount > 0 && $matchedCount === $correctCount;
-            $meta = [
-                'submitted_answers' => $submittedAnswers,
-                'correct_answers' => $correctAnswers,
-                'matched_count' => $matchedCount,
-                'answer_count' => $correctCount,
-            ];
         }
 
         return [
@@ -563,17 +547,18 @@ class CourseController extends Controller
         return null;
     }
 
-    protected function syncEssayResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
+    protected function syncManualResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
     {
-        $essayIndexes = [];
+        $manualIndexes = [];
 
         foreach ($questions as $questionIndex => $question) {
-            if (($question['type'] ?? '') !== 'essay') {
+            $type = (string) ($question['type'] ?? '');
+            if (! $this->isManualExamQuestionType($type)) {
                 continue;
             }
 
-            $essayIndexes[] = $questionIndex;
-            $answerText = trim((string) ($answers[$questionIndex] ?? ''));
+            $manualIndexes[] = $questionIndex;
+            $answerText = $this->formatManualExamAnswerForStorage($type, $answers[$questionIndex] ?? null);
 
             ExamEssayResponse::updateOrCreate(
                 [
@@ -598,11 +583,11 @@ class CourseController extends Controller
             );
         }
 
-        if (!empty($essayIndexes)) {
+        if (!empty($manualIndexes)) {
             ExamEssayResponse::where('course_id', $course->id)
                 ->where('trainee_id', $trainee->id)
                 ->where('module_index', $moduleIndex)
-                ->whereNotIn('question_index', $essayIndexes)
+                ->whereNotIn('question_index', $manualIndexes)
                 ->delete();
         } else {
             ExamEssayResponse::where('course_id', $course->id)
@@ -611,7 +596,12 @@ class CourseController extends Controller
                 ->delete();
         }
 
-        return $essayIndexes;
+        return $manualIndexes;
+    }
+
+    protected function syncEssayResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
+    {
+        return $this->syncManualResponsesForSubmission($course, $trainee, $moduleIndex, $questions, $answers, $submittedAt);
     }
 
     protected function buildModuleExamAttemptSummary(Course $course, int $moduleIndex, int $userId, ?array $submission = null): ?array
@@ -639,7 +629,7 @@ class CourseController extends Controller
 
         $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
         $answers = is_array($submission['answers'] ?? null) ? $submission['answers'] : [];
-        $essayRows = ExamEssayResponse::where('course_id', $course->id)
+        $manualRows = ExamEssayResponse::where('course_id', $course->id)
             ->where('trainee_id', $userId)
             ->where('module_index', $resolvedModuleIndex)
             ->get()
@@ -647,36 +637,40 @@ class CourseController extends Controller
 
         $objectiveTotal = 0.0;
         $objectiveCorrect = 0.0;
-        $essayTotal = 0.0;
-        $essayCheckedScore = 0.0;
-        $pendingEssayCount = 0;
-        $checkedEssayCount = 0;
+        $manualTotal = 0.0;
+        $manualCheckedScore = 0.0;
+        $pendingManualCount = 0;
+        $checkedManualCount = 0;
         $items = [];
 
         foreach ($questions as $questionIndex => $question) {
             $type = (string) ($question['type'] ?? 'multiple_choice');
             $answer = $answers[$questionIndex] ?? null;
 
-            if ($type === 'essay') {
-                $row = $essayRows->get($questionIndex);
+            if ($this->isManualExamQuestionType($type)) {
+                $row = $manualRows->get($questionIndex);
                 $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
                     ? max(1, (float) $question['max_points'])
                     : 1.0;
-                $essayTotal += $maxPoints;
+                $manualTotal += $maxPoints;
 
                 $status = $row?->status ?? 'pending';
                 if ($status === 'checked' && $row?->score !== null) {
-                    $checkedEssayCount++;
-                    $essayCheckedScore += (float) $row->score;
+                    $checkedManualCount++;
+                    $manualCheckedScore += (float) $row->score;
                 } else {
-                    $pendingEssayCount++;
+                    $pendingManualCount++;
                 }
 
+                $answerText = $row?->answer_text ?? $this->formatManualExamAnswerForStorage($type, $answer);
                 $items[] = [
                     'question_index' => $questionIndex,
-                    'type' => 'essay',
+                    'type' => $type,
                     'text' => (string) ($question['text'] ?? ''),
-                    'answer_text' => trim((string) $answer),
+                    'answer' => $type === 'enumeration'
+                        ? preg_split("/\r\n|\n|\r/", (string) $answerText, -1, PREG_SPLIT_NO_EMPTY)
+                        : $answerText,
+                    'answer_text' => $answerText,
                     'score' => $row?->score !== null ? (float) $row->score : null,
                     'max_points' => $maxPoints,
                     'feedback' => $row?->feedback,
@@ -684,6 +678,10 @@ class CourseController extends Controller
                     'checked_by_trainer' => $row?->checked_by_trainer,
                     'checked_at' => optional($row?->checked_at)->toIso8601String(),
                 ];
+                continue;
+            }
+
+            if (! $this->isObjectiveExamQuestionType($type)) {
                 continue;
             }
 
@@ -700,28 +698,20 @@ class CourseController extends Controller
                 'score' => (float) ($scored['score'] ?? 0),
                 'max_points' => (float) ($scored['max_points'] ?? 1),
             ];
-            if ($type === 'enumeration') {
-                $item['answer'] = $scored['meta']['submitted_answers'] ?? [];
-                $item['answer_texts'] = $scored['meta']['submitted_answers'] ?? [];
-                $item['correct_answers'] = $scored['meta']['correct_answers'] ?? [];
-                $item['matched_count'] = (int) ($scored['meta']['matched_count'] ?? 0);
-                $item['answer_count'] = (int) ($scored['meta']['answer_count'] ?? 0);
-            }
-
             $items[] = $item;
         }
 
         $objectivePct = $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0;
-        $totalPossiblePoints = $objectiveTotal + $essayTotal;
-        $earnedPoints = $objectiveCorrect + $essayCheckedScore;
+        $totalPossiblePoints = $objectiveTotal + $manualTotal;
+        $earnedPoints = $objectiveCorrect + $manualCheckedScore;
         $finalPct = $totalPossiblePoints > 0 ? (int) round(($earnedPoints / $totalPossiblePoints) * 100) : 0;
         [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
         $integrity = $this->normalizeExamIntegrityPayload($submission['exam_integrity'] ?? null);
 
         $status = 'completed';
-        if ($pendingEssayCount > 0 && $checkedEssayCount === 0) {
+        if ($pendingManualCount > 0 && $checkedManualCount === 0) {
             $status = 'pending_review';
-        } elseif ($pendingEssayCount > 0) {
+        } elseif ($pendingManualCount > 0) {
             $status = 'partially_graded';
         }
         $passed = $status === 'completed' ? ($finalPct >= $passingScore) : null;
@@ -734,14 +724,18 @@ class CourseController extends Controller
             'objective_correct' => round($objectiveCorrect, 2),
             'objective_total' => round($objectiveTotal, 2),
             'objective_pct' => $objectivePct,
-            'essay_checked_score' => round($essayCheckedScore, 2),
-            'essay_total_points' => round($essayTotal, 2),
-            'essay_pending_count' => $pendingEssayCount,
-            'essay_checked_count' => $checkedEssayCount,
+            'essay_checked_score' => round($manualCheckedScore, 2),
+            'essay_total_points' => round($manualTotal, 2),
+            'essay_pending_count' => $pendingManualCount,
+            'essay_checked_count' => $checkedManualCount,
+            'manual_checked_score' => round($manualCheckedScore, 2),
+            'manual_total_points' => round($manualTotal, 2),
+            'manual_pending_count' => $pendingManualCount,
+            'manual_checked_count' => $checkedManualCount,
             'final_pct' => $finalPct,
             'status' => $status,
             'status_label' => match ($status) {
-                'pending_review' => 'Pending Trainer Review',
+                'pending_review' => 'Pending Manual Review',
                 'partially_graded' => 'Partially Graded',
                 default => ($passed === false ? 'Failed' : 'Passed'),
             },
@@ -749,7 +743,8 @@ class CourseController extends Controller
             'max_attempts' => $maxAttempts,
             'passed' => $passed,
             'items' => $items,
-            'contains_essay' => ($pendingEssayCount + $checkedEssayCount) > 0,
+            'contains_essay' => collect($items)->contains(fn ($item) => ($item['type'] ?? null) === 'essay'),
+            'contains_manual_review' => ($pendingManualCount + $checkedManualCount) > 0,
             'exam_integrity' => $integrity,
             'violation_count' => (int) ($integrity['violations'] ?? 0),
             'auto_submitted' => (bool) ($integrity['auto_submitted'] ?? false),
@@ -846,7 +841,7 @@ class CourseController extends Controller
         $summary['restart_required'] = $summary['restart_required'] ?? false;
         $summary['status_label'] = $summary['status_label']
             ?? match ($summary['status'] ?? 'completed') {
-                'pending_review' => 'Pending Trainer Review',
+                'pending_review' => 'Pending Manual Review',
                 'partially_graded' => 'Partially Graded',
                 default => (($summary['passed'] ?? null) === false ? 'Failed' : 'Passed'),
             };
@@ -2661,16 +2656,16 @@ class CourseController extends Controller
 
             $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
             $answers = array_values($data['answers'] ?? []);
-            $essayIndexes = [];
             foreach ($questions as $index => $question) {
-                if (($question['type'] ?? '') !== 'essay') {
+                $type = (string) ($question['type'] ?? '');
+                if (! $this->isManualExamQuestionType($type)) {
                     continue;
                 }
-                $essayIndexes[] = $index;
-                if (trim((string) ($answers[$index] ?? '')) === '') {
+                $answerText = $this->formatManualExamAnswerForStorage($type, $answers[$index] ?? null);
+                if (trim($answerText) === '') {
                     return response()->json([
                         'ok' => false,
-                        'error' => 'Essay answers cannot be empty.',
+                        'error' => ucfirst(str_replace('_', ' ', $type)).' answers cannot be empty.',
                         'question_index' => $index,
                     ]);
                 }
@@ -2681,7 +2676,7 @@ class CourseController extends Controller
             foreach ($questions as $index => $question) {
                 $type = (string) ($question['type'] ?? 'multiple_choice');
                 $answer = $answers[$index] ?? null;
-                if ($type === 'essay') {
+                if (! $this->isObjectiveExamQuestionType($type)) {
                     continue;
                 }
 
@@ -2715,7 +2710,7 @@ class CourseController extends Controller
                 return response()->json(['ok' => false, 'error' => 'Unable to save exam submission file.'], 500);
             }
 
-            $this->syncEssayResponsesForSubmission($course, $user, $resolvedModuleIndex, $questions, $answers, $submittedAt);
+            $this->syncManualResponsesForSubmission($course, $user, $resolvedModuleIndex, $questions, $answers, $submittedAt);
             $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, $user->id, $payload);
 
             $evaluation = $this->evaluateFinalExamOutcome($course, $resolvedModuleIndex, $user->id, $summary, $exam);
@@ -2790,6 +2785,8 @@ class CourseController extends Controller
                         'objective_pct' => (int) ($summary['objective_pct'] ?? ($j['pct'] ?? 0)),
                         'essay_pending_count' => (int) ($summary['essay_pending_count'] ?? 0),
                         'essay_checked_count' => (int) ($summary['essay_checked_count'] ?? 0),
+                        'manual_pending_count' => (int) ($summary['manual_pending_count'] ?? ($summary['essay_pending_count'] ?? 0)),
+                        'manual_checked_count' => (int) ($summary['manual_checked_count'] ?? ($summary['essay_checked_count'] ?? 0)),
                         'status' => (string) ($summary['status'] ?? 'completed'),
                         'status_label' => (string) ($summary['status_label'] ?? 'Completed'),
                         'violation_count' => (int) ($summary['violation_count'] ?? 0),
@@ -3012,13 +3009,14 @@ class CourseController extends Controller
         foreach ($data['reviews'] as $review) {
             $questionIndex = (int) $review['question_index'];
             $question = $questions[$questionIndex] ?? null;
-            if (!is_array($question) || ($question['type'] ?? '') !== 'essay') {
-                return response()->json(['ok' => false, 'error' => 'One of the selected items is not an essay question.'], 422);
+            $type = (string) ($question['type'] ?? '');
+            if (!is_array($question) || ! $this->isManualExamQuestionType($type)) {
+                return response()->json(['ok' => false, 'error' => 'One of the selected items does not require manual checking.'], 422);
             }
 
             $row = $rows->get($questionIndex);
             if (!$row) {
-                return response()->json(['ok' => false, 'error' => 'Essay response not found for one of the questions.'], 404);
+                return response()->json(['ok' => false, 'error' => 'Manual response not found for one of the questions.'], 404);
             }
 
             $maxPoints = isset($question['max_points']) && is_numeric($question['max_points'])
@@ -3028,7 +3026,7 @@ class CourseController extends Controller
             if ($score > $maxPoints) {
                 return response()->json([
                     'ok' => false,
-                    'error' => 'Essay score cannot exceed the maximum points.',
+                    'error' => 'Manual score cannot exceed the maximum points.',
                     'question_index' => $questionIndex,
                 ], 422);
             }
@@ -3172,6 +3170,7 @@ class CourseController extends Controller
                     'exam_pct' => $examSummary['final_pct'] ?? null,
                     'exam_status' => $examSummary['status'] ?? null,
                     'essay_pending_count' => $examSummary['essay_pending_count'] ?? 0,
+                    'manual_pending_count' => $examSummary['manual_pending_count'] ?? ($examSummary['essay_pending_count'] ?? 0),
                     'exam_passed' => $examSummary['passed'] ?? null,
                     'exam_status_label' => $examSummary['status_label'] ?? null,
                     'exam_has_submission' => $examSummary !== null,

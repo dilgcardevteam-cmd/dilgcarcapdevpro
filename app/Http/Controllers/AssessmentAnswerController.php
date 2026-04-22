@@ -70,20 +70,34 @@ class AssessmentAnswerController extends Controller
             : (json_decode($assessment->questions_json, true) ?: []);
         $score = 0;
         $total = 0;
+        $manualPending = [];
         foreach($questions as $idx => $q){
-            $total++;
+            $type = (string) ($q['type'] ?? '');
             $ans = $answers[$idx] ?? null;
-            if($q['type'] === 'multiple_choice'){
+            if($type === 'identification' || $type === 'enumeration' || $type === 'essay'){
+                $manualPending[] = [
+                    'question_index' => $idx,
+                    'type' => $type,
+                    'status' => 'pending',
+                    'answer' => $ans,
+                ];
+                continue;
+            }
+
+            $total++;
+            if($type === 'multiple_choice' || $type === 'multiple_choice_single'){
                 if(isset($q['answer_index']) && (string)$ans === (string)$q['answer_index']) $score++;
-            }elseif($q['type'] === 'identification'){
-                if(is_string($ans) && is_string($q['answer'] ?? null) && mb_strtolower(trim($ans)) === mb_strtolower(trim($q['answer']))) $score++;
-            }elseif($q['type'] === 'true_false'){
+            }elseif($type === 'multiple_choice_multiple'){
+                $expected = array_map('strval', (array) ($q['correct_answers'] ?? $q['answers'] ?? []));
+                $submitted = array_map('strval', is_array($ans) ? $ans : ($ans === null || $ans === '' ? [] : [$ans]));
+                sort($expected);
+                sort($submitted);
+                if($expected === $submitted) $score++;
+            }elseif($type === 'true_false'){
                 $truth = !empty($q['answer']);
                 if(($ans === '1') || ($ans === 'true') || ($ans === 1) || ($ans === true)){ $ansBool = true; }
                 else { $ansBool = false; }
                 if($truth === $ansBool) $score++;
-            }else{
-                // essay: no auto score
             }
         }
         $percent = $total > 0 ? round(($score / $total) * 100, 2) : 0;
@@ -91,14 +105,23 @@ class AssessmentAnswerController extends Controller
             'assessment_id' => $assessment->id,
             'user_id' => $user->id,
             'score' => $percent,
-            'feedback' => json_encode(['answers' => $answers]),
+            'feedback' => json_encode([
+                'answers' => $answers,
+                'objective_score' => $score,
+                'objective_total' => $total,
+                'manual_pending_count' => count($manualPending),
+                'manual_reviews' => $manualPending,
+                'status' => count($manualPending) > 0 ? 'pending_review' : 'completed',
+            ]),
             'attempt_no' => $attemptNo,
             'is_retake' => $attemptNo > 1,
         ]);
         $passingScore = $assessment->passing_score ?? 75;
-        $message = $percent >= $passingScore
-            ? 'Submitted. Your score: '.$percent.'%'
-            : 'Submitted. Your score: '.$percent.'%.';
+        $message = count($manualPending) > 0
+            ? 'Submitted. Objective score: '.$percent.'%. Manual-checking answers are pending review.'
+            : ($percent >= $passingScore
+                ? 'Submitted. Your score: '.$percent.'%'
+                : 'Submitted. Your score: '.$percent.'%.');
         return redirect()->route('trainee.assessments.take', $assessment)
             ->with('success', $message);
     }

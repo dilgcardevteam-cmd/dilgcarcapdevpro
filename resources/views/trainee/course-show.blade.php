@@ -1359,6 +1359,7 @@
                     const dataAns = String(JSON.stringify(ans? [ans]:[])).replace(/"/g,'&quot;');
                     return `<div class="field question" data-kind="id">
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>
+                        <div class="muted" style="margin-bottom:8px">This item is checked manually.</div>
                         <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
                     </div>`;
                 }else if(kind==='enumeration'){
@@ -1376,7 +1377,7 @@
                     }
                     return `<div class="field question" data-kind="enum">
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Enumeration')}</div>
-                        <div class="muted" style="margin-bottom:8px">Provide one answer per field. Order does not matter.</div>
+                        <div class="muted" style="margin-bottom:8px">Provide one answer per field. This item is checked manually.</div>
                         <div class="enum-list" style="display:grid;gap:10px">
                             ${answers.map((_, index)=>`<input class="q-input input enum-input" type="text" placeholder="Answer ${index + 1}" data-enum-index="${index}">`).join('')}
                         </div>
@@ -1393,7 +1394,7 @@
                     return `<div class="field question" data-kind="essay">
                         <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Essay')}</div>
                         <textarea class="q-input input" rows="6" placeholder="Write your answer here" style="width:100%;resize:vertical"></textarea>
-                        <div class="muted" style="margin-top:8px">This item will be checked by your trainer.</div>
+                        <div class="muted" style="margin-top:8px">This item will be checked manually.</div>
                     </div>`;
                 }else if(kind==='true_false'){
                     const val = (q.answer===true)?'true':(q.answer===false?'false':'');
@@ -1796,13 +1797,25 @@
                     });
                     return out;
                 }
+                function isManualExamKind(kind){
+                    return ['essay', 'enumeration', 'identification'].includes(String(kind || ''));
+                }
+                function manualExamKindLabel(kind){
+                    const labels = { essay: 'Essay', enumeration: 'Enumeration', identification: 'Identification' };
+                    return labels[String(kind || '')] || 'Manual';
+                }
                 function computeGrade(){
                     const answers = JSON.parse(localStorage.getItem(keyBase+'_answers')||'[]') || [];
                     let total = 0, correct = 0;
+                    let manualTotal = 0;
                     for(let i=0;i<qs.length;i++){
                         const q = qs[i]||{};
                         const kind = q.type || 'multiple_choice';
                         const a = answers[i];
+                        if(isManualExamKind(kind)){
+                            manualTotal++;
+                            continue;
+                        }
                         if(isMultipleChoiceQuestion(kind)){
                             const maxPoints = Number(q.max_points || 1) || 1;
                             total += maxPoints;
@@ -1820,26 +1833,10 @@
                             total += maxPoints;
                             const val = q.answer===true?'true':(q.answer===false?'false':'');
                             if(a && String(a).toLowerCase()===val) correct += maxPoints;
-                        }else if(kind==='identification'){
-                            const maxPoints = Number(q.max_points || 1) || 1;
-                            total += maxPoints;
-                            const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
-                            const ok = ansList.some(x=> String(x||'').trim().toLowerCase() === String(a||'').trim().toLowerCase());
-                            if(ok) correct += maxPoints;
-                        }else if(kind==='enumeration'){
-                            const maxPoints = Number(q.max_points || 1) || 1;
-                            total += maxPoints;
-                            const correctAnswers = normalizeEnumAnswers(q.answers || []);
-                            const submittedAnswers = normalizeEnumAnswers(a);
-                            const matchCount = submittedAnswers.filter(value => correctAnswers.includes(value)).length;
-                            if(correctAnswers.length){
-                                correct += (matchCount / correctAnswers.length) * maxPoints;
-                            }
                         }
                     }
                     const pct = total ? Math.round((correct/total)*100) : 0;
-                    const essayTotal = qs.filter(q => (q.type||'')==='essay').length;
-                    return {correct:Number(correct.toFixed(2)),total:Number(total.toFixed(2)),pct,essayTotal};
+                    return {correct:Number(correct.toFixed(2)),total:Number(total.toFixed(2)),pct,manualTotal};
                 }
                 bodyEl.querySelectorAll('.field.question[data-kind="mc"] .mc .mc-option').forEach(opt=>{
                     opt.addEventListener('click', ()=>{
@@ -1882,7 +1879,7 @@
                     }
                     isHandlingExamSubmit = true;
                     saveAnswers();
-                    const {correct,total,pct,essayTotal} = computeGrade();
+                    const {correct,total,pct,manualTotal} = computeGrade();
                     if(submitAll){ submitAll.disabled = true; submitAll.textContent = 'Submitting...'; }
                     let serverSummary = null;
                     let serverCompleted = false;
@@ -1942,10 +1939,12 @@
                             objective_correct: correct,
                             objective_total: total,
                             objective_pct: pct,
-                            essay_pending_count: essayTotal,
+                            essay_pending_count: manualTotal,
                             essay_checked_count: 0,
-                            status: essayTotal > 0 ? 'pending_review' : 'completed',
-                            status_label: essayTotal > 0 ? 'Pending Trainer Review' : 'Completed',
+                            manual_pending_count: manualTotal,
+                            manual_checked_count: 0,
+                            status: manualTotal > 0 ? 'pending_review' : 'completed',
+                            status_label: manualTotal > 0 ? 'Pending Manual Review' : 'Completed',
                             items: [],
                             exam_integrity: readExamIntegrity(),
                             violation_count: readExamIntegrity().violations,
@@ -1982,8 +1981,8 @@
                     const finalPct = Number(summary?.final_pct ?? 0) || 0;
                     const objectiveCorrect = Number(summary?.objective_correct ?? 0) || 0;
                     const objectiveTotal = Number(summary?.objective_total ?? 0) || 0;
-                    const essayPending = Number(summary?.essay_pending_count ?? 0) || 0;
-                    const essayChecked = Number(summary?.essay_checked_count ?? 0) || 0;
+                    const manualPending = Number(summary?.manual_pending_count ?? summary?.essay_pending_count ?? 0) || 0;
+                    const manualChecked = Number(summary?.manual_checked_count ?? summary?.essay_checked_count ?? 0) || 0;
                     const status = summary?.status || 'completed';
                     const statusLabel = summary?.status_label || 'Completed';
                     const violationCount = Number(summary?.violation_count ?? summary?.exam_integrity?.violations ?? 0) || 0;
@@ -2001,9 +2000,9 @@
                         : null;
                     const canRetake = status === 'completed' && passed === false;
                     const statusTxt = status === 'pending_review'
-                        ? 'Your essay answers are waiting for trainer review.'
+                        ? 'Your manually checked answers are waiting for teacher/admin review.'
                         : status === 'partially_graded'
-                            ? 'Your objective items are graded. Essay items are still under review.'
+                            ? 'Your objective items are graded. Manual-checking items are still under review.'
                             : (passed===null ? '' : (passed ? 'You passed the exam.' : 'You did not pass the exam.'));
                     const statusColor = status === 'pending_review'
                         ? '#b45309'
@@ -2042,8 +2041,8 @@
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
                               <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} Objective score</span>
-                              ${essayPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${essayPending} essay pending</span>` : ``}
-                              ${essayChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${essayChecked} essay checked</span>` : ``}
+                              ${manualPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${manualPending} pending manual review</span>` : ``}
+                              ${manualChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${manualChecked} manually checked</span>` : ``}
                               ${effectivePassingScore!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${effectivePassingScore}%</span>` : ``}
                               ${violationCount ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#9a3412"><i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i> ${violationCount} integrity violation${violationCount===1?'':'s'}</span>` : ``}
                             </div>
@@ -2235,30 +2234,22 @@
                                 }
                             }
                         } else if(kind==='identification'){
-                            const ansList = Array.isArray(q.answers) ? q.answers : (q.answer ? [q.answer] : []);
+                            const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'identification') || null;
                             const inp=b.querySelector('.q-input');
                             const your = (Array.isArray(ua) && ua[i]) ? String(ua[i]) : '';
                             if(inp){
                                 inp.disabled = true;
                                 inp.value = your;
                             }
-                            if(ansList.length){
-                                const info = document.createElement('div');
-                                info.className='muted';
-                                info.style.marginTop='8px';
-                                let isOk = false;
-                                if(your){
-                                    isOk = ansList.some(a => String(a||'').trim().toLowerCase() === your.trim().toLowerCase());
-                                }
-                                const statusLine = your
-                                    ? `<div style="margin-top:6px;color:${isOk? '#059669':'#b91c1c'}"><b>Status:</b> ${isOk ? 'Correct' : 'Incorrect'}</div>`
-                                    : '';
-                                const answerLine = showCorrect 
-                                    ? '<span class="chip">Correct answer</span> '+ ansList.map(a=>String(a)).join(' / ') 
-                                    : '';
-                                info.innerHTML = answerLine + statusLine;
-                                b.appendChild(info);
-                            }
+                            const info = document.createElement('div');
+                            info.className='muted';
+                            info.style.marginTop='8px';
+                            const feedback = response?.feedback ? `<div style="margin-top:6px"><b>Teacher feedback:</b> ${response.feedback}</div>` : '';
+                            const scoreInfo = response?.status === 'checked'
+                                ? `<div><span class="chip">Checked</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
+                                : '<div><span class="chip">Pending Review</span> Identification is checked manually.</div>';
+                            info.innerHTML = `${scoreInfo}${feedback}`;
+                            b.appendChild(info);
                         } else if(kind==='enumeration'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'enumeration') || null;
                             const inputs = Array.from(b.querySelectorAll('.enum-input'));
@@ -2270,14 +2261,13 @@
                             const info = document.createElement('div');
                             info.className='muted';
                             info.style.marginTop='8px';
-                            const correctAnswers = Array.isArray(response?.correct_answers) ? response.correct_answers : (Array.isArray(q.answers) ? q.answers : []);
                             const scoreLine = response
-                                ? `<div><span class="chip">Score</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
-                                : '';
-                            const correctLine = (showCorrect && correctAnswers.length) 
-                                ? `<div style="margin-top:6px"><b>Correct answers:</b> ${correctAnswers.join(', ')}</div>` 
-                                : '';
-                            info.innerHTML = `${scoreLine}${correctLine}`;
+                                ? (response.status === 'checked'
+                                    ? `<div><span class="chip">Checked</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
+                                    : '<div><span class="chip">Pending Review</span> Enumeration is checked manually.</div>')
+                                : '<div><span class="chip">Pending Review</span> Enumeration is checked manually.</div>';
+                            const feedback = response?.feedback ? `<div style="margin-top:6px"><b>Teacher feedback:</b> ${response.feedback}</div>` : '';
+                            info.innerHTML = `${scoreLine}${feedback}`;
                             b.appendChild(info);
                         } else if(kind==='essay'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'essay') || null;
@@ -2291,10 +2281,10 @@
                             const info = document.createElement('div');
                             info.className='muted';
                             info.style.marginTop='8px';
-                            const feedback = response?.feedback ? `<div style="margin-top:6px"><b>Trainer feedback:</b> ${response.feedback}</div>` : '';
+                            const feedback = response?.feedback ? `<div style="margin-top:6px"><b>Teacher feedback:</b> ${response.feedback}</div>` : '';
                             const scoreInfo = response?.status === 'checked'
                                 ? `<div><span class="chip">Checked</span> ${response.score ?? 0}/${response.max_points ?? 1}</div>`
-                                : '<div><span class="chip">Pending Review</span> Waiting for trainer grading.</div>';
+                                : '<div><span class="chip">Pending Review</span> Essay is checked manually.</div>';
                             info.innerHTML = `${scoreInfo}${feedback}`;
                             b.appendChild(info);
                         }
@@ -2632,9 +2622,9 @@
                                                     return;
                                                 }
                                                 const attempt = detail.attempt;
-                                                const essayItems = (attempt.items||[]).filter(item => item.type === 'essay');
-                                                if(!essayItems.length){
-                                                    panel.innerHTML = '<div class="muted">This attempt has no essay items.</div>';
+                                                const manualItems = (attempt.items||[]).filter(item => isManualExamKind(item.type));
+                                                if(!manualItems.length){
+                                                    panel.innerHTML = '<div class="muted">This attempt has no manual-checking items.</div>';
                                                     return;
                                                 }
                                                 panel.innerHTML = `
@@ -2643,13 +2633,13 @@
                                                             <div style="font-weight:800;color:#0f172a">${esc(attempt.user_name||'Trainee')}</div>
                                                             <div class="muted">${esc(attempt.user_email||'')}</div>
                                                         </div>
-                                                        <div style="font-weight:800;color:#0f3b8f">${esc(attempt.status_label||'Pending Trainer Review')}</div>
+                                                        <div style="font-weight:800;color:#0f3b8f">${esc(attempt.status_label||'Pending Manual Review')}</div>
                                                     </div>
                                                     <div class="essay-review-list" style="display:grid;gap:12px;">
-                                                        ${essayItems.map(item=>`
+                                                        ${manualItems.map(item=>`
                                                             <div class="topic-detail-card" data-question-index="${item.question_index}">
-                                                                <div style="font-size:0.75rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">Essay Question ${Number(item.question_index)+1}</div>
-                                                                <div style="font-size:0.95rem;font-weight:700;color:#1e293b;margin-bottom:10px">${esc(item.text||'Essay question')}</div>
+                                                                <div style="font-size:0.75rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">${manualExamKindLabel(item.type)} Question ${Number(item.question_index)+1}</div>
+                                                                <div style="font-size:0.95rem;font-weight:700;color:#1e293b;margin-bottom:10px">${esc(item.text||'Question')}</div>
                                                                 <div style="margin-bottom:10px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;white-space:pre-wrap">${esc(item.answer_text||'No answer submitted.')}</div>
                                                                 <div style="display:grid;grid-template-columns:minmax(140px,180px) 1fr;gap:12px;align-items:start">
                                                                     <label style="display:grid;gap:6px">
@@ -2666,7 +2656,7 @@
                                                         `).join('')}
                                                     </div>
                                                     <div style="display:flex;justify-content:flex-end;margin-top:14px">
-                                                        <button type="button" class="btn-blue essay-review-save" style="padding:10px 16px;border-radius:12px">Save Essay Review</button>
+                                                        <button type="button" class="btn-blue essay-review-save" style="padding:10px 16px;border-radius:12px">Save Manual Review</button>
                                                     </div>
                                                 `;
                                                 const saveBtn = panel.querySelector('.essay-review-save');
@@ -2680,12 +2670,12 @@
                                                             const score = Number(rawValue || 0);
                                                             const max = Number(scoreInput?.getAttribute('max') || 1);
                                                             if (!Number.isFinite(score) || score < 0) {
-                                                                alert('Essay score must be 0 or higher.');
+                                                                alert('Manual score must be 0 or higher.');
                                                                 scoreInput?.focus();
                                                                 return;
                                                             }
                                                             if (Number.isFinite(max) && score > max) {
-                                                                alert(`Essay score cannot exceed ${max}.`);
+                                                                alert(`Manual score cannot exceed ${max}.`);
                                                                 scoreInput?.focus();
                                                                 return;
                                                             }
@@ -2705,17 +2695,17 @@
                                                         }).then(async r=>{
                                                             const saved = await r.json().catch(()=>null);
                                                             if(saved && saved.ok){
-                                                                panel.insertAdjacentHTML('afterbegin', '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800">Essay review saved.</div>');
+                                                                panel.insertAdjacentHTML('afterbegin', '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #86efac;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800">Manual review saved.</div>');
                                                                 btn.click();
                                                                 btn.click();
                                                             }else{
-                                                                alert(saved && saved.error ? saved.error : 'Failed to save essay review.');
+                                                                alert(saved && saved.error ? saved.error : 'Failed to save manual review.');
                                                             }
                                                         }).catch(()=>{
-                                                            alert('Failed to save essay review.');
+                                                            alert('Failed to save manual review.');
                                                         }).finally(()=>{
                                                             saveBtn.disabled = false;
-                                                            saveBtn.textContent = 'Save Essay Review';
+                                                            saveBtn.textContent = 'Save Manual Review';
                                                         });
                                                     });
                                                 }

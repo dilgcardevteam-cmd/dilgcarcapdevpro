@@ -1517,6 +1517,7 @@
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
+                                <option value="enumeration">Enumeration</option>
                             </select>
                         </label>
                     </div>
@@ -1605,6 +1606,7 @@
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
+                                <option value="enumeration">Enumeration</option>
                             </select>
                         </label>
                     </div>
@@ -1937,11 +1939,14 @@
                             q.answer_index = answerIndexes[0];
                         }
                     } else if(type === 'identification'){
-                        const answers = Array.from(qb.querySelectorAll('.q-blanks .q-blank-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
-                        q.answers = answers;
+                        const guide = qb.querySelector('.q-identification-guide')?.value || '';
+                        if(guide) q.teacher_notes = guide;
                     } else if(type === 'essay'){
                         const rb = qb.querySelector('.q-essay')?.value || '';
-                        if(rb) q.rubric = rb;
+                        if(rb) q.instructions = rb;
+                    } else if(type === 'enumeration'){
+                        const guide = qb.querySelector('.q-enumeration-guide')?.value || '';
+                        if(guide) q.expected_guide = guide;
                     }
                     const fbC = qb.querySelector('.q-fb-correct')?.value || '';
                     const fbI = qb.querySelector('.q-fb-incorrect')?.value || '';
@@ -1991,6 +1996,7 @@
                             <option value="identification">Identification</option>
                             <option value="true_false">True or False</option>
                             <option value="essay">Essay</option>
+                            <option value="enumeration">Enumeration</option>
                         </select>
                     </label>
                 </div>
@@ -2039,17 +2045,28 @@
                 addOptionRow(options, 'True');
                 addOptionRow(options, 'False');
             } else if(type === 'identification'){
-                const box = document.createElement('div');
-                box.className = 'q-blanks';
-                options.appendChild(box);
-                addBlankAnswerRow(box, 'Answer 1');
-                addBlankAnswerRow(box, 'Answer 2');
-                ensureAddBlankLink(box);
+                addGuide('Manual checking required. Optional guide for teachers.');
+                const ta = document.createElement('textarea');
+                ta.className = 'q-identification-guide';
+                ta.rows = 2;
+                ta.placeholder = 'Expected answer guide or notes for teacher (optional)';
+                ta.style.width = '100%';
+                options.appendChild(ta);
             } else if(type === 'essay'){
+                addGuide('Manual checking required. Optional rubric or instructions.');
                 const ta = document.createElement('textarea');
                 ta.className = 'q-essay';
                 ta.rows = 3;
-                ta.placeholder = 'Rubric or guidance (optional)';
+                ta.placeholder = 'Rubric or guidance for students (optional)';
+                ta.style.width = '100%';
+                options.appendChild(ta);
+            } else if(type === 'enumeration'){
+                addGuide('Manual checking required. Optional expected answers list.');
+                const ta = document.createElement('textarea');
+                ta.className = 'q-enumeration-guide';
+                ta.rows = 2;
+                ta.placeholder = 'Expected answers list or guide for teacher (optional)';
+                ta.style.width = '100%';
                 options.appendChild(ta);
             }
         }
@@ -2220,11 +2237,14 @@
                 } else if(type === 'true_false'){
                     q.options = ['True','False'];
                 } else if(type === 'identification'){
-                    const answers = Array.from(b.querySelectorAll('.q-blanks .q-blank-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
-                    q.answers = answers;
+                    const guide = b.querySelector('.q-identification-guide')?.value || '';
+                    if(guide) q.teacher_notes = guide;
                 } else if(type === 'essay'){
                     const rb = b.querySelector('.q-essay')?.value || '';
-                    if(rb) q.rubric = rb;
+                    if(rb) q.instructions = rb;
+                } else if(type === 'enumeration'){
+                    const guide = b.querySelector('.q-enumeration-guide')?.value || '';
+                    if(guide) q.expected_guide = guide;
                 }
                 questions.push(q);
             });
@@ -4426,8 +4446,8 @@
                             <div class="eq-choices" style="display:grid;gap:12px;margin-bottom:20px;"></div>
 
                             <div class="eq-id" style="display:none;margin-bottom:20px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Correct Answer</label>
-                                <input class="eq-id-answer" type="text" placeholder="Enter the correct answer" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Guide (Optional)</label>
+                                <textarea class="eq-id-answer" placeholder="Optional notes or expected answer guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;" rows="2"></textarea>
                             </div>
 
                             <div class="eq-tf" style="display:none;margin-bottom:20px;">
@@ -4445,15 +4465,16 @@
                             </div>
 
                             <div class="eq-essay" style="display:none;margin-bottom:20px;">
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Instructions / Rubric (Optional)</label>
+                                <textarea class="eq-essay-notes" placeholder="Optional instructions or rubric for students" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
                                 <input class="eq-essay-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="eq-enum" style="display:none;margin-bottom:20px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Correct Answers</label>
-                                <div class="eq-enum-answers" style="display:grid;gap:10px;"></div>
-                                <button type="button" class="eq-enum-add" style="margin-top:12px;background:#eef2ff;color:#002C76;border:1.5px dashed #c7d2fe;border-radius:12px;padding:10px;width:100%;font-weight:700;cursor:pointer;transition:all .2s;"><i class="fas fa-plus-circle"></i> Add Answer Entry</button>
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 8px;">Points</label>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Expected Answers Guide (Optional)</label>
+                                <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
                                 <input class="eq-enum-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
@@ -4779,10 +4800,10 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
-                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
@@ -4790,14 +4811,15 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'true_false', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='essay'){
+                    const notes = (wrap.querySelector('.eq-essay-notes').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-essay-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'essay', text, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=>i.value.trim());
+                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, answers, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text };
                 }
@@ -4815,13 +4837,13 @@
                 if(isMultipleChoiceType(t)){
                     obj = buildMultipleChoicePayload(t, '', ['', '', '', ''], [], '');
                 }else if(t==='identification'){
-                    obj = { type:'identification', text:'', answer: '', max_points: '' };
+                    obj = { type:'identification', text:'', teacher_notes: '', max_points: '' };
                 }else if(t==='true_false'){
                     obj = { type:'true_false', text:'', answer: null, max_points: '' };
                 }else if(t==='essay'){
-                    obj = { type:'essay', text:'', max_points: '' };
+                    obj = { type:'essay', text:'', instructions: '', max_points: '' };
                 }else if(t==='enumeration'){
-                    obj = { type:'enumeration', text:'', answers:['', ''], max_points: '' };
+                    obj = { type:'enumeration', text:'', expected_guide: '', max_points: '' };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text:'', max_points: '' };
                 }
@@ -5108,8 +5130,8 @@
                     commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='identification'){
-                const ans = String(payload.answer||'');
-                wrap.querySelector('.eq-id-answer').value = ans;
+                const notes = String(payload.teacher_notes || payload.answer || '');
+                wrap.querySelector('.eq-id-answer').value = notes;
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -5123,13 +5145,18 @@
                     commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='essay'){
+                const notes = String(payload.instructions || payload.rubric || '');
+                const notesEl = wrap.querySelector('.eq-essay-notes');
+                if(notesEl) notesEl.value = notes;
                 const essayPoints = wrap.querySelector('.eq-essay-points');
                 if(essayPoints){
                     const maxPoints = payload.max_points;
                     essayPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='enumeration'){
-                ensureEnumerationRows(wrap, Array.isArray(payload.answers) ? payload.answers : []);
+                const guide = String(payload.expected_guide || (Array.isArray(payload.answers) ? payload.answers.join(', ') : ''));
+                const guideEl = wrap.querySelector('.eq-enum-guide');
+                if(guideEl) guideEl.value = guide;
                 const enumPoints = wrap.querySelector('.eq-enum-points');
                 if(enumPoints){
                     const maxPoints = payload.max_points;
@@ -5148,14 +5175,11 @@
             if(boxChoices) boxChoices.style.display = isMultipleChoiceType(t) ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
-            if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration') ? 'none' : 'block';
+            if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration' || t==='identification') ? 'none' : 'block';
             if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
             if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
             if(isMultipleChoiceType(t)){
                 ensureChoiceRows(wrap);
-            }
-            if(t==='enumeration' && wrap.querySelectorAll('.eq-enum-answer').length===0){
-                ensureEnumerationRows(wrap);
             }
         }
         function ensureChoiceRows(wrap){
@@ -5239,7 +5263,8 @@
             wrap.querySelector('.eq-tf-answer').value='true';
             const commonPoints = wrap.querySelector('.eq-common-points'); if(commonPoints) commonPoints.value='';
             const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='';
-            ensureEnumerationRows(wrap);
+            const essayNotes = wrap.querySelector('.eq-essay-notes'); if(essayNotes) essayNotes.value='';
+            const enumGuide = wrap.querySelector('.eq-enum-guide'); if(enumGuide) enumGuide.value='';
             const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='';
             const builder = wrap.querySelector('.eq-text'); if(builder) builder.focus();
         }
@@ -5259,10 +5284,10 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
-                    const ans = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
@@ -5270,14 +5295,15 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'true_false', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='essay'){
+                    const notes = (wrap.querySelector('.eq-essay-notes').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-essay-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'essay', text, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=>i.value.trim());
+                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, answers, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);

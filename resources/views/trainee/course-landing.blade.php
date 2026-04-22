@@ -2065,6 +2065,13 @@
             }
             return `<td style="text-align:center;background:${bg};color:${color};border-bottom:1px solid #e5e7eb;border-left:1px solid ${border};border-right:1px solid ${border}">${pct}/100</td>`;
         }
+        function isManualExamKind(kind){
+            return ['essay', 'enumeration', 'identification'].includes(String(kind || ''));
+        }
+        function manualExamKindLabel(kind){
+            const labels = { essay: 'Essay', enumeration: 'Enumeration', identification: 'Identification' };
+            return labels[String(kind || '')] || 'Manual';
+        }
         function ensureEssayReviewModal(){
             let modal = document.getElementById('essayReviewModal');
             if(modal) return modal;
@@ -2112,15 +2119,15 @@
                     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
                         <span class="chip">${attempt.final_pct ?? 0}%</span>
                         <span class="chip">${attempt.objective_correct ?? 0}/${attempt.objective_total ?? 0} objective</span>
-                        ${attempt.essay_pending_count ? `<span class="chip" style="background:#fff7ed;border-color:#fdba74;color:#b45309">${attempt.essay_pending_count} essay pending</span>` : ''}
+                        ${(attempt.manual_pending_count ?? attempt.essay_pending_count) ? `<span class="chip" style="background:#fff7ed;border-color:#fdba74;color:#b45309">${attempt.manual_pending_count ?? attempt.essay_pending_count} pending manual review</span>` : ''}
                     </div>
                     <div style="display:grid;gap:14px">
                         ${(attempt.items || []).map(item=>{
-                            if(item.type === 'essay'){
+                            if(isManualExamKind(item.type)){
                                 return `
                                     <div class="forum-card" data-question-index="${item.question_index}">
-                                        <div style="font-size:0.78rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">Essay</div>
-                                        <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:10px">${item.text || 'Essay Question'}</div>
+                                        <div style="font-size:0.78rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">${manualExamKindLabel(item.type)}</div>
+                                        <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:10px">${item.text || 'Manual Question'}</div>
                                         <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;white-space:pre-wrap;margin-bottom:12px">${item.answer_text || 'No answer submitted.'}</div>
                                         <div style="display:grid;grid-template-columns:minmax(150px,180px) 1fr;gap:12px">
                                             <label style="display:grid;gap:6px">
@@ -2162,12 +2169,12 @@
                             const score = Number(rawValue || 0);
                             const max = Number(scoreInput?.getAttribute('max') || 1);
                             if (!Number.isFinite(score) || score < 0) {
-                                alert('Essay score must be 0 or higher.');
+                                alert('Manual score must be 0 or higher.');
                                 scoreInput?.focus();
                                 return;
                             }
                             if (Number.isFinite(max) && score > max) {
-                                alert(`Essay score cannot exceed ${max}.`);
+                                alert(`Manual score cannot exceed ${max}.`);
                                 scoreInput?.focus();
                                 return;
                             }
@@ -2226,8 +2233,9 @@
                     : score?.exam_passed === false
                         ? '#b91c1c'
                         : '#166534';
-            const pendingBadge = (score?.essay_pending_count || 0) > 0
-                ? `<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#b45309">${score.essay_pending_count} essay pending</div>`
+            const manualPendingCount = score?.manual_pending_count ?? score?.essay_pending_count ?? 0;
+            const pendingBadge = manualPendingCount > 0
+                ? `<div style="margin-top:6px;font-size:0.72rem;font-weight:800;color:#b45309">${manualPendingCount} pending manual review</div>`
                 : '';
             const canReview = score?.exam_has_submission === true || score?.exam_status || score?.exam_pct != null;
             const reviewBtn = canReview
