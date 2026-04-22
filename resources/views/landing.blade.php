@@ -347,7 +347,7 @@
 
         .subject-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             max-width: 1400px;
             margin: 0 auto;
