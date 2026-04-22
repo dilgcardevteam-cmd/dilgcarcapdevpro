@@ -2790,6 +2790,18 @@
                     return `<div class="field">${safe}</div>`;
                 } else if(f.type==='question' && f.question){
                     const q=f.question; 
+                    const kind = (q.type||'multiple_choice');
+                    const typeLabel = (function(){
+                        if(kind==='multiple_choice_multiple') return 'Multiple Choice (Multiple Answers)';
+                        if(kind==='multiple_choice_single' || kind==='multiple_choice') return 'Multiple Choice (Single Answer)';
+                        if(kind==='true_false') return 'True/False';
+                        if(kind==='identification') return 'Identification';
+                        if(kind==='enumeration') return 'Enumeration';
+                        if(kind==='essay') return 'Essay';
+                        if(!kind) return 'Question';
+                        return String(kind).replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+                    })();
+                    const qTitle = `<div class="q-title"><span class="q-title-text">${q.title||'Question'}</span><span class="qtype-pill">${typeLabel}</span></div>`;
                     const answer = (Number.isInteger(q.answer_index) ? q.answer_index : '');
                     const fbC = q.feedback_correct || '';
                     const fbI = q.feedback_incorrect || '';
@@ -2800,14 +2812,13 @@
                     }).join('');
                     if(viewOnly){
                         return `<div class="field question" data-kind="mc">
-                            <div class="q-title">${q.title||'Question'}</div>
+                            ${qTitle}
                             <div class="mc" data-answer="${answer}">${opts}</div>
                         </div>`;
                     } else {
-                        const kind = (q.type||'multiple_choice');
                         if(['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(kind)){
                             return `<div class="field question" data-kind="mc">
-                                <div class="q-title">${q.title||'Question'}</div>
+                                ${qTitle}
                                 <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
                                 <div class="mc-actions">
                                     <button class="btn-green" data-act="submit" disabled>Submit</button>
@@ -2821,13 +2832,13 @@
                             if(IS_TRAINER){
                                 const list = idAnswers.length ? idAnswers.map(a=>`<span class="chip">Answer</span> ${a}`).join('<br>') : '<div class="muted">No answer provided</div>';
                                 return `<div class="field question" data-kind="id">
-                                    <div class="q-title">${q.title||'Identification'}</div>
+                                    ${qTitle}
                                     <div>${list}</div>
                                 </div>`;
                             } else {
                                 const dataAns = String(JSON.stringify(idAnswers)).replace(/"/g,'&quot;');
                                 return `<div class="field question" data-kind="id">
-                                    <div class="q-title">${q.title||'Identification'}</div>
+                                    ${qTitle}
                                     <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
                                     <div class="mc-actions" style="margin-top:8px">
                                         <button class="btn-green" data-act="submit" disabled>Submit</button>
@@ -2842,13 +2853,13 @@
                                 const essayAns = q.answer || q.expected_answer || '';
                                 const rubric = q.rubric || '';
                                 return `<div class="field question" data-kind="essay">
-                                    <div class="q-title">${q.title||'Essay'}</div>
+                                    ${qTitle}
                                     ${essayAns ? `<div style="margin-bottom:6px"><span class="chip">Answer</span> ${essayAns}</div>` : '<div class="muted" style="margin-bottom:6px">No answer provided</div>'}
                                     ${rubric ? `<div><span class="chip">Rubric</span> ${rubric}</div>` : ''}
                                 </div>`;
                             } else {
                                 return `<div class="field question" data-kind="essay">
-                                    <div class="q-title">${q.title||'Essay'}</div>
+                                    ${qTitle}
                                     <textarea class="q-input input" rows="4" placeholder="Write your response"></textarea>
                                     <div class="mc-actions" style="margin-top:8px">
                                         <button class="btn-green" data-act="submit" disabled>Submit</button>
@@ -2860,7 +2871,7 @@
                         } else if(kind==='true_false'){
                             const tfAns = (q.answer===false) ? 'false' : 'true';
                             return `<div class="field question" data-kind="tf">
-                                <div class="q-title">${q.title||'True or False'}</div>
+                                ${qTitle}
                                 <div class="tf" data-answer="${tfAns}">
                                     <div class="tf-option${IS_TRAINER && tfAns==='true' ? ' trainer-answer' : ''}" data-val="true"><span class="mc-radio"></span><span class="mc-label">True</span>${IS_TRAINER && tfAns==='true' ? ' <span class="chip">Answer</span>' : ''}</div>
                                     <div class="tf-option${IS_TRAINER && tfAns==='false' ? ' trainer-answer' : ''}" data-val="false"><span class="mc-radio"></span><span class="mc-label">False</span>${IS_TRAINER && tfAns==='false' ? ' <span class="chip">Answer</span>' : ''}</div>
@@ -2871,7 +2882,7 @@
                                 </div>
                             </div>`;
                         } else {
-                            return `<div class="field question"><div class="q-title">${q.title||'Question'}</div></div>`;
+                            return `<div class="field question">${qTitle}</div>`;
                         }
                     }
                 } else if(f.type==='reflection'){
