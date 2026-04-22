@@ -844,39 +844,39 @@
             <h2 class="subject-title">SUBJECT AREAS</h2>
             <div class="subject-grid">
                 <a href="{{ route('subject.show', 'public-administrative-financial') }}" class="subject-card">
-                    <img src="{{ asset('images/1-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/personal.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Public Administrative & Financial</span>
                 </a>
                 <a href="{{ route('subject.show', 'technical-infrastructure') }}" class="subject-card">
-                    <img src="{{ asset('images/2-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/infrastructure.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Technical & Infrastructure</span>
                 </a>
                 <a href="{{ route('subject.show', 'information-technology') }}" class="subject-card">
-                    <img src="{{ asset('images/4-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/information.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Information & Technology</span>
                 </a>
                 <a href="{{ route('subject.show', 'health-social-services') }}" class="subject-card">
-                    <img src="{{ asset('images/6-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/health.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Health & Social Services</span>
                 </a>
                 <a href="{{ route('subject.show', 'public-safety-regulation') }}" class="subject-card">
-                    <img src="{{ asset('images/5-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/public-safety.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Public Safety & Regulation</span>
                 </a>
                 <a href="{{ route('subject.show', 'legal-governance') }}" class="subject-card">
-                    <img src="{{ asset('images/8-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/city-hall.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Legal & Governance</span>
                 </a>
                 <a href="{{ route('subject.show', 'business-economic-development') }}" class="subject-card">
-                    <img src="{{ asset('images/7-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/economic.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Business & Economic Development</span>
                 </a>
                 <a href="{{ route('subject.show', 'environment-agriculture') }}" class="subject-card">
-                    <img src="{{ asset('images/3-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/save-the-world.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Environment & Agriculture</span>
                 </a>
                 <a href="{{ route('subject.show', 'education-culture-community') }}" class="subject-card">
-                    <img src="{{ asset('images/6-removebg-preview.png') }}" class="subject-icon" alt="Icon">
+                    <img src="{{ asset('images/community-center.png') }}" class="subject-icon" alt="Icon">
                     <span class="subject-name">Education, Culture & Community</span>
                 </a>
             </div>
