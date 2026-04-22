@@ -1159,11 +1159,7 @@
                                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
                                     <div>
                                         <div style="font-weight: 800; color: #1e293b; margin-bottom: 4px;">Enrollment Status</div>
-                                        @if(!$course->trainer_ready)
-                                            <span class="status-badge status-not-set" style="margin: 0;">
-                                                <i class="fas fa-hourglass-start"></i> Waiting for Trainer Schedule
-                                            </span>
-                                        @elseif($course->isEnrollable())
+                                        @if($course->isEnrollable())
                                             <span class="status-badge status-ongoing" style="margin: 0;">
                                                 <i class="fas fa-check-circle"></i> Enrollment Open
                                             </span>

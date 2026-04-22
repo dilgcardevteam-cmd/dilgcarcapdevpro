@@ -1249,8 +1249,64 @@
         }
         function tableModalCancel(){ document.getElementById('tableModal').style.display='none'; window.__tableTargetEditor=null; }
         function triggerImagePicker(btn){
-            const input = btn.parentElement.querySelector('input[type=file]');
+            const input = btn.parentElement.querySelector('input[accept^="image"]');
             input.click();
+        }
+        function triggerPDFPicker(btn){
+            const input = btn.parentElement.querySelector('input[accept="application/pdf"]');
+            input.click();
+        }
+        function insertPDFFromInput(input){
+            const file = input.files && input.files[0];
+            if(!file) return;
+            if (file.type !== 'application/pdf' || file.size > 10 * 1024 * 1024) {
+                alert('Only PDF files up to 10MB are allowed.');
+                input.value = '';
+                return;
+            }
+            const editor = input.closest('.text-block')?.querySelector('.editor') || input.closest('.materials-panel')?.querySelector('.editor');
+            editor.focus();
+            
+            // Show loading indicator
+            const btn = input.parentElement.querySelector('button[title="Insert PDF"]');
+            const originalIcon = btn ? btn.innerHTML : '';
+            if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span>';
+
+            const fd = new FormData();
+            fd.append('pdf', file);
+            fetch("{{ route('courses.content-pdf.upload') }}", {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                body: fd
+            }).then(r=>r.json()).then(res=>{
+                if(btn) btn.innerHTML = originalIcon;
+                if(!res || !res.ok || !res.url){ alert('Upload failed'); return; }
+                
+                // Insert as a nice link with icon and preview iframe
+                const html = `
+                <div class="pdf-container" contenteditable="false" style="margin:12px 0;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;">
+                    <div style="padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <i class="fas fa-file-pdf" style="color:#ef4444;font-size:1.2rem;"></i>
+                            <span style="font-weight:600;color:#1e293b;">${res.name || 'Document.pdf'}</span>
+                        </div>
+                        <a href="${res.url}" target="_blank" class="btn btn-small" style="background:#0f3b8f;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                            <i class="fas fa-external-link-alt"></i> Open PDF
+                        </a>
+                    </div>
+                    <div style="aspect-ratio:4/3;width:100%;background:#525659;">
+                        <iframe src="${res.url}#toolbar=0" style="width:100%;height:100%;border:0;"></iframe>
+                    </div>
+                </div><p><br></p>`;
+                
+                document.execCommand('insertHTML', false, html);
+                syncFieldsJSON(editor.closest('.fields-panel'));
+                input.value = ''; // Reset input
+            }).catch(err=>{
+                if(btn) btn.innerHTML = originalIcon;
+                console.error('PDF upload error:', err);
+                alert('Upload error');
+            });
         }
         function insertImageFromInput(input){
             const file = input.files && input.files[0];
@@ -1429,8 +1485,10 @@
                     <div class="et-insert-tools" style="display:none;gap:12px;align-items:stretch;flex-wrap:wrap;">
                         <button type="button" class="field-move-btn pill-btn" onclick="openTableModal(this)" title="Insert Table"><i class="fas fa-table"></i><span>Table</span></button>
                         <button type="button" class="field-move-btn pill-btn" onclick="triggerImagePicker(this)" title="Insert Image"><i class="fas fa-image"></i><span>Picture</span></button>
-                        <button type="button" class="field-move-btn pill-btn" onclick="openVideoModal(this)" title="Insert Video"><i class="fas a-video"></i><span>Video</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="openVideoModal(this)" title="Insert Video"><i class="fas fa-video"></i><span>Video</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="triggerPDFPicker(this)" title="Insert PDF"><i class="fas fa-file-pdf"></i><span>PDF</span></button>
                         <input type="file" accept="image/*" onchange="insertImageFromInput(this)" style="display:none">
+                        <input type="file" accept="application/pdf" onchange="insertPDFFromInput(this)" style="display:none">
                     </div>
                 </div>
                 <div class="editor" contenteditable="true" aria-label="Text field editor" style="min-height:120px;border:1px solid #e5e7eb;border-radius:10px;padding:10px;"></div>
@@ -1592,15 +1650,79 @@
             block.className = 'field-block text-block';
             block.setAttribute('data-type','text');
             block.innerHTML = `
-                <div class="editor-toolbar" style="display:none">
-                    <input type="file" accept="image/*" onchange="insertImageFromInput(this)">
-                    <input type="file" accept="video/mp4,video/webm,video/ogg" data-video="1" onchange="insertVideoFromFile(this)">
+                <div class="editor-toolbar" style="display:block;margin-bottom:6px">
+                    <div class="et-tabs" style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+                        <div class="et-undo" style="display:flex;gap:6px;margin-right:8px">
+                            <button type="button" class="field-move-btn" onclick="execCmd(this,'undo')" title="Undo"><i class="fas fa-rotate-left"></i></button>
+                            <button type="button" class="field-move-btn" onclick="execCmd(this,'redo')" title="Redo"><i class="fas fa-rotate-right"></i></button>
+                        </div>
+                        <button type="button" class="et-tab active" data-tab="text" onclick="toggleEditorTab(this)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#eef2ff;color:#111827;font-weight:700;">Text</button>
+                        <button type="button" class="et-tab" data-tab="insert" onclick="toggleEditorTab(this)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111827;font-weight:700;">Insert</button>
+                    </div>
+                    <div class="et-text-tools" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <div class="et-fontsize" style="display:inline-flex;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                        <select class="et-font" onchange="applyFontName(this)" style="border:0;padding:6px 8px;">
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                        <select class="et-size" onchange="applyFontSize(this)" style="border:0;border-left:1px solid #e5e7eb;padding:6px 8px;width:72px;">
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16" selected>16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                        <option value="24">24</option>
+                        <option value="28">28</option>
+                        <option value="32">32</option>
+                    </select>
+                        </div>
+                        <button type="button" class="field-move-btn" onclick="applyFontSizeStep(this,1)" title="Increase Size">A+</button>
+                        <button type="button" class="field-move-btn" onclick="applyFontSizeStep(this,-1)" title="Decrease Size">A-</button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                        <div class="color-group" style="position:relative;display:inline-flex;gap:6px;align-items:center;">
+                            <button type="button" class="field-move-btn" onclick="togglePalette(this,'fore')" title="Font Color" aria-haspopup="true"><span style="display:inline-block;width:16px;height:16px;border:1px solid #cbd5e1;position:relative"><span class="swatch" style="position:absolute;left:2px;right:2px;bottom:2px;height:4px;background:#1d4ed8;"></span></span></button>
+                            <button type="button" class="field-move-btn" onclick="togglePalette(this,'hilite')" title="Highlight" aria-haspopup="true"><span style="display:inline-block;width:16px;height:16px;border:1px solid #cbd5e1;position:relative"><span class="swatch" style="position:absolute;left:2px;right:2px;bottom:2px;height:8px;background:#fde047;"></span></span></button>
+                            <div class="palette-menu" role="menu" style="display:none;position:absolute;top:36px;left:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 12px 24px rgba(0,0,0,.12);padding:8px;z-index:40;width:240px;">
+                                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Theme Colors</div>
+                                <div class="grid theme" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:8px;"></div>
+                                <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Standard Colors</div>
+                                <div class="grid standard" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;"></div>
+                                <div class="no-color" style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;"><span style="width:16px;height:16px;border:1px solid #cbd5e1;position:relative;"><span style="position:absolute;left:-2px;right:-2px;top:7px;height:2px;background:#ef4444;transform:rotate(-20deg);"></span></span><span style="font-size:12px;color:#6b7280">No Color</span></div>
+                            </div>
+                        </div>
+                        <span class="divider"></span>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'insertOrderedList')" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                        <span class="divider"></span>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'outdent')" title="Outdent"><i class="fas fa-outdent"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'indent')" title="Indent"><i class="fas fa-indent"></i></button>
+                        <button type="button" class="field-move-btn" onclick="execCmd(this,'removeFormat')" title="Clear Formatting"><i class="fas fa-eraser"></i></button>
+                    </div>
+                    <div class="et-insert-tools" style="display:none;gap:12px;align-items:stretch;flex-wrap:wrap;">
+                        <button type="button" class="field-move-btn pill-btn" onclick="openTableModal(this)" title="Insert Table"><i class="fas fa-table"></i><span>Table</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="triggerImagePicker(this)" title="Insert Image"><i class="fas fa-image"></i><span>Picture</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="openVideoModal(this)" title="Insert Video"><i class="fas fa-video"></i><span>Video</span></button>
+                        <button type="button" class="field-move-btn pill-btn" onclick="triggerPDFPicker(this)" title="Insert PDF"><i class="fas fa-file-pdf"></i><span>PDF</span></button>
+                        <input type="file" accept="image/*" onchange="insertImageFromInput(this)" style="display:none">
+                        <input type="file" accept="application/pdf" onchange="insertPDFFromInput(this)" style="display:none">
+                    </div>
                 </div>
-                <div class="editor" contenteditable="true" aria-label="Text field editor"></div>
-                <div class="q-actions">
-                    <div class="left">
-                        <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)">Duplicate</button>
-                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)">Delete</button>
+                <div class="editor" contenteditable="true" aria-label="Text field editor" style="min-height:120px;border:1px solid #e5e7eb;border-radius:10px;padding:10px;"></div>
+                <div class="q-actions" style="position:relative;">
+                    <div class="right">
+                        <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate field"><i class="fas fa-clone"></i></button>
+                        <button type="button" class="btn btn-small" style="background:#dc3545;" onclick="deleteField(this)" title="Delete" aria-label="Delete field"><i class="fas fa-trash-alt"></i></button>
+                        <span class="divider"></span>
+                        <button type="button" class="field-move-btn drag-handle" title="Drag" aria-label="Drag field"><i class="fas fa-grip-vertical"></i></button>
                     </div>
                 </div>
             `;

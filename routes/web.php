@@ -120,8 +120,6 @@ Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLandin
 Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
 // Trainer: update course banner image only
 Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.image');
-// Trainer: update course duration
-Route::put('/trainer/courses/{course}/duration', [CourseController::class, 'updateDuration'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.duration');
 // Admin: set course expiration date
 Route::put('/admin/courses/{course}/expiration', [CourseController::class, 'setExpirationDate'])->middleware(['auth'])->name('admin.courses.expiration');
 // Registrar: set enrollment schedule
@@ -139,6 +137,7 @@ Route::get('/trainer/courses/{course}/participants-progress', [CourseController:
 Route::post('/trainer/courses/{course}/notify-incomplete', [CourseController::class, 'notifyIncompleteParticipants'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.notify-incomplete');
 // Content image upload for editors
 Route::post('/courses/content-image', [CourseController::class, 'uploadContentImage'])->middleware(['auth'])->name('courses.content-image.upload');
+Route::post('/courses/content-pdf', [CourseController::class, 'uploadContentPDF'])->middleware(['auth'])->name('courses.content-pdf.upload');
 // Admin System Settings
 Route::post('/admin/system-settings/location/import', [DashboardController::class, 'importLocationMaster'])->middleware(['auth'])->name('admin.settings.location.import');
 Route::get('/admin/system-settings/location/export', [DashboardController::class, 'exportLocationMaster'])->middleware(['auth'])->name('admin.settings.location.export');

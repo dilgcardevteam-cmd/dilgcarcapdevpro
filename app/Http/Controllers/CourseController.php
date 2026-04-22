@@ -2458,7 +2458,7 @@ class CourseController extends Controller
     public function trainerUpdateImage(Request $request, Course $course)
     {
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'], true)) {
+        if (!$user || !$user->hasPermission('update_courses_coach')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         $request->validate([
@@ -2478,46 +2478,6 @@ class CourseController extends Controller
             \Log::error('trainerUpdateImage failed', ['course' => $course->id, 'error' => $e->getMessage()]);
             return response()->json(['error' => 'Upload failed'], 500);
         }
-    }
-
-    /**
-     * Update course duration (Trainer only).
-     */
-    public function updateDuration(Request $request, Course $course)
-    {
-        $user = auth()->user();
-        $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
-        
-        if (!$user || !in_array($user->role, $managedCoachRoles, true)) {
-            return back()->with('error', 'Unauthorized access.');
-        }
-
-        // Allow update if:
-        // 1. User is the creator (trainer_id)
-        // 2. OR user is attached to the course as a coach/trainer
-        $isCreator = $course->trainer_id === $user->id;
-        $isAttached = $course->users()->where('user_id', $user->id)->exists();
-
-        if (!$isCreator && !$isAttached) {
-            return back()->with('error', 'You can only modify courses assigned to you.');
-        }
-
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ]);
-
-        // Assign ownership if not yet set
-        if (!$course->trainer_id) {
-            $validated['trainer_id'] = $user->id;
-        }
-
-        // Setting the duration also signifies the trainer is ready for enrollment
-        $validated['trainer_ready'] = true;
-
-        $course->update($validated);
-
-        return back()->with('success', 'Course duration updated successfully.');
     }
 
     /**
@@ -3257,6 +3217,33 @@ class CourseController extends Controller
             ]);
         } catch (\Throwable $e) {
             \Log::error('uploadContentImage failed', ['err' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'error' => 'Upload failed'], 500);
+        }
+    }
+
+    public function uploadContentPDF(\Illuminate\Http\Request $request)
+    {
+        $user = auth()->user();
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        $allowedRoles = array_merge($adminRoles, $coachRoles);
+
+        if (!$user || !in_array($user->role, $allowedRoles, true)) {
+            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+        }
+        $request->validate([
+            'pdf' => 'required|mimes:pdf|max:10240', // 10MB
+        ]);
+        try {
+            $path = $request->file('pdf')->store('course_content/pdfs', 'public');
+            return response()->json([
+                'ok' => true,
+                'url' => route('media.public', ['path' => $path], false),
+                'path' => $path,
+                'name' => $request->file('pdf')->getClientOriginalName()
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('uploadContentPDF failed', ['err' => $e->getMessage()]);
             return response()->json(['ok' => false, 'error' => 'Upload failed'], 500);
         }
     }

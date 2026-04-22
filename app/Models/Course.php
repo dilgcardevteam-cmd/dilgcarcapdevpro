@@ -214,12 +214,6 @@ class Course extends Model
             return false;
         }
 
-        // If trainer hasn't set their schedule yet, we fallback to Registrar's schedule if available,
-        // or just check trainer_ready flag based on your new double-gated requirement.
-        if (!$this->trainer_ready) {
-            return false;
-        }
-
         $now = now();
         
         // Use the enrollment dates set by Registrar (which are saved in enrollment_start/end via the new method)
