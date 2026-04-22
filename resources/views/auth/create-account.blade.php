@@ -510,6 +510,36 @@
                                     <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" placeholder="Mobile Number" inputmode="numeric" pattern="[0-9]*" maxlength="11" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                        </svg>
+                                    </span>
+                                    <select id="field_of_work" name="field_of_work" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
+                                        <option value="" disabled {{ old('field_of_work', $user->field_of_work) ? '' : 'selected' }}>Select Field of Work</option>
+                                        @php
+                                            $fields = [
+                                                'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
+                                                'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
+                                                'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
+                                                'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
+                                                'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
+                                                'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
+                                                'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
+                                                'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
+                                                'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
+                                            ];
+                                        @endphp
+                                        @foreach($fields as $field)
+                                            <option value="{{ $field }}" {{ old('field_of_work', $user->field_of_work) === $field ? 'selected' : '' }}>{{ $field }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
@@ -552,20 +582,6 @@
                                     <input id="last_name" type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" placeholder="Last Name" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                                        </svg>
-                                    </span>
-                                    <select id="agency" name="agency" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
-                                        <option value="" disabled {{ old('agency', $user->agency) ? '' : 'selected' }}>Select Agency/LGU</option>
-                                        <option value="DILG" {{ old('agency', $user->agency) === 'DILG' ? 'selected' : '' }}>DILG</option>
-                                        <option value="LGU" {{ old('agency', $user->agency) === 'LGU' ? 'selected' : '' }}>LGU</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -580,6 +596,22 @@
                                         </svg>
                                     </span>
                                     <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" placeholder="Email Address" readonly required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                                        </svg>
+                                    </span>
+                                    <select id="agency" name="agency" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
+                                        <option value="" disabled {{ old('agency', $user->agency) ? '' : 'selected' }}>Select Agency/LGU</option>
+                                        <option value="DILG" {{ old('agency', $user->agency) === 'DILG' ? 'selected' : '' }}>DILG</option>
+                                        <option value="LGU" {{ old('agency', $user->agency) === 'LGU' ? 'selected' : '' }}>LGU</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>

@@ -7291,6 +7291,35 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label>Field of Work</label>
+                            <div class="field-with-icon">
+                                <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                <select id="view_field_of_work" name="field_of_work" required disabled>
+                                    @php
+                                        $fields = [
+                                            'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
+                                            'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
+                                            'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
+                                            'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
+                                            'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
+                                            'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
+                                            'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
+                                            'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
+                                            'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
+                                        ];
+                                    @endphp
+                                    @foreach($fields as $field)
+                                        <option value="{{ $field }}">{{ $field }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -9743,6 +9772,7 @@
             document.getElementById('view_email').value = user.email;
             document.getElementById('view_role').value = normalizeAccessRole(user.role);
             document.getElementById('view_status').value = user.status;
+            document.getElementById('view_field_of_work').value = user.field_of_work || '';
             document.getElementById('view_password').value = ''; // Reset password field
             applyAccessRole(user.role || '');
 

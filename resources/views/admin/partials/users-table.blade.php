@@ -7,6 +7,7 @@
                     <th>Account ID</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Field of Work</th>
                     <th>Location</th>
                     <th>Joined Date</th>
                     <th>Status</th>
@@ -60,6 +61,7 @@
                         <td><span class="mono-text">{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</span></td>
                         <td>{{ $user->email }}</td>
                         <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $roleLabel }}</span></td>
+                        <td class="muted-cell">{{ $user->field_of_work ?? '-' }}</td>
                         <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
                         <td class="muted-cell">{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
                         <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>
@@ -78,7 +80,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="table-empty">
+                        <td colspan="9" class="table-empty">
                             <i class="fas fa-users-slash"></i>
                             No users found for the current filters.
                         </td>

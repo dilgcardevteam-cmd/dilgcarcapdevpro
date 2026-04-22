@@ -1421,6 +1421,7 @@ class DashboardController extends Controller
             'city' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
             'barangay' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
             'agency' => $isOnboarding ? 'required|string|in:DILG,LGU' : 'nullable|string|in:DILG,LGU',
+            'field_of_work' => 'required|string|max:255',
             'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
             'profile_picture_cropped' => 'nullable|string',
         ]);

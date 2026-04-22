@@ -2908,6 +2908,29 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="edit_field_of_work" style="font-weight:600; color:#495057;">Field of Work</label>
+                    <select name="field_of_work" id="edit_field_of_work" required
+                            style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px;">
+                        @php
+                            $fields = [
+                                'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
+                                'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
+                                'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
+                                'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
+                                'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
+                                'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
+                                'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
+                                'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
+                                'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
+                            ];
+                        @endphp
+                        @foreach($fields as $field)
+                            <option value="{{ $field }}">{{ $field }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 
                 <div class="form-group">
                     <label for="edit_status" style="font-weight:600; color:#495057;">Status</label>
@@ -3116,6 +3139,7 @@
         document.getElementById('edit_name').value = user.name;
         document.getElementById('edit_email').value = user.email;
         document.getElementById('edit_role').value = user.role;
+        document.getElementById('edit_field_of_work').value = user.field_of_work || '';
         document.getElementById('edit_status').value = user.status;
         
         const form = document.getElementById('editForm');

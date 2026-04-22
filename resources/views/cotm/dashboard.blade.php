@@ -1176,6 +1176,7 @@
                                             <th>Account ID</th>
                                             <th>Email</th>
                                             <th>Role</th>
+                                            <th>Field of Work</th>
                                             <th>Location</th>
                                             <th>Joined Date</th>
                                             <th>Status</th>
@@ -1204,6 +1205,7 @@
                                                 <td><span class="mono-text">{{ $user->status === 'pending' ? '-' : ($user->account_id ?? '-') }}</span></td>
                                                 <td>{{ $user->email }}</td>
                                                 <td><span class="badge-pill badge-role-{{ $roleClass }}">{{ $roleLabel }}</span></td>
+                                                <td class="muted-cell">{{ $user->field_of_work ?? '-' }}</td>
                                                 <td class="muted-cell">{{ $location !== '' ? $location : 'Not set' }}</td>
                                                 <td class="muted-cell">{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y h:ia') }}</td>
                                                 <td><span class="badge-pill badge-status-{{ $statusClass }}">{{ $statusLabel }}</span></td>
@@ -1218,7 +1220,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="8" class="table-empty">
+                                                <td colspan="9" class="table-empty">
                                                     <i class="fas fa-users-slash"></i>
                                                     No users found for the current filters.
                                                 </td>
@@ -1493,6 +1495,80 @@
             @endif
         </main>
     </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content" style="max-width: 720px; border-radius: 16px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.12);">
+            <span class="close" onclick="closeEditModal()" style="font-size: 24px; opacity: .6; cursor:pointer; position:absolute; right:20px; top:15px;">&times;</span>
+            <h2 style="color: #002C76; margin-top: 0; font-size: 1.6rem;">Edit User</h2>
+            <p style="margin: 6px 0 18px; color:#6c757d; font-size:.95rem;">Training Managers can edit Role and Status only. Name and Email are view-only.</p>
+            <form id="editForm" method="POST" action="">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="edit_user_id">
+                
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label for="edit_name" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Name</label>
+                    <input type="text" name="name" id="edit_name" readonly disabled
+                           style="background:#f1f3f5; color:#6c757d; border:1px solid #e0e0e0; cursor:not-allowed; width:100%; padding:12px; border-radius:10px;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label for="edit_email" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Email</label>
+                    <input type="email" name="email" id="edit_email" readonly disabled
+                           style="background:#f1f3f5; color:#6c757d; border:1px solid #e0e0e0; cursor:not-allowed; width:100%; padding:12px; border-radius:10px;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label for="edit_role" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Role</label>
+                    <select name="role" id="edit_role" required
+                            style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px; width:100%;">
+                        @foreach($availableRoles ?? [] as $role)
+                            <option value="{{ $role->name }}">{{ $role->display_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label for="edit_field_of_work" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Field of Work</label>
+                    <select name="field_of_work" id="edit_field_of_work" required
+                            style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px; width:100%;">
+                        @php
+                            $fields = [
+                                'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
+                                'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
+                                'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
+                                'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
+                                'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
+                                'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
+                                'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
+                                'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
+                                'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
+                            ];
+                        @endphp
+                        @foreach($fields as $field)
+                            <option value="{{ $field }}">{{ $field }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label for="edit_status" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Status</label>
+                    <select name="status" id="edit_status" required
+                            style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px; width:100%;">
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="freeze">Blocked</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-update"
+                        style="background: #002C76; color:#fff; border:none; padding:14px 24px; border-radius:12px; font-weight:700; cursor:pointer; width:100%;">
+                    Update User
+                </button>
+            </form>
+        </div>
+    </div>
 <script>
     function toggleNotifications() {
         var dropdown = document.getElementById('notificationDropdown');
@@ -1622,6 +1698,7 @@
         document.getElementById('edit_name').value = user.name;
         document.getElementById('edit_email').value = user.email;
         document.getElementById('edit_role').value = user.role;
+        document.getElementById('edit_field_of_work').value = user.field_of_work || '';
         document.getElementById('edit_status').value = user.status;
         const form = document.getElementById('editForm');
         form.action = `/users/${user.id}`;

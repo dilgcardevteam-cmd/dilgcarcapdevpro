@@ -105,6 +105,15 @@
 
             <p>You can now log in to the CapDev Pro system and access your dashboard to start your learning journey.</p>
             
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 15px; margin: 20px 0; border: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #64748b; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Your Profile Details</p>
+                <div style="margin-top: 10px;">
+                    <p style="margin: 5px 0; font-size: 15px;"><strong>Email:</strong> {{ $user->email }}</p>
+                    <p style="margin: 5px 0; font-size: 15px;"><strong>Field of Work:</strong> {{ $user->field_of_work }}</p>
+                    <p style="margin: 5px 0; font-size: 15px;"><strong>Agency:</strong> {{ $user->agency }}</p>
+                </div>
+            </div>
+
             <div style="text-align: center;">
                 <a href="{{ route('login') }}" class="btn-login" style="color: #ffffff !important; text-decoration: none !important;">Log In to Dashboard</a>
             </div>

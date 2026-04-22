@@ -37,6 +37,7 @@ class User extends Authenticatable
         'date_of_birth',
         'role',
         'status',
+        'field_of_work',
         'profile_picture',
         'additional_details',
         'display_type',
