@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Role;
+use App\Models\FieldOfWork;
 use App\Services\DashboardService;
 
 class DashboardController extends Controller
@@ -205,6 +206,8 @@ class DashboardController extends Controller
                             ->toArray();
                     }
                 }
+                $fieldOfWorks = FieldOfWork::orderBy('name', 'asc')->get();
+
                 return view('admin.dashboard', compact(
                     'userCount',
                     'users',
@@ -234,7 +237,8 @@ class DashboardController extends Controller
                     'academicYears',
                     'selectedYearId',
                     'selectedYear',
-                    'activityLogs'
+                    'activityLogs',
+                    'fieldOfWorks'
                 ));
             case $roleForView === 'registrar':
                 $registrarScope = function ($query) {
@@ -368,6 +372,8 @@ class DashboardController extends Controller
                 $cWithCoach = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
                 $cWithoutCoach = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
 
+                $fieldOfWorks = FieldOfWork::orderBy('name', 'asc')->get();
+
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
                     'approvedCount',
@@ -388,7 +394,8 @@ class DashboardController extends Controller
                     'cWithCoach', 'cWithoutCoach',
                     'academicYears',
                     'selectedYearId',
-                    'selectedYear'
+                    'selectedYear',
+                    'fieldOfWorks'
                 ));
             case in_array($roleForView, $coachRoles, true):
                 if ($showCourses) {
@@ -653,6 +660,8 @@ class DashboardController extends Controller
                 $cWithCoach = (clone $courseQuery)->whereHas('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
                 $cWithoutCoach = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
 
+                $fieldOfWorks = FieldOfWork::orderBy('name', 'asc')->get();
+
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
                     'approvedCount',
@@ -674,7 +683,8 @@ class DashboardController extends Controller
                     'cWithCoach', 'cWithoutCoach',
                     'academicYears',
                     'selectedYearId',
-                    'selectedYear'
+                    'selectedYear',
+                    'fieldOfWorks'
                 ));
             case in_array($roleForView, $participantRoles, true):
                 // Get enrolled courses (active status)
@@ -2431,5 +2441,51 @@ class DashboardController extends Controller
         }
 
         return array_values($normalized);
+    }
+
+    public function getFieldOfWorks()
+    {
+        if (Auth::user()->role !== 'super_admin') {
+            abort(403);
+        }
+        return response()->json(FieldOfWork::orderBy('name', 'asc')->get());
+    }
+
+    public function storeFieldOfWork(Request $request)
+    {
+        if (Auth::user()->role !== 'super_admin') {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:field_of_works,name',
+        ]);
+
+        FieldOfWork::create($validated);
+
+        return back()->with('success', 'Field of Work added successfully.');
+    }
+
+    public function updateFieldOfWork(Request $request, FieldOfWork $fieldOfWork)
+    {
+        if (Auth::user()->role !== 'super_admin') {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:field_of_works,name,' . $fieldOfWork->id,
+        ]);
+
+        $fieldOfWork->update($validated);
+
+        return back()->with('success', 'Field of Work updated successfully.');
+    }
+
+    public function destroyFieldOfWork(FieldOfWork $fieldOfWork)
+    {
+        if (Auth::user()->role !== 'super_admin') {
+            abort(403);
+        }
+        $fieldOfWork->delete();
+
+        return back()->with('success', 'Field of Work removed successfully.');
     }
 }

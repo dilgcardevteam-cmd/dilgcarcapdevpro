@@ -1023,20 +1023,10 @@
                             <select id="field_of_work" name="field_of_work" required>
                                 <option value="" disabled {{ old('field_of_work') ? '' : 'selected' }}>Select Field of Work</option>
                                 @php
-                                    $fields = [
-                                        'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
-                                        'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
-                                        'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
-                                        'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
-                                        'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
-                                        'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
-                                        'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
-                                        'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
-                                        'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
-                                    ];
+                                    $fields = \App\Models\FieldOfWork::orderBy('name', 'asc')->get();
                                 @endphp
                                 @foreach($fields as $field)
-                                    <option value="{{ $field }}" {{ old('field_of_work') === $field ? 'selected' : '' }}>{{ $field }}</option>
+                                    <option value="{{ $field->name }}" {{ old('field_of_work') === $field->name ? 'selected' : '' }}>{{ $field->name }}</option>
                                 @endforeach
                             </select>
                         </div>

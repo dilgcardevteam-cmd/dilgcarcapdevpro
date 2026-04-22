@@ -149,6 +149,12 @@ Route::post('/admin/system-settings/backup/restore', [DashboardController::class
 // Academic Year Management
 Route::post('/admin/system-settings/academic-year', [DashboardController::class, 'storeAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.store');
 Route::post('/admin/system-settings/academic-year/{academicYear}/activate', [DashboardController::class, 'activateAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.activate');
+
+// Field of Work Management
+Route::get('/admin/system-settings/field-of-work', [DashboardController::class, 'getFieldOfWorks'])->middleware(['auth'])->name('admin.settings.field-of-work.index');
+Route::post('/admin/system-settings/field-of-work', [DashboardController::class, 'storeFieldOfWork'])->middleware(['auth'])->name('admin.settings.field-of-work.store');
+Route::put('/admin/system-settings/field-of-work/{fieldOfWork}', [DashboardController::class, 'updateFieldOfWork'])->middleware(['auth'])->name('admin.settings.field-of-work.update');
+Route::delete('/admin/system-settings/field-of-work/{fieldOfWork}', [DashboardController::class, 'destroyFieldOfWork'])->middleware(['auth'])->name('admin.settings.field-of-work.destroy');
 // Trainer create classwork page
 Route::get('/trainer/courses/{course}/classwork/create', [CourseController::class, 'trainerClassworkCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.classwork.create');
 // Trainer create material/assessment dedicated pages

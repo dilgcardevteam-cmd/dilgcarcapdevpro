@@ -5360,6 +5360,17 @@
                             </div>
                             <div class="setting-sub">Control the academic years available in the system.</div>
                         </div>
+
+                        <div class="setting-card" onclick="openSetting('field-of-work')">
+                            <div class="setting-head">
+                                <div class="setting-icon"><i class="fas fa-briefcase"></i></div>
+                                <div>
+                                    <div class="setting-title">Field of Work Management</div>
+                                    <div class="setting-sub">Manage the available fields of work for user registration.</div>
+                                </div>
+                            </div>
+                            <div class="setting-sub">Add, edit, or remove fields of work used in the sign-up form.</div>
+                        </div>
                         @endif
                     </div>
                 </div>
@@ -5627,6 +5638,88 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="settingsFieldOfWork" style="display:none">
+                    <div class="import-wrap">
+                        <div class="import-card">
+                            <div class="import-hero">
+                                <div class="hero-left">
+                                    <div class="hero-icon"><i class="fas fa-briefcase"></i></div>
+                                    <div>
+                                        <div class="hero-title">Field of Work Management</div>
+                                        <div class="hero-sub">Add, edit, or remove fields of work</div>
+                                    </div>
+                                </div>
+                                <button class="btn-pill" onclick="backSettingsHome()"><i class="fas fa-arrow-left"></i> Back</button>
+                            </div>
+                            <div class="import-body">
+                                <div class="cta-row" style="justify-content:flex-end">
+                                    <button onclick="showAddFieldOfWorkForm()" class="btn btn-blue"><i class="fas fa-plus"></i> New Field of Work</button>
+                                </div>
+
+                                <div id="addFieldOfWorkForm" style="display:none; margin-top:16px; padding:16px; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc;">
+                                    <h3 id="fowFormTitle" style="margin-top:0; color:#0b3b8f">Add New Field of Work</h3>
+                                    <form id="fieldOfWorkForm" method="POST" action="{{ route('admin.settings.field-of-work.store') }}">
+                                        @csrf
+                                        <input type="hidden" id="fow_method" name="_method" value="POST">
+                                        <div style="display:grid; grid-template-columns:1fr; gap:16px">
+                                            <div>
+                                                <label class="form-label">Field of Work Name</label>
+                                                <input type="text" id="fow_name" name="name" class="input-pro" placeholder="e.g. Information Technology" required>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:16px; display:flex; gap:8px">
+                                            <button type="submit" id="fowSubmitBtn" class="btn btn-blue">Save Field of Work</button>
+                                            <button type="button" onclick="hideAddFieldOfWorkForm()" class="btn">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div style="margin-top:16px">
+                                    <table class="table-pro" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Field of Work</th>
+                                                <th>Created At</th>
+                                                <th style="text-align:right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($fieldOfWorks as $fow)
+                                                <tr>
+                                                    <td style="font-weight:700">{{ $fow->name }}</td>
+                                                    <td style="color:#64748b; font-size:.85rem">{{ $fow->created_at->format('M d, Y') }}</td>
+                                                    <td style="text-align:right">
+                                                        <button onclick="editFieldOfWork({{ $fow->id }}, '{{ addslashes($fow->name) }}')" class="btn btn-pill" style="font-size:.75rem; padding:6px 10px">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </button>
+                                                        <form method="POST" action="{{ route('admin.settings.field-of-work.destroy', $fow->id) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to remove this field of work?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn" style="font-size:.75rem; padding:6px 10px; color:#dc2626">
+                                                                <i class="fas fa-trash-alt"></i> Remove
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr><td colspan="3" style="text-align:center; padding:30px; color:#64748b">No fields of work found.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="import-side">
+                            <div class="side-head"><i class="fas fa-info-circle"></i> Field of Work Info</div>
+                            <ul class="side-list">
+                                <li>These fields will appear as options in the user registration form.</li>
+                                <li>Ensure names are clear and professional.</li>
+                                <li>Removing a field will not affect existing users who already selected it, but it will no longer be available for new sign-ups.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <script>
                     function showAddAcademicYearForm(){
                         document.getElementById('addAcademicYearForm').style.display='block';
@@ -5644,16 +5737,42 @@
                         } else if (key==='academic-year'){
                             document.getElementById('settingsHome').style.display='none';
                             document.getElementById('settingsAcademicYear').style.display='block';
+                        } else if (key==='field-of-work'){
+                            document.getElementById('settingsHome').style.display='none';
+                            document.getElementById('settingsFieldOfWork').style.display='block';
                         }
                     }
                     function backSettingsHome(){
                         var loc=document.getElementById('settingsLocation');
                         var bkp=document.getElementById('settingsBackup');
                         var ay=document.getElementById('settingsAcademicYear');
+                        var fow=document.getElementById('settingsFieldOfWork');
                         if(loc) loc.style.display='none';
                         if(bkp) bkp.style.display='none';
                         if(ay) ay.style.display='none';
+                        if(fow) fow.style.display='none';
                         document.getElementById('settingsHome').style.display='block';
+                    }
+
+                    function showAddFieldOfWorkForm(){
+                        document.getElementById('fowFormTitle').textContent = 'Add New Field of Work';
+                        document.getElementById('fieldOfWorkForm').action = "{{ route('admin.settings.field-of-work.store') }}";
+                        document.getElementById('fow_method').value = 'POST';
+                        document.getElementById('fow_name').value = '';
+                        document.getElementById('fowSubmitBtn').textContent = 'Save Field of Work';
+                        document.getElementById('addFieldOfWorkForm').style.display='block';
+                    }
+                    function hideAddFieldOfWorkForm(){
+                        document.getElementById('addFieldOfWorkForm').style.display='none';
+                    }
+                    function editFieldOfWork(id, name){
+                        document.getElementById('fowFormTitle').textContent = 'Edit Field of Work';
+                        document.getElementById('fieldOfWorkForm').action = "/admin/system-settings/field-of-work/" + id;
+                        document.getElementById('fow_method').value = 'PUT';
+                        document.getElementById('fow_name').value = name;
+                        document.getElementById('fowSubmitBtn').textContent = 'Update Field of Work';
+                        document.getElementById('addFieldOfWorkForm').style.display='block';
+                        document.getElementById('addFieldOfWorkForm').scrollIntoView({behavior: 'smooth'});
                     }
                     (function(){
                         var form=document.getElementById('psgcImportForm');
@@ -7351,21 +7470,8 @@
                                     <line x1="12" y1="22.08" x2="12" y2="12"></line>
                                 </svg>
                                 <select id="view_field_of_work" name="field_of_work" required disabled>
-                                    @php
-                                        $fields = [
-                                            'Administrative Clerk', 'Budget Assistant', 'Treasury/Cashier Staff',
-                                            'Civil Engineering Assistant', 'Project Monitoring Staff', 'Site Inspector',
-                                            'IT Support Technician', 'Systems Developer Assistant', 'Web/Systems Administrator',
-                                            'Barangay Health Worker Assistant', 'Medical Records Clerk', 'Social Welfare Assistant',
-                                            'Traffic Enforcer Assistant', 'Emergency Response Staff', 'Inspection Officer Assistant',
-                                            'Legal Research Assistant', 'Ordinance Drafting Assistant', 'Compliance Monitoring Staff',
-                                            'Business Permit Assistant', 'Investment Promotion Assistant', 'MSME Support Staff',
-                                            'Agricultural Technician Assistant', 'Environmental Monitoring Staff', 'Waste Management Assistant',
-                                            'Daycare/Community Education Assistant', 'Scholarship Program Assistant', 'Community Development Worker'
-                                        ];
-                                    @endphp
-                                    @foreach($fields as $field)
-                                        <option value="{{ $field }}">{{ $field }}</option>
+                                    @foreach($fieldOfWorks as $field)
+                                        <option value="{{ $field->name }}">{{ $field->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
