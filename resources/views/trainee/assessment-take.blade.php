@@ -13,6 +13,9 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
 .title{font-weight:800;margin:0 0 8px 0}
 .muted{color:var(--muted)}
 .q{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.q-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.q-title-text{flex:1;min-width:0}
+.qtype-pill{flex:0 0 auto;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;white-space:nowrap}
 .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn-blue{background:var(--brand);color:#fff}
 .input{border:1px solid var(--border);border-radius:10px;padding:10px;width:100%}
@@ -37,7 +40,22 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
       @csrf
       @foreach(($questions ?? []) as $i => $q)
         <div class="q">
-          <div style="font-weight:700">{{ $i+1 }}. {{ $q['text'] ?? '' }}</div>
+          @php
+            $qt = (string) ($q['type'] ?? '');
+            $typeLabel = match ($qt) {
+              'multiple_choice_multiple' => 'Multiple Choice (Multiple Answers)',
+              'multiple_choice_single', 'multiple_choice' => 'Multiple Choice (Single Answer)',
+              'true_false' => 'True/False',
+              'identification' => 'Identification',
+              'enumeration' => 'Enumeration',
+              'essay' => 'Essay',
+              default => $qt !== '' ? ucwords(str_replace('_', ' ', $qt)) : 'Question',
+            };
+          @endphp
+          <div class="q-head">
+            <div class="q-title-text" style="font-weight:700">{{ $i+1 }}. {{ $q['text'] ?? '' }}</div>
+            <div class="qtype-pill">{{ $typeLabel }}</div>
+          </div>
           @if(($q['type'] ?? '') === 'multiple_choice')
             @foreach(($q['choices'] ?? []) as $k => $choice)
               <label style="display:flex;gap:8px;align-items:center;margin-top:6px">
@@ -99,4 +117,3 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeCon
 </script>
 </body>
 </html>
-

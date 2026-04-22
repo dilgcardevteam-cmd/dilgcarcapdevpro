@@ -389,6 +389,24 @@
             margin:4px 0 18px;
             color:#111827;
             letter-spacing:-0.03em;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+        }
+        .q-title-text{flex:1;min-width:0}
+        .qtype-pill{
+            flex:0 0 auto;
+            font-size:.72rem;
+            font-weight:900;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            padding:7px 10px;
+            border-radius:999px;
+            background:#f1f5f9;
+            border:1px solid #e2e8f0;
+            color:#334155;
+            white-space:nowrap;
         }
         .mc .mc-option,
         .tf .tf-option{
@@ -1320,6 +1338,24 @@
             function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
             function isMultipleChoiceQuestion(kind){ return ['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(String(kind || '')); }
             function normalizeMcKind(kind){ return String(kind || '') === 'multiple_choice_multiple' ? 'multiple_choice_multiple' : 'multiple_choice_single'; }
+            function questionTypeLabel(kind){
+                const t = String(kind || '');
+                if(isMultipleChoiceQuestion(t)){
+                    return normalizeMcKind(t) === 'multiple_choice_multiple'
+                        ? 'Multiple Choice (Multiple Answers)'
+                        : 'Multiple Choice (Single Answer)';
+                }
+                if(t === 'true_false') return 'True/False';
+                if(t === 'identification') return 'Identification';
+                if(t === 'enumeration') return 'Enumeration';
+                if(t === 'essay') return 'Essay';
+                if(!t) return 'Question';
+                return t.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+            }
+            function questionHeading(qi, q, fallback, typeLabel){
+                const text = `${qi+1}. ${esc(q.text||q.title||fallback)}`;
+                return `<div class="q-title"><span class="q-title-text">${text}</span><span class="qtype-pill">${esc(typeLabel)}</span></div>`;
+            }
             function mcCorrectIndexes(q){
                 const choices = Array.isArray(q.choices) ? q.choices : (Array.isArray(q.options) ? q.options : []);
                 let raw = Array.isArray(q.correct_answers) ? q.correct_answers.slice() : [];
@@ -1338,6 +1374,10 @@
                 if(isMultipleChoiceQuestion(kind)){
                     const mcKind = normalizeMcKind(kind);
                     const correctIndexes = mcCorrectIndexes(q);
+                    const typeLabel = (mcKind === 'multiple_choice_multiple' || correctIndexes.length > 1)
+                        ? 'Multiple Choice (Multiple Answers)'
+                        : 'Multiple Choice (Single Answer)';
+                    const heading = questionHeading(qi, q, 'Question', typeLabel);
                     const opts = (q.choices||q.options||[]).map((o,oi)=>{
                         const isAns = correctIndexes.includes(oi);
                         const chip = showTrainerAnswer && isAns ? '<span class="chip">Answer</span>' : '';
@@ -1345,26 +1385,28 @@
                     }).join('');
                     const helper = mcKind === 'multiple_choice_multiple' ? '<div class="muted" style="margin-bottom:8px">Select all that apply.</div>' : '';
                     if(showTrainerAnswer){
-                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div>${helper}<div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div></div>`;
+                        return `<div class="field question">${heading}${helper}<div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div></div>`;
                     }
                     return `<div class="field question" data-kind="mc">
-                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div>
+                        ${heading}
                         ${helper}
                         <div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div>
                     </div>`;
                 }else if(kind==='identification'){
+                    const heading = questionHeading(qi, q, 'Identification', questionTypeLabel(kind));
                     const ans = q.answer||'';
                     if(showTrainerAnswer){
                         const extra = ans ? `<div class="chip">Answer</div> ${esc(ans)}` : '<div class="muted">No answer provided</div>';
-                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>${extra}</div>`;
+                        return `<div class="field question">${heading}${extra}</div>`;
                     }
                     const dataAns = String(JSON.stringify(ans? [ans]:[])).replace(/"/g,'&quot;');
                     return `<div class="field question" data-kind="id">
-                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Identification')}</div>
+                        ${heading}
                         <div class="muted" style="margin-bottom:8px">This item is checked manually.</div>
                         <input class="q-input input" type="text" placeholder="Your answer" data-answers="${dataAns}">
                     </div>`;
                 }else if(kind==='enumeration'){
+                    const heading = questionHeading(qi, q, 'Enumeration', questionTypeLabel(kind));
                     const answers = Array.isArray(q.answers) ? q.answers : [];
                     const maxPoints = Number(q.max_points || 1) || 1;
                     if(showTrainerAnswer){
@@ -1372,33 +1414,35 @@
                             ? `<div style="display:grid;gap:6px;margin-top:8px">${answers.map((answer, index)=>`<div><span class="chip">Answer ${index + 1}</span> ${esc(answer)}</div>`).join('')}</div>`
                             : '<div class="muted">No correct answers configured.</div>';
                         return `<div class="field question" data-kind="enum">
-                            <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Enumeration')}</div>
+                            ${heading}
                             ${list}
                             <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
                         </div>`;
                     }
                     return `<div class="field question" data-kind="enum">
-                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Enumeration')}</div>
+                        ${heading}
                         <div class="muted" style="margin-bottom:8px">Provide one answer per field. This item is checked manually.</div>
                         <div class="enum-list" style="display:grid;gap:10px">
                             ${answers.map((_, index)=>`<input class="q-input input enum-input" type="text" placeholder="Answer ${index + 1}" data-enum-index="${index}">`).join('')}
                         </div>
                     </div>`;
                 }else if(kind==='essay'){
+                    const heading = questionHeading(qi, q, 'Essay', questionTypeLabel(kind));
                     const maxPoints = Number(q.max_points || 1) || 1;
                     if(showTrainerAnswer){
                         return `<div class="field question" data-kind="essay">
-                            <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Essay')}</div>
+                            ${heading}
                             <div class="muted">Essay question. Review trainee submissions in the results panel.</div>
                             <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
                         </div>`;
                     }
                     return `<div class="field question" data-kind="essay">
-                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'Essay')}</div>
+                        ${heading}
                         <textarea class="q-input input" rows="6" placeholder="Write your answer here" style="width:100%;resize:vertical"></textarea>
                         <div class="muted" style="margin-top:8px">This item will be checked manually.</div>
                     </div>`;
                 }else if(kind==='true_false'){
+                    const heading = questionHeading(qi, q, 'True or False', questionTypeLabel(kind));
                     const val = (q.answer===true)?'true':(q.answer===false?'false':'');
                     if(showTrainerAnswer){
                         const opts = ['True','False'].map(v=>{
@@ -1406,17 +1450,18 @@
                             const chip = isAns ? '<span class="chip">Answer</span>' : '';
                             return `<div class="tf-option${isAns?' trainer-answer':''}"><span class="mc-radio"></span><span>${v}</span> ${chip}</div>`;
                         }).join('');
-                        return `<div class="field question"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'True or False')}</div><div class="tf">${opts}</div></div>`;
+                        return `<div class="field question">${heading}<div class="tf">${opts}</div></div>`;
                     }
                     const opts2 = ['True','False'].map(v=>{
                         return `<div class="tf-option" data-val="${v.toLowerCase()}"><span class="mc-radio"></span><span>${v}</span></div>`;
                     }).join('');
                     return `<div class="field question" data-kind="tf">
-                        <div class="q-title">${qi+1}. ${esc(q.text||q.title||'True or False')}</div>
+                        ${heading}
                         <div class="tf" data-answer="${val}">${opts2}</div>
                     </div>`;
                 }else{
-                    return `<div class="field"><div class="q-title">${qi+1}. ${esc(q.text||q.title||'Question')}</div><div class="muted">Unsupported question type.</div></div>`;
+                    const heading = questionHeading(qi, q, 'Question', questionTypeLabel(kind));
+                    return `<div class="field">${heading}<div class="muted">Unsupported question type.</div></div>`;
                 }
             }).join('');
             const passPct = (ex.passing_score!=null && ex.passing_score!=='') ? (parseInt(ex.passing_score,10)||0) : null;

@@ -72,7 +72,9 @@
         .subheader{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-weight:700;color:#111827;font-size:1.1rem;display:flex;align-items:center;justify-content:space-between}
         .done-toggle{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:#1e3a8a;font-size:.9rem}
         .done-toggle input[type=checkbox]{width:18px;height:18px}
-        .question .q-title{font-size:1.25rem;font-weight:800;margin:6px 0 12px;color:#111827}
+        .question .q-title{font-size:1.25rem;font-weight:800;margin:6px 0 12px;color:#111827;display:flex;align-items:center;justify-content:space-between;gap:12px}
+        .q-title-text{flex:1;min-width:0}
+        .qtype-pill{flex:0 0 auto;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;white-space:nowrap}
         .mc .mc-option{display:flex;align-items:center;gap:12px;padding:18px 18px;margin:12px 0;border:1px solid #e5e7eb;border-radius:14px;background:#f3f4f6;cursor:pointer;transition:all .15s ease}
         .mc .mc-option:hover{background:#eef2ff}
         .mc .mc-option.selected{background:#06b6d4;color:#fff;border-color:#0891b2;box-shadow:inset -12px -12px 0 0 rgba(255,255,255,0.15)}
@@ -281,6 +283,17 @@
         const viewOnly = @json($viewOnly ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
+        function questionTypeLabel(kind){
+            const t = String(kind || '');
+            if(t === 'multiple_choice_multiple') return 'Multiple Choice (Multiple Answers)';
+            if(t === 'multiple_choice_single' || t === 'multiple_choice') return 'Multiple Choice (Single Answer)';
+            if(t === 'true_false') return 'True/False';
+            if(t === 'identification') return 'Identification';
+            if(t === 'enumeration') return 'Enumeration';
+            if(t === 'essay') return 'Essay';
+            if(!t) return 'Question';
+            return t.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
         function isVideo(path){ return /\.(mp4|webm|ogg)$/i.test(path||''); }
         function renderVideo(){
             const wrap=document.getElementById('videoWrap');
@@ -578,18 +591,20 @@
                     return `<div class="field">${f.html||''}</div>`;
                 } else if(f.type==='question' && f.question){
                     const q=f.question; 
+                    const kind = q.type || 'multiple_choice';
+                    const qTitle = `<div class="q-title"><span class="q-title-text">${q.title||'Question'}</span><span class="qtype-pill">${questionTypeLabel(kind)}</span></div>`;
                     const answer = (Number.isInteger(q.answer_index) ? q.answer_index : '');
                     const fbC = q.feedback_correct || '';
                     const fbI = q.feedback_incorrect || '';
                     const opts=(q.options||[]).map((o,idx)=>`<div class="mc-option" data-idx="${idx}"><span class="mc-radio"></span><span class="mc-label">${o}</span></div>`).join('');
                     if(viewOnly){
                         return `<div class="field question" data-kind="mc">
-                            <div class="q-title">${q.title||'Question'}</div>
+                            ${qTitle}
                             <div class="mc" data-answer="${answer}">${opts}</div>
                         </div>`;
                     } else {
                         return `<div class="field question" data-kind="mc">
-                            <div class="q-title">${q.title||'Question'}</div>
+                            ${qTitle}
                             <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
                             <div class="mc-actions">
                                 <button class="btn-green" data-act="submit" disabled>Submit</button>

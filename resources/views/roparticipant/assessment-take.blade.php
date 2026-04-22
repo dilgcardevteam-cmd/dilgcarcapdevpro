@@ -14,7 +14,9 @@
         .title{margin:0 0 8px;font-weight:800;color:var(--blue);letter-spacing:-0.01em}
         .muted{color:#64748b}
         .question{border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 0;background:#fff}
-        .q-title{font-weight:800;margin:0 0 10px}
+        .q-title{font-weight:800;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+        .q-title-text{flex:1;min-width:0}
+        .qtype-pill{flex:0 0 auto;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;white-space:nowrap}
         .opt{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin:6px 0;background:#f8fafc;cursor:pointer}
         .opt:hover{background:#eef2ff}
         .opt input{width:18px;height:18px}
@@ -34,7 +36,22 @@
                 @csrf
                 @foreach($questions as $qi => $q)
                     <div class="question" data-qi="{{ $qi }}">
-                        <div class="q-title">{{ $q['title'] ?? ('Question '.($qi+1)) }}</div>
+                        @php
+                          $qt = (string) ($q['type'] ?? '');
+                          $typeLabel = match ($qt) {
+                            'multiple_choice_multiple' => 'Multiple Choice (Multiple Answers)',
+                            'multiple_choice_single', 'multiple_choice' => 'Multiple Choice (Single Answer)',
+                            'true_false' => 'True/False',
+                            'identification' => 'Identification',
+                            'enumeration' => 'Enumeration',
+                            'essay' => 'Essay',
+                            default => $qt !== '' ? ucwords(str_replace('_', ' ', $qt)) : 'Question',
+                          };
+                        @endphp
+                        <div class="q-title">
+                          <span class="q-title-text">{{ $q['title'] ?? ('Question '.($qi+1)) }}</span>
+                          <span class="qtype-pill">{{ $typeLabel }}</span>
+                        </div>
                         @php $opts = $q['options'] ?? []; @endphp
                         @foreach($opts as $oi => $o)
                             <label class="opt">

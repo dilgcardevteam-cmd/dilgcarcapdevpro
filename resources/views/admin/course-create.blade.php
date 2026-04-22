@@ -654,7 +654,7 @@
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" data-type="field" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
-                <button type="button" class="rail-btn" data-type="field" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Questions</span></button>
+                <button type="button" class="rail-btn" data-type="field" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Quiz</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
