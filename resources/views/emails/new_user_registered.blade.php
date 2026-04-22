@@ -53,7 +53,7 @@
         .info-label {
             font-weight: bold;
             color: #555;
-            width: 80px;
+            width: 110px;
             display: inline-block;
         }
         .status-badge {
@@ -113,6 +113,12 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Email:</span> {{ $user->email }}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Field of Work:</span> {{ $user->field_of_work }}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Agency:</span> {{ $user->agency }}
                 </div>
                 <div class="info-item">
                     <span class="info-label">Region:</span> {{ $user->region }}
