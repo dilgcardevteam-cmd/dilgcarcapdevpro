@@ -437,6 +437,32 @@
             height:26px;
             border:2px solid #b5c4da;
         }
+        .mc[data-mode="multiple_choice_multiple"] .mc-radio{
+            border-radius:7px;
+        }
+        .mc[data-mode="multiple_choice_multiple"] .mc-option.selected .mc-radio{
+            position:relative;
+            background:#2563eb;
+            border-color:#2563eb;
+            box-shadow:none;
+        }
+        .mc[data-mode="multiple_choice_multiple"] .mc-option.selected .mc-radio::after{
+            content:'✓';
+            position:absolute;
+            inset:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#fff;
+            font-size:16px;
+            font-weight:900;
+            line-height:1;
+        }
+        .mc[data-mode="multiple_choice_multiple"] .mc-option.choice-disabled{
+            opacity:.48;
+            cursor:not-allowed;
+            background:#f8fafc;
+        }
         /* Pro input styling for Identification/Essay */
         .q-input{
             width:100%;
@@ -917,7 +943,7 @@
                 if (!isExamOnly && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
                     const modEx = document.createElement('div');
                     modEx.className = 'module';
-                    const exTitle = m.exam.title ? `Module Exam: ${m.exam.title}` : 'Module Exam';
+                    const exTitle = m.exam.title ? `Module Quiz: ${m.exam.title}` : 'Module Quiz';
                     modEx.innerHTML = `
                         <div class="module-header" data-mi="${mi}">
                             <div class="module-left">
@@ -938,12 +964,12 @@
                     tEl.className='topic';
                     tEl.setAttribute('data-mi',mi);
                     tEl.setAttribute('data-ti','exam');
-                    const num = `${mi+1}.E`;
+                    const num = `${mi+1}.Q`;
                     const qCount = m.exam.questions.length;
                     const badge = `<span class="count" style="display:inline-block">${qCount}</span>`;
                     tEl.innerHTML = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
-                        <span class="title">${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
+                        <span class="title">${num}. ${m.exam.title ? ('Module Quiz: '+m.exam.title) : 'Module Quiz'}</span>
                         ${badge}
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
@@ -1023,9 +1049,10 @@
                 if(hasReflection(mi,tiInt,-1)) done++;
             });
 
-            // If module has an embedded exam, include it in progress
+            // If module has an embedded exam, include it in progress ONLY if it's a standalone exam module.
+            // Embedded exams (quizzes) in content modules are now optional for progress percentage.
             const hasExam = m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length;
-            if (hasExam) {
+            if (hasExam && isExamOnly) {
                 total++;
                 const attempt = examAttemptCache[mi];
                 const passCfg = (m.exam.passing_score!=null && m.exam.passing_score!=='') ? (parseInt(m.exam.passing_score,10)||0) : 70;
@@ -1190,17 +1217,16 @@
                             if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
                             if(submitBtn){ submitBtn.textContent='Submitted'; submitBtn.disabled=true; }
                             if(input){ input.disabled=true; }
-                            if(summary && prev && prev.learned){
+                            if(summary && prev && typeof prev==='object' && prev.submitted){
                                 summary.style.display='block';
-                                summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div><div><b>What you learned:</b> ${prev.learned}</div>`;
+                                summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div><div><b>What you learned:</b> ${prev.learned ? prev.learned : '(none)'}</div>`;
                             }
                         }
                         if(submitBtn){
                             submitBtn.onclick = async ()=>{
                                 const containerEl = document.getElementById('contentBody');
                                 const ready = areAllQuestionsSubmitted(containerEl);
-                                const hasText = !!(input && input.value && input.value.trim());
-                                if(!ready || !hasText){ var ov=document.getElementById('gateOverlay'); if(ov){ ov.style.display='flex'; } if(!hasText){ input.focus(); } return; }
+                                if(!ready){ var ov=document.getElementById('gateOverlay'); if(ov){ ov.style.display='flex'; } return; }
                                 const questions = [{id:'learned', text:'What did you learn?'}];
                                 const answers = { learned: input.value||'' };
                                 try{
@@ -1269,13 +1295,13 @@
                         const input2 = b.querySelector('.reflect-input');
                         const btn2 = b.querySelector('[data-act="submit-ref"]');
                         const sum2 = b.querySelector('.reflect-summary');
-                        if(prev2 && typeof prev2==='object' && prev2.learned){
-                            if(input2){ input2.value = prev2.learned; input2.disabled = true; input2.style.display='none'; }
+                        if(prev2 && typeof prev2==='object' && prev2.submitted){
+                            if(input2){ input2.value = prev2.learned || ''; input2.disabled = true; input2.style.display='none'; }
                             if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; if(btn2.parentElement){ btn2.parentElement.style.display='none'; } }
                             if(sum2){
                                 sum2.style.display='block';
                                 sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
-                                    <div><b>What you learned:</b> ${prev2.learned}</div>
+                                    <div><b>What you learned:</b> ${prev2.learned ? prev2.learned : '(none)'}</div>
                                     <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
                                 const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
                                 if(resetBtn){
@@ -1309,13 +1335,13 @@
                     const input2 = b.querySelector('.reflect-input');
                     const btn2 = b.querySelector('[data-act="submit-ref"]');
                     const sum2 = b.querySelector('.reflect-summary');
-                    if(prev2 && typeof prev2==='object' && prev2.learned){
-                        if(input2){ input2.value = prev2.learned; input2.disabled = true; input2.style.display='none'; }
+                    if(prev2 && typeof prev2==='object' && prev2.submitted){
+                        if(input2){ input2.value = prev2.learned || ''; input2.disabled = true; input2.style.display='none'; }
                         if(btn2){ btn2.textContent = 'Submitted'; btn2.disabled = true; if(btn2.parentElement){ btn2.parentElement.style.display='none'; } }
                         if(sum2){
                             sum2.style.display='block';
                             sum2.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
-                                <div><b>What you learned:</b> ${prev2.learned}</div>
+                                <div><b>What you learned:</b> ${prev2.learned ? prev2.learned : '(none)'}</div>
                                 <div style="margin-top:8px"><button type="button" class="btn-ghost" data-act="reset-ref" style="border:1px solid var(--border);border-radius:12px;padding:8px 12px;background:#fff">Reset</button></div>`;
                             const resetBtn = sum2.querySelector('[data-act="reset-ref"]');
                             if(resetBtn){
@@ -1333,6 +1359,7 @@
             })();
         }
         async function openExam(mi){
+            console.log('openExam initiated for module index:', mi);
             if(!canAccessFinalExam(mi)){
                 await syncServerAccessState();
                 if(!canAccessFinalExam(mi)){
@@ -1347,7 +1374,13 @@
             const qs = Array.isArray(ex.questions)? ex.questions : [];
             const titleEl = document.getElementById('contentTitle');
             const bodyEl = document.getElementById('contentBody');
-            if(titleEl) titleEl.textContent = `${mi+1}.E Module Exam`;
+            
+            // Distinguish between Quiz and Exam title based on whether module has topics
+            const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
+            const labelPrefix = isExamOnly ? 'Module Exam' : 'Module Quiz';
+            const labelShort = isExamOnly ? 'E' : 'Q';
+            
+            if(titleEl) titleEl.textContent = `${mi+1}.${labelShort} ${labelPrefix}`;
             if(!qs.length){
                 if(bodyEl) bodyEl.innerHTML = `<div class="field" style="background:#f8fafc;">No questions added.</div>`;
                 return;
@@ -1436,11 +1469,17 @@
                             <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
                         </div>`;
                     }
+                    // If trainee, show input fields. Use maxPoints to determine how many boxes.
+                    const inputCount = Math.max(answers.length, maxPoints);
+                    const inputFields = [];
+                    for(let i=0; i<inputCount; i++){
+                        inputFields.push(`<input class="q-input input enum-input" type="text" placeholder="Answer ${i + 1}" data-enum-index="${i}" style="margin-bottom:8px">`);
+                    }
                     return `<div class="field question" data-kind="enum">
                         ${heading}
                         <div class="muted" style="margin-bottom:8px">Provide one answer per field. This item is checked manually.</div>
-                        <div class="enum-list" style="display:grid;gap:10px">
-                            ${answers.map((_, index)=>`<input class="q-input input enum-input" type="text" placeholder="Answer ${index + 1}" data-enum-index="${index}">`).join('')}
+                        <div class="enum-list" style="display:grid;gap:2px">
+                            ${inputFields.join('')}
                         </div>
                     </div>`;
                 }else if(kind==='essay'){
@@ -1652,12 +1691,20 @@
                 let latestExamSummary = null;
                 async function requestExamFullscreen(){
                     try{
-                        if(document.fullscreenElement || !fullscreenHost?.requestFullscreen){
+                        if(document.fullscreenElement){
+                            console.log('Already in fullscreen or fullscreenElement is true.');
                             return true;
                         }
+                        if(!fullscreenHost?.requestFullscreen){
+                            console.warn('Fullscreen API not supported by fullscreenHost.');
+                            return true; // Or false, depending on desired fallback behavior
+                        }
+                        console.log('Attempting to request fullscreen...');
                         await fullscreenHost.requestFullscreen();
+                        console.log('Fullscreen request successful.');
                         return true;
                     }catch(e){
+                        console.error('Fullscreen request failed:', e);
                         return false;
                     }
                 }
@@ -1822,6 +1869,17 @@
                                 const opt = b.querySelector(`.mc .mc-option[data-idx="${idx}"]`);
                                 if(opt){ opt.classList.add('selected'); }
                             });
+                            const mc = b.querySelector('.mc[data-mode="multiple_choice_multiple"]');
+                            if(mc){
+                                const expectedCount = String(mc.dataset.answer || '')
+                                    .split(',')
+                                    .map(v => parseInt(v, 10))
+                                    .filter(v => Number.isInteger(v)).length;
+                                const limitReached = expectedCount && mc.querySelectorAll('.mc-option.selected').length >= expectedCount;
+                                mc.querySelectorAll('.mc-option').forEach(option => {
+                                    option.classList.toggle('choice-disabled', limitReached && !option.classList.contains('selected'));
+                                });
+                            }
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='enum'){
@@ -1907,7 +1965,17 @@
                         const submitted = localStorage.getItem(keyBase+'_submitted')==='1';
                         if(submitted) return;
                         if(wrap.dataset.mode === 'multiple_choice_multiple'){
+                            const expectedCount = String(wrap.dataset.answer || '')
+                                .split(',')
+                                .map(v => parseInt(v, 10))
+                                .filter(v => Number.isInteger(v)).length;
+                            const selectedCount = wrap.querySelectorAll('.mc-option.selected').length;
+                            if(expectedCount && selectedCount >= expectedCount && !opt.classList.contains('selected')) return;
                             opt.classList.toggle('selected');
+                            const limitReached = expectedCount && wrap.querySelectorAll('.mc-option.selected').length >= expectedCount;
+                            wrap.querySelectorAll('.mc-option').forEach(option => {
+                                option.classList.toggle('choice-disabled', limitReached && !option.classList.contains('selected'));
+                            });
                         }else{
                             wrap.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
                             opt.classList.add('selected');
@@ -2560,6 +2628,15 @@
                             if(j && j.ok && j.attempt){
                                 markAttemptAsSubmitted(j.attempt);
                                 return true;
+                            } else {
+                                // Force cleanup if server says no attempt but localStorage says yes
+                                if (localStorage.getItem(keyBase+'_submitted') === '1') {
+                                    console.log('Server has no record, but localStorage says submitted. Forcing reset...');
+                                    localStorage.removeItem(keyBase+'_submitted');
+                                    localStorage.removeItem(keyBase+'_answers');
+                                    localStorage.removeItem(keyBase+'_started');
+                                    localStorage.removeItem(keyBase+'_start');
+                                }
                             }
                             return false;
                         })
@@ -2567,20 +2644,34 @@
                 }
                 const startBtn = document.getElementById('examStart');
                 if(startBtn){
-                    startBtn.onclick = async ()=>{
-                        if(localStorage.getItem(keyBase+'_submitted')==='1'){ return; }
+                    console.log('Start button found, attaching event listener.');
+                    startBtn.addEventListener('click', async () => {
+                        console.log('Start Exam button clicked!');
+                        if(localStorage.getItem(keyBase+'_submitted')==='1'){ 
+                            console.log('Exam already submitted according to localStorage.');
+                            return; 
+                        }
+                        
                         resetExamIntegrity();
                         const enteredFullscreen = await requestExamFullscreen();
+                        console.log('Entered Fullscreen Result:', enteredFullscreen);
+                        
                         showExamBody();
                         try{
                             localStorage.removeItem(keyBase+'_retake_mode');
                             localStorage.setItem(keyBase+'_started','1');
                             if(!localStorage.getItem(keyBase+'_start')) localStorage.setItem(keyBase+'_start', String(Date.now()));
-                        }catch(e){}
+                        }catch(e){
+                            console.error('Error updating localStorage:', e);
+                        }
+                        
                         if(!enteredFullscreen){
+                            console.warn('Fullscreen was not entered, triggering violation.');
                             setTimeout(()=>{ triggerExamViolation('fullscreen_required'); }, 120);
                         }
-                    };
+                    });
+                } else {
+                    console.error('Start button (examStart) not found in the DOM.');
                 }
                 showExamLoading();
                 loadExistingAttempt().then(foundAttempt=>{
@@ -2808,6 +2899,10 @@
                 } else if(f.type==='question' && f.question){
                     const q=f.question; 
                     const kind = (q.type||'multiple_choice');
+                    const options = Array.isArray(q.options) ? q.options : [];
+                    if(!IS_TRAINER && ['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(kind) && options.length === 0){
+                        return '';
+                    }
                     const typeLabel = (function(){
                         if(kind==='multiple_choice_multiple') return 'Multiple Choice (Multiple Answers)';
                         if(kind==='multiple_choice_single' || kind==='multiple_choice') return 'Multiple Choice (Single Answer)';
@@ -2819,24 +2914,40 @@
                         return String(kind).replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
                     })();
                     const qTitle = `<div class="q-title"><span class="q-title-text">${q.title||'Question'}</span><span class="qtype-pill">${typeLabel}</span></div>`;
-                    const answer = (Number.isInteger(q.answer_index) ? q.answer_index : '');
+                    const isMultipleAnswer = kind === 'multiple_choice_multiple';
+                    const correctIndexes = (function(){
+                        let raw = Array.isArray(q.correct_answers) ? q.correct_answers.slice() : [];
+                        if(!raw.length && q.correct_answer !== undefined && q.correct_answer !== null && q.correct_answer !== '') raw = [q.correct_answer];
+                        if(!raw.length && q.answer_index !== undefined && q.answer_index !== null && q.answer_index !== '') raw = [q.answer_index];
+                        return Array.from(new Set(raw.map(value => {
+                            if(!isNaN(Number(value))) return Number(value);
+                            const text = String(value || '').trim();
+                            if(/^[A-Za-z]$/.test(text)) return text.toUpperCase().charCodeAt(0) - 65;
+                            return options.findIndex(choice => String(choice || '').trim().toLowerCase() === text.toLowerCase());
+                        }).filter(index => Number.isInteger(index) && index >= 0 && index < options.length)));
+                    })();
+                    const answer = correctIndexes.join(',');
                     const fbC = q.feedback_correct || '';
                     const fbI = q.feedback_incorrect || '';
-                    const opts=(q.options||[]).map((o,idx)=>{
-                        const isAns = (IS_TRAINER && Number.isInteger(answer) && idx===answer);
+                    const opts=options.map((o,idx)=>{
+                        const isAns = (IS_TRAINER && correctIndexes.includes(idx));
                         const chip = isAns ? '<span class="chip">Answer</span>' : '';
                         return `<div class="mc-option${isAns?' trainer-answer':''}" data-idx="${idx}"><span class="mc-radio"></span><span class="mc-label">${o}</span> ${chip}</div>`;
                     }).join('');
+                    const mcMode = isMultipleAnswer ? 'multiple_choice_multiple' : 'multiple_choice_single';
+                    const helper = isMultipleAnswer ? '<div class="muted" style="margin-bottom:8px">Select all that apply.</div>' : '';
                     if(viewOnly){
                         return `<div class="field question" data-kind="mc">
                             ${qTitle}
-                            <div class="mc" data-answer="${answer}">${opts}</div>
+                            ${helper}
+                            <div class="mc" data-mode="${mcMode}" data-answer="${answer}">${opts}</div>
                         </div>`;
                     } else {
                         if(['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(kind)){
                             return `<div class="field question" data-kind="mc">
                                 ${qTitle}
-                                <div class="mc" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
+                                ${helper}
+                                <div class="mc" data-mode="${mcMode}" data-answer="${answer}" data-fb-correct="${fbC?.replace?.(/"/g,'&quot;') || ''}" data-fb-incorrect="${fbI?.replace?.(/"/g,'&quot;') || ''}">${opts}</div>
                                 <div class="mc-actions">
                                     <button class="btn-green" data-act="submit" disabled>Submit</button>
                                     <button class="btn-green" data-act="feedback" style="display:none">Show feedback</button>
@@ -2954,24 +3065,21 @@
                         if(input && prev && typeof prev==='object' && prev.learned){ input.value = prev.learned; }
                         if(submitBtn){ submitBtn.textContent = 'Submitted'; submitBtn.disabled = true; }
                         if(input){ input.disabled = true; }
-                        if(summary && prev && typeof prev==='object' && prev.learned){
+                        if(summary && prev && typeof prev==='object' && prev.submitted){
                             summary.style.display='block';
                             summary.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Submitted</div>
-                                <div><b>What you learned:</b> ${prev.learned}</div>`;
+                                <div><b>What you learned:</b> ${prev.learned ? prev.learned : '(none)'}</div>`;
                         }
                     }
                     if(submitBtn){
                         submitBtn.onclick = async ()=>{
                             const containerEl = document.getElementById('contentBody');
                             const ready = areAllQuestionsSubmitted(containerEl);
-                            const hasText = !!(input && input.value && input.value.trim());
-                            if(!ready || !hasText){
+                            if(!ready){
                                 var ov=document.getElementById('gateOverlay');
                                 if(ov){ ov.style.display='flex'; }
-                                if(!hasText){ input.focus(); }
                                 return;
                             }
-                            if(!input.value.trim()){ input.focus(); return; }
                             const questions = [{id:'learned', text:'What did you learn?'}];
                             const answers = { learned: input.value||'' };
                             try{
@@ -3115,11 +3223,30 @@
             const mc = block.querySelector('.mc');
             const feedback = block.querySelector('.mc-feedback');
             const answerStr = mc.getAttribute('data-answer');
-            const answer = answerStr === '' ? null : parseInt(answerStr,10);
+            const isMultipleAnswer = mc.dataset.mode === 'multiple_choice_multiple';
+            const answers = String(answerStr || '')
+                .split(',')
+                .map(v => parseInt(v, 10))
+                .filter(v => Number.isInteger(v));
             const submitBtn = block.querySelector('[data-act="submit"]');
             const resetBtn = block.querySelector('[data-act="reset"]');
             const feedbackBtn = block.querySelector('[data-act="feedback"]');
             const correctBtn = null;
+            const selectedIndexes = () => Array.from(mc.querySelectorAll('.mc-option.selected'))
+                .map(opt => parseInt(opt.getAttribute('data-idx'), 10))
+                .filter(v => Number.isInteger(v));
+            const syncChoiceLimit = () => {
+                if(!isMultipleAnswer || !answers.length || mc.dataset.submitted === '1') return;
+                const limitReached = selectedIndexes().length >= answers.length;
+                mc.querySelectorAll('.mc-option').forEach(option => {
+                    option.classList.toggle('choice-disabled', limitReached && !option.classList.contains('selected'));
+                });
+            };
+            const selectedMatchesAnswers = () => {
+                const selected = selectedIndexes().sort((a, b) => a - b);
+                const expected = answers.slice().sort((a, b) => a - b);
+                return selected.length === expected.length && selected.every((value, index) => value === expected[index]);
+            };
             const setSubmitted = (val)=>{
                 mc.dataset.submitted = val ? '1' : '0';
                 if(val){
@@ -3137,24 +3264,31 @@
             mc.querySelectorAll('.mc-option').forEach(opt=>{
                 opt.addEventListener('click', ()=>{
                     if(mc.dataset.submitted==='1') return;
-                    mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    submitBtn.disabled = false;
+                    if(isMultipleAnswer){
+                        const limitReached = answers.length && selectedIndexes().length >= answers.length;
+                        if(limitReached && !opt.classList.contains('selected')) return;
+                        opt.classList.toggle('selected');
+                    } else {
+                        mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                    }
+                    submitBtn.disabled = selectedIndexes().length === 0;
+                    syncChoiceLimit();
                 });
             });
             if(submitBtn){
                 submitBtn.addEventListener('click', ()=>{
-                    const sel = mc.querySelector('.mc-option.selected');
-                    if(!sel) return;
-                    const idx = parseInt(sel.getAttribute('data-idx'),10);
+                    const selected = Array.from(mc.querySelectorAll('.mc-option.selected'));
+                    if(!selected.length) return;
+                    const isCorrect = answers.length ? selectedMatchesAnswers() : null;
                     setSubmitted(true);
                     mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('submitted-correct','submitted-wrong'));
-                    if(answer !== null && !Number.isNaN(answer)){
-                        if(idx === answer){
-                            sel.classList.add('submitted-correct');
+                    if(answers.length){
+                        if(isCorrect){
+                            selected.forEach(opt => opt.classList.add('submitted-correct'));
                             if(resetBtn) resetBtn.style.display='none';
                         } else {
-                            sel.classList.add('submitted-wrong');
+                            selected.forEach(opt => opt.classList.add('submitted-wrong'));
                             if(resetBtn) resetBtn.style.display='inline-block';
                         }
                     } else {
@@ -3164,7 +3298,7 @@
             }
             if(resetBtn){
                 resetBtn.addEventListener('click', ()=>{
-                    mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected','correct'));
+                    mc.querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected','correct','choice-disabled'));
                     feedback.style.display='none'; feedback.textContent='';
                     submitBtn.disabled = true;
                     setSubmitted(false);
@@ -3174,15 +3308,13 @@
             }
             if(feedbackBtn){
                 feedbackBtn.addEventListener('click', ()=>{
-                    const sel = mc.querySelector('.mc-option.selected');
-                    if(!sel){ feedback.textContent='Select an option first.'; feedback.style.display='block'; return; }
-                    const idx = parseInt(sel.getAttribute('data-idx'),10);
+                    if(!selectedIndexes().length){ feedback.textContent='Select an option first.'; feedback.style.display='block'; return; }
                     const fbC = mc.getAttribute('data-fb-correct') || '';
                     const fbI = mc.getAttribute('data-fb-incorrect') || '';
-                    if(answer === null || Number.isNaN(answer)){
+                    if(!answers.length){
                         feedback.textContent='Answer recorded.';
                     } else {
-                        if(idx===answer){
+                        if(selectedMatchesAnswers()){
                             feedback.textContent = fbC ? `Correct! ${fbC}` : 'Correct!';
                         } else {
                             feedback.textContent = fbI ? `Incorrect. ${fbI}` : 'Incorrect.';
@@ -3350,8 +3482,10 @@
                 const kind = b.getAttribute('data-kind');
                 if(kind==='mc'){
                     const mc = b.querySelector('.mc');
+                    if(!mc || mc.querySelectorAll('.mc-option').length === 0) return true;
                     return !!mc && mc.dataset.submitted==='1';
                 } else {
+                    if(!b.querySelector('.q-input') && !b.querySelector('.tf-option')) return true;
                     return b.dataset.submitted==='1';
                 }
             });
@@ -3360,12 +3494,7 @@
             const ready = areAllQuestionsSubmitted(container);
             container.querySelectorAll('.reflection-inline').forEach(ref=>{
                 const btn = ref.querySelector('[data-act="submit-ref"]');
-                const input = ref.querySelector('.reflect-input');
-                const hasText = !!(input && input.value && input.value.trim());
-                if(btn){ btn.disabled = !(ready && hasText); }
-                if(input){
-                    input.addEventListener('input', ()=>{ if(btn){ btn.disabled = !(areAllQuestionsSubmitted(container) && !!input.value.trim()); } });
-                }
+                if(btn){ btn.disabled = !ready; }
             });
         }
         (function(){

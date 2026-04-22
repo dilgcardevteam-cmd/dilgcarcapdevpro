@@ -261,17 +261,14 @@
                     </div>
                 </div>
                 
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <button class="btn-primary" onclick="openEnrollmentModal('{{ $course->enrollment_start ? $course->enrollment_start->format('Y-m-d\TH:i') : '' }}', '{{ $course->enrollment_end ? $course->enrollment_end->format('Y-m-d\TH:i') : '' }}')">
-                        <i class="fas fa-calendar-alt"></i> Set Enrollment Schedule
-                    </button>
-                    <span style="margin-left: 10px; font-size: 0.9rem; color: #666;">
-                        @if($course->enrollment_start || $course->enrollment_end)
-                            Current: {{ $course->enrollment_start ? $course->enrollment_start->format('M d, Y g:i A') : 'TBA' }} - {{ $course->enrollment_end ? $course->enrollment_end->format('M d, Y g:i A') : 'TBA' }}
-                        @else
-                            Schedule not set
-                        @endif
-                    </span>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-calendar-alt"></i>
+                    Enrollment schedule:
+                    @if($course->enrollment_start_date || $course->enrollment_end_date)
+                        {{ $course->enrollment_start_date ? $course->enrollment_start_date->format('M d, Y') : 'TBA' }} - {{ $course->enrollment_end_date ? $course->enrollment_end_date->format('M d, Y') : 'TBA' }}
+                    @else
+                        Schedule not set
+                    @endif
                 </div>
             </div>
         </div>
@@ -483,42 +480,6 @@
     </div>
 
     <!-- Enrollment Schedule Modal -->
-    <div id="enrollmentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-user-plus"></i> Set Enrollment Schedule
-                </h3>
-                <button type="button" class="close-modal" onclick="closeEnrollmentModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="enrollmentForm" method="POST" action="{{ route('registrar.courses.enrollment-schedule', $course->id) }}">
-                @csrf
-                @method('PUT')
-                <div class="modal-body" style="padding: 20px;">
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label class="form-label" for="enroll_start" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment Start</label>
-                        <input type="date" name="enrollment_start_date" id="enroll_start" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
-                        <small style="color:#666;display:block;margin-top:4px;">Date when trainees can start enrolling.</small>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label class="form-label" for="enroll_end" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment End</label>
-                        <input type="date" name="enrollment_end_date" id="enroll_end" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
-                        <small style="color:#666;display:block;margin-top:4px;">Date when enrollment closes.</small>
-                    </div>
-                </div>
-                <div class="modal-footer" style="padding:15px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px;">
-                    <button type="button" class="btn" style="background:#eee;color:#333;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;" onclick="closeEnrollmentModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-blue" style="background:#007bff;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">
-                        <i class="fas fa-save"></i> Save Schedule
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 <script>
     function openManualEnrollModal() {
         document.getElementById('manualEnrollModal').style.display = 'flex';
@@ -531,30 +492,6 @@
         if (event.target == manualModal) {
             closeManualEnrollModal();
         }
-        const enrollmentModal = document.getElementById('enrollmentModal');
-        if (event.target == enrollmentModal) {
-            closeEnrollmentModal();
-        }
-    }
-
-    function openEnrollmentModal(start, end) {
-        const modal = document.getElementById('enrollmentModal');
-        const startInput = document.getElementById('enroll_start');
-        const endInput = document.getElementById('enroll_end');
-
-        if(start) {
-            // If it's a full ISO string, extract just the date part
-            startInput.value = start.includes('T') ? start.split('T')[0] : start;
-        }
-        if(end) {
-            endInput.value = end.includes('T') ? end.split('T')[0] : end;
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    function closeEnrollmentModal() {
-        document.getElementById('enrollmentModal').style.display = 'none';
     }
     // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn=>{

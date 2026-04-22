@@ -30,10 +30,11 @@ class ReflectionController extends Controller
             $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
                 ? trim($answers['learned'])
                 : '';
-            if ($val === '') continue;
             $topicKey = "{$r->module_index}_{$r->topic_index}_-1";
             if (!isset($agg[$topicKey])) $agg[$topicKey] = [];
-            $agg[$topicKey][] = $val;
+            if ($val !== '') {
+                $agg[$topicKey][] = $val;
+            }
         }
         $map = [];
         foreach ($agg as $k => $list) {
@@ -59,12 +60,7 @@ class ReflectionController extends Controller
         if (isset($data['answers']['learned']) && is_string($data['answers']['learned'])) {
             $learned = trim($data['answers']['learned']);
         }
-        if ($learned === '') {
-            return response()->json([
-                'ok' => false,
-                'error' => 'Reflection cannot be empty.'
-            ], 422);
-        }
+        $data['answers']['learned'] = $learned;
 
         // Normalize topic-level to a safe stored sub_index (avoid negative on unsigned columns)
         $si = $data['sub_index'] ?? 0;
@@ -103,11 +99,7 @@ class ReflectionController extends Controller
                 $doneTopics = ReflectionResponse::where('user_id', $user->id)
                     ->where('course_id', $courseId)
                     ->where('module_index', $moduleIndex)
-                    ->get(['topic_index', 'answers_json'])
-                    ->filter(function ($response) {
-                        $answers = is_array($response->answers_json) ? $response->answers_json : [];
-                        return isset($answers['learned']) && trim((string) $answers['learned']) !== '';
-                    })
+                    ->get(['topic_index'])
                     ->pluck('topic_index')
                     ->unique()
                     ->count();
@@ -145,10 +137,7 @@ class ReflectionController extends Controller
         
         $topicDoneSet = [];
         foreach ($reflectionRows as $r) {
-            $answers = is_array($r->answers_json) ? $r->answers_json : [];
-            if (isset($answers['learned']) && trim($answers['learned']) !== '') {
-                $topicDoneSet["{$r->module_index}_{$r->topic_index}"] = true;
-            }
+            $topicDoneSet["{$r->module_index}_{$r->topic_index}"] = true;
         }
 
         $modules = [];

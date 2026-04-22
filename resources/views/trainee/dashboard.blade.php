@@ -3061,8 +3061,8 @@
                 }
                 try{
                     const now = new Date();
-                    const start = course.enrollment_start_at ? new Date(course.enrollment_start_at) : null;
-                    const end = course.enrollment_end_at ? new Date(course.enrollment_end_at) : null;
+                    const start = course.enrollment_start_date ? new Date(course.enrollment_start_date) : null;
+                    const end = course.enrollment_end_date ? new Date(course.enrollment_end_date) : null;
                     const notStarted = !!(start && now < new Date(start.getFullYear(), start.getMonth(), start.getDate()+0, 23,59,59));
                     const finished = !!(end && now > new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23,59,59));
                     if (finished) {

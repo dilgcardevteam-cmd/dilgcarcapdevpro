@@ -2417,18 +2417,18 @@
                             @endif
                         </div>
 
-                        <div style="display:flex; gap:50px; margin-bottom:32px;">
+                        <div style="display:flex; gap:24px; margin-bottom:32px;">
                             <div style="flex:1;">
                                 <label for="enrollStart" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
-                                    <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Start Date
+                                    <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment Start
                                 </label>
-                                <input id="enrollStart" name="enrollment_start_date" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                                <input id="enrollStart" name="enrollment_start_date" type="date" required style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
                             <div style="flex:1;">
                                 <label for="enrollEnd" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
-                                    <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> End Date
+                                    <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment End
                                 </label>
-                                <input id="enrollEnd" name="enrollment_end_date" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                                <input id="enrollEnd" name="enrollment_end_date" type="date" required style="width:100%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
                             </div>
                         </div>
 
@@ -2455,10 +2455,14 @@
                     var name=document.getElementById('publishCourseName');
                     var err=document.getElementById('publishError');
                     var trainerSelect = document.getElementById('publishTrainer');
+                    var startInput = document.getElementById('enrollStart');
+                    var endInput = document.getElementById('enrollEnd');
                     if(f){ f.setAttribute('action', actionUrl); }
                     if(name){ name.textContent = 'Course: '+courseName; }
                     if(err){ err.style.display='none'; err.textContent=''; }
                     if(trainerSelect){ trainerSelect.value = trainerId || ''; }
+                    if(startInput){ startInput.value = ''; }
+                    if(endInput){ endInput.value = ''; }
                     if(m){ m.style.display='flex'; }
                 }
                 function closePublishModal(){
@@ -2477,13 +2481,13 @@
                             if(!s || !t){
                                 e.preventDefault();
                                 if(err){ err.style.display='flex'; }
-                                if(errText){ errText.textContent='Please select both Start Date and End Date.'; }
+                                if(errText){ errText.textContent='Please select both enrollment start and end dates.'; }
                                 return false;
                             }
                             if(new Date(t) < new Date(s)){
                                 e.preventDefault();
                                 if(err){ err.style.display='flex'; }
-                                if(errText){ errText.textContent='End Date must be on or after Start Date.'; }
+                                if(errText){ errText.textContent='Enrollment end date must be on or after the start date.'; }
                                 return false;
                             }
                             if(btn){ 
@@ -2540,8 +2544,8 @@
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                             </div>
                                             @php
-                                                $s = optional($course->enrollment_start_at)->format('M d, Y');
-                                                $e = optional($course->enrollment_end_at)->format('M d, Y');
+                                                $s = optional($course->enrollment_start_date)->format('M d, Y');
+                                                $e = optional($course->enrollment_end_date)->format('M d, Y');
                                             @endphp
                                             @if($s || $e)
                                                 <div class="muted" style="font-size:.85rem;margin-top:6px">

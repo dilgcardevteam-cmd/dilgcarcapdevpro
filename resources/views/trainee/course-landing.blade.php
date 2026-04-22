@@ -1085,11 +1085,11 @@
                     @endif
                     
                     @php
-                        $status = $course->course_status;
+                        $status = $course->enrollment_status;
                         $statusClass = match($status) {
                             'Upcoming' => 'status-upcoming',
-                            'Ongoing' => 'status-ongoing',
-                            'Completed' => 'status-completed',
+                            'Open for Enrollment' => 'status-ongoing',
+                            'Enrollment Closed', 'Expired' => 'status-completed',
                             default => 'status-not-set'
                         };
                     @endphp
@@ -1101,8 +1101,8 @@
                         <div style="flex: 1; min-width: 300px;">
                             <div class="title">{{ $course->name }}</div>
                             <div class="course-schedule-info">
-                                <div><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d, Y') : 'Not set' }}</div>
-                                <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
+                                <div><i class="fas fa-calendar-alt"></i> Enrollment Start: {{ $course->enrollment_start_date ? $course->enrollment_start_date->format('M d, Y') : 'Not set' }}</div>
+                                <div><i class="fas fa-clock"></i> Enrollment End: {{ $course->enrollment_end_date ? $course->enrollment_end_date->format('M d, Y') : 'Not set' }}</div>
                             </div>
                             
                             @if(!empty($asTrainer) && $course->course_type === 'controlled' && $course->access_code)
@@ -1128,9 +1128,6 @@
                             @endphp
                             @if(in_array(auth()->user()->role, $managedCoachRoles, true) && ($isCreator || $isInCoaches || $isAttached))
                                 <div style="display: flex; gap: 10px;">
-                                    <button class="hero-btn ghost" onclick="openDurationModal({{ $course->id }}, '{{ $course->start_date ? $course->start_date->format('Y-m-d') : '' }}', '{{ $course->end_date ? $course->end_date->format('Y-m-d') : '' }}')">
-                                        <i class="fas fa-clock"></i> Course Duration
-                                    </button>
                                 </div>
                             @endif
                         @endif
@@ -1164,15 +1161,15 @@
                                                 <i class="fas fa-check-circle"></i> Enrollment Open
                                             </span>
                                             <div class="muted" style="font-size: 0.8rem; margin-top: 4px;">
-                                                Closes: {{ $course->enrollment_end ? $course->enrollment_end->format('M d, Y g:i A') : 'TBA' }}
+                                                Closes: {{ $course->enrollment_end_date ? $course->enrollment_end_date->format('M d, Y') : 'TBA' }}
                                             </div>
                                         @else
                                             <span class="status-badge status-completed" style="margin: 0;">
                                                 <i class="fas fa-times-circle"></i> Enrollment Closed
                                             </span>
-                                            @if($course->enrollment_start && now()->lt($course->enrollment_start))
+                                            @if($course->enrollment_start_date && now()->startOfDay()->lt($course->enrollment_start_date->copy()->startOfDay()))
                                                 <div class="muted" style="font-size: 0.8rem; margin-top: 4px;">
-                                                    Opens: {{ $course->enrollment_start->format('M d, Y g:i A') }}
+                                                    Opens: {{ $course->enrollment_start_date->format('M d, Y') }}
                                                 </div>
                                             @endif
                                         @endif
@@ -2358,112 +2355,7 @@
             }
         });
     </script>
-    <!-- Duration Modal -->
-    <div id="durationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-calendar-alt"></i> Set Course Duration
-                </h3>
-                <button type="button" class="close-modal" onclick="closeDurationModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="durationForm" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="start_date">Start Date</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar-day"></i>
-                            <input type="date" name="start_date" id="start_date" class="form-control-pro" required>
-                        </div>
-                        <span class="form-help"></span>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="end_date">End Date</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar-check"></i>
-                            <input type="date" name="end_date" id="end_date" class="form-control-pro" required>
-                        </div>
-                        <span class="form-help"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="hero-btn ghost" style="box-shadow: none; margin: 0;" onclick="closeDurationModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="hero-btn" style="margin: 0;">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Enrollment Schedule Modal -->
-    <div id="enrollmentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-user-plus"></i> Set Enrollment Schedule
-                </h3>
-                <button type="button" class="close-modal" onclick="closeEnrollmentModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="enrollmentForm" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="enroll_start">Enrollment Start</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                            <input type="datetime-local" name="enrollment_start" id="enroll_start" class="form-control-pro" required>
-                        </div>
-                        <span class="form-help">Date and time when trainees can start enrolling.</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="enroll_end">Enrollment End</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-calendar-check"></i>
-                            <input type="datetime-local" name="enrollment_end" id="enroll_end" class="form-control-pro" required>
-                        </div>
-                        <span class="form-help">Date and time when enrollment closes.</span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="hero-btn ghost" style="box-shadow: none; margin: 0;" onclick="closeEnrollmentModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="hero-btn" style="margin: 0;">
-                        <i class="fas fa-save"></i> Save Schedule
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        function openDurationModal(courseId, startDate, endDate) {
-            const modal = document.getElementById('durationModal');
-            const form = document.getElementById('durationForm');
-            const startInput = document.getElementById('start_date');
-            const endInput = document.getElementById('end_date');
-
-            form.action = `/trainer/courses/${courseId}/duration`;
-            startInput.value = startDate;
-            endInput.value = endDate;
-
-            modal.classList.add('active');
-        }
-
-        function closeDurationModal() {
-            document.getElementById('durationModal').classList.remove('active');
-        }
-
         function toggleAccessCode(button) {
             const parent = button.closest('.course-code');
             const masked = parent.querySelector('.access-code-masked');
@@ -2481,23 +2373,6 @@
                 icon.classList.remove('fa-eye');
                 icon.classList.add('fa-eye-slash');
             }
-        }
-
-        function openEnrollmentModal(courseId, startDate, endDate) {
-            const modal = document.getElementById('enrollmentModal');
-            const form = document.getElementById('enrollmentForm');
-            const startInput = document.getElementById('enroll_start');
-            const endInput = document.getElementById('enroll_end');
-
-            form.action = `/trainer/courses/${courseId}/enrollment-schedule`;
-            startInput.value = startDate;
-            endInput.value = endDate;
-
-            modal.classList.add('active');
-        }
-
-        function closeEnrollmentModal() {
-            document.getElementById('enrollmentModal').classList.remove('active');
         }
 
         async function notifyIndividual(userId, btn) {
@@ -2529,13 +2404,6 @@
             }
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const dModal = document.getElementById('durationModal');
-            const eModal = document.getElementById('enrollmentModal');
-            if (event.target == dModal) closeDurationModal();
-            if (event.target == eModal) closeEnrollmentModal();
-        }
     </script>
 
     <div id="congratsModal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:3000;backdrop-filter:blur(4px);">

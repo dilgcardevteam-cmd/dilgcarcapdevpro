@@ -2926,7 +2926,6 @@
         </div>
     </div>
 
-    <!-- Set Course Duration Modal -->
     <!-- Upload Material Modal -->
     <div id="uploadModal" class="modal-overlay">
         <div class="modal-container">

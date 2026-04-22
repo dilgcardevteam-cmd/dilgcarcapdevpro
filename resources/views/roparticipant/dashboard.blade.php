@@ -739,7 +739,7 @@
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
                                         @if(!$enrollable)
-                                            <button class="btn-view" style="background-color: #94a3b8; cursor: not-allowed; opacity: 0.7;" disabled title="Enrollment is currently closed or schedule not set by trainer">Enrollment Closed</button>
+                                            <button class="btn-view" style="background-color: #94a3b8; cursor: not-allowed; opacity: 0.7;" disabled title="Enrollment is closed or the admin/registrar schedule is incomplete">Enrollment Closed</button>
                                         @else
                                             <button class="btn-view" style="background-color: var(--primary-green);" onclick="event.stopPropagation();openEnrollModal({{ $course->id }})">Enroll Now</button>
                                         @endif

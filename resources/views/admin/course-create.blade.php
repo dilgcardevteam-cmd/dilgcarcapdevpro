@@ -431,7 +431,7 @@
                                 </div>
                                 <div id="subjectError" class="error-text" style="display:none;"></div>
                             </div>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+                            <div style="display:grid; grid-template-columns: {{ empty($forTrainer) ? '1fr 1fr' : '1fr' }}; gap:12px; margin-top:12px;">
                                 <div class="section">
                                     <div class="section-title"><i class="fas fa-calendar-plus"></i> Course Start Date</div>
                                     <div style="position:relative;">
@@ -439,6 +439,7 @@
                                     </div>
                                     <div id="startDateError" class="error-text" style="display:none;"></div>
                                 </div>
+                                @if(empty($forTrainer))
                                 <div class="section">
                                     <div class="section-title"><i class="fas fa-calendar-times"></i> Course Expiration Date</div>
                                     <div style="position:relative;">
@@ -446,6 +447,7 @@
                                     </div>
                                     <div id="expirationError" class="error-text" style="display:none;"></div>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -546,10 +548,12 @@
                                                 <span class="summary-label">Start Date</span>
                                                 <div id="summaryStart" style="font-weight: 700; color: #1e293b;">Not Set</div>
                                             </div>
+                                            @if(empty($forTrainer))
                                             <div>
                                                 <span class="summary-label">Expiration Date</span>
                                                 <div id="summaryExpiration" style="font-weight: 700; color: #1e293b;">Not Set</div>
                                             </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div id="summaryImageWrapper">
@@ -2737,12 +2741,16 @@
                 document.getElementById('summaryStart').textContent = 'Not Set';
             }
 
-            const expDate = document.getElementById('course_expiration_date').value;
-            if (expDate) {
-                const d = new Date(expDate);
-                document.getElementById('summaryExpiration').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-            } else {
-                document.getElementById('summaryExpiration').textContent = 'Not Set';
+            const expInput = document.getElementById('course_expiration_date');
+            const expSummary = document.getElementById('summaryExpiration');
+            if (expInput && expSummary) {
+                const expDate = expInput.value;
+                if (expDate) {
+                    const d = new Date(expDate);
+                    expSummary.textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                } else {
+                    expSummary.textContent = 'Not Set';
+                }
             }
 
             // Image Preview
@@ -2871,7 +2879,8 @@
                 if(examError) {
                     e.preventDefault();
                     switchTo(2);
-                    alert(examError);
+                    focusExamValidationTarget(examError);
+                    alert(examError.message || 'Please review your exam questions.');
                     return;
                 }
                 if(!isCertificateStepComplete()) { 
@@ -2898,18 +2907,83 @@
                 const raw = String(field.value || '').trim();
                 if(!raw) continue;
                 let payload = null;
-                try { payload = JSON.parse(raw); } catch(e) { return 'Exam data is invalid. Please review your questions.'; }
+                try { payload = JSON.parse(raw); } catch(e) {
+                    return { message: 'Exam data is invalid. Please review your questions.', field };
+                }
                 const questions = Array.isArray(payload.questions) ? payload.questions : [];
                 for(let i = 0; i < questions.length; i++){
                     const q = questions[i] || {};
-                    if(!String(q.text || q.title || '').trim()) return `Question ${i + 1} text is required.`;
+                    if(!String(q.text || q.title || '').trim()) {
+                        return {
+                            message: `Question ${i + 1} text is required.`,
+                            field,
+                            questionIndex: i,
+                            target: 'text'
+                        };
+                    }
                     if(isMultipleChoiceType(q.type)){
-                        const message = validateMultipleChoicePayload(Object.assign({}, q, { type: normalizeMcType(q.type) }));
-                        if(message) return `Question ${i + 1}: ${message}`;
+                        const validation = validateMultipleChoicePayload(Object.assign({}, q, { type: normalizeMcType(q.type) }));
+                        if(validation.message) {
+                            return Object.assign(validation, {
+                                message: `Question ${i + 1}: ${validation.message}`,
+                                field,
+                                questionIndex: i
+                            });
+                        }
                     }
                 }
             }
-            return '';
+            return null;
+        }
+        function focusExamValidationTarget(error){
+            if(!error || !error.field) return;
+            setTimeout(() => {
+                document.querySelectorAll('.exam-validation-highlight').forEach(el => {
+                    el.classList.remove('exam-validation-highlight');
+                    el.style.boxShadow = '';
+                    el.style.background = '';
+                    el.style.borderRadius = '';
+                });
+
+                const field = error.field;
+                const moduleWrapper = field.closest('.module-wrapper');
+                const examWrap = field.closest('.exam-wrapper') || moduleWrapper?.querySelector('.module-exam');
+                if(!examWrap) return;
+
+                if(examWrap.classList.contains('exam-wrapper') && typeof setActiveExamIndex === 'function' && Number.isInteger(error.questionIndex)){
+                    setActiveExamIndex(examWrap, error.questionIndex, { focusBuilder: false });
+                } else if(Number.isInteger(error.questionIndex)) {
+                    const navButton = examWrap.querySelectorAll('.nav-question')[error.questionIndex];
+                    if(navButton) navButton.click();
+                }
+
+                setTimeout(() => {
+                    let focusEl = examWrap.querySelector('.eq-text');
+                    if(error.target === 'choices' || (Array.isArray(error.choiceIndexes) && error.choiceIndexes.length)){
+                        const rows = Array.from(examWrap.querySelectorAll('.eq-choices .q-option-row'));
+                        const badIndexes = Array.isArray(error.choiceIndexes) ? error.choiceIndexes : [];
+                        badIndexes.forEach(index => {
+                            const row = rows[index];
+                            if(!row) return;
+                            row.classList.add('exam-validation-highlight');
+                            row.style.boxShadow = '0 0 0 3px rgba(220,38,38,.22)';
+                            row.style.background = '#fef2f2';
+                            row.style.borderRadius = '8px';
+                        });
+                        const firstBadRow = rows[badIndexes[0]];
+                        focusEl = firstBadRow?.querySelector('.eq-option')
+                            || examWrap.querySelector('.eq-choices .eq-correct')
+                            || examWrap.querySelector('.eq-choices .eq-option')
+                            || focusEl;
+                    }
+
+                    examWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if(focusEl){
+                        focusEl.focus({ preventScroll: true });
+                        if(typeof focusEl.select === 'function') focusEl.select();
+                    }
+                }, 80);
+            }, 80);
         }
         function serializeModules() {
             const modules = [];
@@ -3984,13 +4058,33 @@
         function validateMultipleChoicePayload(obj){
             const choices = Array.isArray(obj?.choices) ? obj.choices.map(choice => String(choice || '').trim()) : [];
             const filled = choices.filter(Boolean);
-            const keys = filled.map(choice => choice.toLowerCase());
+            const seenChoices = new Map();
+            const duplicateDescriptions = [];
+            const duplicateIndexes = [];
+            choices.forEach((choice, index) => {
+                if(!choice) return;
+                const key = choice.toLowerCase();
+                const label = choiceIndexToLetter(index);
+                if(seenChoices.has(key)){
+                    const first = seenChoices.get(key);
+                    duplicateDescriptions.push(`choices ${first.label} and ${label} are both "${choice}"`);
+                    duplicateIndexes.push(first.index, index);
+                    return;
+                }
+                seenChoices.set(key, { label, choice, index });
+            });
             const correct = Array.isArray(obj?.correct_answers) ? obj.correct_answers : [];
-            if(filled.length < 2) return 'Add at least two non-empty choices.';
-            if(keys.length !== new Set(keys).size) return 'Choices must be unique.';
-            if(obj.type === 'multiple_choice_single' && correct.length !== 1) return 'Select exactly one correct answer.';
-            if(obj.type === 'multiple_choice_multiple' && correct.length < 1) return 'Select at least one correct answer.';
-            return '';
+            if(filled.length < 2) return { message: 'Add at least two non-empty choices.', target: 'choices' };
+            if(duplicateDescriptions.length) {
+                return {
+                    message: `Duplicate ${duplicateDescriptions.join('; ')}.`,
+                    target: 'choices',
+                    choiceIndexes: Array.from(new Set(duplicateIndexes))
+                };
+            }
+            if(obj.type === 'multiple_choice_single' && correct.length !== 1) return { message: 'Select exactly one correct answer.', target: 'choices' };
+            if(obj.type === 'multiple_choice_multiple' && correct.length < 1) return { message: 'Select at least one correct answer.', target: 'choices' };
+            return {};
         }
         function ensureModuleExam(wrapper, prefill){
             const body = wrapper.querySelector('.module-body');

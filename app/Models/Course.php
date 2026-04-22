@@ -26,9 +26,9 @@ class Course extends Model
         }
 
         $now = now()->startOfDay();
-        $start = $this->enrollment_start_date->startOfDay();
-        $end = $this->enrollment_end_date->startOfDay();
-        $expiry = $this->course_expiration_date->startOfDay();
+        $start = $this->enrollment_start_date->copy()->startOfDay();
+        $end = $this->enrollment_end_date->copy()->endOfDay();
+        $expiry = $this->course_expiration_date->copy()->endOfDay();
 
         if ($now->gt($expiry)) return 'Expired';
 
@@ -45,8 +45,8 @@ class Course extends Model
         if (!$this->start_date) return 'Waiting for Start Date';
         
         $now = now()->startOfDay();
-        $start = $this->start_date->startOfDay();
-        $expiry = $this->course_expiration_date ? $this->course_expiration_date->startOfDay() : null;
+        $start = $this->start_date->copy()->startOfDay();
+        $expiry = $this->course_expiration_date ? $this->course_expiration_date->copy()->endOfDay() : null;
 
         if ($expiry && $now->gt($expiry)) return 'Expired';
         if ($now->lt($start)) return 'Not Yet Started';
@@ -74,17 +74,12 @@ class Course extends Model
         'modules',
         'video_path',
         'is_published',
-        'enrollment_start_at',
-        'enrollment_end_at',
         'enrollment_start_date',
         'enrollment_end_date',
         'course_expiration_date',
         'trainer_id',
         'start_date',
         'end_date',
-        'trainer_ready',
-        'enrollment_start',
-        'enrollment_end',
         'certification_id',
         'course_type',
         'access_code',
@@ -107,16 +102,11 @@ class Course extends Model
     protected $casts = [
         'modules' => 'array',
         'is_published' => 'boolean',
-        'enrollment_start_at' => 'date',
-        'enrollment_end_at' => 'date',
         'enrollment_start_date' => 'date',
         'enrollment_end_date' => 'date',
         'course_expiration_date' => 'date',
         'start_date' => 'date',
         'end_date' => 'date',
-        'trainer_ready' => 'boolean',
-        'enrollment_start' => 'datetime',
-        'enrollment_end' => 'datetime',
     ];
 
     public static function subjectAreaOptions(): array
@@ -214,14 +204,20 @@ class Course extends Model
             return false;
         }
 
-        $now = now();
-        
-        // Use the enrollment dates set by Registrar (which are saved in enrollment_start/end via the new method)
-        if ($this->enrollment_start && $now->lt($this->enrollment_start)) {
+        if (!$this->enrollment_start_date || !$this->enrollment_end_date || !$this->course_expiration_date) {
             return false;
         }
 
-        if ($this->enrollment_end && $now->gt($this->enrollment_end)) {
+        $now = now()->startOfDay();
+        $start = $this->enrollment_start_date->copy()->startOfDay();
+        $end = $this->enrollment_end_date->copy()->endOfDay();
+        $expiry = $this->course_expiration_date->copy()->endOfDay();
+
+        if ($now->lt($start)) {
+            return false;
+        }
+
+        if ($now->gt($end) || $now->gt($expiry)) {
             return false;
         }
 
@@ -367,11 +363,6 @@ class Course extends Model
         
         $topicDoneSet = [];
         foreach ($reflectionRows as $r) {
-            $answers = is_array($r->answers_json) ? $r->answers_json : [];
-            $val = array_key_exists('learned', $answers) && is_string($answers['learned'])
-                ? trim($answers['learned'])
-                : '';
-            if ($val === '') continue;
             $topicDoneSet["{$r->module_index}_{$r->topic_index}"] = true;
         }
 
