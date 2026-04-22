@@ -7,61 +7,68 @@ use Illuminate\Http\Request;
 class SubjectController extends Controller
 {
     private $subjects = [
-        'core-governance-administration' => [
-            'title' => 'Core Governance & Administration',
-            'description' => 'Foundational principles of effective local governance and administrative management.',
-            'content' => 'This subject area focuses on the essential frameworks that govern local administration. It covers the Local Government Code, parliamentary procedures for local legislative bodies, administrative office management, and public service ethics. Participants will learn how to effectively manage local government operations, ensure transparency, and uphold the highest standards of public service.',
+        'public-administrative-financial' => [
+            'title' => 'Public Administrative & Financial',
+            'description' => 'Core public administration, governance processes, and responsible public financial management.',
+            'content' => 'This subject area covers core administrative systems and public financial fundamentals that support effective, transparent, and accountable local governance.',
             'image' => 'images/core-governance-training.png',
             'type' => 'subject-area',
         ],
-        'finance-compliance' => [
-            'title' => 'Finance & Compliance',
-            'description' => 'Best practices in public financial management, budgeting, and auditing compliance.',
-            'content' => 'Finance & Compliance provides in-depth training on local government budgeting, accounting, and auditing rules. It emphasizes adherence to COA (Commission on Audit) regulations, procurement laws (RA 9184), and revenue generation strategies. The goal is to ensure fiscal responsibility, transparency in financial transactions, and efficient utilization of public funds.',
-             'image' => 'images/finance.jpeg',
-             'type' => 'subject-area',
+        'technical-infrastructure' => [
+            'title' => 'Technical & Infrastructure',
+            'description' => 'Building and maintaining essential public infrastructure and technical services.',
+            'content' => 'This subject area focuses on technical competencies and infrastructure-related programs that improve public service delivery and local development outcomes.',
+            'image' => 'images/Basic Services.png',
+            'type' => 'subject-area',
         ],
-        'digital-transformation' => [
-            'title' => 'Digital Transformation',
-            'description' => 'Leveraging technology to modernize local government operations and service delivery.',
-            'content' => 'This area explores the integration of digital technologies into local governance. Topics include e-governance strategies, digital record-keeping, online service delivery platforms, and data privacy security. It aims to equip LGUs with the tools to streamline processes, reduce red tape, and improve accessibility for citizens through digital innovation.',
-             'image' => 'images/digital.jpeg',
-             'type' => 'subject-area',
+        'information-technology' => [
+            'title' => 'Information & Technology',
+            'description' => 'Digital tools, ICT applications, and technology-enabled public service delivery.',
+            'content' => 'This subject area covers ICT fundamentals, digital systems, and practical technology skills that improve productivity and support modern governance.',
+            'image' => 'images/digital.jpeg',
+            'type' => 'subject-area',
         ],
-        'ict-technical-skills' => [
-            'title' => 'ICT & Technical Skills',
-            'description' => 'Developing technical proficiency in Information and Communications Technology.',
-            'content' => 'ICT & Technical Skills focuses on the practical application of technology in the workplace. From basic computer literacy to advanced network management and cybersecurity, this subject ensures that government personnel are proficient in using modern ICT tools. It also covers technical writing, data analysis, and the maintenance of IT infrastructure.',
-             'image' => 'images/ict.jpeg',
-             'type' => 'subject-area',
+        'health-social-services' => [
+            'title' => 'Health & Social Services',
+            'description' => 'Programs and systems that support public health, social welfare, and inclusive services.',
+            'content' => 'This subject area focuses on strengthening local systems and service delivery approaches for public health and social services.',
+            'image' => 'images/Basic Services.png',
+            'type' => 'subject-area',
         ],
-        'human-capital-leadership' => [
-            'title' => 'Human Capital & Leadership',
-            'description' => 'Empowering public servants through leadership development and human resource management.',
-            'content' => 'This subject area is dedicated to the development of human resources within the LGU. It covers strategic HR management, performance evaluation systems, and leadership training. The curriculum is designed to foster a culture of excellence, motivation, and continuous professional development among local government employees and officials.',
-             'image' => 'images/human.jpeg',
-             'type' => 'subject-area',
+        'public-safety-regulation' => [
+            'title' => 'Public Safety & Regulation',
+            'description' => 'Public safety, compliance, risk reduction, and regulatory functions in local governance.',
+            'content' => 'This subject area covers key concepts and approaches that promote safe communities, compliance, and effective regulation.',
+            'image' => 'images/core-governance-training.png',
+            'type' => 'subject-area',
         ],
-        'community-development-planning' => [
-            'title' => 'Community & Development Planning',
-            'description' => 'Strategic planning for sustainable community development and inclusive growth.',
-            'content' => 'Community & Development Planning focuses on the formulation and implementation of comprehensive development plans. It covers land use planning, disaster risk reduction and management (DRRM), and participatory planning processes. Participants will learn how to engage communities, assess needs, and create sustainable development roadmaps.',
-             'image' => 'images/community.jpeg',
-             'type' => 'subject-area',
+        'legal-governance' => [
+            'title' => 'Legal & Governance',
+            'description' => 'Legal frameworks, governance standards, and regulatory decision-making.',
+            'content' => 'This subject area focuses on legal and governance fundamentals that support fair, transparent, and accountable public administration.',
+            'image' => 'images/core-governance-training.png',
+            'type' => 'subject-area',
         ],
-        'economic-business-development' => [
-            'title' => 'Economic & Business Development',
-            'description' => 'Strategies for boosting local economy, attracting investments, and supporting MSMEs.',
-            'content' => 'This area aims to strengthen the local economy through business-friendly policies and investment promotion. Topics include local economic development (LED) strategies, support for Micro, Small, and Medium Enterprises (MSMEs), and public-private partnerships. It empowers LGUs to create an enabling environment for business growth and job creation.',
-             'image' => 'images/eco.jpeg',
-             'type' => 'subject-area',
+        'business-economic-development' => [
+            'title' => 'Business & Economic Development',
+            'description' => 'Local economic development strategies, investment promotion, and enterprise support.',
+            'content' => 'This subject area covers approaches for strengthening local economies, supporting enterprises, and enabling inclusive growth.',
+            'image' => 'images/eco.jpeg',
+            'type' => 'subject-area',
         ],
-        'social-governance' => [
-            'title' => 'Social Governance',
-            'description' => 'Enhancing social services and promoting social justice and welfare.',
-            'content' => 'Social Governance addresses the delivery of essential social services such as health, education, and social welfare. It covers gender and development (GAD), child protection, and programs for vulnerable sectors. The focus is on ensuring equitable access to services and promoting the well-being of all community members.',
-             'image' => 'images/social.jpeg',
-             'type' => 'subject-area',
+        'environment-agriculture' => [
+            'title' => 'Environment & Agriculture',
+            'description' => 'Environmental management, climate resilience, and agriculture-related local programs.',
+            'content' => 'This subject area focuses on sustainable practices and programs that support environmental stewardship and agriculture development.',
+            'image' => 'images/community.jpeg',
+            'type' => 'subject-area',
+        ],
+        'education-culture-community' => [
+            'title' => 'Education, Culture & Community',
+            'description' => 'Community learning, cultural development, and people-centered community programs.',
+            'content' => 'This subject area supports education, culture, and community-oriented initiatives that strengthen local development and social cohesion.',
+            'image' => 'images/community.jpeg',
+            'type' => 'subject-area',
         ],
         // Available Courses
         'basic-research' => [
@@ -103,6 +110,20 @@ class SubjectController extends Controller
 
     public function show($slug)
     {
+        $aliases = [
+            'core-governance-administration' => 'public-administrative-financial',
+            'finance-compliance' => 'public-administrative-financial',
+            'digital-transformation' => 'information-technology',
+            'ict-technical-skills' => 'information-technology',
+            'economic-business-development' => 'business-economic-development',
+            'social-governance' => 'legal-governance',
+            'human-capital-leadership' => 'education-culture-community',
+            'community-development-planning' => 'education-culture-community',
+        ];
+        if (array_key_exists($slug, $aliases)) {
+            $slug = $aliases[$slug];
+        }
+
         if (!array_key_exists($slug, $this->subjects)) {
             abort(404);
         }

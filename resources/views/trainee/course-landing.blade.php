@@ -1080,8 +1080,8 @@
                     {{-- image preview & crop controls removed --}}
                 </div>
                 <div class="hero-body">
-                    @if (!empty($course->subject_area))
-                        <span class="chip"><i class="fas fa-layer-group"></i> {{ $course->subject_area }}</span>
+                    @if (trim((string) $course->subjectAreaText()) !== '')
+                        <span class="chip"><i class="fas fa-layer-group"></i> {{ $course->subjectAreaText() }}</span>
                     @endif
                     
                     @php

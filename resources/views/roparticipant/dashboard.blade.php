@@ -609,7 +609,7 @@
                             <div class="course-content">
                                 <div class="course-title">{{ $course->name }}</div>
                                 @php
-                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    $subjectAreaText = trim((string) $course->subjectAreaText());
                                 @endphp
                                 @if($subjectAreaText !== '')
                                     <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
@@ -642,18 +642,7 @@
                     <h2 class="section-title">Available Courses</h2>
                 </div>
                 @php
-                    $subjectAreaOptions = [];
-                    foreach ($availableCourses as $c) {
-                        $raw = is_string($c->subject_area ?? null) ? (string) $c->subject_area : '';
-                        if (trim($raw) === '') {
-                            continue;
-                        }
-                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
-                            $subjectAreaOptions[$piece] = true;
-                        }
-                    }
-                    $subjectAreaOptions = array_keys($subjectAreaOptions);
-                    sort($subjectAreaOptions);
+                    $subjectAreaOptions = \App\Models\Course::subjectAreaOptions();
                 @endphp
                 <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 14px;padding:12px 14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.04);">
                     <div style="flex:1;min-width:220px;">
@@ -690,7 +679,7 @@
                 </div>
                 <div id="participantAvailableCoursesGrid" class="course-grid">
                     @forelse($availableCourses as $course)
-                        <div class="course-card js-available-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
+                        <div class="course-card js-available-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) $course->subjectAreaText()) }}" style="cursor: pointer;" role="button" tabindex="0" onclick="openCourseDetails({{ $course->id }})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCourseDetails({{ $course->id }});}">
                             @php
                                 $courseImage = null;
                                 if ($course->image_path) {
@@ -726,7 +715,7 @@
                                 <div class="status-badge {{ $statusClass }}">{{ $status }}</div>
                                 <div class="course-title">{{ $course->name }}</div>
                                 @php
-                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    $subjectAreaText = trim((string) $course->subjectAreaText());
                                 @endphp
                                 @if($subjectAreaText !== '')
                                     <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">

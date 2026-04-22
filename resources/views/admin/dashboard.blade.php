@@ -6428,14 +6428,9 @@
                                         <label style="font-weight:700;color:#0f3b8f">Certificate Type</label>
                                         <select name="category" class="pro-input" required>
                                             <option value="">Select type</option>
-                                            <option>Core Governance & Administration</option>
-                                            <option>Finance & Compliance</option>
-                                            <option>Digital Transformation</option>
-                                            <option>ICT & Technical Skills</option>
-                                            <option>Human Capital & Leadership</option>
-                                            <option>Community & Development Planning</option>
-                                            <option>Economic & Business Development</option>
-                                            <option>Social Governance</option>
+                                            @foreach(\App\Models\Course::subjectAreaOptions() as $opt)
+                                                <option value="{{ $opt }}">{{ $opt }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div>
@@ -7759,19 +7754,10 @@
                             </summary>
                             <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
                         @php
-                            $subjectAreas = [
-                                'Core Governance & Administration',
-                                'Finance & Compliance',
-                                'Digital Transformation',
-                                'ICT & Technical Skills',
-                                'Human Capital & Leadership',
-                                'Community & Development Planning',
-                                'Economic & Business Development',
-                                'Social Governance',
-                            ];
+                            $subjectAreas = \App\Models\Course::subjectAreaOptions();
                             $sel = old('subject_area', []);
                             if (!is_array($sel)) {
-                                $sel = is_string($sel) ? array_filter(array_map('trim', explode(',', $sel))) : [];
+                                $sel = is_string($sel) ? \App\Models\Course::decodeSubjectAreas($sel) : [];
                             }
                         @endphp
                         @foreach($subjectAreas as $area)
@@ -7842,16 +7828,7 @@
                             </summary>
                             <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
                         @php
-                            $subjectAreas = [
-                                'Core Governance & Administration',
-                                'Finance & Compliance',
-                                'Digital Transformation',
-                                'ICT & Technical Skills',
-                                'Human Capital & Leadership',
-                                'Community & Development Planning',
-                                'Economic & Business Development',
-                                'Social Governance',
-                            ];
+                            $subjectAreas = \App\Models\Course::subjectAreaOptions();
                         @endphp
                         @foreach($subjectAreas as $area)
                             <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;cursor:pointer;user-select:none;">
@@ -7910,14 +7887,9 @@
                     <label>Category (Optional)</label>
                     <select name="category">
                         <option value="" selected>Select Category</option>
-                        <option value="Core Governance & Administration">Core Governance & Administration</option>
-                        <option value="Finance & Compliance">Finance & Compliance</option>
-                        <option value="Digital Transformation">Digital Transformation</option>
-                        <option value="ICT & Technical Skills">ICT & Technical Skills</option>
-                        <option value="Human Capital & Leadership">Human Capital & Leadership</option>
-                        <option value="Community & Development Planning">Community & Development Planning</option>
-                        <option value="Economic & Business Development">Economic & Business Development</option>
-                        <option value="Social Governance">Social Governance</option>
+                        @foreach(\App\Models\Course::subjectAreaOptions() as $opt)
+                            <option value="{{ $opt }}">{{ $opt }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="form-group">
@@ -10397,8 +10369,47 @@
             form.action = `/courses/${course.id}`;
             document.getElementById('edit_course_name').value = course.name;
             document.getElementById('edit_course_description').value = course.description;
-            const subjectsRaw = typeof course.subject_area === 'string' ? course.subject_area : '';
-            const subjects = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean);
+            const legacyMap = {
+                'Core Governance & Administration': 'Public Administrative & Financial',
+                'Finance & Compliance': 'Public Administrative & Financial',
+                'Digital Transformation': 'Information & Technology',
+                'ICT & Technical Skills': 'Information & Technology',
+                'Economic & Business Development': 'Business & Economic Development',
+                'Social Governance': 'Legal & Governance',
+                'Human Capital & Leadership': 'Education, Culture & Community',
+                'Community & Development Planning': 'Education, Culture & Community',
+            };
+            const allowed = new Set([
+                'Public Administrative & Financial',
+                'Technical & Infrastructure',
+                'Information & Technology',
+                'Health & Social Services',
+                'Public Safety & Regulation',
+                'Legal & Governance',
+                'Business & Economic Development',
+                'Environment & Agriculture',
+                'Education, Culture & Community',
+            ]);
+            let subjects = [];
+            if (Array.isArray(course.subject_area)) {
+                subjects = course.subject_area;
+            } else if (typeof course.subject_area === 'string') {
+                const raw = course.subject_area.trim();
+                if (raw.startsWith('[')) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) subjects = parsed;
+                    } catch (e) {}
+                }
+                if (!subjects.length) {
+                    subjects = raw.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+            subjects = subjects
+                .map(s => (typeof s === 'string' ? s.trim() : ''))
+                .filter(Boolean)
+                .map(s => legacyMap[s] || s)
+                .filter(s => allowed.has(s));
             const group = document.getElementById('edit_course_subject_area_group');
             if (group) {
                 group.querySelectorAll('input[name="subject_area[]"]').forEach(cb => {

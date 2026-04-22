@@ -402,19 +402,10 @@
                             <div class="section" style="margin-top:12px;">
                                 <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
                                 @php
-                                    $subjectAreas = [
-                                        'Core Governance & Administration',
-                                        'Finance & Compliance',
-                                        'Digital Transformation',
-                                        'ICT & Technical Skills',
-                                        'Human Capital & Leadership',
-                                        'Community & Development Planning',
-                                        'Economic & Business Development',
-                                        'Social Governance',
-                                    ];
+                                    $subjectAreas = \App\Models\Course::subjectAreaOptions();
                                     $sel = old('subject_area', []);
                                     if (!is_array($sel)) {
-                                        $sel = is_string($sel) ? array_filter(array_map('trim', explode(',', $sel))) : [];
+                                        $sel = is_string($sel) ? \App\Models\Course::decodeSubjectAreas($sel) : [];
                                     }
                                 @endphp
                                 <div id="subject_area_group" style="position:relative;">

@@ -1502,16 +1502,7 @@
                 </div>
 
                 @php
-                    $subjectAreaOptions = [
-                        'Core Governance & Administration',
-                        'Finance & Compliance',
-                        'Digital Transformation',
-                        'ICT & Technical Skills',
-                        'Human Capital & Leadership',
-                        'Community & Development Planning',
-                        'Economic & Business Development',
-                        'Social Governance',
-                    ];
+                    $subjectAreaOptions = \App\Models\Course::subjectAreaOptions();
                 @endphp
                 <div class="participant-course-filters">
                     <div class="participant-course-filters__field">
@@ -1552,7 +1543,7 @@
                 </div>
                 <div id="participantAvailableCoursesGrid" class="course-grid">
                     @forelse($availableCourses as $course)
-                        <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
+                        <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) $course->subjectAreaText()) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
                             <div class="card-banner">
                                 @php
                                     $courseImage = null;
@@ -1598,7 +1589,7 @@
                                     @endif
                                 </div>
                                 @php
-                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    $subjectAreaText = trim((string) $course->subjectAreaText());
                                 @endphp
                                 @if($subjectAreaText !== '')
                                     <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
@@ -1646,18 +1637,28 @@
                 @php
                     $enrolledSubjectAreas = [];
                     foreach ($myCourses as $c) {
-                        $raw = is_string($c->subject_area ?? null) ? (string) $c->subject_area : '';
-                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
-                            $enrolledSubjectAreas[strtolower($piece)] = true;
+                        $areas = method_exists($c, 'subjectAreasNormalized') ? $c->subjectAreasNormalized() : [];
+                        if (empty($areas) && method_exists($c, 'subjectAreas')) {
+                            $areas = $c->subjectAreas();
+                        }
+                        foreach ($areas as $piece) {
+                            $p = is_string($piece) ? trim($piece) : '';
+                            if ($p !== '') {
+                                $enrolledSubjectAreas[strtolower($p)] = true;
+                            }
                         }
                     }
                     $likedCourses = $availableCourses->filter(function ($course) use ($enrolledSubjectAreas) {
                         if (empty($enrolledSubjectAreas)) {
                             return false;
                         }
-                        $raw = is_string($course->subject_area ?? null) ? (string) $course->subject_area : '';
-                        foreach (array_filter(array_map('trim', explode(',', $raw))) as $piece) {
-                            if (isset($enrolledSubjectAreas[strtolower($piece)])) {
+                        $areas = method_exists($course, 'subjectAreasNormalized') ? $course->subjectAreasNormalized() : [];
+                        if (empty($areas) && method_exists($course, 'subjectAreas')) {
+                            $areas = $course->subjectAreas();
+                        }
+                        foreach ($areas as $piece) {
+                            $p = is_string($piece) ? trim($piece) : '';
+                            if ($p !== '' && isset($enrolledSubjectAreas[strtolower($p)])) {
                                 return true;
                             }
                         }
@@ -1674,7 +1675,7 @@
                 </div>
                 <div id="participantLikedCoursesGrid" class="course-grid">
                     @forelse($likedCourses as $course)
-                        <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
+                        <div class="new-course-card js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) $course->subjectAreaText()) }}" style="cursor: pointer;" onclick="openCourseDetails({{ $course->id }})">
                             <div class="card-banner">
                                 @php
                                     $courseImage = null;
@@ -1720,7 +1721,7 @@
                                     @endif
                                 </div>
                                 @php
-                                    $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                    $subjectAreaText = trim((string) $course->subjectAreaText());
                                 @endphp
                                 @if($subjectAreaText !== '')
                                     <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
@@ -1770,7 +1771,7 @@
                 </div>
                 <div id="participantEnrolledCoursesGrid" class="course-grid">
                     @forelse($myCourses as $course)
-                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) ($course->subject_area ?? '')) }}" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
+                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link js-participant-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" data-subjects="{{ strtolower((string) $course->subjectAreaText()) }}" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progressData[$course->id]['percentage'] ?? 0 }}">
                             <div class="new-course-card">
                                 <div class="card-banner">
                                     <img src="{{ $course->image_url }}" alt="Course Image">
@@ -1785,7 +1786,7 @@
                                 <div class="card-content">
                                     <h3 class="card-title">{{ $course->name }}</h3>
                                     @php
-                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                        $subjectAreaText = trim((string) $course->subjectAreaText());
                                     @endphp
                                     @if($subjectAreaText !== '')
                                         <div style="display:flex;align-items:center;gap:8px;margin:4px 0 10px;color:#475569;font-size:0.82rem;font-weight:700;">

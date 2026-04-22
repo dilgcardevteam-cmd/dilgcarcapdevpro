@@ -25,16 +25,9 @@ class CourseController extends Controller
 
     private function allowedSubjectAreas(): array
     {
-        return [
-            'Core Governance & Administration',
-            'Finance & Compliance',
-            'Digital Transformation',
-            'ICT & Technical Skills',
-            'Human Capital & Leadership',
-            'Community & Development Planning',
-            'Economic & Business Development',
-            'Social Governance',
-        ];
+        $allowed = \App\Models\Course::subjectAreaOptions();
+        $legacy = array_keys(\App\Models\Course::legacySubjectAreaMap());
+        return array_values(array_unique(array_merge($allowed, $legacy)));
     }
 
     /**
@@ -1268,7 +1261,14 @@ class CourseController extends Controller
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
-        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
+        $normalizedAreas = [];
+        foreach (array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))) as $area) {
+            $label = \App\Models\Course::normalizeSubjectAreaLabel((string) $area);
+            if ($label !== '' && in_array($label, \App\Models\Course::subjectAreaOptions(), true)) {
+                $normalizedAreas[$label] = true;
+            }
+        }
+        $validated['subject_area'] = json_encode(array_keys($normalizedAreas), JSON_UNESCAPED_UNICODE);
 
         // Automatically assign active academic year
         $validated['academic_year_id'] = $activeYear->id;
@@ -1522,7 +1522,14 @@ class CourseController extends Controller
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
-        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
+        $normalizedAreas = [];
+        foreach (array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))) as $area) {
+            $label = \App\Models\Course::normalizeSubjectAreaLabel((string) $area);
+            if ($label !== '' && in_array($label, \App\Models\Course::subjectAreaOptions(), true)) {
+                $normalizedAreas[$label] = true;
+            }
+        }
+        $validated['subject_area'] = json_encode(array_keys($normalizedAreas), JSON_UNESCAPED_UNICODE);
 
         if (!$request->filled('video_url')) {
             $validated['video_url'] = '';
@@ -2288,7 +2295,14 @@ class CourseController extends Controller
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
-        $validated['subject_area'] = implode(', ', array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))));
+        $normalizedAreas = [];
+        foreach (array_values(array_unique(array_filter(array_map('trim', $validated['subject_area'])))) as $area) {
+            $label = \App\Models\Course::normalizeSubjectAreaLabel((string) $area);
+            if ($label !== '' && in_array($label, \App\Models\Course::subjectAreaOptions(), true)) {
+                $normalizedAreas[$label] = true;
+            }
+        }
+        $validated['subject_area'] = json_encode(array_keys($normalizedAreas), JSON_UNESCAPED_UNICODE);
 
         if ($request->hasFile('image')) {
             // Delete old image

@@ -64,6 +64,92 @@ class Course extends Model
         'enrollment_end' => 'datetime',
     ];
 
+    public static function subjectAreaOptions(): array
+    {
+        return [
+            'Public Administrative & Financial',
+            'Technical & Infrastructure',
+            'Information & Technology',
+            'Health & Social Services',
+            'Public Safety & Regulation',
+            'Legal & Governance',
+            'Business & Economic Development',
+            'Environment & Agriculture',
+            'Education, Culture & Community',
+        ];
+    }
+
+    public static function legacySubjectAreaMap(): array
+    {
+        return [
+            'Core Governance & Administration' => 'Public Administrative & Financial',
+            'Finance & Compliance' => 'Public Administrative & Financial',
+            'Digital Transformation' => 'Information & Technology',
+            'ICT & Technical Skills' => 'Information & Technology',
+            'Economic & Business Development' => 'Business & Economic Development',
+            'Social Governance' => 'Legal & Governance',
+            'Human Capital & Leadership' => 'Education, Culture & Community',
+            'Community & Development Planning' => 'Education, Culture & Community',
+        ];
+    }
+
+    public static function normalizeSubjectAreaLabel(string $label): string
+    {
+        $clean = trim($label);
+        if ($clean === '') {
+            return '';
+        }
+        $map = self::legacySubjectAreaMap();
+        return $map[$clean] ?? $clean;
+    }
+
+    public static function decodeSubjectAreas(?string $raw): array
+    {
+        $rawStr = trim((string) ($raw ?? ''));
+        if ($rawStr === '') {
+            return [];
+        }
+        $decoded = json_decode($rawStr, true);
+        if (is_array($decoded)) {
+            return array_values(array_filter(array_map(function ($v) {
+                return is_string($v) ? trim($v) : '';
+            }, $decoded)));
+        }
+        return array_values(array_filter(array_map('trim', preg_split('/\s*,\s*/', $rawStr) ?: [])));
+    }
+
+    public static function normalizeSubjectAreas(?string $raw): array
+    {
+        $allowed = array_fill_keys(self::subjectAreaOptions(), true);
+        $out = [];
+        foreach (self::decodeSubjectAreas($raw) as $label) {
+            $norm = self::normalizeSubjectAreaLabel($label);
+            if ($norm !== '' && isset($allowed[$norm])) {
+                $out[$norm] = true;
+            }
+        }
+        return array_keys($out);
+    }
+
+    public function subjectAreas(): array
+    {
+        return self::decodeSubjectAreas($this->subject_area);
+    }
+
+    public function subjectAreasNormalized(): array
+    {
+        return self::normalizeSubjectAreas($this->subject_area);
+    }
+
+    public function subjectAreaText(): string
+    {
+        $areas = $this->subjectAreasNormalized();
+        if (empty($areas)) {
+            $areas = $this->subjectAreas();
+        }
+        return implode(', ', array_values(array_filter(array_map('trim', $areas))));
+    }
+
     /**
      * Check if the course is currently enrollable.
      */

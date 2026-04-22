@@ -283,21 +283,22 @@
                             <div class="section">
                                 <div class="section-title"><i class="fas fa-layer-group"></i> Subject Area Category</div>
                                 @php
-                                    $subjectAreas = [
-                                        'Core Governance & Administration',
-                                        'Finance & Compliance',
-                                        'Digital Transformation',
-                                        'ICT & Technical Skills',
-                                        'Human Capital & Leadership',
-                                        'Community & Development Planning',
-                                        'Economic & Business Development',
-                                        'Social Governance',
-                                    ];
-                                    $existing = is_string($course->subject_area) ? $course->subject_area : '';
-                                    $existingSelected = array_filter(array_map('trim', explode(',', $existing)));
+                                    $subjectAreas = \App\Models\Course::subjectAreaOptions();
+                                    $existingSelected = $course->subjectAreasNormalized();
+                                    if (empty($existingSelected)) {
+                                        $existingSelected = $course->subjectAreas();
+                                        $normalized = [];
+                                        foreach ($existingSelected as $v) {
+                                            $n = \App\Models\Course::normalizeSubjectAreaLabel((string) $v);
+                                            if ($n !== '') {
+                                                $normalized[$n] = true;
+                                            }
+                                        }
+                                        $existingSelected = array_values(array_keys($normalized));
+                                    }
                                     $sel = old('subject_area', $existingSelected);
                                     if (!is_array($sel)) {
-                                        $sel = is_string($sel) ? array_filter(array_map('trim', explode(',', $sel))) : [];
+                                        $sel = is_string($sel) ? \App\Models\Course::decodeSubjectAreas($sel) : [];
                                     }
                                 @endphp
                                 <div id="subject_area_group" style="position:relative;">

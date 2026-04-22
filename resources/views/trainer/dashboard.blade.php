@@ -2287,7 +2287,7 @@
                                 <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
                                     @php
-                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                        $subjectAreaText = trim((string) $course->subjectAreaText());
                                     @endphp
                                     @if($subjectAreaText !== '')
                                         <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">
@@ -2382,7 +2382,7 @@
                             <div class="course-content">
                                     <div class="course-title">{{ $course->name }}</div>
                                     @php
-                                        $subjectAreaText = trim((string) ($course->subject_area ?? ''));
+                                        $subjectAreaText = trim((string) $course->subjectAreaText());
                                     @endphp
                                     @if($subjectAreaText !== '')
                                         <div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;color:#475569;font-size:0.82rem;font-weight:700;">

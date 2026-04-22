@@ -227,7 +227,7 @@
             </div>
             <div class="badge" style="margin-top:8px;">
                 <i class="fas fa-layer-group"></i>
-                <span>{{ $course->subject_area }}</span>
+                <span>{{ $course->subjectAreaText() }}</span>
             </div>
         </div>
 

@@ -96,7 +96,7 @@ class CertificationController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|in:Core Governance & Administration,Finance & Compliance,Digital Transformation,ICT & Technical Skills,Human Capital & Leadership,Community & Development Planning,Economic & Business Development,Social Governance',
+            'category' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\Course::subjectAreaOptions())],
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:10240',
         ]);
 
