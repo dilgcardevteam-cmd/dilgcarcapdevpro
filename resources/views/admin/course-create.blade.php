@@ -431,6 +431,22 @@
                                 </div>
                                 <div id="subjectError" class="error-text" style="display:none;"></div>
                             </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+                                <div class="section">
+                                    <div class="section-title"><i class="fas fa-calendar-plus"></i> Course Start Date</div>
+                                    <div style="position:relative;">
+                                        <input type="date" name="start_date" id="start_date" style="width:100%; padding:12px 16px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:0.95rem; font-weight:600; background:#fff; outline:none; cursor:pointer;">
+                                    </div>
+                                    <div id="startDateError" class="error-text" style="display:none;"></div>
+                                </div>
+                                <div class="section">
+                                    <div class="section-title"><i class="fas fa-calendar-times"></i> Course Expiration Date</div>
+                                    <div style="position:relative;">
+                                        <input type="date" name="course_expiration_date" id="course_expiration_date" style="width:100%; padding:12px 16px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:0.95rem; font-weight:600; background:#fff; outline:none; cursor:pointer;">
+                                    </div>
+                                    <div id="expirationError" class="error-text" style="display:none;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="actions" style="justify-content: flex-end; gap: 10px;">
@@ -524,6 +540,17 @@
 
                                         <span class="summary-label" style="margin-top: 12px;">Course Type</span>
                                         <div id="summaryCourseType"></div>
+
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+                                            <div>
+                                                <span class="summary-label">Start Date</span>
+                                                <div id="summaryStart" style="font-weight: 700; color: #1e293b;">Not Set</div>
+                                            </div>
+                                            <div>
+                                                <span class="summary-label">Expiration Date</span>
+                                                <div id="summaryExpiration" style="font-weight: 700; color: #1e293b;">Not Set</div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div id="summaryImageWrapper">
                                         <span class="summary-label">Course Image</span>
@@ -2580,6 +2607,22 @@
             const courseType = document.querySelector('input[name="course_type"]:checked');
             document.getElementById('summaryCourseType').textContent = courseType ? courseType.value.charAt(0).toUpperCase() + courseType.value.slice(1) : '(No course type selected)';
             
+            const startDate = document.getElementById('start_date').value;
+            if (startDate) {
+                const d = new Date(startDate);
+                document.getElementById('summaryStart').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            } else {
+                document.getElementById('summaryStart').textContent = 'Not Set';
+            }
+
+            const expDate = document.getElementById('course_expiration_date').value;
+            if (expDate) {
+                const d = new Date(expDate);
+                document.getElementById('summaryExpiration').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            } else {
+                document.getElementById('summaryExpiration').textContent = 'Not Set';
+            }
+
             // Image Preview
             const imgPreview = document.getElementById('imagePreview');
             const summaryImgPreview = document.getElementById('summaryImagePreview');

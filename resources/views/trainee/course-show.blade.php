@@ -534,6 +534,23 @@
         $IS_COACH = in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
     @endphp
     <!-- removed classroom subheader -->
+    @if(!$course->can_access && !($IS_COACH ?? false))
+        <div style="position:fixed;inset:0;background:rgba(255,255,255,0.95);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;">
+            <div style="max-width:480px;">
+                <div style="width:80px;height:80px;background:#fef3c7;color:#92400e;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h2 style="font-size:2rem;font-weight:900;color:#1e293b;margin-bottom:16px;letter-spacing:-0.025em;">Course Not Yet Started</h2>
+                <p style="color:#64748b;font-size:1.1rem;line-height:1.6;margin-bottom:32px;">
+                    This course is scheduled to start on <strong style="color:#0f172a;">{{ $course->start_date->format('F d, Y') }}</strong>. 
+                    Please come back then to access the learning materials and modules.
+                </p>
+                <a href="{{ route('dashboard') }}" style="display:inline-flex;align-items:center;gap:10px;background:#002C76;color:#fff;text-decoration:none;padding:14px 32px;border-radius:14px;font-weight:800;font-size:1rem;transition:all 0.2s;box-shadow:0 10px 15px -3px rgba(0,44,118,0.3);">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    @endif
     <div class="layout" id="modulesPane">
         <aside class="sidebar">
             <div style="display: flex; align-items: center; background: #002C76; border-bottom: 1px solid rgba(255,255,255,0.12); padding: 0 12px;">

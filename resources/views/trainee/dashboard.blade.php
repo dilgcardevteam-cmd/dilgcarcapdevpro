@@ -1567,24 +1567,32 @@
                                     }
                                 @endphp
                                 <img src="{{ $courseImage }}" alt="Course Image">
-                                <div class="status-badge-new {{ strtolower($course->course_status) }}">
-                                    @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
-                                        Finished
-                                    @else
-                                        {{ $course->course_status }}
+                                @php
+                                    $status = $course->enrollment_status;
+                                    $statusClass = str_replace([' ', '/'], '-', strtolower($status));
+                                @endphp
+                                <div class="status-badge-new {{ $statusClass }}" style="
+                                    @if($status === 'Waiting for Admin') background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+                                    @elseif($status === 'Waiting for Registrar/TM') background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;
+                                    @elseif($status === 'Upcoming') background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                                    @elseif($status === 'Open for Enrollment') background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
+                                    @elseif($status === 'Enrollment Closed') background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+                                    @elseif($status === 'Expired') background: #1e293b; color: #f8fafc; border: 1px solid #0f172a;
                                     @endif
+                                ">
+                                    {{ $status }}
                                 </div>
                             </div>
                             <div class="card-content">
                                 <h3 class="card-title">{{ $course->name }}</h3>
                                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                    @if($course->course_type === 'free')
+                                    @if($course->can_enroll)
                                         <span style="background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0;">
-                                            <i class="fas fa-unlock"></i> Free Enrollment
+                                            <i class="fas fa-unlock"></i> Open for Enrollment
                                         </span>
                                     @else
                                         <span style="background: #fff7ed; color: #9a3412; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fed7aa;">
-                                            <i class="fas fa-lock"></i> Controlled
+                                            <i class="fas fa-lock"></i> Enrollment Locked
                                         </span>
                                     @endif
                                 </div>
@@ -1602,25 +1610,27 @@
                                 <div class="card-meta" style="margin-bottom: 15px;">
                                     @php
                                         $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
-                                        $enrollable = $course->isEnrollable();
-                                        $awaitingTrainerAssignment = !$coachNames;
                                     @endphp
                                     <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
-                                    <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                    @if($course->start_date)
+                                        <span style="color: #0f172a; font-weight: 700;"><i class="fas fa-calendar-check"></i> Course Starts: {{ $course->start_date->format('M d, Y') }}</span>
+                                    @endif
+                                    @if($course->enrollment_start_date)
+                                        <span><i class="fas fa-calendar-alt"></i> Enroll Start: {{ $course->enrollment_start_date->format('M d') }}</span>
+                                    @endif
+                                    @if($course->course_expiration_date)
+                                        <span><i class="fas fa-calendar-times"></i> Expires: {{ $course->course_expiration_date->format('M d, Y') }}</span>
+                                    @endif
                                 </div>
                                 
                                 <div style="display: flex; gap: 10px; margin-top: auto;">
-                                    @if(!$enrollable)
-                                        <button class="btn-gradient" style="{{ $awaitingTrainerAssignment ? 'background:#FFF4DB;color:#B4690E;border:1px solid #F7C66A;box-shadow:none;' : 'background:#94a3b8;color:#ffffff;border:none;' }} cursor: not-allowed; opacity: 0.95; flex: 1;" disabled title="{{ $awaitingTrainerAssignment ? 'Trainer assignment is still pending for this course.' : 'This course is not yet open for enrollment.' }}">{{ $awaitingTrainerAssignment ? 'Awaiting Trainer Assignment' : 'Not Yet Available' }}</button>
+                                    @if($course->can_enroll)
+                                        <form action="{{ route('courses.join', $course) }}" method="POST" style="flex: 1;">
+                                            @csrf
+                                            <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll Now</button>
+                                        </form>
                                     @else
-                                        @if($course->course_type === 'free')
-                                            <form action="{{ route('courses.enroll.free', $course) }}" method="POST" style="flex: 1;">
-                                                @csrf
-                                                <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll</button>
-                                            </form>
-                                        @else
-                                            <button class="btn-gradient" style="background: #4f46e5; box-shadow: 0 10px 18px rgba(79,70,229,0.24); flex: 1;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Join Class</button>
-                                        @endif
+                                        <button class="btn-gradient" style="background: #94a3b8; color: #ffffff; border: none; cursor: not-allowed; opacity: 0.8; flex: 1;" disabled title="{{ $course->enrollment_status }}">Enrollment Unavailable</button>
                                     @endif
                                     <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation(); openCourseDetails({{ $course->id }})">Details</button>
                                 </div>
@@ -1699,24 +1709,32 @@
                                     }
                                 @endphp
                                 <img src="{{ $courseImage }}" alt="Course Image">
-                                <div class="status-badge-new {{ strtolower($course->course_status) }}">
-                                    @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
-                                        Finished
-                                    @else
-                                        {{ $course->course_status }}
+                                @php
+                                    $status = $course->enrollment_status;
+                                    $statusClass = str_replace([' ', '/'], '-', strtolower($status));
+                                @endphp
+                                <div class="status-badge-new {{ $statusClass }}" style="
+                                    @if($status === 'Waiting for Admin') background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+                                    @elseif($status === 'Waiting for Registrar/TM') background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;
+                                    @elseif($status === 'Upcoming') background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                                    @elseif($status === 'Open for Enrollment') background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
+                                    @elseif($status === 'Enrollment Closed') background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+                                    @elseif($status === 'Expired') background: #1e293b; color: #f8fafc; border: 1px solid #0f172a;
                                     @endif
+                                ">
+                                    {{ $status }}
                                 </div>
                             </div>
                             <div class="card-content">
                                 <h3 class="card-title">{{ $course->name }}</h3>
                                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                    @if($course->course_type === 'free')
+                                    @if($course->can_enroll)
                                         <span style="background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0;">
-                                            <i class="fas fa-unlock"></i> Free Enrollment
+                                            <i class="fas fa-unlock"></i> Open for Enrollment
                                         </span>
                                     @else
                                         <span style="background: #fff7ed; color: #9a3412; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fed7aa;">
-                                            <i class="fas fa-lock"></i> Controlled
+                                            <i class="fas fa-lock"></i> Enrollment Locked
                                         </span>
                                     @endif
                                 </div>
@@ -1734,25 +1752,24 @@
                                 <div class="card-meta" style="margin-bottom: 15px;">
                                     @php
                                         $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
-                                        $enrollable = $course->isEnrollable();
-                                        $awaitingTrainerAssignment = !$coachNames;
                                     @endphp
                                     <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
-                                    <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
+                                    @if($course->enrollment_start_date)
+                                        <span><i class="fas fa-calendar-alt"></i> Enroll Start: {{ $course->enrollment_start_date->format('M d') }}</span>
+                                    @endif
+                                    @if($course->course_expiration_date)
+                                        <span><i class="fas fa-calendar-times"></i> Expires: {{ $course->course_expiration_date->format('M d, Y') }}</span>
+                                    @endif
                                 </div>
                                 
                                 <div style="display: flex; gap: 10px; margin-top: auto;">
-                                    @if(!$enrollable)
-                                        <button class="btn-gradient" style="{{ $awaitingTrainerAssignment ? 'background:#FFF4DB;color:#B4690E;border:1px solid #F7C66A;box-shadow:none;' : 'background:#94a3b8;color:#ffffff;border:none;' }} cursor: not-allowed; opacity: 0.95; flex: 1;" disabled title="{{ $awaitingTrainerAssignment ? 'Trainer assignment is still pending for this course.' : 'This course is not yet open for enrollment.' }}">{{ $awaitingTrainerAssignment ? 'Awaiting Trainer Assignment' : 'Not Yet Available' }}</button>
+                                    @if($course->can_enroll)
+                                        <form action="{{ route('courses.join', $course) }}" method="POST" style="flex: 1;">
+                                            @csrf
+                                            <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll Now</button>
+                                        </form>
                                     @else
-                                        @if($course->course_type === 'free')
-                                            <form action="{{ route('courses.enroll.free', $course) }}" method="POST" style="flex: 1;">
-                                                @csrf
-                                                <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll</button>
-                                            </form>
-                                        @else
-                                            <button class="btn-gradient" style="background: #4f46e5; box-shadow: 0 10px 18px rgba(79,70,229,0.24); flex: 1;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Join Class</button>
-                                        @endif
+                                        <button class="btn-gradient" style="background: #94a3b8; color: #ffffff; border: none; cursor: not-allowed; opacity: 0.8; flex: 1;" disabled title="{{ $course->enrollment_status }}">Enrollment Unavailable</button>
                                     @endif
                                     <button class="btn-gradient" style="background: #153E8A; box-shadow: 0 10px 18px rgba(21,62,138,0.24); flex: 1;" onclick="event.stopPropagation(); openCourseDetails({{ $course->id }})">Details</button>
                                 </div>
@@ -1775,11 +1792,21 @@
                             <div class="new-course-card">
                                 <div class="card-banner">
                                     <img src="{{ $course->image_url }}" alt="Course Image">
-                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
+                                    @php
+                                        $courseActiveStatus = $course->course_active_status;
+                                        $badgeClass = str_replace(' ', '-', strtolower($courseActiveStatus));
+                                    @endphp
+                                    <div class="status-badge-new {{ $badgeClass }}" style="
+                                        @if($courseActiveStatus === 'Not Yet Started') background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;
+                                        @elseif($courseActiveStatus === 'Active') background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
+                                        @elseif($courseActiveStatus === 'Expired') background: #1e293b; color: #f8fafc; border: 1px solid #0f172a;
+                                        @else background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+                                        @endif
+                                    ">
                                         @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
                                             Finished
                                         @else
-                                            {{ $course->course_status }}
+                                            {{ $courseActiveStatus }}
                                         @endif
                                     </div>
                                 </div>
@@ -1910,7 +1937,9 @@
                                         <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
                                         <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
                                     </div>
-                                    @if($course->course_status == 'Ongoing')
+                                    @if($courseActiveStatus === 'Not Yet Started')
+                                        <div class="btn-gradient" style="background: #94a3b8; cursor: not-allowed; opacity: 0.8;">Starts on {{ $course->start_date->format('M d') }}</div>
+                                    @elseif($course->course_status == 'Ongoing')
                                         <div class="btn-gradient">Continue Course</div>
                                     @else
                                         <div class="btn-gradient">View Classroom</div>

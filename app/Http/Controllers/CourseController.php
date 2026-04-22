@@ -1253,6 +1253,8 @@ class CourseController extends Controller
             'image_draft_data' => 'nullable|string',
             'certification_id' => 'nullable|exists:certifications,id',
             'course_type' => 'required|in:free,controlled',
+            'course_expiration_date' => 'nullable|date',
+            'start_date' => 'nullable|date',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
@@ -1516,6 +1518,8 @@ class CourseController extends Controller
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
+            'course_expiration_date' => 'nullable|date',
+            'start_date' => 'nullable|date',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
@@ -2151,18 +2155,8 @@ class CourseController extends Controller
         $published = $request->boolean('published');
         if ($published) {
             $data = $request->validate([
-                'enrollment_start_at' => 'required|date',
-                'enrollment_end_at' => 'required|date|after_or_equal:enrollment_start_at',
                 'trainer_id' => 'nullable|exists:users,id',
             ]);
-            // Legacy fields for backward compatibility
-            $course->enrollment_start_at = $data['enrollment_start_at'];
-            $course->enrollment_end_at = $data['enrollment_end_at'];
-            
-            // New fields used by isEnrollable()
-            $course->enrollment_start = $data['enrollment_start_at'];
-            $course->enrollment_end = $data['enrollment_end_at'];
-
             if (!empty($data['trainer_id'])) {
                 $course->trainer_id = $data['trainer_id'];
                 // Also attach to pivot table if not already linked
@@ -2177,8 +2171,6 @@ class CourseController extends Controller
             return response()->json([
                 'ok'=>true,
                 'is_published'=>$course->is_published,
-                'enrollment_start_at' => $course->enrollment_start_at,
-                'enrollment_end_at' => $course->enrollment_end_at,
             ]);
         }
         $tab = $request->input('return_tab', 'trainer-trainee-management');
@@ -2289,6 +2281,8 @@ class CourseController extends Controller
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'certification_id' => 'nullable|exists:certifications,id',
+            'course_expiration_date' => 'nullable|date',
+            'start_date' => 'nullable|date',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
 
@@ -2527,38 +2521,57 @@ class CourseController extends Controller
     }
 
     /**
-     * Set the enrollment schedule for a course (Trainer only).
+     * Set the enrollment schedule for a course (Registrar/TM only).
      */
     public function setEnrollmentSchedule(\Illuminate\Http\Request $request, Course $course)
     {
         $user = auth()->user();
-        $managedCoachRoles = ['trainer','coach','central_office_coach','regional_office_coach','provincial_office_coach'];
         $tmRoles = ['admin', 'training_manager', 'registrar', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'];
         
-        $isTrainer = in_array($user->role, $managedCoachRoles, true);
         $isRegistrar = in_array($user->role, $tmRoles, true);
 
-        if (!$user || (!$isTrainer && !$isRegistrar)) {
+        if (!$user || !$isRegistrar) {
             return back()->with('error', 'Unauthorized access.');
         }
 
-        // If it's a trainer, they must own the course
-        if ($isTrainer && !$isRegistrar && $course->trainer_id !== $user->id) {
-            return back()->with('error', 'You can only modify your own courses.');
-        }
-
         $validated = $request->validate([
-            'enrollment_start' => 'required|date',
-            'enrollment_end' => 'required|date|after_or_equal:enrollment_start',
+            'enrollment_start_date' => 'required|date',
+            'enrollment_end_date' => 'required|date|after_or_equal:enrollment_start_date',
         ]);
 
         $course->update([
-            'enrollment_start' => $validated['enrollment_start'],
-            'enrollment_end' => $validated['enrollment_end'],
-            'trainer_ready' => true,
+            'enrollment_start_date' => $validated['enrollment_start_date'],
+            'enrollment_end_date' => $validated['enrollment_end_date'],
+            'enrollment_start' => $validated['enrollment_start_date'], // backward compat
+            'enrollment_end' => $validated['enrollment_end_date'], // backward compat
+            'enrollment_start_at' => $validated['enrollment_start_date'], // backward compat
+            'enrollment_end_at' => $validated['enrollment_end_date'], // backward compat
         ]);
 
-        return back()->with('success', 'Enrollment schedule has been set successfully. Trainees can now enroll during the specified period.');
+        return back()->with('success', 'Enrollment schedule has been set successfully.');
+    }
+
+    /**
+     * Set the expiration date for a course (Admin only).
+     */
+    public function setExpirationDate(\Illuminate\Http\Request $request, Course $course)
+    {
+        $user = auth()->user();
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        
+        if (!$user || !in_array($user->role, $adminRoles, true)) {
+            return back()->with('error', 'Unauthorized access.');
+        }
+
+        $validated = $request->validate([
+            'course_expiration_date' => 'required|date',
+        ]);
+
+        $course->update([
+            'course_expiration_date' => $validated['course_expiration_date'],
+        ]);
+
+        return back()->with('success', 'Course expiration date has been set successfully.');
     }
 
     public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)
@@ -4073,12 +4086,8 @@ class CourseController extends Controller
     {
         $user = auth()->user();
 
-        // Enrollment window check
-        if ($course->enrollment_end_at && $course->enrollment_end_at->isPast()) {
-            return redirect()->route('dashboard')->with('error', 'Enrollment for this course is closed.');
-        }
-        if ($course->enrollment_start_at && now()->lt($course->enrollment_start_at)) {
-            return redirect()->route('dashboard')->with('error', 'Enrollment for this course has not started yet.');
+        if (!$course->can_enroll) {
+            return redirect()->route('dashboard')->with('error', 'Enrollment is not yet available for this course.');
         }
 
         // Check if already enrolled or pending

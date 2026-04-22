@@ -13,7 +13,56 @@ class Course extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'enrollment_status', 'course_active_status', 'can_enroll', 'can_access'];
+
+    public function getEnrollmentStatusAttribute()
+    {
+        if (!$this->is_published) return 'Draft';
+
+        if (!$this->course_expiration_date) return 'Waiting for Admin';
+
+        if (!$this->enrollment_start_date || !$this->enrollment_end_date) {
+            return 'Waiting for Registrar/TM';
+        }
+
+        $now = now()->startOfDay();
+        $start = $this->enrollment_start_date->startOfDay();
+        $end = $this->enrollment_end_date->startOfDay();
+        $expiry = $this->course_expiration_date->startOfDay();
+
+        if ($now->gt($expiry)) return 'Expired';
+
+        if ($now->lt($start)) return 'Upcoming';
+
+        if ($now->lte($end)) return 'Open for Enrollment';
+
+        return 'Enrollment Closed';
+    }
+
+    public function getCourseActiveStatusAttribute()
+    {
+        if (!$this->is_published) return 'Draft';
+        if (!$this->start_date) return 'Waiting for Start Date';
+        
+        $now = now()->startOfDay();
+        $start = $this->start_date->startOfDay();
+        $expiry = $this->course_expiration_date ? $this->course_expiration_date->startOfDay() : null;
+
+        if ($expiry && $now->gt($expiry)) return 'Expired';
+        if ($now->lt($start)) return 'Not Yet Started';
+        
+        return 'Active';
+    }
+
+    public function getCanEnrollAttribute()
+    {
+        return $this->enrollment_status === 'Open for Enrollment';
+    }
+
+    public function getCanAccessAttribute()
+    {
+        return $this->course_active_status === 'Active';
+    }
 
     protected $fillable = [
         'name',
@@ -27,6 +76,9 @@ class Course extends Model
         'is_published',
         'enrollment_start_at',
         'enrollment_end_at',
+        'enrollment_start_date',
+        'enrollment_end_date',
+        'course_expiration_date',
         'trainer_id',
         'start_date',
         'end_date',
@@ -57,6 +109,9 @@ class Course extends Model
         'is_published' => 'boolean',
         'enrollment_start_at' => 'date',
         'enrollment_end_at' => 'date',
+        'enrollment_start_date' => 'date',
+        'enrollment_end_date' => 'date',
+        'course_expiration_date' => 'date',
         'start_date' => 'date',
         'end_date' => 'date',
         'trainer_ready' => 'boolean',

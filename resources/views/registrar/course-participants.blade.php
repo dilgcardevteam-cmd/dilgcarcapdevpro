@@ -493,19 +493,19 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="enrollmentForm" method="POST" action="{{ route('trainer.courses.enrollment-schedule', $course->id) }}">
+            <form id="enrollmentForm" method="POST" action="{{ route('registrar.courses.enrollment-schedule', $course->id) }}">
                 @csrf
                 @method('PUT')
                 <div class="modal-body" style="padding: 20px;">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label class="form-label" for="enroll_start" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment Start</label>
-                        <input type="datetime-local" name="enrollment_start" id="enroll_start" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
-                        <small style="color:#666;display:block;margin-top:4px;">Date and time when trainees can start enrolling.</small>
+                        <input type="date" name="enrollment_start_date" id="enroll_start" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
+                        <small style="color:#666;display:block;margin-top:4px;">Date when trainees can start enrolling.</small>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label class="form-label" for="enroll_end" style="display:block;margin-bottom:5px;font-weight:bold;">Enrollment End</label>
-                        <input type="datetime-local" name="enrollment_end" id="enroll_end" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
-                        <small style="color:#666;display:block;margin-top:4px;">Date and time when enrollment closes.</small>
+                        <input type="date" name="enrollment_end_date" id="enroll_end" class="form-control" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;" required>
+                        <small style="color:#666;display:block;margin-top:4px;">Date when enrollment closes.</small>
                     </div>
                 </div>
                 <div class="modal-footer" style="padding:15px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px;">
@@ -542,8 +542,13 @@
         const startInput = document.getElementById('enroll_start');
         const endInput = document.getElementById('enroll_end');
 
-        if(start) startInput.value = start;
-        if(end) endInput.value = end;
+        if(start) {
+            // If it's a full ISO string, extract just the date part
+            startInput.value = start.includes('T') ? start.split('T')[0] : start;
+        }
+        if(end) {
+            endInput.value = end.includes('T') ? end.split('T')[0] : end;
+        }
 
         modal.style.display = 'flex';
     }

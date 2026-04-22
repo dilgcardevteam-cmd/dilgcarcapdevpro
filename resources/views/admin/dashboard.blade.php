@@ -6191,8 +6191,19 @@
                             <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
+                                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
+                                    <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
+                                        @if(!$course->course_expiration_date)
+                                            <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }}, 'settings')" style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-calendar-times"></i> Set Expiration
+                                            </button>
+                                        @else
+                                            <span style="color: #64748b; font-size: 0.7rem; font-weight: 700;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -6268,13 +6279,19 @@
                                             <i class="fas fa-user"></i> Submitted by {{ $submitter->name }}
                                         </p>
                                     @endif
+                                    @if(!$course->course_expiration_date)
+                                        <div style="margin-bottom: 12px; padding: 8px; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-triangle-exclamation" style="color: #ea580c; font-size: 0.8rem;"></i>
+                                            <span style="color: #9a3412; font-size: 0.75rem; font-weight: 700;">No expiration date set</span>
+                                        </div>
+                                    @endif
                                     <div style="display: flex; gap: 8px;">
-                                        <button type="button" onclick='event.stopPropagation(); openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]))' style="background: #17a2b8; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
-                                            View
+                                        <button type="button" onclick='event.stopPropagation(); openViewCourseModal(@json(["id" => $course->id, "name" => $course->name, "creator_name" => ($creator ? $creator->name : null)]), "settings")' style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; font-weight: 700;">
+                                            <i class="fas fa-calendar-times" style="margin-right: 6px;"></i> Set Expiry
                                         </button>
-                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin: 0;" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course" data-confirm-stop-propagation="true">
+                                        <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin: 0; flex: 1;" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course" data-confirm-stop-propagation="true">
                                             @csrf
-                                            <button type="submit" style="background: #28a745; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+                                            <button type="submit" style="background: #28a745; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 700;">
                                                 Approve
                                             </button>
                                         </form>
@@ -6645,8 +6662,15 @@
                                 <div class="library-course-item" data-name="{{ strtolower($course->name) }}" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);" onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})">
                                     <div style="position: relative;">
                                         <img src="{{ $img }}" style="width: 100%; height: 160px; object-fit: cover;">
-                                        <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #10b981; border: 1px solid #10b981;">
-                                            ACTIVE
+                                        <div style="position: absolute; bottom: 8px; left: 8px; display: flex; gap: 4px;">
+                                            <div style="background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #10b981; border: 1px solid #10b981;">
+                                                ACTIVE
+                                            </div>
+                                            @if(!$course->course_expiration_date)
+                                                <div style="background: #fef2f2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #dc2626; border: 1px solid #dc2626;">
+                                                    NO EXPIRY
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div style="padding: 16px;">
@@ -6654,11 +6678,15 @@
                                         <p style="margin: 8px 0 0; font-size: 0.85rem; color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
                                         <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
                                             <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">{{ optional($course->created_at)->format('M Y') }}</span>
-                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                @if(!$course->course_expiration_date)
+                                                    <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }}, 'settings')" style="background: #fef2f2; color: #dc2626; border: 1.5px solid #dc2626; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+                                                        <i class="fas fa-calendar-times"></i> Set Expiry
+                                                    </button>
+                                                @endif
                                                 <button type="button" onclick="event.stopPropagation(); openCloneCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name]) }})" style="background: #fff; color: #10b981; border: 1.5px solid #10b981; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
                                                     <i class="fas fa-clone"></i> Clone
                                                 </button>
-                                                <span style="font-size: 0.8rem; color: #2563eb; font-weight: 700;">View Details <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i></span>
                                             </div>
                                         </div>
                                     </div>
@@ -6774,8 +6802,30 @@
                     <div id="course-tab-settings" class="course-tab-content" style="display: none;">
                         <div class="course-main-card" style="max-width: 900px; margin: 0 auto;">
                             <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Advanced Settings</h3>
-                            <!-- Add settings like visibility, archive, etc. -->
+                            
                             <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Expiration Date Setting -->
+                                <div style="padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div>
+                                            <p style="margin: 0; font-weight: 700; color: #1e293b;">Course Expiration Date</p>
+                                            <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Set the date when the course content becomes inaccessible to participants.</p>
+                                        </div>
+                                        <span id="view_course_expiration_display" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; background: #f1f5f9; padding: 4px 10px; border-radius: 6px;">Not Set</span>
+                                    </div>
+                                    <form id="pro_view_expiration_form" method="POST" action="" style="display: flex; gap: 12px; align-items: flex-end;">
+                                        @csrf
+                                        @method('PUT')
+                                        <div style="flex: 1;">
+                                            <label style="display:block; font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">Select Date</label>
+                                            <input type="date" name="course_expiration_date" id="pro_view_expiration_input" style="width:100%; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; outline:none; font-weight:600;">
+                                        </div>
+                                        <button type="submit" style="background: #002C76; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; height: 42px;">
+                                            Update Expiration
+                                        </button>
+                                    </form>
+                                </div>
+
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;">
                                     <div>
                                         <p style="margin: 0; font-weight: 700; color: #1e293b;">Course Visibility</p>
@@ -10700,13 +10750,18 @@
             }
         }
 
-        async function openViewCourseModal(courseData) {
+        async function openViewCourseModal(courseData, startTab = 'overview') {
             // Instead of a modal, we now use the main content section
             showContent('course-view-details', document.querySelector('.menu-item[onclick*=\'course-management\']'));
             
-            // Reset to Overview tab
-            const firstTab = document.querySelector('.course-nav-item');
-            if (firstTab) switchCourseViewTab('overview', firstTab);
+            // Switch to requested tab (defaults to overview)
+            const targetNav = document.querySelector(`.course-nav-item[onclick*="'${startTab}'"]`);
+            if (targetNav) {
+                switchCourseViewTab(startTab, targetNav);
+            } else {
+                const firstTab = document.querySelector('.course-nav-item');
+                if (firstTab) switchCourseViewTab('overview', firstTab);
+            }
 
             // Populate initial basic data
             document.getElementById('pro_view_course_name').innerText = courseData.name || 'Untitled Course';
@@ -10897,6 +10952,24 @@
                     }
 
                     // Archive and Delete forms
+                    // Settings tab population
+                    const expDisplay = document.getElementById('view_course_expiration_display');
+                    const expInput = document.getElementById('pro_view_expiration_input');
+                    const expForm = document.getElementById('pro_view_expiration_form');
+                    
+                    if (expDisplay && expInput && expForm) {
+                        const expDate = c.course_expiration_date;
+                        if (expDate) {
+                            const d = new Date(expDate);
+                            expDisplay.innerText = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            expInput.value = expDate.split('T')[0];
+                        } else {
+                            expDisplay.innerText = 'Not Set';
+                            expInput.value = '';
+                        }
+                        expForm.action = `/admin/courses/${c.id}/expiration`;
+                    }
+
                     const archiveForm = document.getElementById('pro_view_archive_form');
                     const deleteForm = document.getElementById('pro_view_delete_form');
                     const archiveTitle = document.getElementById('pro_view_archive_title');
