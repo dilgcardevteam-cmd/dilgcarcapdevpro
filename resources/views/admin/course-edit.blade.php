@@ -2758,8 +2758,7 @@
 
             const existing = {!! json_encode($course->modules ?? [], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!};
             populateExistingModules(existing);
-            // Ensure the Modules Management tab is active with a default layout similar to create view
-            try{ switchTo(2); }catch(e){}
+            try{ switchTo(1); }catch(e){}
             try{ ensureDefaultModule(); }catch(e){}
             // Ensure a Course Exam wrapper exists for editing even if not previously created
             const container = document.getElementById('modulesContainer');

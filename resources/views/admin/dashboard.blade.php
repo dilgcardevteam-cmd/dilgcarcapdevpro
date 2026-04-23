@@ -6298,6 +6298,7 @@
                         @php
                             $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
                             $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                            $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
                         @endphp
                             <div class="course-card"
                              role="button"
@@ -6320,15 +6321,19 @@
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
                                 <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
-                                    <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created by: {{ $creator ? $creator->name : 'N/A' }}</p>
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Created: {{ optional($course->created_at)->format('M d, Y') }}</p>
+                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        Created by: {{ $creator ? $creator->name : 'N/A' }}
+                                    </div>
+                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        Start: {{ $startText }}
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
                                         @if(!$course->course_expiration_date)
                                             <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }}, 'settings')" style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                                 <i class="fas fa-calendar-times"></i> Set Expiration
                                             </button>
                                         @else
-                                            <span style="color: #64748b; font-size: 0.7rem; font-weight: 700;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
+                                            <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -6344,9 +6349,10 @@
             <section id="course-create" class="content-section {{ request('tab') == 'course-create' ? 'active' : '' }}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
-                    <div style="display:flex; gap:10px;">
-                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
-                            <i class="fas fa-file-pen"></i> Draft Courses
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span id="adminDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="adminDraftSavedTime"></span></span>
+                        <button type="button" onclick="openImportCourseLibraryInCreate()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Import from Course Library
                         </button>
                         <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
@@ -6779,7 +6785,7 @@
                                 <i class="fas fa-exclamation-circle"></i> {{ session('error_course') }}
                             </div>
                         @endif
-                        <div id="courseLibraryContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+                        <div id="courseLibraryContainer" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px;">
                             @foreach($courses as $course)
                                 @php
                                     $img = !empty($course->image_path) ? $course->image_url : null;
@@ -10528,17 +10534,56 @@
             }
         }
 
+        function updateAdminDraftSavedIndicator(timeText) {
+            const wrap = document.getElementById('adminDraftSavedIndicator');
+            const time = document.getElementById('adminDraftSavedTime');
+            if (!wrap || !time) return;
+            if (!timeText) {
+                wrap.style.display = 'none';
+                return;
+            }
+            time.textContent = String(timeText);
+            wrap.style.display = 'inline';
+        }
+
+        window.addEventListener('message', function (event) {
+            const data = event && event.data ? event.data : null;
+            if (!data || typeof data !== 'object') return;
+            if (data.type === 'course_draft_saved') {
+                updateAdminDraftSavedIndicator(data.time || '');
+            }
+        });
+
+        function openImportCourseLibraryInCreate() {
+            ensureCourseCreateFrameLoaded();
+            showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
+            const frame = document.getElementById('courseCreateFrame');
+            if (!frame) return;
+            const tryOpen = () => {
+                try {
+                    if (frame.contentWindow && typeof frame.contentWindow.openImportLibraryModal === 'function') {
+                        frame.contentWindow.openImportLibraryModal();
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            };
+            if (tryOpen()) return;
+            frame.addEventListener('load', function onLoad() {
+                frame.removeEventListener('load', onLoad);
+                tryOpen();
+            });
+        }
+
         // Add Course in Dashboard Main Content
         function openAddCourseModal(forceDraft = false, options = {}) {
             const { preserveState = false } = options;
             // Signal to course-create NOT to load any draft unless explicitly told
             if (!forceDraft && !preserveState) {
                 sessionStorage.setItem('load_draft', '0');
-                sessionStorage.removeItem('draft_course_key');
-                // Also clear the default draft keys for new courses to ensure it's empty
-                localStorage.removeItem('draft_course_active_new');
-                localStorage.removeItem('draft_course_create');
+                sessionStorage.setItem('draft_course_key', 'draft_course_new_' + Date.now() + '_u_{{ auth()->id() }}');
             }
+            updateAdminDraftSavedIndicator('');
             
             const frame = document.getElementById('courseCreateFrame');
             if (frame) {
@@ -10731,7 +10776,7 @@
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (!key) continue;
-                if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
+                if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_active_new_u_') || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                     const raw = localStorage.getItem(key);
                     if (raw && raw !== '{}' && raw !== 'null') {
                         try {
@@ -10784,7 +10829,7 @@
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (!key) continue;
-                    if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
+                    if (key === 'draft_course_create' || key === 'draft_course_active_new' || key.startsWith('draft_course_active_new_u_') || key.startsWith('draft_course_new_') || key.startsWith('draft_course_edit_')) {
                         const raw = localStorage.getItem(key);
                         if (raw && raw !== '{}' && raw !== 'null') {
                             count++;

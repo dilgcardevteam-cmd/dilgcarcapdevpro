@@ -267,6 +267,88 @@
         .btn-view:hover{background-color:#06235d;transform:translateY(-1px);box-shadow:0 10px 20px rgba(6,35,93,.2)}
         .count-label{color:#6b7280;font-size:.8rem;margin-left:4px}
 
+        #course-management .add-course-card{
+            height:280px;
+            border:2px dashed #93c5fd;
+            border-radius:10px;
+            background:linear-gradient(160deg,#f8fbff 0%,#eef6ff 100%);
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            text-decoration:none;
+            color:#1d4ed8;
+            cursor:pointer;
+        }
+        #course-management .add-course-plus{
+            width:64px;
+            height:64px;
+            border-radius:50%;
+            background:#1d4ed8;
+            color:#fff;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-size:1.35rem;
+            box-shadow:0 10px 20px rgba(29,78,216,.3);
+        }
+        #course-management .add-course-title{margin:0;font-size:1.02rem;font-weight:800;color:#1e3a8a}
+        #course-management .course-stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:0 0 20px}
+        #course-management .course-stat-card{
+            border:1px solid #dbe2ea;
+            border-radius:14px;
+            background:#fff;
+            padding:14px 16px;
+            box-shadow:0 8px 18px rgba(15,23,42,.06);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            min-height:88px;
+            cursor:pointer;
+            transition:transform .2s ease, box-shadow .2s ease;
+        }
+        #course-management .course-stat-card:hover{transform:translateY(-4px);box-shadow:0 14px 24px rgba(15,23,42,.12)}
+        #course-management .course-stat-label{margin:0;font-size:.9rem;font-weight:700;color:#334155}
+        #course-management .course-stat-value{margin:4px 0 0;font-size:1.7rem;font-weight:800;color:#0f172a;line-height:1}
+        #course-management .course-stat-icon{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex:0 0 42px}
+        #course-management .course-stat-card.active .course-stat-icon{background:#1d4ed8}
+        #course-management .course-stat-card.pending .course-stat-icon{background:#d97706}
+        #course-management .course-stat-card.draft .course-stat-icon{background:#7c3aed}
+        #course-management .course-stat-card.archived .course-stat-icon{background:#475569}
+        #course-management .course-stat-card.library .course-stat-icon{background:#10b981}
+        @media (max-width: 640px){ #course-management .course-stats-grid{grid-template-columns:1fr} }
+        @media (min-width: 641px) and (max-width: 992px){ #course-management .course-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+        #course-create .course-create-shell{
+            background:#ffffff;
+            border:1px solid #dbe2ea;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0 8px 20px rgba(15,23,42,.08);
+        }
+        #courseCreateFrameTM{
+            width:100%;
+            height:calc(100vh - 245px);
+            min-height:760px;
+            border:0;
+            background:#ffffff;
+            display:block;
+            position:relative;
+            z-index:1;
+        }
+        #course-create:not(.active) #courseCreateFrameTM{
+            pointer-events:none;
+            visibility:hidden;
+            height:0;
+            min-height:0;
+        }
+        #course-create.active #courseCreateFrameTM{
+            pointer-events:auto;
+            visibility:visible;
+        }
+
         /* Hero control (match trainer style) */
         .control-hero{background:linear-gradient(135deg,#c96a09 0%,#f59e0b 58%,#ffb11b 100%);color:#fff;border-radius:22px;padding:34px 36px;position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(11,44,116,.2);margin-bottom:24px}
         .control-hero::after{content:"";position:absolute;top:-48%;right:-8%;width:320px;height:320px;background:rgba(255,255,255,.1);border-radius:50%}
@@ -1858,6 +1940,12 @@
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
+                        @if(Auth::user()->hasPermission('view_training'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'course-management' ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
+                        </li>
+                        @endif
                         @if(Auth::user()->canManageUsers())
                         <li class="menu-item menu-sub-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
@@ -2213,6 +2301,87 @@
                           if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseSummary); }
                           if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseDistribution); }
                         })();
+
+    function openDraftCoursesModal() {
+        const modal = document.getElementById('draftCoursesModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            renderDraftCoursesInModal();
+        }
+    }
+    function closeDraftCoursesModal() {
+        const modal = document.getElementById('draftCoursesModal');
+        if (modal) modal.style.display = 'none';
+    }
+    function getDraftCoursesFromLocalStorage() {
+        let drafts = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            const isDraftKey =
+                key === 'draft_course_create' ||
+                key === 'draft_course_active_new' ||
+                key.startsWith('draft_course_active_new_u_') ||
+                key.startsWith('draft_course_new_') ||
+                key.startsWith('draft_course_edit_');
+            if (!isDraftKey) continue;
+            const raw = localStorage.getItem(key);
+            if (raw && raw !== '{}' && raw !== 'null') {
+                try {
+                    const data = JSON.parse(raw);
+                    drafts.push({ key: key, data: data });
+                } catch (e) {}
+            }
+        }
+        return drafts;
+    }
+    function renderDraftCoursesInModal() {
+        const container = document.getElementById('draftCoursesModalContainer');
+        if (!container) return;
+        const drafts = getDraftCoursesFromLocalStorage();
+        if (drafts.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff; border-radius: 12px; border: 2px dashed #e5e7eb;"><p style="color: #64748b; font-weight: 600; margin: 0;">You have no draft courses yet.</p></div>';
+            return;
+        }
+        container.innerHTML = '';
+        drafts.forEach((draft) => {
+            const courseName = draft.data.name || 'Untitled Course';
+            const courseDesc = draft.data.description || 'No description';
+            const card = document.createElement('div');
+            card.style.cssText = 'background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column;';
+            card.innerHTML = `
+                <div style="width: 100%; height: 160px; background: linear-gradient(135deg, #002C76 0%, #0056b3 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
+                    <i class="fas fa-file-pen"></i>
+                </div>
+                <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                    <h3 style="margin: 0 0 10px; color: #002C76; font-size: 1.15rem; font-weight: 800; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseName}</h3>
+                    <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">${courseDesc}</p>
+                    <div style="display: flex; gap: 10px; margin-top: auto;">
+                        <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}');" style="flex: 1; padding: 10px; background: #002C76; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;"><i class="fas fa-edit"></i> Edit</button>
+                        <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="padding: 10px 14px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+    function editDraftCourse(storageKey) {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) { alert('Draft not found'); return; }
+        try {
+            JSON.parse(raw);
+            sessionStorage.setItem('load_draft', '1');
+            sessionStorage.setItem('draft_course_key', storageKey);
+            closeDraftCoursesModal();
+            openAddCourseModalTM(true, { preserveState: false });
+        } catch (e) {
+            alert('Error loading draft');
+        }
+    }
+    function deleteDraftCourse(storageKey) {
+        localStorage.removeItem(storageKey);
+        renderDraftCoursesInModal();
+    }
                     </script>
                     </div>
                     <div class="insight-panel">
@@ -2708,6 +2877,359 @@
                 })();
             </script>
 
+            @if(Auth::user()->hasPermission('view_training'))
+            <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h1 class="welcome-title" style="margin: 0;"> <strong>Course Management</strong></h1>
+                    <div style="display: flex; gap: 55px; align-items: center;">
+                        <div style="position: relative; width: 250px;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <input type="text" id="courseSearchInputTM" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                        </div>
+                        <div style="position: relative; width: 220px;">
+                            <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <select id="academicYearFilterManagementTM" onchange="filterByAcademicYearCourseManagementTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                @foreach($academicYears as $ay)
+                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                @php
+                    $activeCoursesCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection)
+                        ? $courses->filter(fn($c) => (bool) ($c->is_published ?? false))->count()
+                        : 0;
+                    $pendingCoursesCountLocal = (isset($pendingCourses) && $pendingCourses instanceof \Illuminate\Support\Collection)
+                        ? $pendingCourses->count()
+                        : (int) ($pendingCoursesCount ?? 0);
+                    $draftCoursesCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection)
+                        ? $courses->filter(fn($c) => !(bool) ($c->is_published ?? false))->count()
+                        : 0;
+                    $archivedCoursesCount = (isset($archivedCourses) && $archivedCourses instanceof \Illuminate\Support\Collection)
+                        ? $archivedCourses->count()
+                        : 0;
+                @endphp
+
+                <div class="course-stats-grid">
+                    <div class="course-stat-card active" role="button" tabindex="0"
+                         onclick="showContent('course-management', null)"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Active Courses</p>
+                            <p class="course-stat-value">{{ $activeCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-graduation-cap"></i></span>
+                    </div>
+                    <div class="course-stat-card pending" role="button" tabindex="0"
+                         onclick="showContent('pending-courses', null)"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Pending Courses</p>
+                            <p class="course-stat-value">{{ $pendingCoursesCountLocal }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                    </div>
+                    <div class="course-stat-card draft" role="button" tabindex="0"
+                         onclick="openDraftCoursesModal()"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Draft Courses</p>
+                            <p class="course-stat-value">{{ $draftCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-file-pen"></i></span>
+                    </div>
+                    <div class="course-stat-card archived" role="button" tabindex="0"
+                         onclick="showContent('archived-courses', null)"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Archived Courses</p>
+                            <p class="course-stat-value">{{ $archivedCoursesCount }}</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
+                    </div>
+                    <div class="course-stat-card library" role="button" tabindex="0"
+                         onclick="showContent('course-library', null)"
+                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                        <div>
+                            <p class="course-stat-label">Course Library</p>
+                            <p class="course-stat-value">View</p>
+                        </div>
+                        <span class="course-stat-icon"><i class="fas fa-layer-group"></i></span>
+                    </div>
+                </div>
+
+                @if(session('success_course'))
+                    <div class="alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                        {{ session('success_course') }}
+                    </div>
+                @endif
+
+                <div id="courseGridTM" class="course-grid">
+                    @if(Auth::user()->hasPermission('create_courses'))
+                        <a class="course-card add-course-card" href="javascript:void(0)" onclick="openAddCourseModalTM()" aria-label="Add Course" style="border:0;">
+                            <span class="add-course-plus"><i class="fas fa-plus"></i></span>
+                            <p class="add-course-title">Add Course</p>
+                        </a>
+                    @endif
+                    @foreach(($courses ?? collect())->sortByDesc('created_at') as $course)
+                        @php
+                            $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                            $img = !empty($course->image_path) ? $course->image_url : null;
+                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                $img = $course->image_path;
+                            }
+                            $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
+                        @endphp
+                        <a class="course-card js-course-card-tm" href="{{ route('admin.courses.show', $course) }}" data-course-name="{{ strtolower($course->name) }}" style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
+                            @if($img)
+                                <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
+                            @else
+                                <div style="width: 100%; height: 160px; background:#eef4ff;"></div>
+                            @endif
+                            <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                                <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
+                                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
+                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        Created by: {{ $creator ? $creator->name : 'N/A' }}
+                                    </div>
+                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                        Start: {{ $startText }}
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
+                                        @if(!$course->course_expiration_date)
+                                            <span style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-calendar-times"></i> Set Expiration
+                                            </span>
+                                        @else
+                                            <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+
+            <section id="course-create" class="content-section {{ request('tab') == 'course-create' ? 'active' : '' }}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span id="tmDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="tmDraftSavedTime"></span></span>
+                        <button type="button" onclick="openImportCourseLibraryInCreateTM()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Import from Course Library
+                        </button>
+                        <button type="button" onclick="showContent('course-management', document.querySelector(\".menu-item[onclick*='course-management']\"))" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-left"></i> Back to Course Management
+                        </button>
+                    </div>
+                </div>
+                <div class="course-create-shell">
+                    <iframe id="courseCreateFrameTM" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
+                </div>
+            </section>
+
+            <section id="course-library" class="content-section {{ request('tab') == 'course-library' ? 'active' : '' }}">
+                <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
+                                <i class="fas fa-layer-group" style="color: #10b981;"></i> Course Library
+                            </h2>
+                            <div style="display: flex; align-items: center; gap: 55px;">
+                                <div style="position: relative; width: 300px;">
+                                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                    <input type="text" id="librarySearchInputTM" onkeyup="filterLibraryCoursesTM()" placeholder="Search library..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
+                                </div>
+                                <div style="position: relative; width: 220px;">
+                                    <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                    <select id="academicYearFilterLibraryTM" onchange="filterByAcademicYearCourseLibraryTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                        <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                        @foreach($academicYears as $ay)
+                                            <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                                {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="showContent('course-management', null)" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            Back to Course Management
+                        </button>
+                    </div>
+                    <div style="padding: 24px; min-height: 60vh; background: #f8fafc;">
+                        @php
+                            $libraryCourses = isset($publishedCourses) ? $publishedCourses : collect([]);
+                        @endphp
+                        @if($libraryCourses->isEmpty())
+                            <div style="color:#6c757d;font-style:italic;margin:0">There are no published courses in the library yet.</div>
+                        @else
+                            <div id="courseLibraryContainerTM" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px;">
+                                @foreach($libraryCourses->sortByDesc('created_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
+                                    @endphp
+                                    <a class="library-course-item js-library-course-tm" data-name="{{ strtolower($course->name) }}" href="{{ route('admin.courses.show', $course) }}" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-decoration:none; display:flex; flex-direction:column; height:280px;">
+                                        @if($img)
+                                            <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
+                                        @else
+                                            <div style="width: 100%; height: 160px; background:#eef4ff;"></div>
+                                        @endif
+                                        <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                                            <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
+                                            <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
+                                            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
+                                                <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    Created by: {{ $creator ? $creator->name : 'N/A' }}
+                                                </div>
+                                                <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    Start: {{ $startText }}
+                                                </div>
+                                                @if($course->course_expiration_date)
+                                                    <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </section>
+
+            <section id="pending-courses" class="content-section {{ request('tab') == 'pending-courses' ? 'active' : '' }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Draft Courses
+                        </button>
+                        <button type="button" onclick="showContent('course-management', null)" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            Back to Course Management
+                        </button>
+                    </div>
+                </div>
+
+                @if(isset($pendingCourses) && $pendingCourses->count())
+                    <div class="course-grid">
+                        @foreach($pendingCourses as $course)
+                            @php
+                                $submitter = $course->users->first(function ($u) {
+                                    return in_array(strtolower((string) $u->role), [
+                                        'coach',
+                                        'trainer',
+                                        'central_office_coach',
+                                        'regional_office_coach',
+                                        'provincial_office_coach',
+                                    ], true);
+                                });
+                            @endphp
+                            <div class="course-card">
+                                <div class="course-image" style="background-image:url('{{ $course->image_url }}')"></div>
+                                <div class="course-content">
+                                    <h3 class="course-title">{{ $course->name }}</h3>
+                                    <div class="course-sub">{{ Str::limit($course->description, 120) }}</div>
+                                    @if($submitter)
+                                        <div class="course-sub" style="margin-top:-4px"><i class="fas fa-user"></i> Submitted by {{ $submitter->name }}</div>
+                                    @endif
+                                    <div class="course-footer">
+                                        <div class="course-counts">
+                                            <span style="font-weight:900;color:#f59e0b">Pending</span>
+                                        </div>
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                            <a class="btn-view" href="{{ route('admin.courses.show', $course) }}" style="min-width:auto;padding:10px 12px;text-decoration:none;background:#0ea5e9;box-shadow:0 6px 16px rgba(14,165,233,.18)"><i class="fas fa-eye"></i></a>
+                                            <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Approve this course? It will be published." data-confirm-title="Approve Course" style="margin:0">
+                                                @csrf
+                                                <input type="hidden" name="return_tab" value="pending-courses">
+                                                <button type="submit" class="btn-view" style="min-width:auto;padding:10px 12px;background:#10b981;box-shadow:0 6px 16px rgba(16,185,129,.18)"><i class="fas fa-check"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;background:#fff">
+                        There are no pending course submissions.
+                    </div>
+                @endif
+            </section>
+
+            <section id="archived-courses" class="content-section {{ request('tab') == 'archived-courses' ? 'active' : '' }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                    <h1 class="welcome-title" style="margin: 0;">Archived <strong>Courses</strong></h1>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Draft Courses
+                        </button>
+                        <button type="button" onclick="showContent('course-management', null)" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            Back to Course Management
+                        </button>
+                    </div>
+                </div>
+
+                @if(isset($archivedCourses) && $archivedCourses->count())
+                    <div class="course-grid">
+                        @foreach($archivedCourses as $course)
+                            @php
+                                $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                $img = !empty($course->image_path) ? $course->image_url : null;
+                                if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                    $img = $course->image_path;
+                                }
+                                $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
+                            @endphp
+                            <div class="course-card" style="position:relative">
+                                <div class="course-image" style="background-image:url('{{ $img ?: '' }}');filter:grayscale(100%);"></div>
+                                <div class="course-content">
+                                    <h3 class="course-title">{{ $course->name }}</h3>
+                                    <div class="course-sub">{{ Str::limit($course->description, 120) }}</div>
+                                    <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">
+                                        <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Created by: {{ $creator ? $creator->name : 'N/A' }}</div>
+                                        <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Start: {{ $startText }}</div>
+                                        <div class="course-footer" style="padding-top:10px">
+                                            <span style="font-weight:900;color:#475569">Archived</span>
+                                            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                                                <a class="btn-view" href="{{ route('admin.courses.show', $course) }}" style="min-width:auto;padding:10px 12px;text-decoration:none;background:#0ea5e9;box-shadow:0 6px 16px rgba(14,165,233,.18)">View</a>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin:0">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="archived-courses">
+                                                    <button type="submit" class="btn-view" style="min-width:auto;padding:10px 12px;background:#10b981;box-shadow:0 6px 16px rgba(16,185,129,.18)">Unarchive</button>
+                                                </form>
+                                                <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" style="margin:0">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-view" style="min-width:auto;padding:10px 12px;background:#dc2626;box-shadow:0 6px 16px rgba(220,38,38,.18)">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="color:#6c757d;font-style:italic;margin:0">There are no archived courses yet.</div>
+                @endif
+            </section>
+            @endif
+
             <section id="activity-logs" class="content-section {{ request('tab') == 'activity-logs' ? 'active' : '' }}">
                 <div style="background:#fff;padding:20px;border-radius:12px;box-shadow:0 10px 24px rgba(15,23,42,.08);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -3077,7 +3599,24 @@
         </div>
     </div>
 
-
+    <!-- Draft Courses Modal -->
+    <div id="draftCoursesModal" class="modal">
+        <div class="modal-content" style="width: min(1000px, 95vw); max-height: 85vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <h2 style="margin: 0; color: #002C76; font-weight: 800; display: flex; align-items: center; gap: 12px;">
+                    Draft Courses
+                </h2>
+                <button type="button" class="close" onclick="closeDraftCoursesModal()" style="font-size: 28px; background: none; border: none; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+            <div style="padding: 24px; overflow-y: auto; background: #f8fafc; flex: 1;">
+                <div id="draftCoursesModalContainer" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e5e7eb; background: #fff; text-align: right;">
+                <button type="button" onclick="closeDraftCoursesModal()" style="background: #64748b; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
 
 <script>
     function filterByAcademicYearTM(yearId) {
@@ -3085,6 +3624,51 @@
         url.searchParams.set('academic_year_id', yearId);
         url.searchParams.set('tab', 'trainer-trainee-management');
         window.location.href = url.toString();
+    }
+
+    function filterByAcademicYearCourseManagementTM(yearId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('academic_year_id', yearId);
+        url.searchParams.set('tab', 'course-management');
+        window.location.href = url.toString();
+    }
+
+    function filterByAcademicYearCourseLibraryTM(yearId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('academic_year_id', yearId);
+        url.searchParams.set('tab', 'course-library');
+        window.location.href = url.toString();
+    }
+
+    (function(){
+        function bindCourseSearch(){
+            const input = document.getElementById('courseSearchInputTM');
+            const grid = document.getElementById('courseGridTM');
+            if(!input || !grid) return;
+            input.addEventListener('input', function(){
+                const q = String(input.value || '').toLowerCase().trim();
+                const cards = grid.querySelectorAll('.js-course-card-tm');
+                cards.forEach(card => {
+                    const name = String(card.getAttribute('data-course-name') || '');
+                    card.style.display = q ? (name.includes(q) ? '' : 'none') : '';
+                });
+            });
+        }
+        if(document.readyState === 'loading'){
+            document.addEventListener('DOMContentLoaded', bindCourseSearch);
+        }else{
+            bindCourseSearch();
+        }
+    })();
+
+    function filterLibraryCoursesTM() {
+        const input = document.getElementById('librarySearchInputTM');
+        const query = String(input ? input.value : '').toLowerCase().trim();
+        const items = document.querySelectorAll('.js-library-course-tm');
+        items.forEach(item => {
+            const name = String(item.getAttribute('data-name') || '');
+            item.style.display = query ? (name.includes(query) ? '' : 'none') : '';
+        });
     }
 
     function toggleNotifications() {
@@ -3234,7 +3818,12 @@
         const titles = {
             'dashboard-home': 'Dashboard',
             'user-management': 'User Management',
-            'trainer-trainee-management': 'Training Management'
+            'trainer-trainee-management': 'Training Management',
+            'course-management': 'Course Management',
+            'course-create': 'Add Course',
+            'pending-courses': 'Pending Courses',
+            'archived-courses': 'Archived Courses',
+            'course-library': 'Course Library'
         };
         const titleElement = document.getElementById('page-title');
         if (titleElement) {
@@ -3259,6 +3848,85 @@
                 overlay.classList.remove('mobile-open');
             }
         }
+    }
+
+    function buildCourseCreateFrameUrlTM(options = {}) {
+        const { bustCache = false } = options || {};
+        const url = new URL(@json(route('admin.courses.create', ['embedded' => 1])));
+        try {
+            const topUrl = new URL(window.location.href);
+            const step = topUrl.searchParams.get('step');
+            if (step) url.searchParams.set('step', step);
+        } catch (e) {}
+        if (bustCache) url.searchParams.set('_', String(Date.now()));
+        return url.toString();
+    }
+
+    function ensureCourseCreateFrameLoadedTM() {
+        const frame = document.getElementById('courseCreateFrameTM');
+        if (frame && !frame.getAttribute('src')) {
+            frame.setAttribute('src', buildCourseCreateFrameUrlTM());
+        }
+    }
+
+    function updateTMDraftSavedIndicator(timeText) {
+        const wrap = document.getElementById('tmDraftSavedIndicator');
+        const time = document.getElementById('tmDraftSavedTime');
+        if (!wrap || !time) return;
+        if (!timeText) {
+            wrap.style.display = 'none';
+            return;
+        }
+        time.textContent = String(timeText);
+        wrap.style.display = 'inline';
+    }
+
+    window.addEventListener('message', function (event) {
+        const data = event && event.data ? event.data : null;
+        if (!data || typeof data !== 'object') return;
+        if (data.type === 'course_draft_saved') {
+            updateTMDraftSavedIndicator(data.time || '');
+        }
+    });
+
+    function openImportCourseLibraryInCreateTM() {
+        ensureCourseCreateFrameLoadedTM();
+        showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
+        const frame = document.getElementById('courseCreateFrameTM');
+        if (!frame) return;
+        const tryOpen = () => {
+            try {
+                if (frame.contentWindow && typeof frame.contentWindow.openImportLibraryModal === 'function') {
+                    frame.contentWindow.openImportLibraryModal();
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        };
+        if (tryOpen()) return;
+        frame.addEventListener('load', function onLoad() {
+            frame.removeEventListener('load', onLoad);
+            tryOpen();
+        });
+    }
+
+    function openAddCourseModalTM(forceDraft = false, options = {}) {
+        const { preserveState = false } = options || {};
+        if (!forceDraft && !preserveState) {
+            sessionStorage.setItem('load_draft', '0');
+            sessionStorage.setItem('draft_course_key', 'draft_course_new_' + Date.now() + '_u_{{ auth()->id() }}');
+        }
+        updateTMDraftSavedIndicator('');
+        const frame = document.getElementById('courseCreateFrameTM');
+        if (frame) {
+            const nextSrc = buildCourseCreateFrameUrlTM({ bustCache: !preserveState });
+            if (preserveState) {
+                if (!frame.getAttribute('src')) frame.src = nextSrc;
+            } else {
+                frame.src = nextSrc;
+            }
+        }
+        showContent('course-create', document.querySelector(".menu-item[onclick*='course-management']"));
     }
     
     function showEditModal(user) {
@@ -3625,6 +4293,11 @@
             'dashboard-home': 'Dashboard',
             'user-management': 'User Management',
             'trainer-trainee-management': 'Training Management',
+            'course-management': 'Course Management',
+            'course-create': 'Add Course',
+            'pending-courses': 'Pending Courses',
+            'archived-courses': 'Archived Courses',
+            'course-library': 'Course Library',
             'activity-logs': 'Activity Logs'
         };
         const titleElement = document.getElementById('page-title');

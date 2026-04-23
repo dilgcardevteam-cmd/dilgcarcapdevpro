@@ -83,6 +83,33 @@ class User extends Authenticatable
         $rawRole = strtolower($this->role ?? '');
         if ($rawRole === 'super_admin') return true;
 
+        $normalizedPermission = strtolower(trim($permission));
+        $tmLike = ($rawRole === 'training_manager' || $rawRole === 'registrar' || str_contains($rawRole, 'training_manager'));
+        if ($tmLike) {
+            $tmCoursePerms = [
+                'view_courses', 'create_courses', 'edit_courses', 'delete_courses',
+                'manage_courses', 'create_course', 'edit_course', 'delete_course', 'approve_course',
+            ];
+            if (in_array($normalizedPermission, $tmCoursePerms, true)) {
+                return true;
+            }
+        }
+
+        $permissionCandidates = [$normalizedPermission];
+        $synonyms = [
+            'create_courses' => 'create_course',
+            'edit_courses' => 'edit_course',
+            'delete_courses' => 'delete_course',
+            'view_courses' => 'manage_courses',
+            'create_course' => 'create_courses',
+            'edit_course' => 'edit_courses',
+            'delete_course' => 'delete_courses',
+            'manage_courses' => 'view_courses',
+        ];
+        if (isset($synonyms[$normalizedPermission])) {
+            $permissionCandidates[] = $synonyms[$normalizedPermission];
+        }
+
         // Try to find the role by slug or display name
         $roleModel = Role::where('name', $this->role)
             ->orWhere('name', $rawRole)
@@ -90,7 +117,7 @@ class User extends Authenticatable
             
         if (!$roleModel) return false;
 
-        return $roleModel->permissions()->where('name', $permission)->exists();
+        return $roleModel->permissions()->whereIn('name', array_values(array_unique($permissionCandidates)))->exists();
     }
 
     public function canManageUsers(): bool

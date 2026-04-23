@@ -1227,7 +1227,30 @@ class CourseController extends Controller
      */
     public function create(Request $request)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         $certifications = \App\Models\Certification::all();
+        $libraryQuery = \App\Models\Course::where('is_published', true);
+        if (in_array($actorRole, $tmRoles, true)) {
+            $levelRoles = [];
+            if ($actorRole === 'central_office_training_manager') {
+                $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+            } elseif ($actorRole === 'regional_office_training_manager') {
+                $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+            } elseif ($actorRole === 'provincial_office_training_manager') {
+                $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+            } else {
+                $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+            }
+            $libraryQuery->whereHas('users', function ($q) use ($levelRoles) {
+                $q->whereIn('role', $levelRoles);
+            });
+        }
+        $libraryCourses = $libraryQuery->with('users')->orderByDesc('created_at')->take(60)->get();
         if (auth()->check() && auth()->user()->role === 'admin' && !$request->boolean('embedded')) {
             return redirect()->route('dashboard', [
                 'tab' => 'course-create',
@@ -1235,11 +1258,17 @@ class CourseController extends Controller
             ]);
         }
 
-        return view('admin.course-create', compact('certifications'));
+        return view('admin.course-create', compact('certifications', 'libraryCourses'));
     }
 
     public function edit(Course $course)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         $certifications = \App\Models\Certification::all();
         return view('admin.course-edit', compact('course', 'certifications'));
     }
@@ -1248,7 +1277,27 @@ class CourseController extends Controller
     {
         $forTrainer = true;
         $certifications = \App\Models\Certification::all();
-        return view('admin.course-create', compact('forTrainer', 'certifications'));
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $libraryQuery = \App\Models\Course::where('is_published', true);
+        if (in_array($actorRole, $tmRoles, true)) {
+            $levelRoles = [];
+            if ($actorRole === 'central_office_training_manager') {
+                $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+            } elseif ($actorRole === 'regional_office_training_manager') {
+                $levelRoles = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+            } elseif ($actorRole === 'provincial_office_training_manager') {
+                $levelRoles = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+            } else {
+                $levelRoles = ['admin','training_manager','coach','trainer','participant','trainee'];
+            }
+            $libraryQuery->whereHas('users', function ($q) use ($levelRoles) {
+                $q->whereIn('role', $levelRoles);
+            });
+        }
+        $libraryCourses = $libraryQuery->with('users')->orderByDesc('created_at')->take(60)->get();
+        return view('admin.course-create', compact('forTrainer', 'certifications', 'libraryCourses'));
     }
 
     /**
@@ -1256,6 +1305,12 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         // Ensure an active academic year exists
         $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
         if (!$activeYear) {
@@ -1524,12 +1579,21 @@ class CourseController extends Controller
             );
         }
 
+        if (in_array($actorRole, $tmRoles, true)) {
+            return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
+                ->with('success_course', 'Course created successfully.');
+        }
         return redirect()->route('dashboard', ['tab' => 'course-management'])
             ->with('success_course', 'Course created successfully.');
     }
 
     public function trainerStore(Request $request)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+        if (!in_array($actorRole, $coachRoles, true)) {
+            abort(403);
+        }
         $allowedSubjectAreas = $this->allowedSubjectAreas();
         $validated = $request->validateWithBag('create_course', [
             'name' => 'required|string|max:255',
@@ -1735,7 +1799,7 @@ class CourseController extends Controller
 
                 $this->storeUploadedMaterials($request, $course);
 
-                // Soft-archive until admin approval
+                // Soft-archive until training manager approval
                 $course->delete();
 
                 return $course;
@@ -1749,20 +1813,27 @@ class CourseController extends Controller
                 ->withInput();
         }
 
-        // Notify admins
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
+        $tmRoleTargets = ['training_manager'];
+        if ($actorRole === 'central_office_coach') {
+            $tmRoleTargets = ['central_office_training_manager'];
+        } elseif ($actorRole === 'regional_office_coach') {
+            $tmRoleTargets = ['regional_office_training_manager'];
+        } elseif ($actorRole === 'provincial_office_coach') {
+            $tmRoleTargets = ['provincial_office_training_manager'];
+        }
+        $trainingManagers = User::whereIn('role', $tmRoleTargets)->get();
+        foreach ($trainingManagers as $tm) {
             Notification::create([
-                'user_id' => $admin->id,
+                'user_id' => $tm->id,
                 'title' => 'New Course Submission',
-                'message' => "Trainer ".auth()->user()->name." submitted '{$course->name}' for review.",
+                'message' => "Coach ".auth()->user()->name." submitted '{$course->name}' for approval.",
                 'type' => 'course_submission',
                 'related_id' => $course->id,
-                'link' => route('dashboard', ['tab' => 'course-management']),
+                'link' => route('dashboard', ['portal' => 'tm', 'tab' => 'pending-courses']),
             ]);
         }
 
-        return redirect()->route('dashboard')->with('success', 'Course submitted to admin for review.');
+        return redirect()->route('dashboard', ['portal' => 'coach'])->with('success', 'Course submitted to training manager for approval.');
     }
 
     public function adminShow($course)
@@ -2532,8 +2603,9 @@ class CourseController extends Controller
     {
         $user = auth()->user();
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','registrar','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
         
-        if (!$user || !in_array($user->role, $adminRoles, true)) {
+        if (!$user || !in_array($user->role, array_merge($adminRoles, $tmRoles), true)) {
             return back()->with('error', 'Unauthorized access.');
         }
 
@@ -2551,7 +2623,12 @@ class CourseController extends Controller
     public function setModuleStatus(\Illuminate\Http\Request $request, \App\Models\Course $course, int $index)
     {
         $role = auth()->user()->role ?? null;
-        if (!in_array($role, ['trainer','coach','super_admin','admin'], true)) {
+        $allowed = [
+            'trainer','coach','super_admin','admin',
+            'training_manager','registrar',
+            'central_office_training_manager','regional_office_training_manager','provincial_office_training_manager',
+        ];
+        if (!in_array($role, $allowed, true)) {
             return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
         }
         $status = $request->input('status');
@@ -3361,8 +3438,11 @@ class CourseController extends Controller
                 'name' => $course->name,
                 'description' => $course->description,
                 'subject_area' => $course->subject_area,
+                'course_type' => $course->course_type,
                 'image_path' => $course->image_url,
                 'video_url' => $course->video_url,
+                'start_date' => $course->start_date ? $course->start_date->format('Y-m-d') : null,
+                'course_expiration_date' => $course->course_expiration_date ? \Carbon\Carbon::parse($course->course_expiration_date)->format('Y-m-d') : null,
                 'created_at' => optional($course->created_at)->format('M d, Y'),
                 'creator_name' => $creator ? $creator->name : 'N/A',
                 'certification' => $course->certification ? [
@@ -3577,6 +3657,12 @@ class CourseController extends Controller
      */
     public function destroy(Request $request, Course $course)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','registrar','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         // Don't delete image immediately as we are soft deleting
         // if ($course->image_path) {
         //    Storage::disk('public')->delete($course->image_path);
@@ -3614,6 +3700,12 @@ class CourseController extends Controller
 
     public function restore(Request $request, $id)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         $course = Course::withTrashed()->findOrFail($id);
         $wasTrashed = $course->trashed();
 
@@ -3646,9 +3738,10 @@ class CourseController extends Controller
             'was_trashed' => $wasTrashed,
         ]);
 
+        $returnTab = (string) $request->input('return_tab', 'course-management');
         if ($request->boolean('embedded')) {
             session()->flash('success_course', 'Course unarchived successfully.');
-            $target = route('dashboard', ['tab' => 'course-management']);
+            $target = route('dashboard', ['tab' => $returnTab]);
             $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             return response(
                 "<!doctype html><html><body><script>
@@ -3670,12 +3763,22 @@ class CourseController extends Controller
             );
         }
 
-        return redirect()->route('dashboard', ['tab' => 'course-management'])
+        if (in_array($actorRole, $tmRoles, true)) {
+            return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => $returnTab])
+                ->with('success_course', 'Course approved successfully.');
+        }
+        return redirect()->route('dashboard', ['tab' => $returnTab])
             ->with('success_course', 'Course approved successfully.');
     }
 
     public function forceDelete(Request $request, $id)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','registrar','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         $course = Course::withTrashed()->findOrFail($id);
 
         try {
@@ -4230,6 +4333,12 @@ class CourseController extends Controller
      */
     public function clone(Request $request)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','registrar','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
         $request->validate([
             'course_id' => 'required|exists:courses,id',
             'target_academic_year_id' => 'required|exists:academic_years,id',

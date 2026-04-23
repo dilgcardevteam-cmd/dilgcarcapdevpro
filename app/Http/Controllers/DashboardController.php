@@ -559,8 +559,10 @@ class DashboardController extends Controller
 
                 $totalCourses = (clone $courseQuery)->count();
                 $courses = (clone $courseQuery)->with('users')->get();
-                // Build Published Courses using a direct query; if empty, fallback to filtering $courses
-                $publishedCoursesQuery = Course::where('is_published', true);
+                $publishedCoursesQuery = Course::where('is_published', true)
+                    ->whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    });
                 if ($selectedYearId !== 'all') {
                     $publishedCoursesQuery->where('academic_year_id', $selectedYearId);
                 }
@@ -570,6 +572,24 @@ class DashboardController extends Controller
                         return (int)($c->is_published ?? 0) === 1 || $c->is_published === true || $c->is_published === '1';
                     })->values();
                 }
+                $pendingCoursesQuery = Course::withTrashed()
+                    ->where('is_published', false)
+                    ->whereHas('users', function($q) use ($managedCoachRoles) {
+                        $q->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $managedCoachRoles));
+                    });
+                if ($selectedYearId !== 'all') {
+                    $pendingCoursesQuery->where('academic_year_id', $selectedYearId);
+                }
+                $pendingCourses = (clone $pendingCoursesQuery)->with('users')->orderByDesc('created_at')->get();
+                $pendingCoursesCount = (clone $pendingCoursesQuery)->count();
+                $archivedCoursesQuery = Course::onlyTrashed()
+                    ->whereHas('users', function($q) use ($levelRoles) {
+                        $q->whereIn('role', $levelRoles);
+                    });
+                if ($selectedYearId !== 'all') {
+                    $archivedCoursesQuery->where('academic_year_id', $selectedYearId);
+                }
+                $archivedCourses = (clone $archivedCoursesQuery)->with('users')->orderByDesc('created_at')->get();
                 $potentialParticipants = User::whereIn('role', array_merge($managedCoachRoles,$managedParticipantRoles))->where('status', 'active')->get();
                 $notifications = Notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
                 $unreadNotificationsCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
@@ -670,6 +690,9 @@ class DashboardController extends Controller
                     'users',
                     'courses',
                     'publishedCourses',
+                    'pendingCourses',
+                    'pendingCoursesCount',
+                    'archivedCourses',
                     'potentialParticipants',
                     'notifications',
                     'unreadNotificationsCount',

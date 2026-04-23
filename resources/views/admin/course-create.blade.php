@@ -271,12 +271,6 @@
         </div>
         <div class="header-right" style="display:flex; gap:10px; align-items:center;">
             <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;">Draft saved at <span id="autoSaveTime"></span></span>
-            <button type="button" id="clearDraftBtn" class="back-link" style="margin:0; background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:none; align-items:center; gap:8px; cursor:pointer;">
-                <i class="fas fa-trash-can"></i> Clear Draft
-            </button>
-            <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-file-pen"></i> Draft Courses
-            </a>
             <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-arrow-left"></i> Back to Course Management
             </a>
@@ -292,11 +286,16 @@
                         : route('dashboard', ['tab' => 'course-management']);
                 @endphp
                 <div class="course-create-topline">
-                    <a href="{{ $courseCreateBackRoute }}" class="course-create-back">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>{{ !empty($forTrainer) ? 'Back to My Courses' : 'Back to Course Management' }}</span>
-                    </a>
                     <h1 class="course-create-page-title">Create Course</h1>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                        <button type="button" id="openImportLibraryBtn" class="btn btn-cancel" style="padding:10px 14px;border-radius:10px;background:#f8fafc;border:1px solid #002C76;color:#002C76;font-weight:800;">
+                            Import from Course Library
+                        </button>
+                        <a href="{{ $courseCreateBackRoute }}" class="course-create-back" style="margin:0;">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>{{ !empty($forTrainer) ? 'Back to My Courses' : 'Back to Course Management' }}</span>
+                        </a>
+                    </div>
                 </div>
             @endif
             <div class="progress" role="status" aria-live="polite" aria-label="Course setup progress">
@@ -614,6 +613,48 @@
             <div style="display:flex;justify-content:center;gap:12px;">
                 <button type="button" class="btn btn-cancel" onclick="closeConfirmCertModal()" style="padding:10px 24px;">Cancel</button>
                 <button type="button" class="btn btn-submit" id="confirmCertBtn" style="padding:10px 24px;background-color:#0d6efd;">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="importLibraryModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2350">
+        <div style="background:#fff;border-radius:16px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(1040px,95vw);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;">
+                <div style="font-weight:900;color:#002C76;font-size:1.1rem;">Import from Course Library</div>
+                <button type="button" id="closeImportLibraryBtn" style="border:none;background:transparent;color:#64748b;font-size:28px;line-height:1;cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:14px 20px;border-bottom:1px solid #eef2f7;background:#f8fafc;display:flex;gap:12px;align-items:center;">
+                <div style="position:relative;flex:1;">
+                    <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;"></i>
+                    <input type="text" id="importLibrarySearch" placeholder="Search course library..." style="width:100%;padding:10px 12px 10px 36px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;font-weight:500;outline:none;background:#fff;">
+                </div>
+                <div style="color:#64748b;font-weight:700;font-size:0.85rem;white-space:nowrap;">Click a course to import</div>
+            </div>
+            <div style="padding:20px;overflow:auto;background:#f8fafc;flex:1;">
+                <div id="importLibraryGrid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+                    @php
+                        $importCourses = isset($libraryCourses) ? $libraryCourses : collect([]);
+                    @endphp
+                    @forelse($importCourses as $c)
+                        @php
+                            $cImg = !empty($c->image_path) ? $c->image_url : null;
+                            $cCreator = $c->users()->orderBy('course_user.created_at', 'asc')->first();
+                        @endphp
+                        <button type="button" class="import-course-card" data-course-id="{{ $c->id }}" data-name="{{ strtolower($c->name) }}" style="text-align:left;border:none;background:#fff;border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.06);padding:0;display:flex;flex-direction:column;min-height:240px;">
+                            @if($cImg)
+                                <img src="{{ $cImg }}" alt="{{ $c->name }}" style="width:100%;height:120px;object-fit:cover;">
+                            @else
+                                <div style="width:100%;height:120px;background:#eef4ff;"></div>
+                            @endif
+                            <div style="padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px;flex:1;">
+                                <div style="font-weight:900;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $c->name }}</div>
+                                <div style="color:#64748b;font-size:0.85rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;">{{ $c->description }}</div>
+                                <div style="margin-top:auto;color:#64748b;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Created by: {{ $cCreator ? $cCreator->name : 'N/A' }}</div>
+                            </div>
+                        </button>
+                    @empty
+                        <div style="grid-column:1/-1;color:#64748b;font-weight:700;text-align:center;padding:28px;background:#fff;border:1px dashed #e5e7eb;border-radius:12px;">No courses available in the library.</div>
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
@@ -3141,7 +3182,7 @@
             let key = sessionStorage.getItem('draft_course_key');
             if(!key){
                 // Stable key for "new course" creation to survive refresh even if sessionStorage is flaky
-                key = 'draft_course_active_new';
+                key = 'draft_course_active_new_u_{{ auth()->id() }}_r_{{ strtolower((string) (auth()->user()->role ?? "user")) }}';
                 sessionStorage.setItem('draft_course_key', key);
             }
             return key; 
@@ -3258,12 +3299,18 @@
                     const timeSpan = document.getElementById('autoSaveTime');
                     if (indicator && timeSpan) {
                         const now = new Date();
-                        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        timeSpan.textContent = stamp;
                         indicator.style.display = 'inline';
                         // Fade out after 3 seconds
                         setTimeout(() => {
                             indicator.style.opacity = '0.5';
                         }, 2000);
+                        if (IS_EMBEDDED_CREATE) {
+                            try {
+                                window.parent.postMessage({ type: 'course_draft_saved', time: stamp }, '*');
+                            } catch (e) {}
+                        }
                     }
 
                     if (!silent) {
@@ -3429,9 +3476,6 @@
             
             // Respect '0' as a signal NOT to load any draft
             if (loadDraftSignal === '0') {
-                // Explicitly clear the draft for this key to ensure it stays empty
-                localStorage.removeItem(key);
-                deleteFilesFromDB(key + '_materials');
                 sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
                 sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
             } else if (loadDraftSignal === '1' || hasDraft) {
@@ -3462,6 +3506,18 @@
             if (form) {
                 form.addEventListener('input', scheduleAutoSave);
                 form.addEventListener('change', scheduleAutoSave);
+                let isSubmitting = false;
+                let periodicAutoSave = null;
+                try {
+                    periodicAutoSave = window.setInterval(() => {
+                        if (isSubmitting) return;
+                        saveDraft(true);
+                    }, 15000);
+                } catch (e) {}
+                window.addEventListener('beforeunload', function () {
+                    if (isSubmitting) return;
+                    saveDraft(true);
+                });
                 
                 // Special case for editor content (since it doesn't always trigger 'input' on the form)
                 document.addEventListener('click', (e) => {
@@ -3472,6 +3528,7 @@
                 
                 // Clear draft on successful submit
                 form.addEventListener('submit', () => {
+                    isSubmitting = true;
                     const key = draftKey();
                     // We'll clear it after a short delay to ensure the form actually submits
                     setTimeout(() => {
@@ -3480,6 +3537,7 @@
                         sessionStorage.removeItem('draft_course_key');
                         sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
                         sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
+                        try { if (periodicAutoSave) window.clearInterval(periodicAutoSave); } catch (e) {}
                     }, 1000);
                 });
             }
@@ -3515,6 +3573,141 @@
                     const err = document.getElementById('imageError'); err.style.display='none'; err.textContent='';
                 });
             }
+
+            const importModal = document.getElementById('importLibraryModal');
+            const openImportBtn = document.getElementById('openImportLibraryBtn');
+            const closeImportBtn = document.getElementById('closeImportLibraryBtn');
+            const importSearch = document.getElementById('importLibrarySearch');
+            const importCards = document.querySelectorAll('.import-course-card');
+            function setImportOpen(open){
+                if (!importModal) return;
+                importModal.style.display = open ? 'flex' : 'none';
+                if (open && importSearch) {
+                    importSearch.value = '';
+                    importSearch.focus();
+                    importCards.forEach(card => { card.style.display = ''; });
+                }
+            }
+            try { window.openImportLibraryModal = function(){ setImportOpen(true); }; } catch (e) {}
+            if (openImportBtn) openImportBtn.addEventListener('click', () => setImportOpen(true));
+            if (closeImportBtn) closeImportBtn.addEventListener('click', () => setImportOpen(false));
+            if (importModal) importModal.addEventListener('click', (e) => { if (e.target === importModal) setImportOpen(false); });
+            if (importSearch) {
+                importSearch.addEventListener('input', function(){
+                    const q = String(importSearch.value || '').toLowerCase().trim();
+                    importCards.forEach(card => {
+                        const name = String(card.getAttribute('data-name') || '');
+                        card.style.display = q ? (name.includes(q) ? '' : 'none') : '';
+                    });
+                });
+            }
+
+            async function importFromCourseLibrary(courseId){
+                try {
+                    const res = await fetch(`/courses/${courseId}/details-ajax`, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!data || !data.ok || !data.course) return;
+                    const c = data.course;
+                    const nameEl = document.getElementById('name');
+                    const descEl = document.getElementById('description');
+                    const videoEl = document.getElementById('video_url');
+                    if (nameEl) nameEl.value = c.name || '';
+                    if (descEl) descEl.value = c.description || '';
+                    if (videoEl) videoEl.value = c.video_url || '';
+
+                    const courseType = String(c.course_type || c.type || '').toLowerCase();
+                    if (courseType) {
+                        const ct = document.querySelector(`input[name="course_type"][value="${courseType}"]`);
+                        if (ct) ct.checked = true;
+                    }
+
+                    const startEl = document.getElementById('start_date');
+                    const expEl = document.getElementById('course_expiration_date');
+                    if (startEl && c.start_date) startEl.value = String(c.start_date).slice(0, 10);
+                    if (expEl && c.course_expiration_date) expEl.value = String(c.course_expiration_date).slice(0, 10);
+
+                    const rawSubject = c.subject_area;
+                    let subjects = [];
+                    if (Array.isArray(rawSubject)) subjects = rawSubject;
+                    else if (typeof rawSubject === 'string') {
+                        const s = rawSubject.trim();
+                        if (s.startsWith('[')) {
+                            try { subjects = JSON.parse(s) || []; } catch (e) {}
+                        } else {
+                            subjects = s.split(',').map(x => x.trim()).filter(Boolean);
+                        }
+                    }
+                    if (subjects.length) {
+                        document.querySelectorAll('input[name="subject_area[]"]').forEach(cb => {
+                            cb.checked = subjects.includes(cb.value);
+                        });
+                        updateSubjectAreaDropdownLabel();
+                    }
+
+                    const rawModules = Array.isArray(c.modules) ? c.modules : [];
+                    const mapped = rawModules.map(m => {
+                        const type = String(m.type || '').toLowerCase();
+                        if (type === 'exam' || (m.exam_json && !m.topics)) {
+                            const ex = (m.exam_json != null)
+                                ? (typeof m.exam_json === 'string' ? m.exam_json : JSON.stringify(m.exam_json))
+                                : (m.exam != null ? JSON.stringify(m.exam) : '');
+                            return { type: 'exam', exam_json: ex };
+                        }
+                        const topics = Array.isArray(m.topics) ? m.topics.map(t => {
+                            const subs = Array.isArray(t.subtopics) ? t.subtopics.map(s => {
+                                let fj = s.fields_json;
+                                if (fj == null && Array.isArray(s.fields)) fj = JSON.stringify(s.fields);
+                                if (fj != null && typeof fj !== 'string') {
+                                    try { fj = JSON.stringify(fj); } catch (e) { fj = ''; }
+                                }
+                                return { title: s.title || '', fields_json: fj || '' };
+                            }) : [];
+                            return { title: t.title || '', subtopics: subs };
+                        }) : [];
+                        const ex = (m.exam_json != null)
+                            ? (typeof m.exam_json === 'string' ? m.exam_json : JSON.stringify(m.exam_json))
+                            : (m.exam != null ? JSON.stringify(m.exam) : '');
+                        return { type: 'module', title: m.title || '', topics: topics, exam_json: ex };
+                    });
+                    if (mapped.length) {
+                        restoreModules(mapped);
+                    } else {
+                        ensureDefaultModule();
+                    }
+
+                    try {
+                        const imgUrl = c.image_path;
+                        if (imgUrl) {
+                            const imgPreview = document.getElementById('imagePreview');
+                            const imgDraftInput = document.getElementById('image_draft_data');
+                            const fileNameDisplay = document.getElementById('fileNameDisplay');
+                            const r = await fetch(imgUrl);
+                            const blob = await r.blob();
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const base64 = String(reader.result || '');
+                                if (imgPreview) imgPreview.innerHTML = `<img alt="preview" src="${base64}">`;
+                                if (imgDraftInput) imgDraftInput.value = base64;
+                                if (fileNameDisplay) fileNameDisplay.textContent = 'Imported from library';
+                                scheduleAutoSave();
+                            };
+                            reader.readAsDataURL(blob);
+                        }
+                    } catch (e) {}
+
+                    updateProgress();
+                    scheduleAutoSave();
+                    setImportOpen(false);
+                    switchTo(1);
+                } catch (e) {}
+            }
+            importCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const id = Number(card.getAttribute('data-course-id'));
+                    if (!id) return;
+                    importFromCourseLibrary(id);
+                });
+            });
         });
 
         // Dynamic Menu (follows active field)
