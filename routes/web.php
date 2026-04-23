@@ -126,8 +126,10 @@ Route::put('/admin/courses/{course}/expiration', [CourseController::class, 'setE
 Route::put('/registrar/courses/{course}/enrollment-schedule', [CourseController::class, 'setEnrollmentSchedule'])->middleware(['auth'])->name('registrar.courses.enrollment-schedule');
 // Module Exam submissions and results
 Route::post('/courses/{course}/module-exam/submit', [CourseController::class, 'submitModuleExam'])->middleware(['auth'])->name('courses.module-exam.submit');
+Route::post('/courses/{course}/topic-quiz/submit', [CourseController::class, 'submitTopicQuiz'])->middleware(['auth'])->name('courses.topic-quiz.submit');
 Route::get('/courses/{course}/module-exam/results', [CourseController::class, 'moduleExamResults'])->middleware(['auth'])->name('courses.module-exam.results');
 Route::get('/courses/{course}/module-exam/attempt', [CourseController::class, 'moduleExamAttempt'])->middleware(['auth'])->name('courses.module-exam.attempt');
+Route::get('/courses/{course}/topic-quiz/attempt', [CourseController::class, 'topicQuizAttempt'])->middleware(['auth'])->name('courses.topic-quiz.attempt');
 Route::post('/courses/{course}/module-exam/restart', [CourseController::class, 'restartModuleExamProgress'])->middleware(['auth'])->name('courses.module-exam.restart');
 Route::post('/courses/{course}/module-exam/request-retake', [CourseController::class, 'requestModuleExamRetake'])->middleware(['auth'])->name('courses.module-exam.request-retake');
 Route::post('/courses/{course}/module-exam/approve-retake', [CourseController::class, 'approveModuleExamRetake'])->middleware(['auth'])->name('courses.module-exam.approve-retake');

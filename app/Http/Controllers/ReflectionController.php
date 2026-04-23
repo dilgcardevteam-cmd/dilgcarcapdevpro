@@ -105,7 +105,34 @@ class ReflectionController extends Controller
                     ->count();
                 if ($doneTopics >= count($topics)) {
                     $completedModules = $position + 1;
+                    
+                    // Update module progress tracking
+                    \App\Models\ModuleProgress::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'course_id' => $courseId,
+                            'module_index' => $moduleIndex,
+                        ],
+                        [
+                            'is_completed' => true,
+                            'completed_at' => now(),
+                        ]
+                    );
+
                     continue;
+                } else {
+                    // If not all topics are done, ensure it's marked as incomplete
+                    \App\Models\ModuleProgress::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'course_id' => $courseId,
+                            'module_index' => $moduleIndex,
+                        ],
+                        [
+                            'is_completed' => false,
+                            'completed_at' => null,
+                        ]
+                    );
                 }
                 break;
             }

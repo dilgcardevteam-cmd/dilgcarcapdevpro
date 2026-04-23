@@ -548,7 +548,7 @@ class CourseController extends Controller
         return null;
     }
 
-    protected function syncManualResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt): array
+    protected function syncManualResponsesForSubmission(Course $course, User $trainee, int $moduleIndex, array $questions, array $answers, string $submittedAt, ?int $topicIndex = null, ?int $subIndex = null): array
     {
         $manualIndexes = [];
 
@@ -566,6 +566,8 @@ class CourseController extends Controller
                     'course_id' => $course->id,
                     'trainee_id' => $trainee->id,
                     'module_index' => $moduleIndex,
+                    'topic_index' => $topicIndex,
+                    'sub_index' => $subIndex,
                     'question_index' => $questionIndex,
                 ],
                 [
@@ -588,12 +590,16 @@ class CourseController extends Controller
             ExamEssayResponse::where('course_id', $course->id)
                 ->where('trainee_id', $trainee->id)
                 ->where('module_index', $moduleIndex)
+                ->where('topic_index', $topicIndex)
+                ->where('sub_index', $subIndex)
                 ->whereNotIn('question_index', $manualIndexes)
                 ->delete();
         } else {
             ExamEssayResponse::where('course_id', $course->id)
                 ->where('trainee_id', $trainee->id)
                 ->where('module_index', $moduleIndex)
+                ->where('topic_index', $topicIndex)
+                ->where('sub_index', $subIndex)
                 ->delete();
         }
 
@@ -607,33 +613,47 @@ class CourseController extends Controller
 
     protected function buildModuleExamAttemptSummary(Course $course, int $moduleIndex, int $userId, ?array $submission = null): ?array
     {
-        $exam = $this->getCourseModuleExam($course, $moduleIndex);
-        if (!$exam) {
-            return null;
+        $mi = $moduleIndex;
+        $ti = $submission['topic_index'] ?? null;
+        $si = $submission['sub_index'] ?? null;
+        $isTopicQuiz = ($ti !== null && $si !== null);
+
+        if ($isTopicQuiz) {
+            $exam = $this->getTopicQuizData($course, $mi, $ti, $si);
+            $resolvedModuleIndex = $mi;
+        } else {
+            $exam = $this->getCourseModuleExam($course, $moduleIndex);
+            $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
         }
-        $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
-        if ($resolvedModuleIndex === null) {
+
+        if (!$exam || $resolvedModuleIndex === null) {
             return null;
         }
 
         if ($submission === null) {
-            $file = storage_path('app/exam_submissions/course_'.$course->id.DIRECTORY_SEPARATOR.'mi_'.$resolvedModuleIndex.'_u_'.$userId.'.json');
+            $filename = 'mi_'.$resolvedModuleIndex;
+            if ($isTopicQuiz) {
+                $filename .= '_ti_'.$ti.'_si_'.$si;
+            }
+            $filename .= '_u_'.$userId.'.json';
+            
+            $file = storage_path('app/exam_submissions/course_'.$course->id.DIRECTORY_SEPARATOR.$filename);
             if (!is_file($file)) {
-                return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex);
+                return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex, $ti, $si);
             }
             $submission = json_decode((string) @file_get_contents($file), true) ?: null;
             
             // Check if the submission file is for a different assessment (title mismatch or missing title)
             $fileExamTitle = $submission['exam_title'] ?? null;
-            $currentExamTitle = $exam['title'] ?? 'Final Exam';
+            $currentExamTitle = $exam['title'] ?? ($isTopicQuiz ? 'Topic Quiz' : 'Module Exam');
             if ($submission && $fileExamTitle !== $currentExamTitle) {
                 @unlink($file); // Delete stale submission file
-                return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex);
+                return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex, $ti, $si);
             }
         }
 
         if (!$submission) {
-            return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex);
+            return $this->getLatestFinalExamSummaryFromGrade($course, $moduleIndex, $userId, $resolvedModuleIndex, $ti, $si);
         }
 
         $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
@@ -641,6 +661,8 @@ class CourseController extends Controller
         $manualRows = ExamEssayResponse::where('course_id', $course->id)
             ->where('trainee_id', $userId)
             ->where('module_index', $resolvedModuleIndex)
+            ->where('topic_index', $ti)
+            ->where('sub_index', $si)
             ->get()
             ->keyBy('question_index');
 
@@ -806,19 +828,25 @@ class CourseController extends Controller
         ];
     }
 
-    protected function getLatestFinalExamSummaryFromGrade(Course $course, int $moduleIndex, int $userId, ?int $resolvedModuleIndex = null): ?array
+    protected function getLatestFinalExamSummaryFromGrade(Course $course, int $moduleIndex, int $userId, ?int $resolvedModuleIndex = null, ?int $topicIndex = null, ?int $subIndex = null): ?array
     {
-        $exam = $this->getCourseModuleExam($course, $moduleIndex);
+        $isTopicQuiz = ($topicIndex !== null && $subIndex !== null);
+        if ($isTopicQuiz) {
+            $exam = $this->getTopicQuizData($course, $moduleIndex, $topicIndex, $subIndex);
+        } else {
+            $exam = $this->getCourseModuleExam($course, $moduleIndex);
+        }
+        
         if (!$exam) {
             return null;
         }
 
         if ($resolvedModuleIndex === null) {
-            $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $moduleIndex);
+            $resolvedModuleIndex = $isTopicQuiz ? $moduleIndex : $this->resolveExamModuleIndex($course, $moduleIndex);
         }
 
         [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
-        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts, $resolvedModuleIndex);
+        $assessment = $this->getOrCreateAssessment($course, $exam, $passingScore, $maxAttempts, $resolvedModuleIndex, $topicIndex, $subIndex);
         $grade = Grade::where('assessment_id', $assessment->id)
             ->where('user_id', $userId)
             ->latest('id')
@@ -835,13 +863,21 @@ class CourseController extends Controller
         }
 
         $storedModuleIndex = isset($meta['module_index']) ? (int) $meta['module_index'] : null;
+        $storedTopicIndex = isset($meta['topic_index']) ? (int) $meta['topic_index'] : null;
+        $storedSubIndex = isset($meta['sub_index']) ? (int) $meta['sub_index'] : null;
+
         if ($resolvedModuleIndex !== null && ($storedModuleIndex === null || $storedModuleIndex !== $resolvedModuleIndex)) {
+            return null;
+        }
+        if ($isTopicQuiz && ($storedTopicIndex !== $topicIndex || $storedSubIndex !== $subIndex)) {
             return null;
         }
 
         $summary['course_id'] = $course->id;
         $summary['user_id'] = $userId;
         $summary['module_index'] = $moduleIndex;
+        $summary['topic_index'] = $topicIndex;
+        $summary['sub_index'] = $subIndex;
         $summary['passing_score'] = $summary['passing_score'] ?? $passingScore;
         $summary['max_attempts'] = $summary['max_attempts'] ?? $maxAttempts;
         $summary['attempt_no'] = $summary['attempt_no'] ?? (int) ($grade->attempt_no ?? 0);
@@ -850,7 +886,7 @@ class CourseController extends Controller
             : (($summary['status'] ?? null) === 'completed'
                 ? ((float) ($summary['final_pct'] ?? 0) >= (float) ($summary['passing_score'] ?? $passingScore))
                 : null);
-        $summary['max_attempts_reached'] = $summary['max_attempts_reached']
+        $summary['max_attempts_reached'] = ($summary['max_attempts_reached'] ?? false)
             ?? ($maxAttempts !== null && ($summary['passed'] === false) && ((int) ($summary['attempt_no'] ?? 0) >= $maxAttempts));
         $summary['restart_required'] = $summary['restart_required'] ?? false;
         $summary['status_label'] = $summary['status_label']
@@ -960,10 +996,13 @@ class CourseController extends Controller
         $responses = \App\Models\ReflectionResponse::where('user_id', $userId)
             ->where('course_id', $course->id)
             ->where('module_index', $moduleIndex)
-            ->get(['topic_index', 'answers_json']);
+            ->get(['topic_index', 'sub_index']);
 
         $doneTopics = [];
         foreach ($responses as $response) {
+            // Topic-level completion is marked by sub_index = -1 or any sub_index if we just want "any" progress.
+            // But usually, it's the last subtopic or a specific topic reflection.
+            // Based on ReflectionController, topic-level reflections use sub_index = 0 (after normalization from -1).
             $doneTopics[(int) $response->topic_index] = true;
         }
 
@@ -974,6 +1013,66 @@ class CourseController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Check if a trainee can access a Topic Quiz (subtopic level assessment).
+     * Prerequisite: All previous subtopics in the same topic must be completed.
+     */
+    protected function canAccessTopicQuiz(Course $course, int $userId, int $moduleIndex, int $topicIndex, int $subIndex): bool
+    {
+        $modules = $this->getNormalizedCourseModules($course);
+        $module = $modules[$moduleIndex] ?? null;
+        if (!$module || !isset($module['topics'][$topicIndex]['subtopics'])) {
+            return false;
+        }
+
+        $subtopics = $module['topics'][$topicIndex]['subtopics'];
+        
+        // Check all subtopics before the requested one
+        for ($i = 0; $i < $subIndex; $i++) {
+            if (!$this->isSubtopicCompleted($course, $userId, $moduleIndex, $topicIndex, $i)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    protected function isSubtopicCompleted(Course $course, int $userId, int $moduleIndex, int $topicIndex, int $subIndex): bool
+    {
+        return \App\Models\ReflectionResponse::where('user_id', $userId)
+            ->where('course_id', $course->id)
+            ->where('module_index', $moduleIndex)
+            ->where('topic_index', $topicIndex)
+            ->where('sub_index', $subIndex)
+            ->exists();
+    }
+
+    /**
+     * Check if a trainee can access a Module Exam (standalone or module-level assessment).
+     * Prerequisite: All topics in the module must be completed.
+     */
+    protected function canAccessModuleExam(Course $course, int $userId, int $moduleIndex): bool
+    {
+        // For standalone exams (no topics), we usually require all previous modules to be completed.
+        $modules = $this->getNormalizedCourseModules($course);
+        $module = $modules[$moduleIndex] ?? null;
+        $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
+        
+        if (empty($topics)) {
+            // Standalone exam: Check if all previous modules with content are done
+            foreach ($this->getSequentialContentModuleIndexes($course) as $idx) {
+                if ($idx >= $moduleIndex) break;
+                if (!$this->isModuleFullyReflected($course, $userId, $idx)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Module-level exam: All topics in this module must be reflected
+        return $this->isModuleFullyReflected($course, $userId, $moduleIndex);
     }
 
     protected function areAllModulesCompleted(Course $course, int $userId): bool
@@ -1084,15 +1183,17 @@ class CourseController extends Controller
         ]);
     }
 
-    protected function getOrCreateFinalExamAssessment(Course $course, array $exam, ?int $passingScore, ?int $maxAttempts, ?int $moduleIndex = null): Assessment
+    protected function getOrCreateAssessment(Course $course, array $exam, ?int $passingScore, ?int $maxAttempts, ?int $moduleIndex = null, ?int $topicIndex = null, ?int $subIndex = null): Assessment
     {
-        $title = trim((string) ($exam['title'] ?? 'Final Exam'));
+        $title = trim((string) ($exam['title'] ?? 'Assessment'));
         $searchTitle = $title;
 
-        // If a module index is provided, use it to make the title unique for this module's embedded exam.
-        // This prevents collisions with manual quizzes or exams in other modules that might share the same title.
         if ($moduleIndex !== null) {
-            $searchTitle = $title . " (Module " . ($moduleIndex + 1) . ")";
+            if ($topicIndex !== null && $subIndex !== null) {
+                $searchTitle = $title . " (M" . ($moduleIndex + 1) . " T" . ($topicIndex + 1) . " S" . ($subIndex + 1) . ")";
+            } else {
+                $searchTitle = $title . " (Module " . ($moduleIndex + 1) . ")";
+            }
         }
 
         $assessment = Assessment::firstOrNew([
@@ -1110,6 +1211,41 @@ class CourseController extends Controller
         return $assessment;
     }
 
+    protected function getTopicQuizData(Course $course, int $mi, int $ti, int $si): ?array
+    {
+        $modules = $this->getNormalizedCourseModules($course);
+        $module = $modules[$mi] ?? null;
+        if (!$module || !isset($module['topics'][$ti]['subtopics'][$si])) {
+            return null;
+        }
+
+        $subtopic = $module['topics'][$ti]['subtopics'][$si];
+        $fields = is_string($subtopic['fields_json'] ?? null) 
+            ? json_decode($subtopic['fields_json'], true) 
+            : ($subtopic['fields'] ?? []);
+            
+        if (!is_array($fields)) return null;
+
+        $questions = [];
+        foreach ($fields as $f) {
+            if (($f['type'] ?? '') === 'question' && isset($f['question'])) {
+                $questions[] = $this->normalizeExamQuestion($f['question']);
+            }
+        }
+
+        if (empty($questions)) return null;
+
+        return [
+            'title' => $subtopic['title'] ?? 'Topic Quiz',
+            'description' => '',
+            'timer_minutes' => 0,
+            'timer_mode' => 'untimed',
+            'passing_score' => 0,
+            'max_attempts' => null,
+            'questions' => $questions,
+        ];
+    }
+
     protected function getExamConfigValues(array $exam): array
     {
         $passingScore = isset($exam['passing_score']) && $exam['passing_score'] !== ''
@@ -1122,27 +1258,34 @@ class CourseController extends Controller
         return [$passingScore, $maxAttempts];
     }
 
-    protected function evaluateFinalExamOutcome(Course $course, int $moduleIndex, int $userId, array $summary, array $exam): array
+    protected function evaluateFinalExamOutcome(Course $course, int $moduleIndex, int $userId, array $summary, array $exam, ?int $topicIndex = null, ?int $subIndex = null): array
     {
         [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
-        $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts, $moduleIndex);
+        $assessment = $this->getOrCreateAssessment($course, $exam, $passingScore, $maxAttempts, $moduleIndex, $topicIndex, $subIndex);
         $latestGrade = Grade::where('assessment_id', $assessment->id)
             ->where('user_id', $userId)
             ->latest('id')
             ->first();
         $latestMeta = json_decode((string) ($latestGrade?->feedback ?? 'null'), true) ?: [];
+        
+        $isSameAssessment = (int) ($latestMeta['module_index'] ?? -1) === $moduleIndex
+            && (isset($latestMeta['topic_index']) ? (int)$latestMeta['topic_index'] : null) === $topicIndex
+            && (isset($latestMeta['sub_index']) ? (int)$latestMeta['sub_index'] : null) === $subIndex;
+
         $reusePendingAttempt = $latestGrade
             && in_array($latestMeta['status'] ?? null, ['pending_review', 'partially_graded'], true)
-            && (int) ($latestMeta['module_index'] ?? -1) === $moduleIndex;
+            && $isSameAssessment;
 
         $attemptNo = $reusePendingAttempt
             ? (int) $latestGrade->attempt_no
             : (Grade::where('assessment_id', $assessment->id)
                 ->where('user_id', $userId)
                 ->get()
-                ->filter(function($g) use ($moduleIndex) {
+                ->filter(function($g) use ($moduleIndex, $topicIndex, $subIndex) {
                     $m = json_decode((string)($g->feedback ?? 'null'), true);
-                    return isset($m['module_index']) && (int)$m['module_index'] === $moduleIndex;
+                    return isset($m['module_index']) && (int)$m['module_index'] === $moduleIndex
+                        && (isset($m['topic_index']) ? (int)$m['topic_index'] : null) === $topicIndex
+                        && (isset($m['sub_index']) ? (int)$m['sub_index'] : null) === $subIndex;
                 })
                 ->count() + 1);
 
@@ -1159,6 +1302,8 @@ class CourseController extends Controller
             'feedback' => json_encode([
                 'course_id' => $course->id,
                 'module_index' => $moduleIndex,
+                'topic_index' => $topicIndex,
+                'sub_index' => $subIndex,
                 'status' => $summary['status'] ?? 'completed',
                 'summary' => $summary,
             ]),
@@ -2665,11 +2810,23 @@ class CourseController extends Controller
      */
     public function submitModuleExam(\Illuminate\Http\Request $request, \App\Models\Course $course)
     {
+        return $this->processAssessmentSubmission($request, $course, false);
+    }
+
+    public function submitTopicQuiz(\Illuminate\Http\Request $request, \App\Models\Course $course)
+    {
+        return $this->processAssessmentSubmission($request, $course, true);
+    }
+
+    protected function processAssessmentSubmission(\Illuminate\Http\Request $request, \App\Models\Course $course, bool $isTopicQuiz)
+    {
         $user = auth()->user();
         if (!$user) return response()->json(['ok'=>false,'error'=>'Unauthorized'], 403);
         try {
             $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
                 'mi' => 'required|integer|min:0',
+                'ti' => 'nullable|integer|min:0',
+                'si' => 'nullable|integer|min:0',
                 'answers' => 'nullable|array',
                 'duration_ms' => 'nullable|integer|min:0',
                 'exam_integrity' => 'nullable|array',
@@ -2693,42 +2850,53 @@ class CourseController extends Controller
 
             $data = $validator->validated();
             $requestedModuleIndex = (int) $data['mi'];
-            $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $requestedModuleIndex);
-            $exam = $this->getCourseModuleExam($course, $requestedModuleIndex);
-            if (!$exam) {
-                return response()->json(['ok' => false, 'error' => 'Module exam not found.']);
-            }
-            if ($resolvedModuleIndex === null) {
-                return response()->json(['ok' => false, 'error' => 'Module exam mapping is invalid.']);
-            }
+            $requestedTopicIndex = isset($data['ti']) ? (int) $data['ti'] : null;
+            $requestedSubIndex = isset($data['si']) ? (int) $data['si'] : null;
 
-            // Distinguish between Module Quiz (embedded) and Module Exam (standalone)
-            $modules = $this->getNormalizedCourseModules($course);
-            $module = $modules[$requestedModuleIndex] ?? null;
-            $topics = isset($module['topics']) && is_array($module['topics']) ? $module['topics'] : [];
-            $isStandaloneExam = empty($topics);
-
-            if ($isStandaloneExam) {
-                // For standalone "Module Exam", we check if it's the final one and if prerequisites are met.
-                $finalExamModuleIndex = $this->getFinalExamModuleIndex($course);
-                if ($finalExamModuleIndex === null || $requestedModuleIndex !== $finalExamModuleIndex) {
-                    return response()->json(['ok' => false, 'error' => 'This exam is not available right now.']);
+            if ($isTopicQuiz) {
+                if ($requestedTopicIndex === null || $requestedSubIndex === null) {
+                    return response()->json(['ok' => false, 'error' => 'Topic and sub-index are required for topic quizzes.'], 422);
                 }
-                if (!$this->areAllModulesCompleted($course, $user->id)) {
-                    return response()->json(['ok' => false, 'error' => 'Complete all modules before taking the final exam.']);
+                if (!$this->canAccessTopicQuiz($course, $user->id, $requestedModuleIndex, $requestedTopicIndex, $requestedSubIndex)) {
+                    return response()->json(['ok' => false, 'error' => 'Please complete the previous lessons first.']);
                 }
+                $exam = $this->getTopicQuizData($course, $requestedModuleIndex, $requestedTopicIndex, $requestedSubIndex);
+                if (!$exam) {
+                    return response()->json(['ok' => false, 'error' => 'Topic quiz not found.']);
+                }
+                $resolvedModuleIndex = $requestedModuleIndex;
             } else {
-                // For embedded "Module Quiz", it's optional and can be taken anytime the module is accessible.
-                // We don't block submission here.
+                $resolvedModuleIndex = $this->resolveExamModuleIndex($course, $requestedModuleIndex);
+                $exam = $this->getCourseModuleExam($course, $requestedModuleIndex);
+                if (!$exam) {
+                    return response()->json(['ok' => false, 'error' => 'Module exam not found.']);
+                }
+                if ($resolvedModuleIndex === null) {
+                    return response()->json(['ok' => false, 'error' => 'Module exam mapping is invalid.']);
+                }
+                if (!$this->canAccessModuleExam($course, $user->id, $requestedModuleIndex)) {
+                    return response()->json(['ok' => false, 'error' => 'Complete all module topics before taking the module exam.']);
+                }
             }
 
             [$passingScore, $maxAttempts] = $this->getExamConfigValues($exam);
-            $assessment = $this->getOrCreateFinalExamAssessment($course, $exam, $passingScore, $maxAttempts, $resolvedModuleIndex);
+            $assessment = $this->getOrCreateAssessment($course, $exam, $passingScore, $maxAttempts, $resolvedModuleIndex, $requestedTopicIndex, $requestedSubIndex);
+
             $attemptsUsed = Grade::where('assessment_id', $assessment->id)
                 ->where('user_id', $user->id)
+                ->get()
+                ->filter(function($g) use ($resolvedModuleIndex, $requestedTopicIndex, $requestedSubIndex) {
+                    $m = json_decode((string)($g->feedback ?? 'null'), true);
+                    return isset($m['module_index']) && (int)$m['module_index'] === $resolvedModuleIndex
+                        && (isset($m['topic_index']) ? (int)$m['topic_index'] : null) === $requestedTopicIndex
+                        && (isset($m['sub_index']) ? (int)$m['sub_index'] : null) === $requestedSubIndex;
+                })
                 ->count();
+
             if ($maxAttempts !== null && $attemptsUsed >= $maxAttempts) {
-                $course->users()->updateExistingPivot($user->id, ['status' => 'attempts_exhausted']);
+                if (!$isTopicQuiz) {
+                    $course->users()->updateExistingPivot($user->id, ['status' => 'attempts_exhausted']);
+                }
                 return response()->json([
                     'ok' => false,
                     'error' => 'You have reached the maximum number of attempts.',
@@ -2787,7 +2955,9 @@ class CourseController extends Controller
                 'course_id' => $course->id,
                 'user_id' => $user->id,
                 'module_index' => $resolvedModuleIndex,
-                'exam_title' => $exam['title'] ?? 'Final Exam',
+                'topic_index' => $requestedTopicIndex,
+                'sub_index' => $requestedSubIndex,
+                'exam_title' => $exam['title'] ?? ($isTopicQuiz ? 'Topic Quiz' : 'Module Exam'),
                 'correct' => round($objectiveCorrect, 2),
                 'total' => round($objectiveTotal, 2),
                 'pct' => $objectiveTotal > 0 ? (int) round(($objectiveCorrect / $objectiveTotal) * 100) : 0,
@@ -2797,29 +2967,37 @@ class CourseController extends Controller
                 'exam_integrity' => $this->normalizeExamIntegrityPayload($data['exam_integrity'] ?? null),
             ];
             $dir = storage_path('app/exam_submissions/course_'.$course->id);
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0775, true);
-            }
-            if (!is_dir($dir)) {
-                return response()->json(['ok' => false, 'error' => 'Unable to prepare exam submission storage.'], 500);
-            }
-            $file = $dir . DIRECTORY_SEPARATOR . 'mi_'.$resolvedModuleIndex.'_u_'.$user->id.'.json';
-            if (file_put_contents($file, json_encode($payload, JSON_PRETTY_PRINT)) === false) {
+            if (!is_dir($dir)) @mkdir($dir, 0775, true);
+            if (!is_dir($dir)) return response()->json(['ok' => false, 'error' => 'Unable to prepare exam submission storage.'], 500);
+            
+            $filename = 'mi_'.$resolvedModuleIndex;
+            if ($isTopicQuiz) $filename .= '_ti_'.$requestedTopicIndex.'_si_'.$requestedSubIndex;
+            $filename .= '_u_'.$user->id.'.json';
+            
+            if (file_put_contents($dir . DIRECTORY_SEPARATOR . $filename, json_encode($payload, JSON_PRETTY_PRINT)) === false) {
                 return response()->json(['ok' => false, 'error' => 'Unable to save exam submission file.'], 500);
             }
 
-            $this->syncManualResponsesForSubmission($course, $user, $resolvedModuleIndex, $questions, $answers, $submittedAt);
+            $this->syncManualResponsesForSubmission($course, $user, $resolvedModuleIndex, $questions, $answers, $submittedAt, $requestedTopicIndex, $requestedSubIndex);
             $summary = $this->buildModuleExamAttemptSummary($course, $requestedModuleIndex, $user->id, $payload);
+            $evaluation = $this->evaluateFinalExamOutcome($course, $resolvedModuleIndex, $user->id, $summary, $exam, $requestedTopicIndex, $requestedSubIndex);
+            
+            if ($isTopicQuiz) {
+                \App\Models\ReflectionResponse::updateOrCreate(
+                    ['user_id' => $user->id, 'course_id' => $course->id, 'module_index' => $requestedModuleIndex, 'topic_index' => $requestedTopicIndex, 'sub_index' => $requestedSubIndex],
+                    ['answers_json' => json_encode(['quiz_submitted' => true, 'pct' => $payload['pct']])]
+                );
+            }
 
-            $evaluation = $this->evaluateFinalExamOutcome($course, $resolvedModuleIndex, $user->id, $summary, $exam);
             $completed = false;
-            if (($evaluation['passed'] ?? false) === true) {
+            if (!$isTopicQuiz && ($evaluation['passed'] ?? false) === true) {
                 $completed = $this->issueCertificateIfCompleted($user, $course);
             }
 
             return response()->json([
                 'ok' => true,
                 'completed' => $completed,
+                'is_topic_quiz' => $isTopicQuiz,
                 'summary' => array_merge($summary, [
                     'passing_score' => $evaluation['passing_score'] ?? $passingScore,
                     'max_attempts' => $evaluation['max_attempts'] ?? $maxAttempts,
@@ -2827,26 +3005,11 @@ class CourseController extends Controller
                     'passed' => $evaluation['passed'] ?? null,
                     'restart_required' => $evaluation['restart_required'] ?? false,
                     'max_attempts_reached' => $evaluation['max_attempts_reached'] ?? false,
-                    'restart_message' => ($evaluation['restart_required'] ?? false)
-                        ? 'You may request an exam retake from your trainer.'
-                        : null,
-                    'max_attempts_message' => ($evaluation['max_attempts_reached'] ?? false)
-                        ? 'You have reached the maximum number of attempts.'
-                        : null,
-                    'redirect_url' => null,
                 ]),
             ]);
         } catch (\Throwable $e) {
-            \Log::error('submitModuleExam failed', [
-                'course_id' => $course->id,
-                'user_id' => $user->id,
-                'message' => $e->getMessage(),
-            ]);
-            return response()->json([
-                'ok' => false,
-                'error' => 'Exam submission failed on the server.',
-                'detail' => $e->getMessage(),
-            ], 500);
+            \Log::error('submitModuleExam failed', ['course_id' => $course->id, 'user_id' => $user->id, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'error' => 'Exam submission failed on the server.'], 500);
         }
     }
 
@@ -2902,39 +3065,48 @@ class CourseController extends Controller
     public function moduleExamAttempt(Request $request, Course $course)
     {
         $user = auth()->user();
-        if (!$user) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
-        }
+        if (!$user) return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
 
         $moduleIndex = (int) $request->query('mi', -1);
-        if ($moduleIndex < 0) {
-            return response()->json(['ok' => false, 'error' => 'Missing module index'], 422);
+        if ($moduleIndex < 0) return response()->json(['ok' => false, 'error' => 'Missing module index'], 422);
+
+        if (!$this->canAccessModuleExam($course, $user->id, $moduleIndex)) {
+            return response()->json(['ok' => false, 'error' => 'Complete all module topics before taking the module exam.']);
         }
 
-        $targetUserId = (int) $request->query('user_id', $user->id);
-        $isTrainer = in_array($user->role, ['trainer','coach','admin','super_admin','central_office_coach','regional_office_coach','provincial_office_coach'], true);
-        if (!$isTrainer && $targetUserId !== $user->id) {
-            return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
-        }
+        $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $user->id);
+        if (!$summary) return response()->json(['ok' => true, 'attempt' => null]);
 
-        $summary = $this->buildModuleExamAttemptSummary($course, $moduleIndex, $targetUserId);
-        if (!$summary) {
-            return response()->json([
-                'ok' => true,
-                'attempt' => null,
-            ]);
-        }
-
-        $targetUser = User::find($targetUserId);
-        $pivot = $this->getCourseUserPivot($course, $targetUserId);
+        $pivot = $this->getCourseUserPivot($course, $user->id);
         return response()->json([
             'ok' => true,
-            'attempt' => array_merge($summary, [
-                'user_name' => $targetUser?->name ?? ('User '.$targetUserId),
-                'user_email' => $targetUser?->email,
-            ]),
+            'attempt' => $summary,
             'retake_requested' => (bool) ($pivot->retake_requested ?? false),
             'retake_approved' => (bool) ($pivot->retake_approved ?? false),
+        ]);
+    }
+
+    public function topicQuizAttempt(Request $request, Course $course)
+    {
+        $user = auth()->user();
+        if (!$user) return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
+
+        $mi = (int) $request->query('mi', -1);
+        $ti = (int) $request->query('ti', -1);
+        $si = (int) $request->query('si', -1);
+
+        if ($mi < 0 || $ti < 0 || $si < 0) return response()->json(['ok' => false, 'error' => 'Missing indices'], 422);
+
+        if (!$this->canAccessTopicQuiz($course, $user->id, $mi, $ti, $si)) {
+            return response()->json(['ok' => false, 'error' => 'Please complete the previous lessons first.']);
+        }
+
+        $summary = $this->buildModuleExamAttemptSummary($course, $mi, $user->id, ['topic_index' => $ti, 'sub_index' => $si]);
+        return response()->json([
+            'ok' => true,
+            'attempt' => $summary,
+            'retake_requested' => false, // Topic quizzes don't usually need formal retake approval
+            'retake_approved' => true,
         ]);
     }
 
@@ -3297,6 +3469,25 @@ class CourseController extends Controller
 
         $sync = $this->syncSequentialProgress($course, $user->id);
 
+        $completedModuleIndexes = \App\Models\ModuleProgress::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->where('is_completed', true)
+            ->pluck('module_index')
+            ->toArray();
+
+        $modules = $this->getNormalizedCourseModules($course);
+        $quizAccess = [];
+        $examAccess = [];
+        foreach ($modules as $mi => $m) {
+            $topics = isset($m['topics']) && is_array($m['topics']) ? $m['topics'] : [];
+            $hasTopics = !empty($topics);
+            if ($hasTopics) {
+                $quizAccess[$mi] = $this->canAccessModuleQuiz($course, $user->id, $mi);
+            } else {
+                $examAccess[$mi] = $this->canAccessModuleExam($course, $user->id, $mi);
+            }
+        }
+
         return response()->json([
             'ok' => true,
             'allowed_module_index' => $this->getAllowedModuleArrayIndex($course, $user->id),
@@ -3305,6 +3496,9 @@ class CourseController extends Controller
             'current_module' => $sync['current_module'] ?? null,
             'progress_percentage' => $sync['progress_percentage'] ?? null,
             'status' => $sync['status'] ?? null,
+            'completed_module_indexes' => $completedModuleIndexes,
+            'quiz_access' => $quizAccess,
+            'exam_access' => $examAccess,
         ]);
     }
 

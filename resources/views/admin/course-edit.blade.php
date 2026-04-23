@@ -688,6 +688,7 @@
                         </button>
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>
+                            <div class="kebab-item" onclick="kebabAddTopicQuiz(this)"><i class="fas fa-dot-circle"></i> Add Topic Quiz</div>
                             <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Topic</div>
                         </div>
                     </div>
@@ -745,9 +746,25 @@
         function kebabAddSubtopic(el){
             const topicRow = el.closest('.topic-row'); 
             if(topicRow){
-                // edit view topics don't have subtopic lists, use fields panel; here we create a subtopic-like area by adding a fields block line? Keep parity with create: add a minimal subtopic row equivalent is not present. Instead, append a fields panel already exists; mimic create by adding a new subtopic section is out-of-scope for edit.
-                // fallback: open field add panel
-                openRailFromAdd(topicRow.querySelector('.panel-add-btn') || topicRow, null);
+                addSubtopicRow(topicRow);
+            }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
+        function kebabAddTopicQuiz(el){
+            const topicRow = el.closest('.topic-row'); 
+            if(topicRow){
+                const sub = addSubtopicRow(topicRow);
+                const titleInput = sub.querySelector('.subtopic-title');
+                if(titleInput) titleInput.value = 'Quiz';
+                const panel = sub.querySelector('.fields-panel');
+                if(panel) {
+                    addQuestionField(panel);
+                    const last = panel.querySelector('.field-block:last-of-type');
+                    if(last) {
+                        setSelectedField(last);
+                        setActiveAnchor(last);
+                    }
+                }
             }
             el.closest('.kebab-menu').classList.remove('open');
         }
