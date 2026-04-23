@@ -117,7 +117,7 @@ Route::get('/trainee/courses/{course}/outline', [CourseController::class, 'train
 // Trainer: enter class (landing replicates trainee view with trainer capabilities)
 Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.enter');
 // Trainer view-only course outline page
-Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
+Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->withTrashed()->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
 // Trainer: update course banner image only
 Route::post('/trainer/courses/{course}/image', [CourseController::class, 'trainerUpdateImage'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.image');
 // Admin: set course expiration date
@@ -271,4 +271,3 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/courses/{course}/discussions/updates', [DiscussionController::class, 'updates'])->name('courses.discussions.updates');
     
 });
-

@@ -282,7 +282,7 @@
             @if(!request()->boolean('embedded'))
                 @php
                     $courseCreateBackRoute = !empty($forTrainer)
-                        ? route('dashboard', ['tab' => 'my-courses'])
+                        ? route('dashboard', ['tab' => 'course-utilities'])
                         : route('dashboard', ['tab' => 'course-management']);
                 @endphp
                 <div class="course-create-topline">
@@ -293,7 +293,7 @@
                         </button>
                         <a href="{{ $courseCreateBackRoute }}" class="course-create-back" style="margin:0;">
                             <i class="fas fa-arrow-left"></i>
-                            <span>{{ !empty($forTrainer) ? 'Back to My Courses' : 'Back to Course Management' }}</span>
+                            <span>{{ !empty($forTrainer) ? 'Back to Course Utilities' : 'Back to Course Management' }}</span>
                         </a>
                     </div>
                 </div>
@@ -328,6 +328,7 @@
             @endif
             <form id="courseForm" action="{{ !empty($forTrainer) ? route('trainer.courses.store') : route('courses.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
+                <input type="hidden" name="finalize_accepted" id="finalize_accepted" value="0">
                 @if(request()->boolean('embedded'))
                     <input type="hidden" name="embedded" value="1">
                 @endif
@@ -587,7 +588,8 @@
                         <button type="button" class="btn btn-cancel" id="backToCertificate">Back</button>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn4">Save Draft</button>
-                            <button type="submit" class="btn {{ !empty($forTrainer) ? 'btn-blue' : 'btn-blue' }}" id="submitBtn">{{ !empty($forTrainer) ? 'Submit to Admin' : 'Add Course' }}</button>
+                            <button type="button" class="btn btn-cancel" id="finalizeAcceptBtn">Accept Finalization</button>
+                            <button type="submit" class="btn {{ !empty($forTrainer) ? 'btn-blue' : 'btn-blue' }}" id="submitBtn" disabled>{{ !empty($forTrainer) ? 'Submit' : 'Add Course' }}</button>
                         </div>
                     </div>
                 </div>
@@ -2633,8 +2635,21 @@
         function isCertificateStepComplete(){
             return !!document.querySelector('input[name="certification_id"]:checked');
         }
+        function isFinalizeAccepted(){
+            const el = document.getElementById('finalize_accepted');
+            if (el) return String(el.value || '0') === '1';
+            return false;
+        }
+        function setFinalizeAccepted(value, options = {}){
+            const { scheduleSave = true } = options;
+            const next = !!value;
+            const el = document.getElementById('finalize_accepted');
+            if (el) el.value = next ? '1' : '0';
+            updateProgress();
+            if (scheduleSave) scheduleAutoSave();
+        }
         function isFinalizeStepComplete(){
-            return isDetailsStepComplete() && isModulesStepComplete() && isCertificateStepComplete();
+            return isDetailsStepComplete() && isModulesStepComplete() && isCertificateStepComplete() && isFinalizeAccepted();
         }
         function updateProgress(){
             const step1 = document.getElementById('step1');
@@ -2646,7 +2661,13 @@
             const detailsDone = isDetailsStepComplete();
             const modulesDone = isModulesStepComplete();
             const certificateDone = isCertificateStepComplete();
-            const finalizeDone = isFinalizeStepComplete();
+            let finalizeAccepted = isFinalizeAccepted();
+            if (finalizeAccepted && !(detailsDone && modulesDone && certificateDone)) {
+                finalizeAccepted = false;
+                const el = document.getElementById('finalize_accepted');
+                if (el) el.value = '0';
+            }
+            const finalizeDone = detailsDone && modulesDone && certificateDone && finalizeAccepted;
 
             step1.classList.toggle('done', detailsDone);
             step2.classList.toggle('done', modulesDone);
@@ -2676,6 +2697,18 @@
             tab4Btn.classList.toggle('disabled', !enable4);
             tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
             tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
+
+            const acceptBtn = document.getElementById('finalizeAcceptBtn');
+            if (acceptBtn) {
+                acceptBtn.disabled = !enable4 || finalizeDone;
+                acceptBtn.textContent = finalizeDone ? 'Finalization Accepted' : 'Accept Finalization';
+                acceptBtn.style.opacity = (!enable4 || finalizeDone) ? '0.7' : '1';
+            }
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = !finalizeDone;
+                submitBtn.style.opacity = finalizeDone ? '1' : '0.6';
+            }
         }
         const COURSE_CREATE_TAB_QUERY = 'course-create';
         const COURSE_CREATE_STEP_KEY = 'course_create_current_step';
@@ -2853,6 +2886,9 @@
             updateProgress();
         }
         function updateCertSelection(input) {
+            if (isFinalizeAccepted()) {
+                setFinalizeAccepted(false, { scheduleSave: false });
+            }
             document.querySelectorAll('.cert-card').forEach(card => {
                 card.style.borderColor = '#e5e7eb';
                 card.style.background = '#fff';
@@ -2900,6 +2936,17 @@
             document.getElementById('saveDraftBtn2').addEventListener('click', saveDraft);
             document.getElementById('saveDraftBtn3').addEventListener('click', saveDraft);
             document.getElementById('saveDraftBtn4').addEventListener('click', saveDraft);
+            const finalizeAcceptBtn = document.getElementById('finalizeAcceptBtn');
+            if (finalizeAcceptBtn) {
+                finalizeAcceptBtn.addEventListener('click', ()=>{
+                    updateProgress();
+                    if (!(validateDetails() && validateModules() && isCertificateStepComplete())) {
+                        switchTo(3);
+                        return;
+                    }
+                    setFinalizeAccepted(true);
+                });
+            }
 
             ['name','description','image'].forEach(id=>{
                 const el = document.getElementById(id);
@@ -2930,6 +2977,12 @@
                     const err = document.getElementById('certError');
                     if(err) err.style.display = 'block';
                     return; 
+                }
+                if(!isFinalizeAccepted()) {
+                    e.preventDefault();
+                    switchTo(4);
+                    alert('Please accept finalization to submit.');
+                    return;
                 }
             });
             // Prevent accidental submit when pressing Enter inside exam builders/inputs
@@ -3277,6 +3330,7 @@
                 obj['modules'] = serializeModules();
                 obj['current_tab'] = CURRENT_TAB;
                 obj['current_step'] = getStepNameForTab(CURRENT_TAB);
+                obj['finalize_accepted'] = isFinalizeAccepted() ? '1' : '0';
                 
                 // Save materials metadata
                 const materialsInput = document.getElementById('course_materials');
@@ -3341,6 +3395,11 @@
             if(!raw) return null;
             try{
                 const obj = JSON.parse(raw);
+                if (obj['finalize_accepted'] !== undefined) {
+                    const accepted = String(obj['finalize_accepted']) === '1';
+                    const el = document.getElementById('finalize_accepted');
+                    if (el) el.value = accepted ? '1' : '0';
+                }
                 // Restore top-level fields
                 ['name','description','video_url','certification_id'].forEach(k=>{
                     if(obj[k] === undefined) return;

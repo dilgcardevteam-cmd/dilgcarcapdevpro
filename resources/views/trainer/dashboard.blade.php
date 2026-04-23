@@ -666,6 +666,64 @@
         .nav-portal-list .nav-link {
             padding: 12px 25px 12px 54px;
         }
+
+        .nav-item.nav-submenu-item .nav-submenu-toggle{
+            position:relative;
+            padding-right:58px;
+            box-sizing:border-box;
+        }
+        .nav-item.nav-submenu-item .nav-chevron{
+            right:14px;
+        }
+        .nav-submenu{
+            list-style:none;
+            margin:0;
+            padding:0;
+            max-height:0;
+            overflow:hidden;
+            transition:max-height .25s ease;
+        }
+        .nav-item.nav-submenu-item.open .nav-submenu{
+            max-height:320px;
+        }
+        .nav-item.nav-submenu-item.open .nav-chevron{
+            transform:translateY(-50%) rotate(180deg);
+        }
+        .nav-submenu .nav-link{
+            padding:10px 25px 10px 74px;
+            font-size:.92rem;
+        }
+        .sidebar.collapsed .nav-submenu{
+            max-height:0 !important;
+        }
+
+        #course-create .course-create-shell{
+            background:#ffffff;
+            border:1px solid #dbe2ea;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:0 8px 20px rgba(15,23,42,.08);
+        }
+        #courseCreateFrameCoach{
+            width:100%;
+            height:calc(100vh - 245px);
+            min-height:760px;
+            border:0;
+            background:#ffffff;
+            display:block;
+            position:relative;
+            z-index:1;
+        }
+        #course-create:not(.active) #courseCreateFrameCoach{
+            pointer-events:none;
+            visibility:hidden;
+            height:0;
+            min-height:0;
+        }
+        #course-create.active #courseCreateFrameCoach{
+            pointer-events:auto;
+            visibility:visible;
+        }
         
         .sidebar.collapsed .nav-portal-list {
             max-height: 0 !important;
@@ -778,6 +836,41 @@
         }
         @media (max-width:1100px){ .course-grid{grid-template-columns:repeat(2, minmax(0,1fr));} }
         @media (max-width:700px){ .course-grid{grid-template-columns:1fr;} }
+
+        .submissions-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+        .submissions-title{margin:0;color:#0B2C74;font-weight:800;letter-spacing:-.01em;font-size:2.1rem}
+        .submissions-subtitle{margin-top:6px;color:#64748b;font-weight:600}
+        .submissions-create{display:inline-flex;align-items:center;gap:10px;border-radius:12px;padding:12px 16px;background:#1d4ed8;color:#fff;text-decoration:none;font-weight:800;border:1px solid #1d4ed8;box-shadow:0 10px 18px rgba(29,78,216,.18)}
+        .submissions-create:hover{filter:brightness(1.05)}
+        .submissions-tabs{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:10px;margin:14px 0 14px;overflow:auto}
+        .submissions-tab{border:0;background:transparent;color:#64748b;font-weight:800;padding:10px 14px;border-radius:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+        .submissions-tab.active{background:#eef2ff;color:#1d4ed8;box-shadow:inset 0 0 0 1px rgba(29,78,216,.22)}
+        .submissions-filters{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+        .submissions-search{position:relative;width:min(520px, 100%)}
+        .submissions-search input{width:100%;padding:12px 12px 12px 40px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.92rem;font-weight:600;outline:none;background:#fff}
+        .submissions-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8}
+        .submissions-status{position:relative;width:220px}
+        .submissions-status select{width:100%;padding:12px 38px 12px 12px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.92rem;font-weight:700;outline:none;background:#fff;appearance:none;cursor:pointer}
+        .submissions-status i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
+        .submissions-table-shell{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}
+        .submissions-table{width:100%;border-collapse:separate;border-spacing:0}
+        .submissions-table thead th{background:#f8fafc;color:#64748b;font-weight:800;font-size:.82rem;text-transform:none;letter-spacing:.02em;padding:14px 16px;border-bottom:1px solid #e5e7eb;text-align:left}
+        .submissions-table tbody td{padding:14px 16px;border-bottom:1px solid #eef2f7;vertical-align:middle}
+        .submissions-table tbody tr:last-child td{border-bottom:none}
+        .course-cell{display:flex;align-items:center;gap:12px;min-width:260px}
+        .course-cell-thumb{width:48px;height:48px;border-radius:12px;flex:0 0 48px;object-fit:cover;border:1px solid #e5e7eb;background:#eef4ff}
+        .course-cell-title{font-weight:800;color:#0B2C74;margin:0;font-size:.98rem;line-height:1.2}
+        .course-cell-desc{color:#64748b;font-weight:600;font-size:.85rem;margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+        .status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-weight:800;font-size:.82rem;border:1px solid transparent;white-space:nowrap}
+        .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+        .status-draft{background:#f5f3ff;color:#5b21b6;border-color:#ddd6fe}
+        .status-approved{background:#ecfdf5;color:#065f46;border-color:#bbf7d0}
+        .status-archived{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+        .status-rejected{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+        .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:12px;font-weight:800;font-size:.88rem;text-decoration:none;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#0f172a}
+        .action-btn.primary{background:#eef2ff;border-color:#c7d2fe;color:#1d4ed8}
+        .action-btn.danger{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+        .action-btn.muted{background:#f8fafc;border-color:#e2e8f0;color:#475569}
 
         .course-card {
             background: white;
@@ -1902,7 +1995,9 @@
                     $coachCreateCourseActive = request()->routeIs('trainer.courses.create');
                     $coachCreateCourseVisible = strtolower((string) Auth::user()->role) === 'coach'
                         && Auth::user()->hasPermission('add_courses_coach');
+                    $coachCourseUtilitiesActive = in_array(request('tab'), ['course-utilities','course-create','pending-courses','archived-courses','course-library'], true);
                     $portalActive = $coachCreateCourseActive
+                        || $coachCourseUtilitiesActive
                         || !request('tab')
                         || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements'], true);
                 @endphp
@@ -1929,9 +2024,9 @@
                         @endif
                         @if($coachCreateCourseVisible)
                         <li class="nav-item">
-                            <a href="{{ route('trainer.courses.create') }}" class="nav-link {{ $coachCreateCourseActive ? 'active' : '' }}">
-                                <i class="fas fa-plus-circle nav-icon"></i>
-                                <span class="nav-text">Create Course</span>
+                            <a href="{{ route('dashboard', ['tab' => 'course-utilities']) }}" class="nav-link {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="showContent('course-utilities', this)">
+                                <i class="fas fa-screwdriver-wrench nav-icon"></i>
+                                <span class="nav-text">Course Utilities</span>
                             </a>
                         </li>
                         @endif
@@ -2452,6 +2547,294 @@
                     @empty
                         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6c757d;">
                             <p>No courses found.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div id="course-utilities" class="content-section {{ request('tab') === 'course-utilities' ? 'active' : '' }}">
+                <div class="section-header">
+                    <h2 class="section-title">Course Utilities</h2>
+                </div>
+                @php
+                    $approved = ($activeCoachCourses ?? collect());
+                    $pending = ($pendingCoachCourses ?? collect());
+                    $archived = ($archivedCoachCourses ?? collect());
+                    $coursesByStatus = collect([])
+                        ->concat($approved->map(fn($c) => ['course' => $c, 'status' => 'approved']))
+                        ->concat($pending->map(fn($c) => ['course' => $c, 'status' => 'pending']))
+                        ->concat($archived->map(fn($c) => ['course' => $c, 'status' => 'archived']));
+                @endphp
+
+                <div class="submissions-header">
+                    <div>
+                        <div class="submissions-title">Course Utilities</div>
+                        <div class="submissions-subtitle">View and manage all your course submissions.</div>
+                    </div>
+                    <a class="submissions-create" href="javascript:void(0)" onclick="openAddCourseInUtilities()">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New Course</span>
+                    </a>
+                </div>
+
+                <div class="submissions-tabs" role="tablist" aria-label="Course Utilities Status Tabs">
+                    <button type="button" class="submissions-tab active" data-tab="all" onclick="switchCoachSubmissionTab('all')"><i class="far fa-folder-open"></i> All Submissions</button>
+                    <button type="button" class="submissions-tab" data-tab="pending" onclick="switchCoachSubmissionTab('pending')"><i class="fas fa-hourglass-half"></i> Pending Approval</button>
+                    <button type="button" class="submissions-tab" data-tab="draft" onclick="switchCoachSubmissionTab('draft')"><i class="fas fa-file-pen"></i> Draft</button>
+                    <button type="button" class="submissions-tab" data-tab="rejected" onclick="switchCoachSubmissionTab('rejected')"><i class="fas fa-circle-xmark"></i> Rejected</button>
+                    <button type="button" class="submissions-tab" data-tab="approved" onclick="switchCoachSubmissionTab('approved')"><i class="fas fa-circle-check"></i> Approved</button>
+                    <button type="button" class="submissions-tab" data-tab="archived" onclick="switchCoachSubmissionTab('archived')"><i class="fas fa-box-archive"></i> Archived</button>
+                </div>
+
+                <div class="submissions-filters">
+                    <div class="submissions-search">
+                        <i class="fas fa-search"></i>
+                        <input id="coachSubmissionSearch" type="text" placeholder="Search courses..." oninput="applyCoachSubmissionFilters()">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <div class="submissions-status">
+                            <select id="coachSubmissionStatus" onchange="applyCoachSubmissionFilters()">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending Approval</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="submissions-status" style="width:240px;">
+                            <select id="academicYearFilterCoachUtilities" onchange="changeCoachUtilitiesYear(this.value)">
+                                @foreach(($academicYears ?? collect()) as $ay)
+                                    <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
+                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submissions-table-shell">
+                    <table class="submissions-table">
+                        <thead>
+                            <tr>
+                                <th style="width:42%;">Course Title</th>
+                                <th style="width:16%;">Status</th>
+                                <th style="width:16%;">Submitted On</th>
+                                <th style="width:16%;">Last Updated</th>
+                                <th style="width:10%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coachSubmissionsTbody">
+                            @foreach($coursesByStatus->sortByDesc(fn($row) => optional($row['course'])->updated_at)->values() as $row)
+                                @php
+                                    $course = $row['course'];
+                                    $status = $row['status'];
+                                    $img = !empty($course->image_path) ? $course->image_url : null;
+                                    if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                        $img = $course->image_path;
+                                    }
+                                    $statusLabel = $status === 'pending' ? 'Pending Approval' : ($status === 'approved' ? 'Approved' : 'Archived');
+                                    $statusClass = $status === 'pending' ? 'status-pending' : ($status === 'approved' ? 'status-approved' : 'status-archived');
+                                @endphp
+                                <tr class="coach-submission-row" data-status="{{ $status }}" data-title="{{ strtolower($course->name) }}">
+                                    <td>
+                                        <div class="course-cell">
+                                            @if($img)
+                                                <img class="course-cell-thumb" src="{{ $img }}" alt="{{ $course->name }}">
+                                            @else
+                                                <div class="course-cell-thumb"></div>
+                                            @endif
+                                            <div>
+                                                <div class="course-cell-title">{{ $course->name }}</div>
+                                                <div class="course-cell-desc">{{ Str::limit($course->description, 70) }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-pill {{ $statusClass }}"><i class="fas {{ $status === 'pending' ? 'fa-hourglass-half' : ($status === 'approved' ? 'fa-circle-check' : 'fa-box-archive') }}"></i> {{ $statusLabel }}</span>
+                                    </td>
+                                    <td>
+                                        {{ optional($course->created_at)->format('M d, Y') }}<br>
+                                        <span style="color:#64748b;font-weight:700;font-size:.85rem;">{{ optional($course->created_at)->format('h:i A') }}</span>
+                                    </td>
+                                    <td>
+                                        {{ optional($course->updated_at)->format('M d, Y') }}<br>
+                                        <span style="color:#64748b;font-weight:700;font-size:.85rem;">{{ optional($course->updated_at)->format('h:i A') }}</span>
+                                    </td>
+                                    <td>
+                                        <a class="action-btn muted" href="{{ route('trainer.courses.view', $course->id) }}" style="white-space:nowrap;">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <tr id="coachSubmissionsEmptyRow" style="display:none;">
+                                <td colspan="5" style="text-align:center;color:#64748b;font-weight:700;padding:26px;">No submissions found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="course-create" class="content-section {{ request('tab') === 'course-create' ? 'active' : '' }}">
+                <div class="section-header">
+                    <h2 class="section-title">Add Course</h2>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+                    <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <span id="coachDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="coachDraftSavedTime"></span></span>
+                        <button type="button" onclick="openImportCourseLibraryInCreateCoach()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Import from Course Library
+                        </button>
+                        <button type="button" onclick="backToCourseUtilities()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-left"></i> Back to Course Utilities
+                        </button>
+                    </div>
+                </div>
+                <div class="course-create-shell">
+                    <iframe id="courseCreateFrameCoach" title="Create course form" src="{{ request('tab') === 'course-create' ? route('trainer.courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
+                </div>
+            </div>
+
+            <div id="pending-courses" class="content-section {{ request('tab') === 'pending-courses' ? 'active' : '' }}">
+                <div class="section-header">
+                    <h2 class="section-title">Pending Courses</h2>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+                    <h1 class="welcome-title" style="margin:0;">Pending <strong>Courses</strong></h1>
+                    <button type="button" onclick="backToCourseUtilities()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-arrow-left"></i> Back to Course Utilities
+                    </button>
+                </div>
+                <div class="course-grid">
+                    @forelse(($pendingCoachCourses ?? collect())->sortByDesc('created_at') as $course)
+                        @php
+                            $img = !empty($course->image_path) ? $course->image_url : null;
+                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                $img = $course->image_path;
+                            }
+                        @endphp
+                        <div class="course-card" style="cursor:pointer" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.view', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.view', $course) }}';}">
+                            <div class="course-image">
+                                @if($img)
+                                    <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:100%;object-fit:cover">
+                                @else
+                                    <div style="width:100%;height:100%;background:#eef4ff"></div>
+                                @endif
+                            </div>
+                            <div class="course-content">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                                    <div class="course-title">{{ $course->name }}</div>
+                                    <span class="status-chip status-pending">Pending</span>
+                                </div>
+                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                <div class="course-footer">
+                                    <div style="background:#f1f5f9;color:#64748b;padding:6px 12px;border-radius:999px;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                        <i class="fas fa-clock" style="font-size:0.8rem;"></i>
+                                        <span>Awaiting approval</span>
+                                    </div>
+                                    <a class="btn-view" href="{{ route('trainer.courses.view', $course) }}" onclick="event.stopPropagation();">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#6c757d;">
+                            <p>No pending courses.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div id="archived-courses" class="content-section {{ request('tab') === 'archived-courses' ? 'active' : '' }}">
+                <div class="section-header">
+                    <h2 class="section-title">Archived Courses</h2>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+                    <h1 class="welcome-title" style="margin:0;">Archived <strong>Courses</strong></h1>
+                    <button type="button" onclick="backToCourseUtilities()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-arrow-left"></i> Back to Course Utilities
+                    </button>
+                </div>
+                <div class="course-grid">
+                    @forelse(($archivedCoachCourses ?? collect())->sortByDesc('deleted_at') as $course)
+                        @php
+                            $img = !empty($course->image_path) ? $course->image_url : null;
+                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                $img = $course->image_path;
+                            }
+                        @endphp
+                        <div class="course-card">
+                            <div class="course-image">
+                                @if($img)
+                                    <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:100%;object-fit:cover">
+                                @else
+                                    <div style="width:100%;height:100%;background:#eef4ff"></div>
+                                @endif
+                            </div>
+                            <div class="course-content">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                                    <div class="course-title">{{ $course->name }}</div>
+                                    <span class="status-chip" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;">Archived</span>
+                                </div>
+                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                <div class="course-footer">
+                                    <div style="background:#f1f5f9;color:#64748b;padding:6px 12px;border-radius:999px;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                        <i class="fas fa-box-archive" style="font-size:0.8rem;"></i>
+                                        <span>{{ optional($course->deleted_at)->format('M d, Y') ?: 'Archived' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#6c757d;">
+                            <p>No archived courses.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div id="course-library" class="content-section {{ request('tab') === 'course-library' ? 'active' : '' }}">
+                <div class="section-header">
+                    <h2 class="section-title">Course Library</h2>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+                    <h1 class="welcome-title" style="margin:0;">Course <strong>Library</strong></h1>
+                    <button type="button" onclick="backToCourseUtilities()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-arrow-left"></i> Back to Course Utilities
+                    </button>
+                </div>
+                <div class="course-grid">
+                    @forelse(($libraryCoachCourses ?? collect())->sortByDesc('created_at') as $course)
+                        @php
+                            $img = !empty($course->image_path) ? $course->image_url : null;
+                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                $img = $course->image_path;
+                            }
+                        @endphp
+                        <div class="course-card">
+                            <div class="course-image">
+                                @if($img)
+                                    <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:100%;object-fit:cover">
+                                @else
+                                    <div style="width:100%;height:100%;background:#eef4ff"></div>
+                                @endif
+                            </div>
+                            <div class="course-content">
+                                <div class="course-title">{{ $course->name }}</div>
+                                <div class="course-desc">{{ Str::limit($course->description, 100) }}</div>
+                                <div class="course-footer">
+                                    <div style="background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0;padding:6px 12px;border-radius:999px;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                        <i class="fas fa-check-circle" style="font-size:0.8rem;"></i>
+                                        <span>Published</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#6c757d;">
+                            <p>No published courses available.</p>
                         </div>
                     @endforelse
                 </div>
@@ -3016,6 +3399,16 @@
         </div>
     </div>
 
+    <div id="draftCoursesModal" class="modal-overlay" style="display:none;">
+        <div class="modal-container" style="width:min(1100px, 94vw);max-height:90vh;overflow:auto;border-radius:16px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Draft Courses</h3>
+                <button class="close-modal" onclick="closeDraftCoursesModal()">&times;</button>
+            </div>
+            <div id="draftCoursesModalContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+        </div>
+    </div>
+
     <script>
         const storageBaseUrl = "{{ asset('storage') }}";
         const myCourses = @json($myCourses);
@@ -3200,6 +3593,358 @@
             var dd=document.getElementById(dropdownId || 'portal-dropdown-coach');
             if(!dd) return;
             dd.classList.toggle('open');
+        }
+
+        function toggleSubmenu(ev, el){
+            if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+            var s=document.getElementById('sidebar');
+            if(s && s.classList.contains('collapsed')) return;
+            var li = el ? el.closest('.nav-submenu-item') : null;
+            if(!li) return;
+            li.classList.toggle('open');
+        }
+
+        function startNewCoachCourseDraft() {
+            try {
+                sessionStorage.setItem('load_draft', '0');
+                sessionStorage.setItem('draft_course_key', 'draft_course_new_' + Date.now() + '_u_{{ auth()->id() }}');
+            } catch (e) {}
+        }
+
+        function getCourseUtilitiesNavLink() {
+            return document.querySelector('a.nav-link[href*="tab=course-utilities"]');
+        }
+
+        function updateUrlTab(tabValue) {
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', String(tabValue || ''));
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {}
+        }
+
+        function backToCourseUtilities() {
+            const link = getCourseUtilitiesNavLink();
+            updateUrlTab('course-utilities');
+            showContent('course-utilities', link);
+        }
+
+        function openAddCourseInUtilities() {
+            startNewCoachCourseDraft();
+            const link = getCourseUtilitiesNavLink();
+            updateUrlTab('course-utilities');
+            ensureCourseCreateFrameLoadedCoach();
+            showContent('course-create', link);
+        }
+
+        function changeCoachUtilitiesYear(yearId) {
+            const url = new URL(@json(route('dashboard')));
+            url.searchParams.set('tab', 'course-utilities');
+            url.searchParams.set('academic_year_id', String(yearId || ''));
+            window.location.href = url.toString();
+        }
+
+        function filterCoachUtilitiesCourses() {
+            const input = document.getElementById('coachUtilitiesSearch');
+            const q = input ? String(input.value || '').trim().toLowerCase() : '';
+            document.querySelectorAll('.js-coach-utilities-card').forEach(card => {
+                const name = String(card.getAttribute('data-course-name') || '');
+                card.style.display = !q || name.includes(q) ? '' : 'none';
+            });
+        }
+
+        function updateCoachDraftCount() {
+            const el = document.getElementById('coachDraftCount');
+            if (!el) return;
+            try {
+                el.textContent = String(getDraftCoursesFromLocalStorage().length);
+            } catch (e) {
+                el.textContent = '0';
+            }
+        }
+
+        let COACH_SUBMISSIONS_ACTIVE_TAB = 'all';
+
+        function setCoachSubmissionStatusOptionsForTab(tab) {
+            const sel = document.getElementById('coachSubmissionStatus');
+            if (!sel) return;
+
+            const t = String(tab || 'all');
+            const optionsByTab = {
+                all: [
+                    { v: 'all', l: 'All Status' },
+                    { v: 'pending', l: 'Pending Approval' },
+                    { v: 'approved', l: 'Approved' },
+                    { v: 'rejected', l: 'Rejected' },
+                ],
+                pending: [
+                    { v: 'all', l: 'All Status' },
+                    { v: 'pending', l: 'Pending Approval' },
+                ],
+                approved: [
+                    { v: 'all', l: 'All Status' },
+                    { v: 'approved', l: 'Approved' },
+                ],
+                rejected: [
+                    { v: 'all', l: 'All Status' },
+                    { v: 'rejected', l: 'Rejected' },
+                ],
+                draft: [
+                    { v: 'draft', l: 'Draft' },
+                ],
+                archived: [
+                    { v: 'all', l: 'All Status' },
+                    { v: 'archived', l: 'Archived' },
+                ],
+            };
+
+            const options = optionsByTab[t] || optionsByTab.all;
+            const current = String(sel.value || '');
+            sel.innerHTML = options.map(o => `<option value="${escapeHtml(o.v)}">${escapeHtml(o.l)}</option>`).join('');
+
+            const allowed = new Set(options.map(o => o.v));
+            if (allowed.has(current)) {
+                sel.value = current;
+            } else {
+                sel.value = options[0].v;
+            }
+        }
+
+        function switchCoachSubmissionTab(tab) {
+            COACH_SUBMISSIONS_ACTIVE_TAB = String(tab || 'all');
+            document.querySelectorAll('#course-utilities .submissions-tab').forEach(btn => {
+                const t = String(btn.getAttribute('data-tab') || '');
+                btn.classList.toggle('active', t === COACH_SUBMISSIONS_ACTIVE_TAB);
+            });
+            setCoachSubmissionStatusOptionsForTab(COACH_SUBMISSIONS_ACTIVE_TAB);
+            applyCoachSubmissionFilters();
+        }
+
+        function renderCoachDraftRows() {
+            const tbody = document.getElementById('coachSubmissionsTbody');
+            if (!tbody) return;
+            Array.from(tbody.querySelectorAll('tr[data-status="draft"]')).forEach(tr => tr.remove());
+
+            let drafts = [];
+            try { drafts = getDraftCoursesFromLocalStorage(); } catch (e) { drafts = []; }
+            drafts.forEach((draft) => {
+                const courseName = draft.data && draft.data.name ? String(draft.data.name) : 'Untitled Course';
+                const courseDesc = draft.data && draft.data.description ? String(draft.data.description) : 'No description';
+                const tr = document.createElement('tr');
+                tr.className = 'coach-submission-row';
+                tr.setAttribute('data-status', 'draft');
+                tr.setAttribute('data-title', courseName.toLowerCase());
+                tr.innerHTML = `
+                    <td>
+                        <div class="course-cell">
+                            <div class="course-cell-thumb" style="display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-file-pen" style="color:#1d4ed8;"></i>
+                            </div>
+                            <div>
+                                <div class="course-cell-title">${escapeHtml(courseName)}</div>
+                                <div class="course-cell-desc">${escapeHtml(courseDesc)}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="status-pill status-draft"><i class="fas fa-file-pen"></i> Draft</span></td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <button type="button" class="action-btn primary" onclick="editDraftCourse('${draft.key.replace(/'/g, "\\'")}')">Edit</button>
+                        <button type="button" class="action-btn danger" onclick="deleteDraftCourse('${draft.key.replace(/'/g, "\\'")}')">Remove</button>
+                    </td>
+                `;
+                const emptyRow = document.getElementById('coachSubmissionsEmptyRow');
+                if (emptyRow) {
+                    tbody.insertBefore(tr, emptyRow);
+                } else {
+                    tbody.appendChild(tr);
+                }
+            });
+
+        }
+
+        function applyCoachSubmissionFilters() {
+            const q = String((document.getElementById('coachSubmissionSearch') || {}).value || '').trim().toLowerCase();
+            const status = String((document.getElementById('coachSubmissionStatus') || {}).value || 'all');
+
+            let visibleCount = 0;
+            document.querySelectorAll('#coachSubmissionsTbody .coach-submission-row').forEach(row => {
+                const rowStatus = String(row.getAttribute('data-status') || '');
+                const title = String(row.getAttribute('data-title') || '');
+                const allowedInAll = ['pending', 'approved', 'rejected'];
+                const matchTab = (COACH_SUBMISSIONS_ACTIVE_TAB === 'all')
+                    ? allowedInAll.includes(rowStatus)
+                    : (rowStatus === COACH_SUBMISSIONS_ACTIVE_TAB);
+                const matchStatus = (status === 'all') || (rowStatus === status);
+                const matchSearch = !q || title.includes(q);
+
+                const show = matchTab && matchStatus && matchSearch;
+                row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            const emptyRow = document.getElementById('coachSubmissionsEmptyRow');
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+
+        function initCoachCourseUtilitiesUI() {
+            if (!document.getElementById('course-utilities')) return;
+            if (!document.getElementById('coachSubmissionsTbody')) return;
+            renderCoachDraftRows();
+            const activeBtn = document.querySelector('#course-utilities .submissions-tab.active');
+            const tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'all';
+            COACH_SUBMISSIONS_ACTIVE_TAB = tab || 'all';
+            setCoachSubmissionStatusOptionsForTab(COACH_SUBMISSIONS_ACTIVE_TAB);
+            applyCoachSubmissionFilters();
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function updateCoachDraftSavedIndicator(timeText) {
+            const wrap = document.getElementById('coachDraftSavedIndicator');
+            const time = document.getElementById('coachDraftSavedTime');
+            if (!wrap || !time) return;
+            if (!timeText) {
+                wrap.style.display = 'none';
+                return;
+            }
+            time.textContent = String(timeText);
+            wrap.style.display = 'inline';
+        }
+
+        window.addEventListener('message', function (event) {
+            const data = event && event.data ? event.data : null;
+            if (!data || typeof data !== 'object') return;
+            if (data.type === 'course_draft_saved') {
+                updateCoachDraftSavedIndicator(data.time || '');
+            }
+        });
+
+        function ensureCourseCreateFrameLoadedCoach() {
+            const frame = document.getElementById('courseCreateFrameCoach');
+            if (frame && !frame.getAttribute('src')) {
+                frame.setAttribute('src', @json(route('trainer.courses.create', ['embedded' => 1])));
+            }
+        }
+
+        function openImportCourseLibraryInCreateCoach() {
+            ensureCourseCreateFrameLoadedCoach();
+            const frame = document.getElementById('courseCreateFrameCoach');
+            if (!frame) return;
+            const tryOpen = () => {
+                try {
+                    if (frame.contentWindow && typeof frame.contentWindow.openImportLibraryModal === 'function') {
+                        frame.contentWindow.openImportLibraryModal();
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            };
+            if (tryOpen()) return;
+            frame.addEventListener('load', function onLoad() {
+                frame.removeEventListener('load', onLoad);
+                tryOpen();
+            });
+        }
+
+        function openDraftCoursesModal() {
+            const modal = document.getElementById('draftCoursesModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                renderDraftCoursesInModal();
+            }
+        }
+
+        function closeDraftCoursesModal() {
+            const modal = document.getElementById('draftCoursesModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function getDraftCoursesFromLocalStorage() {
+            let drafts = [];
+            const userSuffix = '_u_{{ auth()->id() }}';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                const isDraftKey =
+                    key.endsWith(userSuffix) && (
+                        key.startsWith('draft_course_active_new_') ||
+                        key.startsWith('draft_course_new_') ||
+                        key.startsWith('draft_course_edit_')
+                    );
+                if (!isDraftKey) continue;
+                const raw = localStorage.getItem(key);
+                if (raw && raw !== '{}' && raw !== 'null') {
+                    try {
+                        const data = JSON.parse(raw);
+                        drafts.push({ key: key, data: data });
+                    } catch (e) {}
+                }
+            }
+            return drafts;
+        }
+
+        function renderDraftCoursesInModal() {
+            const container = document.getElementById('draftCoursesModalContainer');
+            if (!container) return;
+            const drafts = getDraftCoursesFromLocalStorage();
+            updateCoachDraftCount();
+            if (drafts.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff; border-radius: 12px; border: 2px dashed #e5e7eb;"><p style="color: #64748b; font-weight: 600; margin: 0;">You have no draft courses yet.</p></div>';
+                return;
+            }
+            container.innerHTML = '';
+            drafts.forEach((draft) => {
+                const courseName = draft.data.name || 'Untitled Course';
+                const courseDesc = draft.data.description || 'No description';
+                const card = document.createElement('div');
+                card.style.cssText = 'background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column;';
+                card.innerHTML = `
+                    <div style="width: 100%; height: 160px; background: linear-gradient(135deg, #002C76 0%, #0056b3 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
+                        <i class="fas fa-file-pen"></i>
+                    </div>
+                    <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="margin: 0 0 10px; color: #002C76; font-size: 1.15rem; font-weight: 800; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${courseName}</h3>
+                        <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">${courseDesc}</p>
+                        <div style="display: flex; gap: 10px; margin-top: auto;">
+                            <button type="button" onclick="event.stopPropagation(); editDraftCourse('${draft.key}');" style="flex: 1; padding: 10px; background: #002C76; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;">Edit</button>
+                            <button type="button" onclick="event.stopPropagation(); deleteDraftCourse('${draft.key}')" style="padding: 10px 14px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;">Remove</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function editDraftCourse(storageKey) {
+            const raw = localStorage.getItem(storageKey);
+            if (!raw) { alert('Draft not found'); return; }
+            try {
+                JSON.parse(raw);
+                sessionStorage.setItem('load_draft', '1');
+                sessionStorage.setItem('draft_course_key', storageKey);
+                window.location.href = @json(route('dashboard', ['tab' => 'course-create']));
+            } catch (e) {
+                alert('Error loading draft');
+            }
+        }
+
+        function deleteDraftCourse(storageKey) {
+            localStorage.removeItem(storageKey);
+            renderDraftCoursesInModal();
+            updateCoachDraftCount();
+            try { renderCoachDraftRows(); } catch (e) {}
+            try { applyCoachSubmissionFilters(); } catch (e) {}
         }
 
         function initProfileLocationDropdowns() {
@@ -3878,6 +4623,8 @@
             var active=document.querySelector('.content-section.active');
             var id=active?active.id:'dashboard-home';
             updateHeaderTitle(id);
+            try{ updateCoachDraftCount(); }catch(_){}
+            try{ initCoachCourseUtilitiesUI(); }catch(_){}
             try{
                 document.querySelectorAll('#dashboard-home select option').forEach(function(option){
                     option.textContent = (option.textContent || '').replace(/â€“/g, '-');

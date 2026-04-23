@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\Role;
 use App\Models\FieldOfWork;
@@ -407,6 +408,39 @@ class DashboardController extends Controller
                 } else {
                     $myCourses = collect([]);
                 }
+
+                $hasSubmittedBy = Schema::hasColumn('courses', 'submitted_by_user_id');
+                $submissionField = $hasSubmittedBy ? 'submitted_by_user_id' : 'trainer_id';
+
+                if ($showCourses) {
+                    $activeCoachCoursesQuery = Course::query()
+                        ->where($submissionField, $user->id)
+                        ->where('is_published', true);
+                    if ($selectedYearId !== 'all') {
+                        $activeCoachCoursesQuery->where('academic_year_id', $selectedYearId);
+                    }
+                    $activeCoachCourses = $activeCoachCoursesQuery->with('users')->orderByDesc('updated_at')->get();
+
+                    $pendingCoachCoursesQuery = Course::onlyTrashed()
+                        ->where($submissionField, $user->id)
+                        ->where('is_published', false);
+                    if ($selectedYearId !== 'all') {
+                        $pendingCoachCoursesQuery->where('academic_year_id', $selectedYearId);
+                    }
+                    $pendingCoachCourses = $pendingCoachCoursesQuery->with('users')->orderByDesc('created_at')->get();
+
+                    $archivedCoachCoursesQuery = Course::onlyTrashed()
+                        ->where($submissionField, $user->id)
+                        ->where('is_published', true);
+                    if ($selectedYearId !== 'all') {
+                        $archivedCoachCoursesQuery->where('academic_year_id', $selectedYearId);
+                    }
+                    $archivedCoachCourses = $archivedCoachCoursesQuery->with('users')->orderByDesc('created_at')->get();
+                } else {
+                    $activeCoachCourses = collect([]);
+                    $pendingCoachCourses = collect([]);
+                    $archivedCoachCourses = collect([]);
+                }
                 
                 $totalCoursesTeaching = $myCourses->count();
                 
@@ -454,6 +488,9 @@ class DashboardController extends Controller
                 } else {
                     $availableCourses = collect([]);
                 }
+                $libraryCoachCourses = $availableCourses->filter(function ($course) {
+                    return (bool) ($course->is_published ?? false);
+                })->values();
 
                 $announcements = Announcement::with('user')->latest()->get();
                 $calendarEvents = CalendarEvent::where('user_id', $user->id)->orderBy('start_time')->get();
@@ -485,7 +522,7 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainer.dashboard', compact('myCourses', 'availableCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
+                return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
             case in_array($roleForView, $tmRoles, true):
                 $managedRoles = [];
                 $pendingApplicantScope = null;

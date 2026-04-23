@@ -1541,6 +1541,7 @@ class CourseController extends Controller
 
         if (auth()->check()) {
             $validated['trainer_id'] = auth()->id();
+            $validated['submitted_by_user_id'] = auth()->id();
         }
 
         if ($request->course_type === 'controlled') {
@@ -1600,6 +1601,7 @@ class CourseController extends Controller
             'description' => 'required|string|max:1000',
             'subject_area' => 'required|array|min:1',
             'subject_area.*' => ['string', Rule::in($allowedSubjectAreas)],
+            'academic_year_id' => 'required|exists:academic_years,id',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',

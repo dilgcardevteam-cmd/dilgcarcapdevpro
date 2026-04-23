@@ -78,6 +78,7 @@ class Course extends Model
         'enrollment_end_date',
         'course_expiration_date',
         'trainer_id',
+        'submitted_by_user_id',
         'start_date',
         'end_date',
         'certification_id',
