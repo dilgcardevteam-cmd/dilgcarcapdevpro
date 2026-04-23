@@ -278,80 +278,6 @@
         .tab-content.active {
             display: block;
         }
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            margin: 8px 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .resource-item:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-1px);
-        }
-        .resource-icon {
-            width: 42px;
-            height: 42px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff; /* White icon as requested */
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-        .resource-download {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.5);
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            border-radius: 8px;
-        }
-        .resource-item:hover .resource-download {
-            color: #fff;
-            background: rgba(255,255,255,0.1);
-        }
-        .resource-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .resource-title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-        .resource-meta {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-        
-        /* Specific icon backgrounds like the image */
-        .icon-pdf { background: #ef4444; }
-        .icon-doc { background: #3b82f6; }
-        .icon-xls { background: #22c55e; }
-        .icon-ppt { background: #f97316; }
-        .icon-img { background: #a855f7; }
-        .icon-vid { background: #6366f1; }
-        .icon-other { background: #64748b; }
-
         .mc .mc-option{background:#fff;border:1px solid #e6edf5}
         .mc .mc-option:hover{background:#f5f8ff}
         .mc .mc-option.selected{background:#eef2ff;border-color:#c7d2fe}
@@ -585,10 +511,6 @@
                         <i class="fas fa-book"></i>
                         <span style="font-size: 0.85rem;">Course Outline</span>
                     </div>
-                    <div class="sidebar-tab" data-tab="resourcesTab" style="padding: 16px 8px;">
-                        <i class="fas fa-file-alt"></i>
-                        <span style="font-size: 0.85rem;">Resources</span>
-                    </div>
                 </div>
             </div>
 
@@ -597,43 +519,6 @@
                     <input type="text" id="outlineSearch" placeholder="Search topics..." style="width: 100%;">
                 </div>
                 <div id="outline" class="outline" style="padding-top: 4px;"></div>
-            </div>
-
-            <div id="resourcesTab" class="tab-content">
-                <div class="outline" style="padding-top: 14px;">
-                    @forelse($course->materials as $material)
-                        @php
-                            $ext = strtolower(pathinfo($material->file_path, PATHINFO_EXTENSION));
-                            $icon = 'fa-file-alt';
-                            $bgClass = 'icon-other';
-                            
-                            if(in_array($ext, ['pdf'])) { $icon = 'fa-file-pdf'; $bgClass = 'icon-pdf'; }
-                            elseif(in_array($ext, ['doc','docx'])) { $icon = 'fa-file-word'; $bgClass = 'icon-doc'; }
-                            elseif(in_array($ext, ['xls','xlsx'])) { $icon = 'fa-file-excel'; $bgClass = 'icon-xls'; }
-                            elseif(in_array($ext, ['ppt','pptx'])) { $icon = 'fa-file-powerpoint'; $bgClass = 'icon-ppt'; }
-                            elseif(in_array($ext, ['jpg','jpeg','png','gif'])) { $icon = 'fa-file-image'; $bgClass = 'icon-img'; }
-                            elseif(in_array($ext, ['mp4','webm','avi'])) { $icon = 'fa-file-video'; $bgClass = 'icon-vid'; }
-                        @endphp
-                        <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" class="resource-item">
-                            <div class="resource-icon {{ $bgClass }}">
-                                <i class="fas {{ $icon }}"></i>
-                            </div>
-                            <div class="resource-info">
-                                <div class="resource-title">{{ $material->title }}</div>
-                                <div class="resource-meta">{{ strtoupper($ext) ?: $material->type }}</div>
-                            </div>
-                            <div class="resource-download">
-                                <i class="fas fa-download"></i>
-                            </div>
-                        </a>
-                    @empty
-                        <div style="padding: 40px 20px; text-align: center; color: rgba(255,255,255,0.4);">
-                            <i class="fas fa-folder-open" style="font-size: 2.5rem; display: block; margin-bottom: 12px;"></i>
-                            <div style="font-weight: 700;">No resources available</div>
-                            <div style="font-size: 0.85rem; margin-top: 4px;">Uploaded files will appear here.</div>
-                        </div>
-                    @endforelse
-                </div>
             </div>
         </aside>
         <main class="content">
@@ -1433,7 +1318,9 @@
                         const chip = showTrainerAnswer && isAns ? '<span class="chip">Answer</span>' : '';
                         return `<div class="mc-option${isAns&&showTrainerAnswer?' trainer-answer':''}" data-idx="${oi}"><span class="mc-radio"></span><span class="mc-label">${esc(o)}</span> ${chip}</div>`;
                     }).join('');
-                    const helper = mcKind === 'multiple_choice_multiple' ? '<div class="muted" style="margin-bottom:8px">Select all that apply.</div>' : '';
+                    const helper = mcKind === 'multiple_choice_multiple'
+                        ? `<div class="muted" style="margin-bottom:8px">Select all that apply (${correctIndexes.length} correct answer${correctIndexes.length === 1 ? '' : 's'}).</div>`
+                        : '';
                     if(showTrainerAnswer){
                         return `<div class="field question">${heading}${helper}<div class="mc" data-mode="${mcKind}" data-answer="${correctIndexes.join(',')}">${opts}</div></div>`;
                     }
@@ -1458,29 +1345,23 @@
                 }else if(kind==='enumeration'){
                     const heading = questionHeading(qi, q, 'Enumeration', questionTypeLabel(kind));
                     const answers = Array.isArray(q.answers) ? q.answers : [];
+                    const requiredCount = Number(q.required_answers_count || answers.length || 1) || 1;
                     const maxPoints = Number(q.max_points || 1) || 1;
                     if(showTrainerAnswer){
                         const list = answers.length
                             ? `<div style="display:grid;gap:6px;margin-top:8px">${answers.map((answer, index)=>`<div><span class="chip">Answer ${index + 1}</span> ${esc(answer)}</div>`).join('')}</div>`
-                            : '<div class="muted">No correct answers configured.</div>';
+                            : (q.expected_guide ? `<div class="muted" style="white-space:pre-wrap">${esc(q.expected_guide)}</div>` : '<div class="muted">Manual-check guide not provided.</div>');
                         return `<div class="field question" data-kind="enum">
                             ${heading}
+                            <div style="margin-bottom:8px"><span class="chip">Required Answers</span> ${requiredCount}</div>
                             ${list}
                             <div style="margin-top:8px"><span class="chip">Max Points</span> ${maxPoints}</div>
                         </div>`;
                     }
-                    // If trainee, show input fields. Use maxPoints to determine how many boxes.
-                    const inputCount = Math.max(answers.length, maxPoints);
-                    const inputFields = [];
-                    for(let i=0; i<inputCount; i++){
-                        inputFields.push(`<input class="q-input input enum-input" type="text" placeholder="Answer ${i + 1}" data-enum-index="${i}" style="margin-bottom:8px">`);
-                    }
                     return `<div class="field question" data-kind="enum">
                         ${heading}
-                        <div class="muted" style="margin-bottom:8px">Provide one answer per field. This item is checked manually.</div>
-                        <div class="enum-list" style="display:grid;gap:2px">
-                            ${inputFields.join('')}
-                        </div>
+                        <div class="muted" style="margin-bottom:8px">Enter exactly ${requiredCount} answer${requiredCount === 1 ? '' : 's'}, one per line. This item is checked manually.</div>
+                        <textarea class="q-input input enum-input" rows="${Math.min(8, Math.max(3, requiredCount + 1))}" data-required-count="${requiredCount}" placeholder="One answer per line" style="width:100%;resize:vertical"></textarea>
                     </div>`;
                 }else if(kind==='essay'){
                     const heading = questionHeading(qi, q, 'Essay', questionTypeLabel(kind));
@@ -1845,7 +1726,8 @@
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
                         }else if(kind==='enum'){
-                            return Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim());
+                            const raw = b.querySelector('.enum-input')?.value || '';
+                            return raw.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
                         }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); return (inp?.value||'').trim();
                         }else if(kind==='tf'){
@@ -1883,10 +1765,8 @@
                         }else if(kind==='id'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='enum'){
-                            const arr = Array.isArray(val) ? val : [];
-                            b.querySelectorAll('.enum-input').forEach((inp, idx)=>{
-                                inp.value = arr[idx] || '';
-                            });
+                            const inp = b.querySelector('.enum-input');
+                            if(inp){ inp.value = Array.isArray(val) ? val.join('\n') : (val || ''); }
                         }else if(kind==='essay'){
                             const inp = b.querySelector('.q-input'); if(inp){ inp.value = val || ''; }
                         }else if(kind==='tf'){
@@ -1944,11 +1824,6 @@
                             const submittedIndexes = (Array.isArray(a) ? a : (Number.isInteger(a) ? [a] : [])).filter(Number.isInteger).sort((x,y)=>x-y);
                             const exact = correctIndexes.length === submittedIndexes.length && correctIndexes.every((value, idx) => value === submittedIndexes[idx]);
                             if(exact) correct += maxPoints;
-                            else if(normalizeMcKind(kind) === 'multiple_choice_multiple' && correctIndexes.length){
-                                const correctSet = new Set(correctIndexes);
-                                const matched = submittedIndexes.filter(index => correctSet.has(index)).length;
-                                correct += (matched / correctIndexes.length) * maxPoints;
-                            }
                         }else if(kind==='true_false'){
                             const maxPoints = Number(q.max_points || 1) || 1;
                             total += maxPoints;
@@ -2114,6 +1989,10 @@
                     const objectiveTotal = Number(summary?.objective_total ?? 0) || 0;
                     const manualPending = Number(summary?.manual_pending_count ?? summary?.essay_pending_count ?? 0) || 0;
                     const manualChecked = Number(summary?.manual_checked_count ?? summary?.essay_checked_count ?? 0) || 0;
+                    const formatScore = (value) => {
+                        const num = Number(value) || 0;
+                        return Number.isInteger(num) ? String(num) : num.toFixed(2).replace(/\.?0+$/, '');
+                    };
                     const status = summary?.status || 'completed';
                     const statusLabel = summary?.status_label || 'Completed';
                     const violationCount = Number(summary?.violation_count ?? summary?.exam_integrity?.violations ?? 0) || 0;
@@ -2171,7 +2050,7 @@
                             <div style="font-size:0.95rem;font-weight:800;color:${statusColor}">${statusLabel}</div>
                             ${statusTxt ? `<div style="color:${statusColor};font-weight:800">${statusTxt}</div>` : ''}
                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">
-                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${objectiveCorrect}/${objectiveTotal} Objective score</span>
+                              <span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-check" style="margin-right:6px;color:#0f3b8f"></i> ${formatScore(objectiveCorrect)}/${formatScore(objectiveTotal)} Objective Score</span>
                               ${manualPending ? `<span class="chip" style="background:#fff7ed;border:1px solid #fdba74;color:#b45309"><i class="fas fa-pen-nib" style="margin-right:6px;"></i> ${manualPending} pending manual review</span>` : ``}
                               ${manualChecked ? `<span class="chip" style="background:#ecfdf5;border:1px solid #86efac;color:#166534"><i class="fas fa-check-double" style="margin-right:6px;"></i> ${manualChecked} manually checked</span>` : ``}
                               ${effectivePassingScore!=null ? `<span class="chip" style="background:#eef2ff;border:1px solid #dbeafe"><i class="fas fa-flag-checkered" style="margin-right:6px;color:#0f3b8f"></i> Passing ${effectivePassingScore}%</span>` : ``}
@@ -2383,12 +2262,12 @@
                             b.appendChild(info);
                         } else if(kind==='enumeration'){
                             const response = latestExamSummary?.items?.find?.(item => Number(item.question_index) === i && item.type === 'enumeration') || null;
-                            const inputs = Array.from(b.querySelectorAll('.enum-input'));
+                            const input = b.querySelector('.enum-input');
                             const yourAnswers = Array.isArray(ua?.[i]) ? ua[i] : [];
-                            inputs.forEach((input, idx)=>{
+                            if(input){
                                 input.disabled = true;
-                                input.value = yourAnswers[idx] || '';
-                            });
+                                input.value = yourAnswers.join('\n');
+                            }
                             const info = document.createElement('div');
                             info.className='muted';
                             info.style.marginTop='8px';
@@ -2451,7 +2330,7 @@
                         }else if(kind==='id'){
                             const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
                         }else if(kind==='enum'){
-                            const vals = Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim()).filter(Boolean);
+                            const vals = (b.querySelector('.enum-input')?.value || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean);
                             if(vals.length) answered++;
                         }else if(kind==='essay'){
                             const val=(b.querySelector('.q-input')?.value||'').trim(); if(val) answered++;
@@ -2475,8 +2354,11 @@
                             const val = (b.querySelector('.q-input')?.value || '').trim();
                             if(!val) return `Question ${i + 1} is blank.`;
                         }else if(kind === 'enum'){
-                            const vals = Array.from(b.querySelectorAll('.enum-input')).map(inp => (inp?.value || '').trim());
-                            if(vals.some(v => !v)) return `Question ${i + 1} needs all enumeration answers filled in.`;
+                            const input = b.querySelector('.enum-input');
+                            const vals = (input?.value || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                            const required = Number(input?.dataset.requiredCount || 0) || vals.length;
+                            if(vals.length === 0) return `Question ${i + 1} enumeration answer cannot be empty.`;
+                            if(vals.length > required) return `Question ${i + 1} accepts at most ${required} enumeration answer${required === 1 ? '' : 's'}.`;
                         }else if(kind === 'essay'){
                             const val = (b.querySelector('.q-input')?.value || '').trim();
                             if(!val) return `Question ${i + 1} essay answer cannot be empty.`;
@@ -2792,20 +2674,34 @@
                                                     <div class="essay-review-list" style="display:grid;gap:12px;">
                                                         ${manualItems.map(item=>`
                                                             <div class="topic-detail-card" data-question-index="${item.question_index}">
-                                                                <div style="font-size:0.75rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">${manualExamKindLabel(item.type)} Question ${Number(item.question_index)+1}</div>
-                                                                <div style="font-size:0.95rem;font-weight:700;color:#1e293b;margin-bottom:10px">${esc(item.text||'Question')}</div>
-                                                                <div style="margin-bottom:10px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;white-space:pre-wrap">${esc(item.answer_text||'No answer submitted.')}</div>
+                                                                <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px">
+                                                                    <div>
+                                                                        <div style="font-size:0.75rem;font-weight:800;color:#2563eb;text-transform:uppercase;margin-bottom:6px">${manualExamKindLabel(item.type)} Question ${Number(item.question_index)+1}</div>
+                                                                        <div style="font-size:0.95rem;font-weight:700;color:#1e293b">${esc(item.text||'Question')}</div>
+                                                                    </div>
+                                                                    <span class="chip" style="background:${item.status==='checked' ? '#ecfdf5' : '#fff7ed'};border:1px solid ${item.status==='checked' ? '#86efac' : '#fdba74'};color:${item.status==='checked' ? '#166534' : '#b45309'}">${item.status==='checked' ? 'Reviewed' : 'Pending Review'}</span>
+                                                                </div>
+                                                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                                                                    <span class="chip">Max ${item.max_points ?? 1} pts</span>
+                                                                    ${item.type === 'enumeration' ? `<span class="chip">Required ${item.required_answers_count || 0}</span><span class="chip">Submitted ${(String(item.answer_text||'').split(/\r?\n/).filter(Boolean)).length}</span>` : ``}
+                                                                </div>
+                                                                <div style="font-size:0.8rem;font-weight:800;color:#475569;margin-bottom:6px">Student Answer</div>
+                                                                <div style="margin-bottom:12px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;white-space:pre-wrap">${esc(item.answer_text||'No answer submitted.')}</div>
                                                                 <div style="display:grid;grid-template-columns:minmax(140px,180px) 1fr;gap:12px;align-items:start">
                                                                     <label style="display:grid;gap:6px">
-                                                                        <span style="font-size:0.8rem;font-weight:700;color:#475569">Score / ${item.max_points ?? 1}</span>
-                                                                        <input type="number" min="0" max="${item.max_points ?? 1}" step="0.01" class="essay-score-input input" value="${item.score ?? ''}">
+                                                                        <span style="font-size:0.8rem;font-weight:700;color:#475569">Score (0 to ${item.max_points ?? 1})</span>
+                                                                        <input type="number" min="0" max="${item.max_points ?? 1}" step="0.01" required class="essay-score-input input" value="${item.score ?? ''}">
                                                                     </label>
                                                                     <label style="display:grid;gap:6px">
                                                                         <span style="font-size:0.8rem;font-weight:700;color:#475569">Feedback</span>
                                                                         <textarea class="essay-feedback-input input" rows="3" placeholder="Optional feedback">${esc(item.feedback||'')}</textarea>
                                                                     </label>
                                                                 </div>
-                                                                <div style="margin-top:8px;font-size:0.82rem;font-weight:700;color:${item.status==='checked' ? '#166534' : '#b45309'}">${item.status==='checked' ? 'Checked' : 'Pending Review'}</div>
+                                                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                                                                    <button type="button" class="btn-ghost quick-score" data-score="${item.max_points ?? 1}" style="padding:7px 10px;border-radius:9px">Full Score</button>
+                                                                    <button type="button" class="btn-ghost quick-score" data-score="${Number(item.max_points ?? 1) / 2}" style="padding:7px 10px;border-radius:9px">Half Score</button>
+                                                                    <button type="button" class="btn-ghost quick-score" data-score="0" style="padding:7px 10px;border-radius:9px">Zero</button>
+                                                                </div>
                                                             </div>
                                                         `).join('')}
                                                     </div>
@@ -2813,6 +2709,16 @@
                                                         <button type="button" class="btn-blue essay-review-save" style="padding:10px 16px;border-radius:12px">Save Manual Review</button>
                                                     </div>
                                                 `;
+                                                panel.querySelectorAll('.quick-score').forEach(scoreBtn=>{
+                                                    scoreBtn.addEventListener('click', ()=>{
+                                                        const card = scoreBtn.closest('[data-question-index]');
+                                                        const scoreInput = card?.querySelector('.essay-score-input');
+                                                        if(scoreInput){
+                                                            scoreInput.value = scoreBtn.getAttribute('data-score') || '0';
+                                                            scoreInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                                        }
+                                                    });
+                                                });
                                                 const saveBtn = panel.querySelector('.essay-review-save');
                                                 if(saveBtn){
                                                     saveBtn.addEventListener('click', ()=>{
@@ -2821,7 +2727,12 @@
                                                         for (const card of reviewCards) {
                                                             const scoreInput = card.querySelector('.essay-score-input');
                                                             const rawValue = scoreInput?.value ?? '';
-                                                            const score = Number(rawValue || 0);
+                                                            if (String(rawValue).trim() === '') {
+                                                                alert('Score is required.');
+                                                                scoreInput?.focus();
+                                                                return;
+                                                            }
+                                                            const score = Number(rawValue);
                                                             const max = Number(scoreInput?.getAttribute('max') || 1);
                                                             if (!Number.isFinite(score) || score < 0) {
                                                                 alert('Manual score must be 0 or higher.');
@@ -2935,7 +2846,7 @@
                         return `<div class="mc-option${isAns?' trainer-answer':''}" data-idx="${idx}"><span class="mc-radio"></span><span class="mc-label">${o}</span> ${chip}</div>`;
                     }).join('');
                     const mcMode = isMultipleAnswer ? 'multiple_choice_multiple' : 'multiple_choice_single';
-                    const helper = isMultipleAnswer ? '<div class="muted" style="margin-bottom:8px">Select all that apply.</div>' : '';
+                    const helper = isMultipleAnswer ? `<div class="muted" style="margin-bottom:8px">Select all that apply${correctIndexes.length ? ` (${correctIndexes.length} correct answer${correctIndexes.length === 1 ? '' : 's'})` : ''}.</div>` : '';
                     if(viewOnly){
                         return `<div class="field question" data-kind="mc">
                             ${qTitle}

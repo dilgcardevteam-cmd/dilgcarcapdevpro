@@ -28,10 +28,15 @@ trait HandlesCertification
             'progress_total' => $progress['total'] ?? null,
         ]);
         
-        if ($progress['total'] === 0) return false;
+        $pivotStatus = (string) optional(
+            $course->users()->where('user_id', $user->id)->first()
+        )->pivot?->status;
+        $courseMarkedCompleted = $pivotStatus === 'completed';
+
+        if (($progress['total'] ?? 0) === 0 && !$courseMarkedCompleted) return false;
 
         // 2. Check if progress is 100%
-        if ($progress['percentage'] < 100) return false;
+        if (!$courseMarkedCompleted && ($progress['percentage'] ?? 0) < 100) return false;
 
         // 3. Find the certification associated with this course
         $certId = $course->certification_id;

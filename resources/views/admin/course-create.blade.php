@@ -4152,18 +4152,18 @@
                             </div>
                             <div class="eq-points" style="margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
-                                <input class="eq-common-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-common-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="eq-essay" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
-                                <input class="eq-essay-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="eq-enum" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Correct Answers</label>
                                 <div class="eq-enum-answers" style="display:grid;gap:8px"></div>
                                 <button type="button" class="btn btn-small eq-enum-add" style="margin-top:8px;background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px">Add Answer</button>
                                 <label class="q-label" style="margin:10px 0 6px">Points</label>
-                                <input class="eq-enum-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                                 <button type="button" class="btn btn-ghost eq-add"><i class="fas fa-plus"></i> Add Question</button>
@@ -4766,21 +4766,23 @@
 
                             <div class="eq-points" style="margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-common-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-common-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="eq-essay" style="display:none;margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Instructions / Rubric (Optional)</label>
                                 <textarea class="eq-essay-notes" placeholder="Optional instructions or rubric for students" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-essay-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="eq-enum" style="display:none;margin-bottom:20px;">
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Required Number of Answers</label>
+                                <input class="eq-enum-required-count" type="number" min="1" step="1" placeholder="Example: 3" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:12px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Expected Answers Guide (Optional)</label>
                                 <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-enum-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="actions" style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #e2e8f0;">
@@ -5118,30 +5120,31 @@
                 if(isMultipleChoiceType(t)){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
                     const checked = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value, 10)).filter(Number.isInteger);
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
                     const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'true_false', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='essay'){
                     const notes = (wrap.querySelector('.eq-essay-notes').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-essay-points')?.value;
+                    const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
                     const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
+                    const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text };
                 }
@@ -5152,6 +5155,7 @@
                 recalcExamJSON(wrap);
             }
             wrap.querySelector('.eq-add').addEventListener('click', function(){
+                if(!validateBuilderQuestion(wrap)) return;
                 captureBuilderToActive();
                 const t = wrap.querySelector('.eq-type').value;
                 // Create a brand new blank question object (independent)
@@ -5165,7 +5169,7 @@
                 }else if(t==='essay'){
                     obj = { type:'essay', text:'', instructions: '', max_points: '' };
                 }else if(t==='enumeration'){
-                    obj = { type:'enumeration', text:'', expected_guide: '', max_points: '' };
+                    obj = { type:'enumeration', text:'', required_answers_count: '', expected_guide: '', max_points: '' };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text:'', max_points: '' };
                 }
@@ -5452,6 +5456,9 @@
                 const choices = Array.isArray(payload.choices) ? payload.choices
                                  : Array.isArray(payload.options) ? payload.options
                                  : [];
+                while(wrap.querySelectorAll('.eq-choices .q-option-row').length < choices.length){
+                    wrap.querySelector('.eq-choice-add')?.click();
+                }
                 const rows = Array.from(wrap.querySelectorAll('.eq-choices .q-option-row'));
                 rows.forEach((row,i)=>{
                     const inp = row.querySelector('.eq-option');
@@ -5493,6 +5500,10 @@
                 const guide = String(payload.expected_guide || (Array.isArray(payload.answers) ? payload.answers.join(', ') : ''));
                 const guideEl = wrap.querySelector('.eq-enum-guide');
                 if(guideEl) guideEl.value = guide;
+                const requiredCount = wrap.querySelector('.eq-enum-required-count');
+                if(requiredCount){
+                    requiredCount.value = String(payload.required_answers_count || (Array.isArray(payload.answers) ? payload.answers.length : '') || '');
+                }
                 const enumPoints = wrap.querySelector('.eq-enum-points');
                 if(enumPoints){
                     const maxPoints = payload.max_points;
@@ -5511,7 +5522,7 @@
             if(boxChoices) boxChoices.style.display = isMultipleChoiceType(t) ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
-            if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration' || t==='identification') ? 'none' : 'block';
+            if(boxPoints) boxPoints.style.display = 'block';
             if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
             if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
             if(isMultipleChoiceType(t)){
@@ -5534,21 +5545,31 @@
             helper.style.cssText = 'margin:0 0 8px;color:#475569;font-size:.88rem;font-weight:700;';
             helper.innerHTML = '<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:4px 10px;">'+(inputType === 'checkbox' ? 'Select all that apply' : 'Select one correct answer')+'</span>';
             wrapChoices.appendChild(helper);
-            ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+            const values = currentChoices.length ? currentChoices : ['', '', '', ''];
+            values.forEach((value,i)=>{
+                const ph = 'Choice ' + String.fromCharCode(65 + i);
                 const row = document.createElement('div');
                 row.className = 'q-option-row';
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
                 row.innerHTML = `
                     <label style="display:flex;align-items:center;gap:8px;flex:1;">
                         <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}">
                         <input type="text" class="eq-option" placeholder="${ph}">
                     </label>
+                    <button type="button" class="btn btn-small eq-choice-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px" ${i < 2 ? 'disabled' : ''}>Remove</button>
                 `;
                 const optionInput = row.querySelector('.eq-option');
                 const correctInput = row.querySelector('.eq-correct');
-                if(optionInput) optionInput.value = currentChoices[i] || '';
+                if(optionInput) optionInput.value = value || '';
                 if(correctInput) correctInput.checked = currentCorrect.includes(i);
                 wrapChoices.appendChild(row);
             });
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn btn-small eq-choice-add';
+            add.style.cssText = 'margin-top:4px;background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px';
+            add.textContent = 'Add Choice';
+            wrapChoices.appendChild(add);
         }
         function ensureEnumerationRows(wrap, values){
             const answerWrap = wrap.querySelector('.eq-enum-answers');
@@ -5568,6 +5589,38 @@
         document.addEventListener('click', function(e){
             const wrap = e.target.closest('.exam-wrapper');
             if(!wrap) return;
+            const choiceAdd = e.target.closest('.eq-choice-add');
+            if(choiceAdd){
+                e.preventDefault();
+                const box = wrap.querySelector('.eq-choices');
+                const rows = Array.from(box.querySelectorAll('.q-option-row'));
+                const i = rows.length;
+                const firstCorrect = box.querySelector('.eq-correct');
+                const inputType = firstCorrect?.type || 'checkbox';
+                const name = firstCorrect?.name || ('exam_correct_' + Date.now());
+                const row = document.createElement('div');
+                row.className = 'q-option-row';
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+                row.innerHTML = `
+                    <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                        <input type="${inputType}" class="eq-correct" name="${name}" value="${i}">
+                        <input type="text" class="eq-option" placeholder="Choice ${String.fromCharCode(65 + i)}">
+                    </label>
+                    <button type="button" class="btn btn-small eq-choice-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px">Remove</button>
+                `;
+                box.insertBefore(row, choiceAdd);
+                wrap.dispatchEvent(new Event('input', { bubbles:true }));
+                return;
+            }
+            const choiceRemove = e.target.closest('.eq-choice-remove');
+            if(choiceRemove && !choiceRemove.disabled){
+                e.preventDefault();
+                const row = choiceRemove.closest('.q-option-row');
+                if(row){ row.remove(); }
+                Array.from(wrap.querySelectorAll('.eq-correct')).forEach((input, i)=>{ input.value = String(i); });
+                wrap.dispatchEvent(new Event('input', { bubbles:true }));
+                return;
+            }
             const addBtn = e.target.closest('.eq-enum-add');
             if(addBtn){
                 e.preventDefault();
@@ -5601,8 +5654,41 @@
             const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='';
             const essayNotes = wrap.querySelector('.eq-essay-notes'); if(essayNotes) essayNotes.value='';
             const enumGuide = wrap.querySelector('.eq-enum-guide'); if(enumGuide) enumGuide.value='';
+            const enumRequired = wrap.querySelector('.eq-enum-required-count'); if(enumRequired) enumRequired.value='';
             const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='';
             const builder = wrap.querySelector('.eq-text'); if(builder) builder.focus();
+        }
+        function getBuilderPointsValue(wrap, type){
+            const common = wrap.querySelector('.eq-common-points')?.value || '';
+            if(common !== '') return common;
+            if(type === 'essay') return wrap.querySelector('.eq-essay-points')?.value || '';
+            if(type === 'enumeration') return wrap.querySelector('.eq-enum-points')?.value || '';
+            return common;
+        }
+        function validateBuilderQuestion(wrap){
+            const type = wrap.querySelector('.eq-type')?.value || '';
+            const pointsValue = getBuilderPointsValue(wrap, type);
+            const points = Number(pointsValue);
+            if(pointsValue === ''){
+                alert('Points is required.');
+                (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
+                return false;
+            }
+            if(!Number.isFinite(points) || points < 1){
+                alert('Points must be at least 1.');
+                (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
+                return false;
+            }
+            if(type === 'enumeration'){
+                const requiredValue = wrap.querySelector('.eq-enum-required-count')?.value || '';
+                const required = Number(requiredValue);
+                if(requiredValue === '' || !Number.isInteger(required) || required < 1){
+                    alert('Required number of answers must be at least 1.');
+                    wrap.querySelector('.eq-enum-required-count')?.focus();
+                    return false;
+                }
+            }
+            return true;
         }
         (function bindBuilderLiveUpdate(){
             document.addEventListener('input', function(e){

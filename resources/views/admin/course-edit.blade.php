@@ -3111,7 +3111,8 @@
                                 <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                                     <select class="eq-type">
-                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="multiple_choice">Multiple Choice (Single Answer)</option>
+                                        <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                         <option value="identification">Identification</option>
                                         <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
@@ -3133,19 +3134,19 @@
                             </div>
                             <div class="eq-points" style="margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
-                                <input class="eq-common-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-common-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="eq-essay" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Instructions / Rubric (Optional)</label>
                                 <textarea class="eq-essay-notes" placeholder="Optional instructions or rubric for students" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;resize:vertical;margin-bottom:8px;" rows="2"></textarea>
                                 <label class="q-label" style="margin-bottom:6px">Points</label>
-                                <input class="eq-essay-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                             <div class="eq-enum" style="display:none;margin-top:8px">
                                 <label class="q-label" style="margin-bottom:6px">Teacher Notes / Expected Answers Guide (Optional)</label>
                                 <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;resize:vertical;" rows="2"></textarea>
                                 <label class="q-label" style="margin:10px 0 6px">Points</label>
-                                <input class="eq-enum-points" type="number" min="1" step="0.01" placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter points" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px">
                             </div>
                     <div class="actions" style="display:flex;justify-content:center;gap:8px;margin-top:10px">
                         <button type="button" class="btn btn-small eq-add" style="background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px"><i class="fas fa-plus" style="margin-right:6px"></i> Add Question</button>
@@ -3553,21 +3554,23 @@
 
                             <div class="eq-points" style="margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-common-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-common-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="eq-essay" style="display:none;margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Instructions / Rubric (Optional)</label>
                                 <textarea class="eq-essay-notes" placeholder="Optional instructions or rubric for students" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-essay-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-essay-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="eq-enum" style="display:none;margin-bottom:20px;">
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Required Number of Answers</label>
+                                <input class="eq-enum-required-count" type="number" min="1" step="1" placeholder="Example: 3" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:12px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Expected Answers Guide (Optional)</label>
                                 <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
-                                <input class="eq-enum-points" type="number" min="1" step="0.01" placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
+                                <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
 
                             <div class="actions" style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #e2e8f0;">
@@ -3737,8 +3740,9 @@
                 if(idx < items.length){
                     const text = (wrap.querySelector('.eq-text').value||'').trim();
                     let obj = null;
-                    if(t==='multiple_choice'){
-                        obj = { type:'multiple_choice', text, choices:['','','',''], answer_index: null, max_points: '' };
+                    if(t==='multiple_choice' || t==='multiple_choice_multiple'){
+                        obj = { type:t, text, choices:['','','',''], correct_answers: [], max_points: '' };
+                        if(t === 'multiple_choice') obj.answer_index = null;
                     }else if(t==='identification'){
                         obj = { type:'identification', text, answer: '', max_points: '' };
                     }else if(t==='true_false'){
@@ -3748,9 +3752,7 @@
                         const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                         obj = { type:'essay', text, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     }else if(t==='enumeration'){
-                        const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
-                        const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                        obj = { type:'enumeration', text, answers:['', ''], max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                        obj = { type:'enumeration', text, required_answers_count: '', expected_guide: '', max_points: '' };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3766,44 +3768,79 @@
             });
             wrap.addEventListener('input', ()=>{ syncExamJSON(); scheduleAutoSave(wrap); });
             wrap.addEventListener('change', ()=>{ syncExamJSON(); scheduleAutoSave(wrap); });
+            function builderPointsValue(){
+                const type = wrap.querySelector('.eq-type')?.value || '';
+                const common = wrap.querySelector('.eq-common-points')?.value || '';
+                if(common !== '') return common;
+                if(type === 'essay') return wrap.querySelector('.eq-essay-points')?.value || '';
+                if(type === 'enumeration') return wrap.querySelector('.eq-enum-points')?.value || '';
+                return common;
+            }
+            function validateBuilderQuestion(){
+                const rawPoints = builderPointsValue();
+                const points = Number(rawPoints);
+                if(rawPoints === ''){
+                    alert('Points is required.');
+                    (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
+                    return false;
+                }
+                if(!Number.isFinite(points) || points < 1){
+                    alert('Points must be at least 1.');
+                    (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
+                    return false;
+                }
+                if((wrap.querySelector('.eq-type')?.value || '') === 'enumeration'){
+                    const requiredValue = wrap.querySelector('.eq-enum-required-count')?.value || '';
+                    const requiredCount = Number(requiredValue);
+                    if(requiredValue === '' || !Number.isInteger(requiredCount) || requiredCount < 1){
+                        alert('Required number of answers must be at least 1.');
+                        wrap.querySelector('.eq-enum-required-count')?.focus();
+                        return false;
+                    }
+                }
+                return true;
+            }
             wrap.querySelector('.eq-add').addEventListener('click', function(){
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
                 if(!text) return;
+                if(!validateBuilderQuestion()) return;
                 const activeIdx = getActiveExamIndex(wrap);
                 let obj = null;
-                if(t==='multiple_choice'){
+                if(t==='multiple_choice' || t==='multiple_choice_multiple'){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim()).filter(Boolean);
                     if(opts.length<2) return;
-                    const checked = wrap.querySelector('.eq-correct:checked');
-                    if(!checked){
-                        openCorrectAnswerModal(wrap, ()=> wrap.querySelector('.eq-add').click());
+                    const checkedIndexes = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value,10)).filter(Number.isInteger);
+                    if(!checkedIndexes.length){
+                        if(t === 'multiple_choice') openCorrectAnswerModal(wrap, ()=> wrap.querySelector('.eq-add').click());
+                        else alert('Select at least one correct answer.');
                         return;
                     }
-                    const ans = parseInt(checked.value,10);
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:t, text, choices: opts, correct_answers: checkedIndexes.map(i=>String.fromCharCode(65+i)), max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    if(t === 'multiple_choice') obj.answer_index = checkedIndexes[0];
                 }else if(t==='identification'){
                     const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
-                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'true_false', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='essay'){
                     const notes = (wrap.querySelector('.eq-essay-notes').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-essay-points')?.value;
+                    const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
                     const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
+                    const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const currentNode = wrap.querySelectorAll('.exam-q-list .q-item')[activeIdx];
                 if (currentNode) {
@@ -3812,8 +3849,9 @@
                 const listEl = wrap.querySelector('.exam-q-list');
                 const idx = listEl.children.length + 1;
                 let blankObj = null;
-                if(t==='multiple_choice'){
-                    blankObj = { type:'multiple_choice', text:'', choices:['','','',''], answer_index: null, max_points: '' };
+                if(t==='multiple_choice' || t==='multiple_choice_multiple'){
+                    blankObj = { type:t, text:'', choices:['','','',''], correct_answers: [], max_points: '' };
+                    if(t === 'multiple_choice') blankObj.answer_index = null;
                 }else if(t==='identification'){
                     blankObj = { type:'identification', text:'', teacher_notes: '', max_points: '' };
                 }else if(t==='true_false'){
@@ -3821,7 +3859,7 @@
                 }else if(t==='essay'){
                     blankObj = { type:'essay', text:'', instructions: '', max_points: '' };
                 }else if(t==='enumeration'){
-                    blankObj = { type:'enumeration', text:'', expected_guide: '', max_points: '' };
+                    blankObj = { type:'enumeration', text:'', required_answers_count: '', expected_guide: '', max_points: '' };
                 } else {
                     blankObj = { type:String(t||'multiple_choice'), text:'' };
                 }
@@ -3960,20 +3998,24 @@
             const typeSel = wrap.querySelector('.eq-type');
             if(typeSel){ typeSel.value = type; }
             showBuilderBoxes(wrap);
-            if(type==='multiple_choice'){
+            if(type==='multiple_choice' || type==='multiple_choice_multiple'){
                 ensureChoiceRows(wrap);
                 const choices = Array.isArray(payload.choices) ? payload.choices
                                  : Array.isArray(payload.options) ? payload.options
                                  : [];
+                while(wrap.querySelectorAll('.eq-choices .q-option-row').length < choices.length){
+                    wrap.querySelector('.eq-choice-add')?.click();
+                }
                 const rows = Array.from(wrap.querySelectorAll('.eq-choices .q-option-row'));
                 rows.forEach((row,i)=>{
                     const inp = row.querySelector('.eq-option');
                     if(inp) inp.value = choices[i] || '';
                 });
+                const correctIndexes = Array.isArray(payload.correct_answers)
+                    ? payload.correct_answers.map(v => isNaN(Number(v)) ? String(v).toUpperCase().charCodeAt(0) - 65 : Number(v))
+                    : [typeof payload.answer_index==='number' ? payload.answer_index : 0];
                 const radios = Array.from(wrap.querySelectorAll('.eq-correct'));
-                radios.forEach(r=> r.checked = false);
-                const ai = typeof payload.answer_index==='number' ? payload.answer_index : 0;
-                if(radios[ai]) radios[ai].checked = true;
+                radios.forEach(r=> r.checked = correctIndexes.includes(Number(r.value)));
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -4022,13 +4064,13 @@
             const boxPoints = wrap.querySelector('.eq-points');
             const boxEssay = wrap.querySelector('.eq-essay');
             const boxEnum = wrap.querySelector('.eq-enum');
-            if(boxChoices) boxChoices.style.display = (t==='multiple_choice') ? 'block' : 'none';
+            if(boxChoices) boxChoices.style.display = (t==='multiple_choice' || t==='multiple_choice_multiple') ? 'block' : 'none';
             if(boxId) boxId.style.display = (t==='identification') ? 'block' : 'none';
             if(boxTf) boxTf.style.display = (t==='true_false') ? 'block' : 'none';
-            if(boxPoints) boxPoints.style.display = (t==='essay' || t==='enumeration' || t==='identification') ? 'none' : 'block';
+            if(boxPoints) boxPoints.style.display = 'block';
             if(boxEssay) boxEssay.style.display = (t==='essay') ? 'block' : 'none';
             if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
-            if(t==='multiple_choice'){
+            if(t==='multiple_choice' || t==='multiple_choice_multiple'){
                 const rows = wrap.querySelectorAll('.eq-choices .q-option-row');
                 if(rows.length===0) ensureChoiceRows(wrap);
             }
@@ -4036,23 +4078,70 @@
         function ensureChoiceRows(wrap){
             const wrapChoices = wrap.querySelector('.eq-choices');
             if(!wrapChoices) return;
-            if(wrapChoices.querySelectorAll('.q-option-row').length>0) return;
+            const currentType = wrap.querySelector('.eq-type')?.value === 'multiple_choice_multiple' ? 'checkbox' : 'radio';
+            if(wrapChoices.querySelectorAll('.q-option-row').length>0 && wrapChoices.querySelector('.eq-correct')?.type === currentType) return;
+            const currentChoices = Array.from(wrapChoices.querySelectorAll('.eq-option')).map(i=>i.value);
+            const currentCorrect = Array.from(wrapChoices.querySelectorAll('.eq-correct:checked')).map(i=>Number(i.value));
+            wrapChoices.innerHTML = '';
             const group = 'exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-            ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+            const values = currentChoices.length ? currentChoices : ['', '', '', ''];
+            values.forEach((value,i)=>{
+                const ph = 'Choice ' + String.fromCharCode(65 + i);
                 const row = document.createElement('div');
                 row.className = 'q-option-row';
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
                 row.innerHTML = `
                     <label style="display:flex;align-items:center;gap:8px;flex:1;">
-                        <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                        <input type="${currentType}" class="eq-correct" name="${currentType === 'radio' ? group : group+'[]'}" value="${i}">
                         <input type="text" class="eq-option" placeholder="${ph}">
                     </label>
+                    <button type="button" class="btn btn-small eq-choice-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px" ${i < 2 ? 'disabled' : ''}>Remove</button>
                 `;
+                const input = row.querySelector('.eq-option'); if(input) input.value = value || '';
+                const correct = row.querySelector('.eq-correct'); if(correct) correct.checked = currentCorrect.includes(i);
                 wrapChoices.appendChild(row);
             });
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn btn-small eq-choice-add';
+            add.style.cssText = 'margin-top:4px;background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px';
+            add.textContent = 'Add Choice';
+            wrapChoices.appendChild(add);
         }
         document.addEventListener('click', function(e){
             const wrap = e.target.closest('.exam-wrapper');
             if(!wrap) return;
+            const choiceAdd = e.target.closest('.eq-choice-add');
+            if(choiceAdd){
+                e.preventDefault();
+                const box = wrap.querySelector('.eq-choices');
+                const rows = Array.from(box.querySelectorAll('.q-option-row'));
+                const i = rows.length;
+                const firstCorrect = box.querySelector('.eq-correct');
+                const inputType = firstCorrect?.type || 'checkbox';
+                const name = firstCorrect?.name || ('exam_correct_' + Date.now());
+                const row = document.createElement('div');
+                row.className = 'q-option-row';
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+                row.innerHTML = `
+                    <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                        <input type="${inputType}" class="eq-correct" name="${name}" value="${i}">
+                        <input type="text" class="eq-option" placeholder="Choice ${String.fromCharCode(65 + i)}">
+                    </label>
+                    <button type="button" class="btn btn-small eq-choice-remove" style="background:#e5e7eb;color:#111827;border-radius:8px;padding:8px 12px">Remove</button>
+                `;
+                box.insertBefore(row, choiceAdd);
+                wrap.dispatchEvent(new Event('input', { bubbles:true }));
+                return;
+            }
+            const choiceRemove = e.target.closest('.eq-choice-remove');
+            if(choiceRemove && !choiceRemove.disabled){
+                e.preventDefault();
+                choiceRemove.closest('.q-option-row')?.remove();
+                Array.from(wrap.querySelectorAll('.eq-correct')).forEach((input, i)=>{ input.value = String(i); });
+                wrap.dispatchEvent(new Event('input', { bubbles:true }));
+                return;
+            }
             const addBtn = e.target.closest('.eq-enum-add');
             if(addBtn){
                 e.preventDefault();
@@ -4085,12 +4174,13 @@
                 const t = wrap.querySelector('.eq-type').value;
                 const text = (wrap.querySelector('.eq-text').value||'').trim();
                 let obj = null;
-                if(t==='multiple_choice'){
+                if(t==='multiple_choice' || t==='multiple_choice_multiple'){
                     const opts = Array.from(wrap.querySelectorAll('.eq-option')).map(i=>i.value.trim());
-                    const checked = wrap.querySelector('.eq-correct:checked');
-                    const ans = checked ? parseInt(checked.value,10) : 0;
-                    const maxPoints = Number(wrap.querySelector('.eq-common-points')?.value || 1);
-                    obj = { type:'multiple_choice', text, choices: opts, answer_index: ans, max_points: (!isNaN(maxPoints) && maxPoints > 0) ? maxPoints : 1 };
+                    const checked = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => parseInt(input.value, 10)).filter(Number.isInteger);
+                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
+                    const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
+                    obj = { type:t, text, choices: opts, correct_answers: checked.map(i=>String.fromCharCode(65+i)), max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    if(t === 'multiple_choice') obj.answer_index = checked[0] ?? null;
                 }else if(t==='identification'){
                     const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
@@ -4103,14 +4193,15 @@
                     obj = { type:'true_false', text, answer: ans, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='essay'){
                     const notes = (wrap.querySelector('.eq-essay-notes').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-essay-points')?.value;
+                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value || wrap.querySelector('.eq-essay-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
                     const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
-                    const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
+                    const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const maxPointsVal = wrap.querySelector('.eq-common-points')?.value || wrap.querySelector('.eq-enum-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);

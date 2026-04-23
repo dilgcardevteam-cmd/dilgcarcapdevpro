@@ -21,7 +21,7 @@ class MediaController extends Controller
         }
 
         $extension = strtolower(pathinfo($normalized, PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf'];
         if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
             abort(404);
         }
