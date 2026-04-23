@@ -54,6 +54,124 @@
         .unread-dot{width:8px;height:8px;border-radius:50%;background:#0B2C74;display:inline-block}
         .notification-message{font-size:.85rem;color:#64748b;margin-top:4px}
         .notification-time{font-size:.78rem;color:#9aa3af;margin-top:6px}
+
+        /* Custom Dropdown with Tooltip */
+        .fow-dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .fow-dropdown-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .fow-dropdown-trigger:hover {
+            border-color: #cbd5e1;
+        }
+
+        .fow-dropdown-container.open .fow-dropdown-trigger {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(0, 44, 118, 0.1);
+        }
+
+        .fow-dropdown-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            display: none;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 6px;
+        }
+
+        .fow-dropdown-container.open .fow-dropdown-options {
+            display: block;
+        }
+
+        .fow-option {
+            position: static;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+
+        .fow-option:hover {
+            background: #f1f5f9;
+            color: var(--primary-blue);
+        }
+
+        .fow-tooltip {
+            position: absolute;
+            left: calc(100% + 20px);
+            top: 0;
+            width: 280px;
+            background: #0b2c74;
+            color: #fff;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(11, 44, 116, 0.2);
+            display: none;
+            z-index: 2001;
+            pointer-events: none;
+            text-align: left;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .fow-tooltip.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Tooltip visibility handled by JS */
+
+        .fow-tooltip-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            color: var(--primary-green);
+            text-transform: uppercase;
+        }
+
+        .fow-tooltip-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .fow-tooltip-list li {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .fow-tooltip-list li::before {
+            content: '•';
+            color: var(--primary-green);
+        }
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
         .profile-dropdown .dropdown-meta{padding:10px 14px;border-bottom:1px solid #e5e7eb}
@@ -1529,17 +1647,39 @@
                     </select>
                 </div>
 
-                <div class="form-group" style="margin-bottom:15px;">
-                    <label for="edit_field_of_work" style="font-weight:600; color:#495057; display:block; margin-bottom:5px;">Field of Work</label>
-                    <select name="field_of_work" id="edit_field_of_work" required
-                            style="background:#fff; border:1px solid #dee2e6; border-radius:10px; padding:12px; width:100%;">
-                        @php
-                            $fields = \App\Models\FieldOfWork::orderBy('name', 'asc')->get();
-                        @endphp
+                <div class="form-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">
+                    <label style="font-weight:600; color:#495057;">Field of Work</label>
+                    <div class="fow-dropdown-container" id="edit-fow-dropdown">
+                        <div class="fow-dropdown-trigger">
+                            <span id="edit-fow-selected-text">Select Field of Work</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div class="fow-dropdown-options">
+                            @php
+                                $fields = \App\Models\FieldOfWork::orderBy('name', 'asc')->get();
+                            @endphp
+                            @foreach($fields as $field)
+                                <div class="fow-option" data-value="{{ $field->name }}" data-fow-id="{{ $field->id }}">
+                                    {{ $field->name }}
+                                </div>
+                            @endforeach
+                        </div>
                         @foreach($fields as $field)
-                            <option value="{{ $field->name }}">{{ $field->name }}</option>
+                            @if($field->tooltip_content)
+                                <div class="fow-tooltip" id="tooltip-{{ $field->id }}">
+                                    <div class="fow-tooltip-title">Specific Types of Work:</div>
+                                    <ul class="fow-tooltip-list">
+                                        @foreach(explode("\n", str_replace("- ", "", $field->tooltip_content)) as $item)
+                                            @if(trim($item))
+                                                <li>{{ trim($item) }}</li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         @endforeach
-                    </select>
+                        <input type="hidden" name="field_of_work" id="edit_field_of_work" required>
+                    </div>
                 </div>
                 
                 <div class="form-group" style="margin-bottom:20px;">
@@ -1689,9 +1829,18 @@
         document.getElementById('edit_email').value = user.email;
         document.getElementById('edit_role').value = user.role;
         document.getElementById('edit_field_of_work').value = user.field_of_work || '';
+        
+        // Update custom dropdown text
+        const selectedText = document.getElementById('edit-fow-selected-text');
+        if (selectedText) {
+            selectedText.textContent = user.field_of_work || 'Select Field of Work';
+        }
+
         document.getElementById('edit_status').value = user.status;
+        
         const form = document.getElementById('editForm');
         form.action = `/users/${user.id}`;
+        
         document.getElementById('editModal').style.display = 'block';
     }
     const openEditModal = showEditModal;
@@ -1910,7 +2059,61 @@
     });
     function toggleProfileMenu(e){e.stopPropagation();var d=document.getElementById('profileDropdown');if(!d) return;d.style.display=(d.style.display==='block')?'none':'block';}
     function hideProfileMenu(){var d=document.getElementById('profileDropdown');if(d) d.style.display='none';}
-    document.addEventListener('click',function(ev){var menu=document.querySelector('.profile-menu');var d=document.getElementById('profileDropdown');if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}});
+    document.addEventListener('click',function(ev){
+        var menu=document.querySelector('.profile-menu');
+        var d=document.getElementById('profileDropdown');
+        if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
+
+        // Handle custom dropdown close when clicking outside
+        const fowDropdown = document.getElementById('edit-fow-dropdown');
+        if (fowDropdown && !fowDropdown.contains(ev.target)) {
+            fowDropdown.classList.remove('open');
+        }
+    });
+
+    // Custom Dropdown JS for COTM
+    const editFowDropdown = document.getElementById('edit-fow-dropdown');
+    if (editFowDropdown) {
+        const trigger = editFowDropdown.querySelector('.fow-dropdown-trigger');
+        const hiddenInput = document.getElementById('edit_field_of_work');
+        const selectedText = document.getElementById('edit-fow-selected-text');
+        const options = editFowDropdown.querySelectorAll('.fow-option');
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editFowDropdown.classList.toggle('open');
+        });
+
+        options.forEach(option => {
+                option.addEventListener('click', () => {
+                    const value = option.dataset.value;
+                    hiddenInput.value = value;
+                    selectedText.textContent = value;
+                    editFowDropdown.classList.remove('open');
+                    // Hide all tooltips on selection
+                    editFowDropdown.querySelectorAll('.fow-tooltip').forEach(t => t.classList.remove('visible'));
+                });
+
+                option.addEventListener('mouseenter', () => {
+                    const fowId = option.dataset.fowId;
+                    const tooltip = document.getElementById(`tooltip-${fowId}`);
+                    if (tooltip) {
+                        const optionRect = option.getBoundingClientRect();
+                        const containerRect = editFowDropdown.getBoundingClientRect();
+                        tooltip.style.top = `${optionRect.top - containerRect.top}px`;
+                        tooltip.classList.add('visible');
+                    }
+                });
+
+                option.addEventListener('mouseleave', () => {
+                    const fowId = option.dataset.fowId;
+                    const tooltip = document.getElementById(`tooltip-${fowId}`);
+                    if (tooltip) {
+                        tooltip.classList.remove('visible');
+                    }
+                });
+            });
+    }
 </script>
 </body>
 </html>

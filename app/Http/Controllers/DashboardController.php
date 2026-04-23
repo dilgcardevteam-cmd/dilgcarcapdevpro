@@ -2458,6 +2458,7 @@ class DashboardController extends Controller
         }
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:field_of_works,name',
+            'tooltip_content' => 'nullable|string',
         ]);
 
         FieldOfWork::create($validated);
@@ -2472,6 +2473,7 @@ class DashboardController extends Controller
         }
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:field_of_works,name,' . $fieldOfWork->id,
+            'tooltip_content' => 'nullable|string',
         ]);
 
         $fieldOfWork->update($validated);

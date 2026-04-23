@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('field_of_works', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->text('tooltip_content')->nullable();
             $table->timestamps();
         });
     }

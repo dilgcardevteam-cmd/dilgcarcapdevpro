@@ -5667,6 +5667,11 @@
                                                 <label class="form-label">Field of Work Name</label>
                                                 <input type="text" id="fow_name" name="name" class="input-pro" placeholder="e.g. Information Technology" required>
                                             </div>
+                                            <div>
+                                                <label class="form-label">Tooltip Content (Specific Types of Work)</label>
+                                                <textarea id="fow_tooltip" name="tooltip_content" class="input-pro" style="height:120px" placeholder="Enter specific types of work, one per line (start with - )"></textarea>
+                                                <small style="color:#64748b">Example:<br>- Administrative Clerk<br>- Budget Assistant</small>
+                                            </div>
                                         </div>
                                         <div style="margin-top:16px; display:flex; gap:8px">
                                             <button type="submit" id="fowSubmitBtn" class="btn btn-blue">Save Field of Work</button>
@@ -5680,6 +5685,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Field of Work</th>
+                                                <th>Specific Types (Tooltip)</th>
                                                 <th>Created At</th>
                                                 <th style="text-align:right">Actions</th>
                                             </tr>
@@ -5688,9 +5694,10 @@
                                             @forelse($fieldOfWorks as $fow)
                                                 <tr>
                                                     <td style="font-weight:700">{{ $fow->name }}</td>
+                                                    <td style="font-size:.8rem; color:#64748b; white-space: pre-line;">{{ $fow->tooltip_content }}</td>
                                                     <td style="color:#64748b; font-size:.85rem">{{ $fow->created_at->format('M d, Y') }}</td>
                                                     <td style="text-align:right">
-                                                        <button onclick="editFieldOfWork({{ $fow->id }}, '{{ addslashes($fow->name) }}')" class="btn btn-pill" style="font-size:.75rem; padding:6px 10px">
+                                                        <button onclick="editFieldOfWork({{ $fow->id }}, '{{ addslashes($fow->name) }}', '{{ addslashes($fow->tooltip_content) }}')" class="btn btn-pill" style="font-size:.75rem; padding:6px 10px">
                                                             <i class="fas fa-edit"></i> Edit
                                                         </button>
                                                         <form method="POST" action="{{ route('admin.settings.field-of-work.destroy', $fow->id) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to remove this field of work?')">
@@ -5759,17 +5766,19 @@
                         document.getElementById('fieldOfWorkForm').action = "{{ route('admin.settings.field-of-work.store') }}";
                         document.getElementById('fow_method').value = 'POST';
                         document.getElementById('fow_name').value = '';
+                        document.getElementById('fow_tooltip').value = '';
                         document.getElementById('fowSubmitBtn').textContent = 'Save Field of Work';
                         document.getElementById('addFieldOfWorkForm').style.display='block';
                     }
                     function hideAddFieldOfWorkForm(){
                         document.getElementById('addFieldOfWorkForm').style.display='none';
                     }
-                    function editFieldOfWork(id, name){
+                    function editFieldOfWork(id, name, tooltip){
                         document.getElementById('fowFormTitle').textContent = 'Edit Field of Work';
                         document.getElementById('fieldOfWorkForm').action = "/admin/system-settings/field-of-work/" + id;
                         document.getElementById('fow_method').value = 'PUT';
                         document.getElementById('fow_name').value = name;
+                        document.getElementById('fow_tooltip').value = tooltip;
                         document.getElementById('fowSubmitBtn').textContent = 'Update Field of Work';
                         document.getElementById('addFieldOfWorkForm').style.display='block';
                         document.getElementById('addFieldOfWorkForm').scrollIntoView({behavior: 'smooth'});
