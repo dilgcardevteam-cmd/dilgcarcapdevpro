@@ -262,7 +262,8 @@
         align-items: center;
         justify-content: space-between;
         padding: 9px 12px 9px 40px;
-        background: #fff;
+        margin: 5px 0;
+        background-color: #fff;
         border: 1px solid #ddd;
         border-radius: 5px;
         cursor: pointer;
@@ -271,6 +272,26 @@
         transition: all 0.2s ease;
         width: 100%;
         min-height: 40px;
+        line-height: 1.3;
+        overflow: hidden;
+    }
+
+    #fow-selected-text {
+        display: block;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #fow-selected-text.fow-placeholder {
+        color: #9ca3af;
+    }
+
+    .fow-dropdown-trigger i {
+        flex-shrink: 0;
+        margin-left: 8px;
     }
 
     .fow-dropdown-trigger:hover {
@@ -384,7 +405,7 @@
     .register-form {
         align-items: center;
         justify-content: center;
-        padding: 20px 28px 16px;
+        padding: 15px 28px 12px;
         text-align: center;
         border-radius: 18px;
         box-shadow: 0 18px 36px rgba(0, 44, 118, 0.16), 0 8px 18px rgba(15, 23, 42, 0.09);
@@ -419,7 +440,7 @@
         align-items: center;
         border: 1px solid #d4deef;
         border-radius: 14px;
-        padding: 12px;
+        padding: 8px 12px;
         background: rgba(255, 255, 255, 0.88);
     }
 
@@ -433,7 +454,7 @@
     }
 
     .form-subtitle {
-        margin: 6px 0 12px;
+        margin: 4px 0 8px;
         font-size: 13px;
         line-height: 1.5;
         color: #475569;
@@ -468,7 +489,7 @@
         background-color: #fff;
         border: 1px solid #ddd; 
         padding: 9px 12px;
-        margin: 5px 0;
+        margin: 4px 0;
         width: 100%;
         border-radius: 5px;
     }
@@ -676,8 +697,8 @@
         font-weight: 600;
         font-size: 14px;
         color: #1f2937;
-        margin-top: 8px;
-        margin-bottom: 8px;
+        margin-top: 4px;
+        margin-bottom: 4px;
         text-decoration: none;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
         transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -748,13 +769,13 @@
 
     .register-submit {
         width: 230px;
-        margin: 10px auto 0;
+        margin: 6px auto 0;
         display: block;
     }
 
     .or-separator {
         text-align: center;
-        margin: 12px 0;
+        margin: 6px 0;
         font-size: 12px;
         font-weight: 600;
         color: #64748b;
@@ -793,6 +814,7 @@
 
     .register-form input,
     .register-form select,
+    .register-form .fow-dropdown-trigger,
     .login-form input {
         border-color: #d4deef;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 2px rgba(15, 23, 42, 0.05);
@@ -800,6 +822,7 @@
 
     .register-form input:focus,
     .register-form select:focus,
+    .register-form .fow-dropdown-container.open .fow-dropdown-trigger,
     .login-form input:focus {
         border-color: #1d4ed8;
         box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12), 0 8px 14px rgba(15, 23, 42, 0.12);
@@ -1153,7 +1176,7 @@
                             </span>
                             <div class="fow-dropdown-container" id="fow-dropdown">
                                 <div class="fow-dropdown-trigger">
-                                    <span id="fow-selected-text">{{ old('field_of_work') ?: 'Select Field of Work' }}</span>
+                                    <span id="fow-selected-text" class="{{ old('field_of_work') ? '' : 'fow-placeholder' }}">{{ old('field_of_work') ?: 'Select Field of Work' }}</span>
                                     <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
                                 </div>
                                 <div class="fow-dropdown-options">
@@ -2075,6 +2098,7 @@
                 const value = option.dataset.value;
                 hiddenInput.value = value;
                 selectedText.textContent = value;
+                selectedText.classList.remove('fow-placeholder');
                 fowDropdown.classList.remove('open');
                 // Hide all tooltips on selection
                 fowDropdown.querySelectorAll('.fow-tooltip').forEach(t => t.classList.remove('visible'));

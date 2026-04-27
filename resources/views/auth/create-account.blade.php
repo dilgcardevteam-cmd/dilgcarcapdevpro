@@ -123,7 +123,37 @@
         color: #0f172a;
         transition: all 0.2s ease;
         width: 100%;
+        height: 50px;
         min-height: 50px;
+        overflow: hidden;
+    }
+
+    #fow-selected-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        margin-right: 8px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    #fow-selected-text.fow-placeholder {
+        color: #94a3b8;
+    }
+
+    /* Readonly state for custom dropdown */
+    .field-with-icon.is-readonly .fow-dropdown-trigger {
+        background: #f8fafc;
+        color: #475569;
+        border-color: #dbe4f0;
+        pointer-events: none;
+        cursor: default;
+    }
+
+    .field-with-icon.is-readonly .fow-dropdown-trigger i {
+        display: none;
     }
 
     .fow-dropdown-trigger:hover {
@@ -642,6 +672,37 @@
                                     <input id="first_name" type="text" name="first_name" value="{{ old('first_name', $firstParsed) }}" placeholder="First Name" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
                                 </div>
                             </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </span>
+                                    <input id="middle_name" type="text" name="middle_name" value="{{ old('middle_name', $middleParsed) }}" placeholder="Middle Name (Optional)" {{ $isReviewMode ? 'readonly tabindex=-1' : '' }}>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </span>
+                                    <input id="last_name" type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" placeholder="Last Name" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-3">
+                        <div class="col">
                             <div class="form-group">
                                 <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
                                     <span class="field-icon">
@@ -652,6 +713,45 @@
                                     <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}" placeholder="Mobile Number" inputmode="numeric" pattern="[0-9]*" maxlength="11" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
                                 </div>
                             </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </span>
+                                    <select id="gender" name="gender" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
+                                        <option value="" disabled {{ old('gender', $user->gender) ? '' : 'selected' }}>Select Sex</option>
+                                        <option value="Male" {{ old('gender', $user->gender) === 'Male' ? 'selected' : '' }}>Male</option>
+                                        <option value="Female" {{ old('gender', $user->gender) === 'Female' ? 'selected' : '' }}>Female</option>
+                                        <option value="Prefer not to say" {{ old('gender', $user->gender) === 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
+                                    <span class="field-icon">
+                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                                        </svg>
+                                    </span>
+                                    <select id="agency" name="agency" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
+                                        <option value="" disabled {{ old('agency', $user->agency) ? '' : 'selected' }}>Select Agency/LGU</option>
+                                        <option value="DILG" {{ old('agency', $user->agency) === 'DILG' ? 'selected' : '' }}>DILG</option>
+                                        <option value="LGU" {{ old('agency', $user->agency) === 'LGU' ? 'selected' : '' }}>LGU</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row row-3">
+                        <div class="col" style="grid-column: span 3;">
                             <div class="form-group">
                                 <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
                                     <span class="field-icon">
@@ -663,7 +763,9 @@
                                     </span>
                                     <div class="fow-dropdown-container" id="fow-dropdown">
                                         <div class="fow-dropdown-trigger">
-                                            <span id="fow-selected-text">{{ old('field_of_work', $user->field_of_work) ?: 'Select Field of Work' }}</span>
+                                            <span id="fow-selected-text" class="{{ !(old('field_of_work', $user->field_of_work)) ? 'fow-placeholder' : '' }}">
+                                                {{ old('field_of_work', $user->field_of_work) ?: 'Select Field of Work' }}
+                                            </span>
                                             <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
                                         </div>
                                         <div class="fow-dropdown-options">
@@ -692,80 +794,6 @@
                                         @endforeach
                                         <input type="hidden" name="field_of_work" id="field_of_work" value="{{ old('field_of_work', $user->field_of_work) }}" required>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                    </span>
-                                    <input id="middle_name" type="text" name="middle_name" value="{{ old('middle_name', $middleParsed) }}" placeholder="Middle Name (Optional)" {{ $isReviewMode ? 'readonly tabindex=-1' : '' }}>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                    </span>
-                                    <select id="gender" name="gender" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
-                                        <option value="" disabled {{ old('gender', $user->gender) ? '' : 'selected' }}>Select Sex</option>
-                                        <option value="Male" {{ old('gender', $user->gender) === 'Male' ? 'selected' : '' }}>Male</option>
-                                        <option value="Female" {{ old('gender', $user->gender) === 'Female' ? 'selected' : '' }}>Female</option>
-                                        <option value="Prefer not to say" {{ old('gender', $user->gender) === 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                    </span>
-                                    <input id="last_name" type="text" name="last_name" value="{{ old('last_name', $lastParsed) }}" placeholder="Last Name" {{ $isReviewMode ? 'readonly tabindex=-1' : 'required' }}>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col">
-                            <div class="form-group">
-                                <div class="field-with-icon is-readonly">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M4 4h16v16H4z"></path>
-                                            <path d="m22 6-10 7L2 6"></path>
-                                        </svg>
-                                    </span>
-                                    <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" placeholder="Email Address" readonly required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <div class="field-with-icon {{ $isReviewMode ? 'is-readonly' : '' }}">
-                                    <span class="field-icon">
-                                        <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                                        </svg>
-                                    </span>
-                                    <select id="agency" name="agency" {{ $isReviewMode ? 'disabled tabindex=-1' : 'required' }}>
-                                        <option value="" disabled {{ old('agency', $user->agency) ? '' : 'selected' }}>Select Agency/LGU</option>
-                                        <option value="DILG" {{ old('agency', $user->agency) === 'DILG' ? 'selected' : '' }}>DILG</option>
-                                        <option value="LGU" {{ old('agency', $user->agency) === 'LGU' ? 'selected' : '' }}>LGU</option>
-                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -1325,6 +1353,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = option.dataset.value;
                 hiddenInput.value = value;
                 selectedText.textContent = value;
+                selectedText.classList.remove('fow-placeholder');
                 fowDropdown.classList.remove('open');
                 // Hide all tooltips on selection
                 fowDropdown.querySelectorAll('.fow-tooltip').forEach(t => t.classList.remove('visible'));

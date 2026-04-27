@@ -36,8 +36,8 @@
         /* Header - Matching Landing Page */
         .header {
             background-color: white;
-            min-height: var(--auth-header-height);
-            padding: 10px 30px;
+            height: 100px; /* fixed height instead of min-height */
+            padding: 0 20px; /* reduce vertical padding */
             box-sizing: border-box;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
