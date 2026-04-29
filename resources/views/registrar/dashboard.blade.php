@@ -360,7 +360,7 @@
         .control-hero-sub{font-size:1.02rem;opacity:.92;max-width:640px;margin-top:10px}
         .hero-stats-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px}
         @media (min-width: 900px){ .hero-stats-grid{grid-template-columns:repeat(2,1fr)} }
-        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(4,1fr)} }
+        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(5,1fr)} }
         .hero-stat-card{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.24);border-radius:18px;padding:20px 22px;transition:transform .18s ease, background-color .18s ease}
         .hero-stat-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.2)}
         .hero-stat-icon{width:52px;height:52px;border-radius:16px;background:#fff;color:#c96a09;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:0 0 auto}
@@ -1833,6 +1833,10 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.7.107/pdf.min.js" defer></script>
+    <script>document.addEventListener('DOMContentLoaded',function(){ if(window['pdfjsLib']){ window['pdfjsLib'].GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.7.107/pdf.worker.min.js'; } });</script>
+    <script src="https://unpkg.com/docx-preview@0.3.4/dist/docx-preview.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 </head>
 <body>
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -1940,12 +1944,6 @@
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
-                        @if(Auth::user()->hasPermission('view_training'))
-                        <li class="menu-item menu-sub-item {{ request('tab') == 'course-management' ? 'active' : '' }}" onclick="showContent('course-management', this)">
-                            <div class="menu-icon"><i class="fas fa-book"></i></div>
-                            <span class="menu-text">Course Management</span>
-                        </li>
-                        @endif
                         @if(Auth::user()->canManageUsers())
                         <li class="menu-item menu-sub-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
@@ -1956,6 +1954,18 @@
                         <li class="menu-item menu-sub-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
                             <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                             <span class="menu-text">Training Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_training'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'course-management' ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
+                        </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_training'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)" style="padding-left: 44px;">
+                            <div class="menu-icon" style="opacity:.95"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
                         </li>
                         @endif
                         @if(Auth::user()->canViewReports())
@@ -2064,33 +2074,42 @@
                     <div class="hero-stats-grid">
                         @if(Auth::user()->hasPermission('view_users_tm'))
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-users"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $unapprovedCount }}</span>
-                                <span class="hero-stat-label">Total Unapproved Users</span>
-                            </div>
-                        </div>
-                        <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-check"></i></div>
-                            <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $approvedCount }}</span>
-                                <span class="hero-stat-label">Total Approved Users</span>
+                                <span class="hero-stat-value">{{ $totalUsersCount ?? $userCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Total Users</span>
                             </div>
                         </div>
                         @endif
                         @if(Auth::user()->hasPermission('view_training'))
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-book"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-book-open"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $totalCourses }}</span>
-                                <span class="hero-stat-label">Total Courses</span>
+                                <span class="hero-stat-value">{{ $publishedCoursesCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Published Courses</span>
                             </div>
                         </div>
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-hourglass"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-hourglass-half"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $pendingTraineesCount }}</span>
-                                <span class="hero-stat-label">Pending Participants</span>
+                                <span class="hero-stat-value">{{ $pendingCoursesCount ?? $unpublishedCoursesCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Pending Courses</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-certificate"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $certificationsIssuedCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Certification Issued</span>
+                            </div>
+                        </div>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_users_tm'))
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $pendingApprovalsCount ?? $unapprovedCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Pending Approvals</span>
                             </div>
                         </div>
                         @endif
@@ -2144,12 +2163,12 @@
                         @if(Auth::user()->hasPermission('view_course_monitoring'))
                         <div>
                             <div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px">
-                                <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Status</button>
-                                <button id="tm-course-tab-distribution" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Distribution</button>
+                                <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Enrollment</button>
+                                <button id="tm-course-tab-distribution" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Status</button>
                             </div>
                             <div id="tm-donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
                             <div style="margin-top:10px;text-align:center">
-                                <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
+                                <div id="tm-course-total-label" style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
                                 <div id="tm-total-courses" style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $cActive }}</div>
                             </div>
                             <div id="tm-legend-course-summary" style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
@@ -2157,8 +2176,9 @@
                                 <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Unpublished <span id="tm-course-legend-unpublished" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                             <div id="tm-legend-course-distribution" style="display:none;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
-                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Classroom with Coach <span id="tm-course-legend-withcoach" style="color:#6b7280;margin-left:6px"></span></div>
-                                <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Classroom without Coach <span id="tm-course-legend-withoutcoach" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#10b981"></div><div style="color:#0B2C74;font-weight:800">Completed <span id="tm-enroll-legend-completed" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">In Progress <span id="tm-enroll-legend-inprogress" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#94a3b8"></div><div style="color:#0B2C74;font-weight:800">Not Started <span id="tm-enroll-legend-notstarted" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                         </div>
                         @endif
@@ -2266,9 +2286,11 @@
                           var cActive={{ $cActive }};
                           var cPublished={{ $publishedCoursesCount }};
                           var cUnpublished={{ $unpublishedCoursesCount }};
-                          var cWithCoach={{ $cWithCoach }};
-                          var cWithoutCoach={{ $cWithoutCoach }};
                           var cTotal = cActive;
+                          var eCompleted = 0;
+                          var eInProgress = cPublished;
+                          var eNotStarted = cUnpublished;
+                          var eTotal = cTotal;
                           function drawCourseDistribution(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
                             var sLegend=document.getElementById('tm-legend-course-summary');
@@ -2276,11 +2298,14 @@
                             if(sLegend) sLegend.style.display='none';
                             var btnS=document.getElementById('tm-course-tab-summary');
                             var btnD=document.getElementById('tm-course-tab-distribution');
-                            if(btnS&&btnD){ btnS.style.background='#fff'; btnS.style.color='#0B2C74'; btnD.style.background='#0B2C74'; btnD.style.color='#fff'; }
+                            if(btnS&&btnD){ btnS.style.background='#0B2C74'; btnS.style.color='#fff'; btnD.style.background='#fff'; btnD.style.color='#0B2C74'; }
                             var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
-                            renderArcDonut('tm-donut-courses', [cWithCoach,cWithoutCoach], ['#0B2C74','#B10606']);
-                            document.getElementById('tm-course-legend-withcoach').innerText = cWithCoach+' · '+pct(cWithCoach,cTotal)+'%';
-                            document.getElementById('tm-course-legend-withoutcoach').innerText = cWithoutCoach+' · '+pct(cWithoutCoach,cTotal)+'%';
+                            renderArcDonut('tm-donut-courses', [eCompleted,eInProgress,eNotStarted], ['#10b981','#0B2C74','#94a3b8']);
+                            document.getElementById('tm-enroll-legend-completed').innerText = eCompleted+' · '+pct(eCompleted,eTotal)+'%';
+                            document.getElementById('tm-enroll-legend-inprogress').innerText = eInProgress+' · '+pct(eInProgress,eTotal)+'%';
+                            document.getElementById('tm-enroll-legend-notstarted').innerText = eNotStarted+' · '+pct(eNotStarted,eTotal)+'%';
+                            var t=document.getElementById('tm-total-courses'); if(t){ t.innerText = eTotal; }
+                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Courses'; }
                           }
                           function drawCourseSummary(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
@@ -2289,17 +2314,19 @@
                             if(sLegend) sLegend.style.display='grid';
                             var btnS=document.getElementById('tm-course-tab-summary');
                             var btnD=document.getElementById('tm-course-tab-distribution');
-                            if(btnS&&btnD){ btnS.style.background='#0B2C74'; btnS.style.color='#fff'; btnD.style.background='#fff'; btnD.style.color='#0B2C74'; }
+                            if(btnS&&btnD){ btnS.style.background='#fff'; btnS.style.color='#0B2C74'; btnD.style.background='#0B2C74'; btnD.style.color='#fff'; }
                             var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
                             renderArcDonut('tm-donut-courses', [cPublished,cUnpublished], ['#0B2C74','#B10606']);
                             document.getElementById('tm-course-legend-published').innerText = cPublished+' · '+pct(cPublished,cTotal)+'%';
                             document.getElementById('tm-course-legend-unpublished').innerText = cUnpublished+' · '+pct(cUnpublished,cTotal)+'%';
+                            var t=document.getElementById('tm-total-courses'); if(t){ t.innerText = cTotal; }
+                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Courses'; }
                           }
-                          drawCourseSummary();
+                          drawCourseDistribution();
                           var tabCourseSummary=document.getElementById('tm-course-tab-summary');
                           var tabCourseDistribution=document.getElementById('tm-course-tab-distribution');
-                          if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseSummary); }
-                          if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseDistribution); }
+                          if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseDistribution); }
+                          if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseSummary); }
                         })();
 
     function openDraftCoursesModal() {
@@ -2394,13 +2421,13 @@
                             $monthCounts = [];
                             for($i=11; $i>=0; $i--){
                                 $m = \Carbon\Carbon::now()->subMonths($i);
-                                $monthLabels[] = $m->format('M');
+                                $monthLabels[] = $m->format("M 'y");
                                 $start = $m->copy()->startOfMonth();
                                 $end = $m->copy()->endOfMonth();
                                 $monthCounts[] = \App\Models\User::whereBetween('created_at', [$start, $end])->count();
                             }
                         @endphp
-                        <div id="tm-line-users" style="width:100%;min-width:480px;height:280px"></div>
+                        <div id="tm-line-users" style="width:100%;height:280px;position:relative"></div>
                         <script>
                             (function(){
                                 var labels = @json($monthLabels);
@@ -2415,37 +2442,71 @@
                                 var innerW = width - margin.left - margin.right;
                                 var innerH = height - margin.top - margin.bottom;
                                 var g = svg.append('g').attr('transform','translate('+margin.left+','+margin.top+')');
-                                var x = d3.scalePoint().domain(labels).range([0, innerW]).padding(0.5);
-                                var y = d3.scaleLinear().domain([0, d3.max(data)||0]).nice().range([innerH, 0]);
-                                g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-weight','700');
-                                g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0)).selectAll('text').style('fill','#334155').style('font-weight','700');
+                                var series = labels.map(function(label, i){ return { label: label, value: Number((data && data[i]) || 0) }; });
+                                var maxY = d3.max(series, function(d){ return d.value; }) || 0;
+                                var x = d3.scalePoint().domain(labels).range([0, innerW]).padding(0.55);
+                                var y = d3.scaleLinear().domain([0, Math.max(5, maxY)]).nice().range([innerH, 0]);
+
                                 var grid = g.append('g').attr('stroke','#e5e7eb').attr('stroke-width',1).attr('opacity',0.7);
                                 grid.selectAll('line').data(y.ticks(5)).enter().append('line').attr('x1',0).attr('x2',innerW).attr('y1',function(d){return y(d);}).attr('y2',function(d){return y(d);});
+
+                                var xAxis = g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0));
+                                xAxis.selectAll('text').style('fill','#334155').style('font-weight','700').style('font-size','12px');
+                                xAxis.selectAll('path.domain').attr('stroke','#e5e7eb');
+                                xAxis.selectAll('line').attr('stroke','#e5e7eb');
+
+                                var yAxis = g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('d')).tickSizeOuter(0));
+                                yAxis.selectAll('text').style('fill','#334155').style('font-weight','700').style('font-size','12px');
+                                yAxis.selectAll('path.domain').attr('stroke','#e5e7eb');
+                                yAxis.selectAll('line').attr('stroke','#e5e7eb');
+
                                 var defs = svg.append('defs');
-                                var grad = defs.append('linearGradient').attr('id','trendGrad').attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1');
-                                grad.append('stop').attr('offset','0%').attr('stop-color','#0B2C74').attr('stop-opacity',0.25);
+                                var grad = defs.append('linearGradient').attr('id','trendGradUsers').attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1');
+                                grad.append('stop').attr('offset','0%').attr('stop-color','#0B2C74').attr('stop-opacity',0.22);
                                 grad.append('stop').attr('offset','100%').attr('stop-color','#0B2C74').attr('stop-opacity',0);
-                                var line = d3.line().x(function(d,i){ return x(labels[i]); }).y(function(d){ return y(d); }).curve(d3.curveMonotoneX);
-                                var area = d3.area().x(function(d,i){ return x(labels[i]); }).y0(innerH).y1(function(d){ return y(d); }).curve(d3.curveMonotoneX);
-                                g.append('path').datum(data).attr('fill','url(#trendGrad)').attr('d', area);
-                                var path = g.append('path').datum(data).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',2.5).attr('d', line);
+
+                                var line = d3.line().x(function(d){ return x(d.label); }).y(function(d){ return y(d.value); }).curve(d3.curveMonotoneX);
+                                var area = d3.area().x(function(d){ return x(d.label); }).y0(innerH).y1(function(d){ return y(d.value); }).curve(d3.curveMonotoneX);
+                                g.append('path').datum(series).attr('fill','url(#trendGradUsers)').attr('d', area);
+                                var path = g.append('path').datum(series).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',3).attr('stroke-linecap','round').attr('stroke-linejoin','round').attr('d', line);
                                 var totalLen = path.node().getTotalLength();
                                 path.attr('stroke-dasharray', totalLen+' '+totalLen).attr('stroke-dashoffset', totalLen)
                                     .transition().duration(900).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0);
-                                var points = g.selectAll('circle').data(data).enter().append('circle')
-                                    .attr('cx', function(d,i){ return x(labels[i]); })
-                                    .attr('cy', function(d){ return y(d); })
+                                var circles = g.selectAll('circle').data(series).enter().append('circle')
+                                    .attr('cx', function(d){ return x(d.label); })
+                                    .attr('cy', function(d){ return y(d.value); })
                                     .attr('r', 4)
                                     .attr('fill', '#0B2C74')
-                                    .style('opacity', 0)
-                                    .transition().delay(900).duration(250).style('opacity', 1);
-                                var tip = d3.select('#'+elId).append('div').style('position','absolute').style('display','none').style('background','#fff').style('border','1px solid #e5e7eb').style('border-radius','8px').style('padding','6px 8px').style('box-shadow','0 10px 20px rgba(17,24,39,.12)').style('color','#0B2C74').style('font-weight','800').style('font-size','.85rem');
-                                g.selectAll('circle').on('mouseenter', function(event, d){
-                                    var i = Array.prototype.indexOf.call(points.nodes(), this);
-                                    tip.style('display','block').html(labels[i]+': '+d);
-                                    var bx = event.pageX, by = event.pageY;
-                                    tip.style('left', (bx+12)+'px').style('top', (by-24)+'px');
-                                }).on('mouseleave', function(){ tip.style('display','none'); });
+                                    .attr('stroke', '#ffffff')
+                                    .attr('stroke-width', 2)
+                                    .style('opacity', 0);
+                                circles.transition().delay(900).duration(250).style('opacity', 1);
+
+                                var tip = d3.select(el).append('div')
+                                    .style('position','absolute')
+                                    .style('display','none')
+                                    .style('background','#fff')
+                                    .style('border','1px solid #e5e7eb')
+                                    .style('border-radius','10px')
+                                    .style('padding','8px 10px')
+                                    .style('box-shadow','0 12px 26px rgba(17,24,39,.14)')
+                                    .style('color','#0B2C74')
+                                    .style('font-weight','800')
+                                    .style('font-size','.85rem')
+                                    .style('pointer-events','none');
+
+                                circles.on('mouseenter', function(event, d){
+                                    d3.select(this).transition().duration(120).attr('r', 6);
+                                    tip.style('display','block').html(d.label+': '+d.value);
+                                }).on('mousemove', function(event){
+                                    var rect = el.getBoundingClientRect();
+                                    var bx = event.clientX - rect.left;
+                                    var by = event.clientY - rect.top;
+                                    tip.style('left', (bx+12)+'px').style('top', (by-34)+'px');
+                                }).on('mouseleave', function(){
+                                    d3.select(this).transition().duration(120).attr('r', 4);
+                                    tip.style('display','none');
+                                });
                             })();
                         </script>
                     </div></div>
@@ -3216,6 +3277,234 @@
             </section>
             @endif
 
+            @if(Auth::user()->hasPermission('view_training'))
+            <section id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
+                <style>
+                    .cert-shell{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,.06)}
+                    .cert-tabs{display:flex;gap:8px;padding:10px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+                    .cert-tabs .tab-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0b3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 12px;font-weight:800}
+                    .cert-tabs .tab-btn.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
+                    .cert-layout{display:grid;grid-template-columns:1.2fr .9fr;gap:18px}
+                    .cert-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:16px}
+                    #certification-management .pro-input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;transition:border-color .18s ease, box-shadow .18s ease;box-sizing:border-box;min-width:0}
+                    #certification-management .pro-input:focus{outline:none;border-color:#90b4f8;box-shadow:0 0 0 3px rgba(144,180,248,.35)}
+                    #certification-management label{display:block;margin-bottom:6px;color:#0f3b8f;font-weight:800}
+                    .dz{border:2px dashed #cfe0ff;border-radius:14px;background:#f8fbff;padding:18px;text-align:center}
+                    .dz:hover{border-color:#90b4f8;background:#f0f6ff}
+                    .cert-preview-head{font-weight:800;color:#0f3b8f;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+                    .cert-preview-box{position:relative;width:100%;aspect-ratio:1400/990;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc}
+                    .btn-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff;color:#111827;font-weight:800}
+                    .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+                    .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+                    .cert-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden}
+                    .cert-card-head{padding:10px 12px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+                    .cert-title{font-weight:800;color:#002C76}
+                    .cert-chip{display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 10px;font-weight:800;font-size:.8rem}
+                    .cert-meta{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eef2f7}
+                    .cert-empty{display:flex;align-items:center;justify-content:center;min-height:160px;color:#64748b;gap:10px}
+                    .kebab{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:800;color:#0f3b8f}
+                    .kebab:hover{background:#f3f6ff}
+                    .menu{position:absolute;right:12px;top:42px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 24px rgba(2,6,23,.12);display:none;min-width:180px;z-index:5}
+                    .menu.open{display:block}
+                    .menu a,.menu form button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;padding:10px 12px;color:#111827;text-decoration:none;font-weight:700}
+                    .menu a:hover,.menu form button:hover{background:#f8fafc}
+                    .flash-alert{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px;border-radius:10px;padding:10px 12px;font-weight:700}
+                    .flash-success{border:1px solid #bbf7d0;background:#ecfdf3;color:#166534}
+                    .flash-error{border:1px solid #f5c2c7;background:#fff5f5;color:#842029}
+                    .flash-close{border:none;background:transparent;font-size:1.2rem;line-height:1;cursor:pointer;color:inherit;padding:4px 8px;border-radius:6px}
+                    .flash-close:hover{background:rgba(0,0,0,.06)}
+                    .flash-hide{opacity:0;transition:opacity .25s ease}
+                    .sticky-preview{position:sticky;top:80px}
+                    @media (max-width: 1024px){.cert-layout{grid-template-columns:1fr}.sticky-preview{position:static}}
+                </style>
+                <div class="cert-shell">
+                    <div class="cert-tabs">
+                        <button id="certTabCreate" class="tab-btn active" onclick="switchCertTab('create')" aria-controls="certPaneCreate" aria-selected="true"><i class="fas fa-plus-circle"></i> Create Certificate</button>
+                        <button id="certTabView" class="tab-btn" onclick="switchCertTab('view')" aria-controls="certPaneView" aria-selected="false"><i class="fas fa-list"></i> View Certificates</button>
+                        <button id="certTabCertify" class="tab-btn" onclick="switchCertTab('certify')" aria-controls="certPaneCertify" aria-selected="false"><i class="fas fa-award"></i> Certify</button>
+                    </div>
+                    @if(session('success_certification'))
+                        <div class="flash-alert flash-success" data-auto-dismiss="true">
+                            <span>{{ session('success_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    @endif
+                    @if(session('error_certification'))
+                        <div class="flash-alert flash-error" data-auto-dismiss="true">
+                            <span>{{ session('error_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    @endif
+                    <div id="certPaneCreate" style="display:block;padding:16px">
+                        <form action="{{ route('certifications.store') }}" method="POST" enctype="multipart/form-data" id="certCreateForm">
+                            @csrf
+                            <div class="cert-layout">
+                                <div class="cert-panel" style="padding:16px;display:grid;gap:12px">
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Name</label>
+                                        <input type="text" name="name" placeholder="Certificate Name" class="pro-input" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Type</label>
+                                        <select name="category" class="pro-input" required>
+                                            <option value="">Select type</option>
+                                            @foreach(\App\Models\Course::subjectAreaOptions() as $opt)
+                                                <option value="{{ $opt }}">{{ $opt }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Template Mode</label>
+                                        <div style="display:flex;gap:12px;flex-wrap:wrap">
+                                            <label style="display:inline-flex;align-items:center;gap:8px">
+                                                <input type="radio" name="certMode" id="certModeStandard" value="standard" checked> Use Standard Certificate
+                                            </label>
+                                            <label style="display:inline-flex;align-items:center;gap:8px">
+                                                <input type="radio" name="certMode" id="certModeCustom" value="custom"> Create a New One
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Upload Certificate</label>
+                                        <div class="dz" id="certUploadZone">
+                                            <div style="margin-bottom:8px;color:#6b7280">Drag & drop PDF/PNG/JPG/DOCX or click to browse</div>
+                                            <input id="certTemplateInput" type="file" name="file" accept=".pdf,.docx,image/png,image/jpeg,image/jpg" style="width:100%">
+                                            <div style="margin-top:8px;color:#6b7280;font-size:.85rem">Max 10MB</div>
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Recipient Name</label>
+                                            <input id="certName" type="text" class="pro-input" placeholder="FULLNAME SAMPLE" value="FULLNAME SAMPLE">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Course / Training</label>
+                                            <input id="certCourse" type="text" class="pro-input" placeholder="COURSE NAME SAMPLE" value="COURSE NAME SAMPLE">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Completion Date</label>
+                                            <input id="certDate" type="date" class="pro-input" value="">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Certificate Number</label>
+                                            <input id="certNumber" type="text" class="pro-input" placeholder="CERT-0000" value="CERT-0000">
+                                        </div>
+                                    </div>
+                                    <div id="certControlsBox" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+                                        <div><label>Name X</label><input id="posNameX" class="pro-input" type="number" value="320"></div>
+                                        <div><label>Name Y</label><input id="posNameY" class="pro-input" type="number" value="285"></div>
+                                        <div><label>Name Size</label><input id="fontName" class="pro-input" type="number" value="80"></div>
+                                        <div></div>
+                                        <div><label>Course X</label><input id="posCourseX" class="pro-input" type="number" value="365"></div>
+                                        <div><label>Course Y</label><input id="posCourseY" class="pro-input" type="number" value="465"></div>
+                                        <div><label>Course Size</label><input id="fontCourse" class="pro-input" type="number" value="60"></div>
+                                        <div></div>
+                                        <div><label>No. X</label><input id="posNumberX" class="pro-input" type="number" value="1120"></div>
+                                        <div><label>No. Y</label><input id="posNumberY" class="pro-input" type="number" value="812"></div>
+                                        <div><label>No. Size</label><input id="fontNumber" class="pro-input" type="number" value="25"></div>
+                                        <div></div>
+                                        <div><label>Date X</label><input id="posDateX" class="pro-input" type="number" value="1120"></div>
+                                        <div><label>Date Y</label><input id="posDateY" class="pro-input" type="number" value="840"></div>
+                                        <div><label>Date Size</label><input id="fontDate" class="pro-input" type="number" value="25"></div>
+                                        <div></div>
+                                    </div>
+                                    <div style="display:flex;justify-content:flex-end;gap:8px">
+                                        <button type="reset" class="btn-pill">Cancel</button>
+                                        <button type="submit" class="btn-pill btn-blue">Create Certificate</button>
+                                    </div>
+                                </div>
+                                <div class="cert-panel sticky-preview">
+                                    <div class="cert-preview-head">
+                                        <span>Live Preview</span>
+                                        <a id="btnDownloadFinal" href="#" class="btn-pill btn-blue">Download Final</a>
+                                    </div>
+                                    <div id="certPreviewBox" class="cert-preview-box">
+                                        <img id="certBg" alt="Template" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none">
+                                        <canvas id="certCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
+                                        <div id="ovName" style="position:absolute;left:30%;top:23%;transform:translateX(-0%);font-weight:800;font-size:2.2vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovCourse" style="position:absolute;left:30%;top:33%;transform:translateX(-0%);font-weight:700;font-size:1.8vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovNumber" style="position:absolute;left:79%;top:55%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                        <div id="ovDate" style="position:absolute;left:79%;top:59%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="certPaneView" style="display:none;padding:16px">
+                        @if(($certifications ?? collect())->isEmpty())
+                            <div class="cert-empty"><i class="fas fa-certificate" style="font-size:2rem"></i><span>No Certifications Added Yet</span></div>
+                        @else
+                            <div id="certListWrapper">
+                                <div class="cert-grid">
+                                    @foreach(($certifications ?? collect()) as $cert)
+                                        <div class="cert-card" style="position:relative">
+                                            <div class="cert-card-head">
+                                                <button class="kebab" type="button" onclick="toggleCertMenu({{ $cert->id }})"><i class="fas fa-ellipsis-v"></i></button>
+                                                <div id="menu-{{ $cert->id }}" class="menu">
+                                                    <a href="{{ route('certifications.download', $cert->id) }}"><i class="fas fa-download"></i> Download</a>
+                                                    <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" data-confirm-message="Delete this certificate?" data-confirm-title="Delete Certificate">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"><i class="fas fa-trash"></i> Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            @php $ext = strtolower(pathinfo($cert->file_path ?? '', PATHINFO_EXTENSION)); @endphp
+                                            <div style="padding:14px 16px;border-top:1px solid #eef2f7">
+                                                @if(in_array($ext, ['png','jpg','jpeg']))
+                                                    <img src="{{ route('media.public', ['path' => $cert->file_path]) }}" alt="Certificate Template" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer" onclick="openCertImagePreview('{{ route('media.public', ['path' => $cert->file_path]) }}')">
+                                                @else
+                                                    <div class="cert-empty" style="gap:12px;flex-direction:column">
+                                                        <i class="fas fa-file-pdf" style="font-size:2rem;color:#0f3b8f"></i>
+                                                        <div style="color:#64748b">Template: {{ strtoupper($ext ?: 'FILE') }}</div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="cert-meta">
+                                                <div class="cert-title" style="font-size:1rem">{{ $cert->name }}</div>
+                                                <span class="cert-chip">{{ $cert->category ?? '—' }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                        <div id="certInlinePreview" style="display:none">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                                <button type="button" class="btn-pill" onclick="closeCertImagePreview()"><i class="fas fa-arrow-left"></i> Back</button>
+                                <div style="font-weight:800;color:#0f3b8f">Preview</div>
+                                <div style="width:120px"></div>
+                            </div>
+                            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:12px">
+                                <img id="certInlineImg" alt="Certificate Preview" style="display:block;width:100%;height:auto;border-radius:8px">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="certPaneCertify" style="display:none;padding:16px">
+                        <div class="cert-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">
+                            @foreach(($courses ?? collect()) as $course)
+                                <a href="{{ route('admin.certifications.course', $course) }}" style="text-decoration:none;color:inherit">
+                                    <div class="cert-card">
+                                        @php
+                                            $img = !empty($course->image_path) ? $course->image_url : null;
+                                            if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
+                                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
+                                            $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
+                                        @endphp
+                                        <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
+                                        <div class="cert-card-head" style="border:none;justify-content:space-between">
+                                            <div class="cert-title">{{ $course->name }}</div>
+                                            <span class="cert-chip">{{ $course->subject_area ?? 'Uncategorized' }}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+            @endif
+
             <section id="activity-logs" class="content-section {{ request('tab') == 'activity-logs' ? 'active' : '' }}">
                 <div style="background:#fff;padding:20px;border-radius:12px;box-shadow:0 10px 24px rgba(15,23,42,.08);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -3228,12 +3517,18 @@
                     @php
                         $actor = Auth::user();
                         $actorName = ($actor && in_array($actor->role,['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'])) ? $actor->name : 'Training Manager';
+                        $actorRoleLabel = $actor ? ucwords(str_replace('_',' ', $actor->role)) : 'System';
                         $logs = collect();
                         $recent = isset($notifications) ? $notifications->take(20) : collect();
                         foreach($recent as $n){
                             $logs->push([
-                                'title' => $n->title,
-                                'desc' => $n->message,
+                                'action' => $n->title,
+                                'module' => 'System',
+                                'details' => $n->message,
+                                'user_name' => $n->user->name ?? 'System',
+                                'user_role' => isset($n->user) ? ucwords(str_replace('_',' ', $n->user->role ?? '')) : 'System',
+                                'ip' => $n->ip_address ?? null,
+                                'status' => (stripos($n->title ?? '', 'failed') !== false || stripos($n->message ?? '', 'failed') !== false) ? 'Failed' : 'Success',
                                 'time' => $n->created_at,
                             ]);
                         }
@@ -3262,11 +3557,11 @@
                         }
                         // Approved/Updated users limited to branch
                         $approvedUsers = \App\Models\User::whereIn('role',$levelRoles)->where('status','active')->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
-                        foreach($approvedUsers as $u){ $logs->push(['title'=>'Approved User','desc'=>$actorName.' approved '.$u->name,'time'=>$u->updated_at]); }
+                        foreach($approvedUsers as $u){ $logs->push(['action'=>'Approved User','module'=>'User Management','details'=>$actorName.' approved '.$u->name,'user_name'=>$actorName,'user_role'=>$actorRoleLabel,'ip'=>null,'status'=>'Success','time'=>$u->updated_at]); }
                         $updatedUsers = \App\Models\User::whereIn('role',$levelRoles)->whereColumn('updated_at','>','created_at')->orderBy('updated_at','desc')->take(20)->get();
                         foreach($updatedUsers as $u){
-                            $logs->push(['title'=>'Edited Status','desc'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'time'=>$u->updated_at]);
-                            $logs->push(['title'=>'Edited Role','desc'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'time'=>$u->updated_at]);
+                            $logs->push(['action'=>'Edited Status','module'=>'User Management','details'=>$actorName.' set status to '.ucfirst($u->status).' for '.$u->name,'user_name'=>$actorName,'user_role'=>$actorRoleLabel,'ip'=>null,'status'=>'Success','time'=>$u->updated_at]);
+                            $logs->push(['action'=>'Edited Role','module'=>'User Management','details'=>$actorName.' set role to '.str_replace('_',' ', $u->role).' for '.$u->name,'user_name'=>$actorName,'user_role'=>$actorRoleLabel,'ip'=>null,'status'=>'Success','time'=>$u->updated_at]);
                         }
                         // Coach assignments limited to branch
                         $coachAssignments = \DB::table('course_user')
@@ -3276,7 +3571,7 @@
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
                             ->take(10)->get();
-                        foreach($coachAssignments as $r){ $logs->push(['title'=>'Assigned Coach','desc'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        foreach($coachAssignments as $r){ $logs->push(['action'=>'Assigned Coach','module'=>'Training Management','details'=>$actorName.' assigned coach '.$r->user_name.' to '.$r->course_name,'user_name'=>$actorName,'user_role'=>$actorRoleLabel,'ip'=>null,'status'=>'Success','time'=>$r->at]); }
                         // Enrollments limited to branch
                         $enrollments = \DB::table('course_user')
                             ->join('courses','course_user.course_id','=','courses.id')
@@ -3286,22 +3581,286 @@
                             ->select('courses.name as course_name','users.name as user_name','course_user.created_at as at')
                             ->orderBy('course_user.created_at','desc')
                             ->take(10)->get();
-                        foreach($enrollments as $r){ $logs->push(['title'=>'Enrolled Participant','desc'=>$actorName.' enrolled '.$r->user_name.' to '.$r->course_name,'time'=>$r->at]); }
+                        foreach($enrollments as $r){ $logs->push(['action'=>'Enrolled Participant','module'=>'Training Management','details'=>$actorName.' enrolled '.$r->user_name.' to '.$r->course_name,'user_name'=>$actorName,'user_role'=>$actorRoleLabel,'ip'=>null,'status'=>'Success','time'=>$r->at]); }
                         $logs = $logs->sortByDesc('time')->take(30);
                     @endphp
-                    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:10px">
-                        @forelse($logs as $l)
-                            <li style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 20px rgba(17,24,39,.06)">
-                                <div style="display:flex;align-items:center;justify-content:space-between">
-                                    <div style="font-weight:800;color:#0B2C74">{{ $l['title'] }}</div>
-                                    <span style="color:#94a3b8;font-size:.78rem">{{ \Carbon\Carbon::parse($l['time'])->diffForHumans() }}</span>
-                                </div>
-                                <div style="color:#64748b;font-size:.9rem;margin-top:6px">{{ $l['desc'] }}</div>
-                            </li>
-                        @empty
-                            <li class="muted">No activity yet.</li>
-                        @endforelse
-                    </ul>
+                    <style>
+                        .tm-log-shell{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#fff}
+                        .tm-log-filters{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-wrap:wrap}
+                        .tm-log-control{position:relative;min-width:200px}
+                        .tm-log-control .tm-log-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem}
+                        .tm-log-control input,.tm-log-control select{width:100%;padding:10px 12px 10px 36px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-weight:700;outline:none;background:#fff}
+                        .tm-log-clear{display:inline-flex;align-items:center;gap:8px;background:#eff6ff;color:#0b3b8f;border:1px solid #bfdbfe;padding:10px 12px;border-radius:10px;font-weight:900;cursor:pointer}
+                        .tm-log-table-wrap{width:100%;overflow:auto}
+                        .tm-log-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0}
+                        .tm-log-table thead th{font-size:.72rem;font-weight:900;color:#475569;text-transform:uppercase;letter-spacing:.08em;padding:12px 14px;border-bottom:1px solid #e2e8f0;background:#fff;white-space:nowrap}
+                        .tm-log-table tbody td{padding:14px;border-bottom:1px solid #eef2f7;vertical-align:top;font-size:.9rem;color:#0f172a}
+                        .tm-log-muted{color:#64748b;font-weight:700;font-size:.85rem}
+                        .tm-log-user{display:flex;align-items:center;gap:10px}
+                        .tm-log-avatar{width:34px;height:34px;border-radius:999px;background:#e2e8f0;color:#0f172a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.78rem;flex-shrink:0}
+                        .tm-log-action{display:flex;align-items:flex-start;gap:10px}
+                        .tm-log-action-ico{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#eff6ff;color:#0b3b8f;border:1px solid #dbeafe}
+                        .tm-log-badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:999px;font-weight:900;font-size:.75rem;border:1px solid transparent;white-space:nowrap}
+                        .tm-log-badge.success{background:#ecfdf3;color:#166534;border-color:#bbf7d0}
+                        .tm-log-badge.failed{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
+                        .tm-log-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#fff}
+                        .tm-log-pages{display:flex;align-items:center;gap:6px}
+                        .tm-log-page{min-width:34px;height:34px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#0b3b8f;font-weight:900;cursor:pointer}
+                        .tm-log-page.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
+                        .tm-log-page:disabled{opacity:.5;cursor:not-allowed}
+                    </style>
+                    <div class="tm-log-shell">
+                        <div class="tm-log-filters">
+                            <div class="tm-log-control" style="min-width:240px">
+                                <i class="fas fa-calendar-alt tm-log-ico"></i>
+                                <input id="tmLogDateStart" type="date" />
+                            </div>
+                            <div class="tm-log-control" style="min-width:240px">
+                                <i class="fas fa-calendar-alt tm-log-ico"></i>
+                                <input id="tmLogDateEnd" type="date" />
+                            </div>
+                            <div class="tm-log-control" style="min-width:190px">
+                                <i class="fas fa-sliders tm-log-ico"></i>
+                                <select id="tmLogActivity">
+                                    <option value="all">All Activities</option>
+                                </select>
+                            </div>
+                            <div class="tm-log-control" style="min-width:190px">
+                                <i class="fas fa-users tm-log-ico"></i>
+                                <select id="tmLogUser">
+                                    <option value="all">All Users</option>
+                                </select>
+                            </div>
+                            <button type="button" class="tm-log-clear" id="tmLogClear">
+                                <i class="fas fa-rotate"></i> Clear Filters
+                            </button>
+                        </div>
+                        <div class="tm-log-table-wrap">
+                            <table class="tm-log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time & Date</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Details</th>
+                                        <th>IP Address</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tmLogBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="tm-log-footer">
+                            <div class="tm-log-muted" id="tmLogMeta"></div>
+                            <div class="tm-log-pages" id="tmLogPages"></div>
+                        </div>
+                    </div>
+                    <script>
+                        (function(){
+                            var raw = @json($logs->values());
+                            var rows = (raw || []).map(function(l){
+                                var t = l.time ? new Date(l.time) : null;
+                                var userName = String(l.user_name || 'System');
+                                var userRole = String(l.user_role || '');
+                                var action = String(l.action || l.title || '');
+                                var module = String(l.module || '');
+                                var details = String(l.details || l.desc || '');
+                                var ip = l.ip ? String(l.ip) : '—';
+                                var status = String(l.status || 'Success');
+                                return { time: t, userName: userName, userRole: userRole, action: action, module: module, details: details, ip: ip, status: status };
+                            });
+
+                            function initials(name){
+                                var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+                                if(parts.length === 0) return 'NA';
+                                if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+                                return (parts[0][0] + parts[1][0]).toUpperCase();
+                            }
+                            function fmtDateTime(d){
+                                if(!(d instanceof Date) || isNaN(d.getTime())) return {date:'—', time:'—'};
+                                return {
+                                    date: d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }),
+                                    time: d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+                                };
+                            }
+                            function iconFor(action, module, status){
+                                var a = (action || '').toLowerCase();
+                                var m = (module || '').toLowerCase();
+                                if(status === 'Failed' || a.indexOf('failed') !== -1) return { ico:'fa-triangle-exclamation', bg:'#fee2e2', fg:'#b91c1c', bd:'#fecaca' };
+                                if(a.indexOf('approved') !== -1) return { ico:'fa-circle-check', bg:'#ecfdf3', fg:'#166534', bd:'#bbf7d0' };
+                                if(a.indexOf('enrolled') !== -1) return { ico:'fa-user-plus', bg:'#eff6ff', fg:'#0b3b8f', bd:'#dbeafe' };
+                                if(a.indexOf('assigned') !== -1) return { ico:'fa-people-arrows', bg:'#eef2ff', fg:'#4f46e5', bd:'#e0e7ff' };
+                                if(a.indexOf('edited') !== -1 || a.indexOf('updated') !== -1) return { ico:'fa-pen', bg:'#fff7ed', fg:'#9a3412', bd:'#fed7aa' };
+                                if(m.indexOf('course') !== -1) return { ico:'fa-book', bg:'#eff6ff', fg:'#0b3b8f', bd:'#dbeafe' };
+                                return { ico:'fa-bell', bg:'#f8fafc', fg:'#0b3b8f', bd:'#e2e8f0' };
+                            }
+
+                            var elStart = document.getElementById('tmLogDateStart');
+                            var elEnd = document.getElementById('tmLogDateEnd');
+                            var elActivity = document.getElementById('tmLogActivity');
+                            var elUser = document.getElementById('tmLogUser');
+                            var elBody = document.getElementById('tmLogBody');
+                            var elMeta = document.getElementById('tmLogMeta');
+                            var elPages = document.getElementById('tmLogPages');
+                            var elClear = document.getElementById('tmLogClear');
+                            if(!elActivity || !elUser || !elBody || !elMeta || !elPages) return;
+
+                            var pageSize = 8;
+                            var page = 1;
+
+                            function uniq(arr){
+                                var set = new Set();
+                                arr.forEach(function(v){ if(v) set.add(String(v)); });
+                                return Array.from(set).sort();
+                            }
+                            function rebuildFilterOptions(){
+                                var modules = uniq(rows.map(function(r){ return r.module; }));
+                                var users = uniq(rows.map(function(r){ return r.userName; }));
+                                modules.forEach(function(m){
+                                    var opt = document.createElement('option');
+                                    opt.value = m;
+                                    opt.textContent = m;
+                                    elActivity.appendChild(opt);
+                                });
+                                users.forEach(function(u){
+                                    var opt = document.createElement('option');
+                                    opt.value = u;
+                                    opt.textContent = u;
+                                    elUser.appendChild(opt);
+                                });
+                            }
+
+                            function inRange(d, start, end){
+                                if(!(d instanceof Date) || isNaN(d.getTime())) return false;
+                                if(start){
+                                    var s = new Date(start + 'T00:00:00');
+                                    if(d < s) return false;
+                                }
+                                if(end){
+                                    var e = new Date(end + 'T23:59:59');
+                                    if(d > e) return false;
+                                }
+                                return true;
+                            }
+
+                            function filtered(){
+                                var start = elStart ? elStart.value : '';
+                                var end = elEnd ? elEnd.value : '';
+                                var act = elActivity.value || 'all';
+                                var user = elUser.value || 'all';
+                                return rows.filter(function(r){
+                                    if(start || end){
+                                        if(!inRange(r.time, start, end)) return false;
+                                    }
+                                    if(act !== 'all' && r.module !== act) return false;
+                                    if(user !== 'all' && r.userName !== user) return false;
+                                    return true;
+                                });
+                            }
+
+                            function render(){
+                                var list = filtered();
+                                var total = list.length;
+                                var pageCount = Math.max(1, Math.ceil(total / pageSize));
+                                page = Math.min(page, pageCount);
+                                var startIdx = (page - 1) * pageSize;
+                                var endIdx = Math.min(total, startIdx + pageSize);
+                                var slice = list.slice(startIdx, endIdx);
+
+                                if(total === 0){
+                                    elBody.innerHTML = '<tr><td colspan="6" class="tm-log-muted" style="padding:18px;text-align:center">No activity logs found.</td></tr>';
+                                    elMeta.textContent = 'Showing 0 entries';
+                                    elPages.innerHTML = '';
+                                    return;
+                                }
+
+                                elBody.innerHTML = slice.map(function(r){
+                                    var dt = fmtDateTime(r.time);
+                                    var ico = iconFor(r.action, r.module, r.status);
+                                    var badgeClass = (String(r.status).toLowerCase() === 'failed') ? 'failed' : 'success';
+                                    return '' +
+                                        '<tr>' +
+                                            '<td><div style="font-weight:900;color:#0f172a">' + dt.date + '</div><div class="tm-log-muted">' + dt.time + '</div></td>' +
+                                            '<td><div class="tm-log-user">' +
+                                                '<div class="tm-log-avatar">' + initials(r.userName) + '</div>' +
+                                                '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.userName + '</div><div class="tm-log-muted">' + (r.userRole || '—') + '</div></div>' +
+                                            '</div></td>' +
+                                            '<td><div class="tm-log-action">' +
+                                                '<div class="tm-log-action-ico" style="background:' + ico.bg + ';color:' + ico.fg + ';border-color:' + ico.bd + '"><i class="fas ' + ico.ico + '"></i></div>' +
+                                                '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.action + '</div><div class="tm-log-muted">' + (r.module || '—') + '</div></div>' +
+                                            '</div></td>' +
+                                            '<td style="color:#334155">' + (r.details || '—') + '</td>' +
+                                            '<td class="tm-log-muted" style="white-space:nowrap">' + (r.ip || '—') + '</td>' +
+                                            '<td><span class="tm-log-badge ' + badgeClass + '">' + (r.status || 'Success') + '</span></td>' +
+                                        '</tr>';
+                                }).join('');
+
+                                elMeta.textContent = 'Showing ' + (startIdx + 1) + ' to ' + endIdx + ' of ' + total + ' entries';
+
+                                function pageButton(label, target, opts){
+                                    var b = document.createElement('button');
+                                    b.type = 'button';
+                                    b.className = 'tm-log-page' + (opts && opts.active ? ' active' : '');
+                                    b.textContent = label;
+                                    if(opts && opts.disabled){ b.disabled = true; }
+                                    b.addEventListener('click', function(){
+                                        if(opts && opts.disabled) return;
+                                        page = target;
+                                        render();
+                                    });
+                                    return b;
+                                }
+
+                                elPages.innerHTML = '';
+                                elPages.appendChild(pageButton('‹', Math.max(1, page - 1), { disabled: page === 1 }));
+
+                                var maxButtons = 7;
+                                var pages = [];
+                                if(pageCount <= maxButtons){
+                                    for(var i=1;i<=pageCount;i++) pages.push(i);
+                                } else {
+                                    pages.push(1);
+                                    var left = Math.max(2, page - 1);
+                                    var right = Math.min(pageCount - 1, page + 1);
+                                    if(left > 2) pages.push('…');
+                                    for(var j=left;j<=right;j++) pages.push(j);
+                                    if(right < pageCount - 1) pages.push('…');
+                                    pages.push(pageCount);
+                                }
+                                pages.forEach(function(p){
+                                    if(p === '…'){
+                                        var s = document.createElement('span');
+                                        s.textContent = '…';
+                                        s.style.color = '#94a3b8';
+                                        s.style.fontWeight = '900';
+                                        s.style.padding = '0 6px';
+                                        elPages.appendChild(s);
+                                        return;
+                                    }
+                                    elPages.appendChild(pageButton(String(p), p, { active: p === page }));
+                                });
+
+                                elPages.appendChild(pageButton('›', Math.min(pageCount, page + 1), { disabled: page === pageCount }));
+                            }
+
+                            rebuildFilterOptions();
+                            [elStart, elEnd, elActivity, elUser].forEach(function(el){
+                                if(!el) return;
+                                el.addEventListener('change', function(){ page = 1; render(); });
+                            });
+                            if(elClear){
+                                elClear.addEventListener('click', function(){
+                                    if(elStart) elStart.value = '';
+                                    if(elEnd) elEnd.value = '';
+                                    elActivity.value = 'all';
+                                    elUser.value = 'all';
+                                    page = 1;
+                                    render();
+                                });
+                            }
+                            render();
+                        })();
+                    </script>
                 </div>
             </section>
 
@@ -3809,7 +4368,8 @@
             'course-create': 'Add Course',
             'pending-courses': 'Pending Courses',
             'archived-courses': 'Archived Courses',
-            'course-library': 'Course Library'
+            'course-library': 'Course Library',
+            'certification-management': 'Certifications'
         };
         const titleElement = document.getElementById('page-title');
         if (titleElement) {
@@ -4284,6 +4844,7 @@
             'pending-courses': 'Pending Courses',
             'archived-courses': 'Archived Courses',
             'course-library': 'Course Library',
+            'certification-management': 'Certifications',
             'activity-logs': 'Activity Logs'
         };
         const titleElement = document.getElementById('page-title');
@@ -4477,6 +5038,302 @@
                 });
             });
     }
+</script>
+<script>
+    function switchCertTab(tab){
+        var tabs = ['create','view','certify'];
+        tabs.forEach(function(name){
+            var btn = document.getElementById('certTab'+name.charAt(0).toUpperCase()+name.slice(1));
+            var pane = document.getElementById('certPane'+name.charAt(0).toUpperCase()+name.slice(1));
+            if(btn){ btn.classList.toggle('active', name===tab); btn.setAttribute('aria-selected', String(name===tab)); }
+            if(pane){ pane.style.display = name===tab ? 'block' : 'none'; }
+        });
+    }
+
+    function openCertImagePreview(url){
+        var list=document.getElementById('certListWrapper');
+        var prev=document.getElementById('certInlinePreview');
+        var img=document.getElementById('certInlineImg');
+        if(list) list.style.display='none';
+        if(img){ img.src=url; }
+        if(prev) prev.style.display='block';
+    }
+    function closeCertImagePreview(){
+        var list=document.getElementById('certListWrapper');
+        var prev=document.getElementById('certInlinePreview');
+        var img=document.getElementById('certInlineImg');
+        if(prev) prev.style.display='none';
+        if(list) list.style.display='block';
+        if(img){ img.src=''; }
+    }
+    function toggleCertMenu(id){
+        var menu=document.getElementById('menu-'+id);
+        if(!menu) return;
+        var open=document.querySelectorAll('.menu.open');
+        open.forEach(function(m){ if(m!==menu) m.classList.remove('open'); });
+        menu.classList.toggle('open');
+    }
+    document.addEventListener('click',function(e){
+        var target=e.target;
+        if(target.closest('.kebab') || target.closest('.menu')) return;
+        document.querySelectorAll('.menu.open').forEach(function(m){ m.classList.remove('open'); });
+    });
+    document.addEventListener('keydown',function(e){
+        if(e.key==='Escape'){ closeCertImagePreview(); }
+    });
+
+    (function(){
+        const templateInput = document.getElementById('certTemplateInput');
+        const bgImg = document.getElementById('certBg');
+        const canvas = document.getElementById('certCanvas');
+        const uploadZone = document.getElementById('certUploadZone');
+        const controlsBox = document.getElementById('certControlsBox');
+        const modeStandard = document.getElementById('certModeStandard');
+        const modeCustom = document.getElementById('certModeCustom');
+        const previewBox = document.getElementById('certPreviewBox');
+        const downloadBtn = document.getElementById('btnDownloadFinal');
+
+        if(!bgImg || !previewBox) return;
+
+        const STANDARD_CERT_URL = "{{ asset('images/capdev cert.jpg') }}";
+        const ov = {
+            name: document.getElementById('ovName'),
+            course: document.getElementById('ovCourse'),
+            number: document.getElementById('ovNumber'),
+            date: document.getElementById('ovDate'),
+        };
+        const f = {
+            name: document.getElementById('certName'),
+            course: document.getElementById('certCourse'),
+            date: document.getElementById('certDate'),
+            number: document.getElementById('certNumber'),
+        };
+        const pos = {
+            nameX: document.getElementById('posNameX'),
+            nameY: document.getElementById('posNameY'),
+            courseX: document.getElementById('posCourseX'),
+            courseY: document.getElementById('posCourseY'),
+            numberX: document.getElementById('posNumberX'),
+            numberY: document.getElementById('posNumberY'),
+            dateX: document.getElementById('posDateX'),
+            dateY: document.getElementById('posDateY'),
+            fontName: document.getElementById('fontName'),
+            fontCourse: document.getElementById('fontCourse'),
+            fontNumber: document.getElementById('fontNumber'),
+            fontDate: document.getElementById('fontDate'),
+        };
+        const STD = {
+            nameX: 320, nameY: 285, fontName: 80,
+            courseX: 365, courseY: 465, fontCourse: 60,
+            numberX: 1120, numberY: 812, fontNumber: 25,
+            dateX: 1120, dateY: 840, fontDate: 25
+        };
+        let currentBgDataUrl = null;
+
+        function fmtDate(val){
+            if(!val) return '00/00/0000';
+            try{
+                const d = new Date(val);
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                const yyyy = d.getFullYear();
+                if(isNaN(d.getTime())) return '00/00/0000';
+                return mm+'/'+dd+'/'+yyyy;
+            }catch(_){ return '00/00/0000'; }
+        }
+
+        function updateOverlay() {
+            if(ov.name && f.name) ov.name.textContent = f.name.value || 'FULLNAME SAMPLE';
+            if(ov.course && f.course) ov.course.textContent = f.course.value || 'COURSE NAME SAMPLE';
+            if(ov.number && f.number) ov.number.textContent = f.number.value || 'CERT-0000';
+            if(ov.date && f.date) ov.date.textContent = fmtDate(f.date.value);
+
+            const w = 1400, h = 990;
+            const rect = previewBox.getBoundingClientRect();
+            const rx = rect.width / w, ry = rect.height / h;
+            if(ov.name && pos.nameX){ ov.name.style.left = (pos.nameX.value * rx) + 'px'; ov.name.style.top  = (pos.nameY.value * ry) + 'px'; ov.name.style.fontSize = (pos.fontName.value * rx) + 'px'; }
+            if(ov.course && pos.courseX){ ov.course.style.left = (pos.courseX.value * rx) + 'px'; ov.course.style.top = (pos.courseY.value * ry) + 'px'; ov.course.style.fontSize = (pos.fontCourse.value * rx) + 'px'; }
+            if(ov.number && pos.numberX){ ov.number.style.left = (pos.numberX.value * rx) + 'px'; ov.number.style.top = (pos.numberY.value * ry) + 'px'; ov.number.style.fontSize = (pos.fontNumber.value * rx) + 'px'; }
+            if(ov.date && pos.dateX){ ov.date.style.left = (pos.dateX.value * rx) + 'px'; ov.date.style.top = (pos.dateY.value * ry) + 'px'; ov.date.style.fontSize = (pos.fontDate.value * rx) + 'px'; }
+        }
+
+        ['input','change'].forEach(function(ev){
+            [f.name,f.course,f.date,f.number,pos.nameX,pos.nameY,pos.courseX,pos.courseY,pos.numberX,pos.numberY,pos.dateX,pos.dateY,pos.fontName,pos.fontCourse,pos.fontNumber,pos.fontDate].forEach(function(el){
+                if(el){ el.addEventListener(ev, updateOverlay); }
+            });
+        });
+
+        async function normalizeBackground(dataUrl){
+            return new Promise(function(resolve){
+                const img = new Image();
+                img.onload = function(){
+                    const w=1400,h=990;
+                    const c=document.createElement('canvas'); c.width=w; c.height=h;
+                    const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+                    const ratio = Math.min(w/img.width, h/img.height);
+                    const dw = img.width*ratio, dh = img.height*ratio;
+                    const dx = (w-dw)/2, dy = (h-dh)/2;
+                    ctx.drawImage(img, dx, dy, dw, dh);
+                    resolve(c.toDataURL('image/png'));
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        async function renderPdfFirstPageToImg(file){
+            if(!window.pdfjsLib){ throw new Error('PDF library not loaded'); }
+            const url = URL.createObjectURL(file);
+            const pdf = await window.pdfjsLib.getDocument(url).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const cvs = document.createElement('canvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = viewport.width;
+            cvs.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            URL.revokeObjectURL(url);
+            return cvs.toDataURL('image/png');
+        }
+
+        async function renderDocxToImg(file){
+            if(!window.docx || !window.html2canvas){ throw new Error('DOCX libraries not loaded'); }
+            const container = document.createElement('div');
+            container.style.position='absolute';
+            container.style.left='-99999px';
+            document.body.appendChild(container);
+            await window.docx.renderAsync(file, container, undefined, { inWrapper:false });
+            const dataUrl = await window.html2canvas(container, { scale:2 }).then(function(c){ return c.toDataURL('image/png'); });
+            container.remove();
+            return dataUrl;
+        }
+
+        async function setBackgroundFromFile(file){
+            if(!file) return;
+            if(file.size > 10*1024*1024){ alert('Max 10MB'); return; }
+            const name = (file.name||'').toLowerCase();
+            let dataUrl = null;
+            if(name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg')){
+                dataUrl = await new Promise(function(res){
+                    const r = new FileReader(); r.onload = function(){ res(r.result); }; r.readAsDataURL(file);
+                });
+            } else if (name.endsWith('.pdf')){
+                dataUrl = await renderPdfFirstPageToImg(file);
+            } else if (name.endsWith('.docx')){
+                dataUrl = await renderDocxToImg(file);
+            } else {
+                alert('Unsupported format'); return;
+            }
+            bgImg.src = dataUrl;
+            bgImg.style.display='block';
+            if(canvas) canvas.style.display='none';
+            currentBgDataUrl = await normalizeBackground(dataUrl);
+            updateOverlay();
+        }
+
+        async function setBackgroundFromUrl(url){
+            return new Promise(function(resolve){
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = async function(){
+                    const c = document.createElement('canvas');
+                    const ctx = c.getContext('2d');
+                    c.width = img.naturalWidth || 1400;
+                    c.height = img.naturalHeight || 990;
+                    ctx.drawImage(img,0,0);
+                    const dataUrl = c.toDataURL('image/png');
+                    bgImg.src = dataUrl;
+                    bgImg.style.display='block';
+                    if(canvas) canvas.style.display='none';
+                    currentBgDataUrl = await normalizeBackground(dataUrl);
+                    updateOverlay();
+                    resolve();
+                };
+                img.onerror = function(){ resolve(); };
+                img.src = url;
+            });
+        }
+
+        function applyModeUI(){
+            if(modeStandard && modeStandard.checked){
+                if(uploadZone){ uploadZone.style.display = 'none'; }
+                if(controlsBox){ controlsBox.style.display = 'none'; }
+                setBackgroundFromUrl(STANDARD_CERT_URL);
+                pos.nameX.value = STD.nameX; pos.nameY.value = STD.nameY; pos.fontName.value = STD.fontName;
+                pos.courseX.value = STD.courseX; pos.courseY.value = STD.courseY; pos.fontCourse.value = STD.fontCourse;
+                pos.numberX.value = STD.numberX; pos.numberY.value = STD.numberY; pos.fontNumber.value = STD.fontNumber;
+                pos.dateX.value = STD.dateX; pos.dateY.value = STD.dateY; pos.fontDate.value = STD.fontDate;
+                updateOverlay();
+            } else {
+                if(uploadZone){ uploadZone.style.display = 'block'; }
+                if(controlsBox){ controlsBox.style.display = 'grid'; }
+                bgImg.src = '';
+                bgImg.style.display='none';
+                if(canvas) canvas.style.display='none';
+                currentBgDataUrl = null;
+                updateOverlay();
+            }
+        }
+
+        if(templateInput){
+            templateInput.addEventListener('change', function(){
+                const file = this.files && this.files[0];
+                setBackgroundFromFile(file);
+            });
+        }
+
+        if(modeStandard){ modeStandard.addEventListener('change', applyModeUI); }
+        if(modeCustom){ modeCustom.addEventListener('change', applyModeUI); }
+
+        applyModeUI();
+        updateOverlay();
+
+        if(downloadBtn){
+            downloadBtn.addEventListener('click', async function(e){
+                e.preventDefault();
+                if(!currentBgDataUrl){ alert('Upload a template first.'); return; }
+                const payload = {
+                    template_bg_data: currentBgDataUrl,
+                    recipient_name: f.name ? (f.name.value || '') : '',
+                    course_name: f.course ? (f.course.value || '') : '',
+                    completion_date: f.date ? (f.date.value || '') : '',
+                    certificate_number: f.number ? (f.number.value || '') : '',
+                    pos: {
+                        name: { x: parseInt(pos.nameX.value||'0'), y: parseInt(pos.nameY.value||'0') },
+                        course:{ x: parseInt(pos.courseX.value||'0'), y: parseInt(pos.courseY.value||'0') },
+                        number:{ x: parseInt(pos.numberX.value||'0'), y: parseInt(pos.numberY.value||'0') },
+                        date:  { x: parseInt(pos.dateX.value||'0'), y: parseInt(pos.dateY.value||'0') },
+                    },
+                    font: {
+                        name: parseInt(pos.fontName.value||'38'),
+                        course: parseInt(pos.fontCourse.value||'28'),
+                        number: parseInt(pos.fontNumber.value||'16'),
+                        date: parseInt(pos.fontDate.value||'16'),
+                    }
+                };
+                const res = await fetch('{{ route('admin.certifications.preview.generate') }}', {
+                    method:'POST',
+                    headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/pdf','Content-Type':'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if(!res.ok){ alert('Failed to generate certificate'); return; }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href=url; a.download='certificate_preview.pdf'; a.click();
+                setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+            });
+        }
+
+        (function(){
+            var alerts=document.querySelectorAll('.flash-alert[data-auto-dismiss]');
+            alerts.forEach(function(a){
+                setTimeout(function(){
+                    if(!a) return;
+                    a.classList.add('flash-hide');
+                    setTimeout(function(){ a && a.remove(); }, 250);
+                }, 10000);
+            });
+        })();
+    })();
 </script>
 </body>
 </html>

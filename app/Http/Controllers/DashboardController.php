@@ -345,7 +345,7 @@ class DashboardController extends Controller
                 $availableRoles = \App\Models\Role::whereIn('name', $managedRoles)->get();
 
                 // Calculate counts for the dashboard donut charts
-                $userQuery = User::whereIn('role', $managedRoles)->where($registrarScope);
+                $userQuery = User::whereIn('role', $managedRoles)->where('profile_completed', true)->where($registrarScope);
                 $userCount = $userQuery->count();
                 $aActive = (clone $userQuery)->where('status', 'active')->count();
                 $aPending = (clone $userQuery)->where('status', 'pending')->count();
@@ -356,8 +356,31 @@ class DashboardController extends Controller
                 $rCoaches = User::whereIn('role', ['coach', 'trainer'])->where($registrarScope)->count();
                 $rParticipants = User::whereIn('role', ['participant', 'trainee'])->where($registrarScope)->count();
 
-                $publishedCoursesCount = Course::where('is_published', true)->count();
-                $unpublishedCoursesCount = Course::where('is_published', false)->count();
+                $publishedCoursesCountQuery = Course::where('is_published', true);
+                $unpublishedCoursesCountQuery = Course::where('is_published', false);
+                if ($selectedYearId !== 'all') {
+                    $publishedCoursesCountQuery->where('academic_year_id', $selectedYearId);
+                    $unpublishedCoursesCountQuery->where('academic_year_id', $selectedYearId);
+                }
+                $publishedCoursesCount = $publishedCoursesCountQuery->count();
+                $unpublishedCoursesCount = $unpublishedCoursesCountQuery->count();
+                $pendingCoursesCount = $unpublishedCoursesCount;
+
+                $certificationsIssuedCountQuery = DB::table('certification_user')
+                    ->join('users', 'users.id', '=', 'certification_user.user_id')
+                    ->join('courses', 'courses.id', '=', 'certification_user.course_id')
+                    ->whereIn('users.role', $participantRoles)
+                    ->where('users.profile_completed', true)
+                    ->where(function ($scoped) {
+                        $scoped->whereNull('users.agency')
+                            ->orWhere('users.agency', '!=', 'DILG');
+                    });
+                if ($selectedYearId !== 'all') {
+                    $certificationsIssuedCountQuery->where('courses.academic_year_id', $selectedYearId);
+                }
+                $certificationsIssuedCount = $certificationsIssuedCountQuery->count();
+                $pendingApprovalsCount = $unapprovedCount;
+                $totalUsersCount = $userCount;
 
                 $courseQuery = Course::query(); // Registrar sees all for now
                 $cActive = $courseQuery->count();
@@ -377,14 +400,20 @@ class DashboardController extends Controller
                 $cWithoutCoach = (clone $courseQuery)->whereDoesntHave('users', function($q){ $q->whereIn('role',['coach','trainer']); })->count();
 
                 $fieldOfWorks = FieldOfWork::orderBy('name', 'asc')->get();
+                $certifications = Certification::orderByDesc('created_at')->get();
 
                 return view('registrar.dashboard', compact(
                     'unapprovedCount',
                     'approvedCount',
                     'pendingTraineesCount',
                     'totalCourses',
+                    'totalUsersCount',
+                    'pendingCoursesCount',
+                    'certificationsIssuedCount',
+                    'pendingApprovalsCount',
                     'users',
                     'courses',
+                    'certifications',
                     'potentialParticipants',
                     'notifications',
                     'unreadNotificationsCount',
@@ -696,6 +725,40 @@ class DashboardController extends Controller
                 $publishedCoursesCount = $publishedCoursesCountQuery->count();
                 $unpublishedCoursesCount = $unpublishedCoursesCountQuery->count();
 
+                $enrollmentRoles = $managedParticipantRoles;
+                if (!in_array($user->role, ['central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'], true)) {
+                    $enrollmentRoles = array_values(array_unique(array_merge($enrollmentRoles, ['trainee'])));
+                }
+                $enrollmentBaseQuery = DB::table('course_user')
+                    ->join('users', 'users.id', '=', 'course_user.user_id')
+                    ->join('courses', 'courses.id', '=', 'course_user.course_id')
+                    ->whereIn('users.role', $enrollmentRoles)
+                    ->where('users.profile_completed', true)
+                    ->whereNotIn('course_user.status', ['pending']);
+                if ($selectedYearId !== 'all') {
+                    $enrollmentBaseQuery->where('courses.academic_year_id', $selectedYearId);
+                }
+                $enrollCompletedCount = (clone $enrollmentBaseQuery)->where('course_user.status', 'completed')->count();
+                $enrollNotStartedCount = (clone $enrollmentBaseQuery)->where('course_user.status', 'active')->count();
+                $enrollInProgressCount = (clone $enrollmentBaseQuery)->whereNotIn('course_user.status', ['completed', 'active'])->count();
+
+                $certificationRoles = $managedParticipantRoles;
+                if (!in_array($user->role, ['central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'], true)) {
+                    $certificationRoles = array_values(array_unique(array_merge($certificationRoles, ['trainee'])));
+                }
+
+                $certificationsIssuedCountQuery = DB::table('certification_user')
+                    ->join('users', 'users.id', '=', 'certification_user.user_id')
+                    ->join('courses', 'courses.id', '=', 'certification_user.course_id')
+                    ->whereIn('users.role', $certificationRoles)
+                    ->where('users.profile_completed', true);
+                if ($selectedYearId !== 'all') {
+                    $certificationsIssuedCountQuery->where('courses.academic_year_id', $selectedYearId);
+                }
+                $certificationsIssuedCount = $certificationsIssuedCountQuery->count();
+                $pendingApprovalsCount = $unapprovedCount;
+                $totalUsersCount = $userCount;
+
                 $courseQuery = Course::whereHas('users', function($q) use ($levelRoles) {
                     $q->whereIn('role', $levelRoles);
                 });
@@ -727,6 +790,12 @@ class DashboardController extends Controller
                     'approvedCount',
                     'pendingTraineesCount',
                     'totalCourses',
+                    'totalUsersCount',
+                    'enrollCompletedCount',
+                    'enrollInProgressCount',
+                    'enrollNotStartedCount',
+                    'certificationsIssuedCount',
+                    'pendingApprovalsCount',
                     'users',
                     'courses',
                     'publishedCourses',

@@ -326,7 +326,7 @@
         .control-hero-sub{font-size:1.02rem;opacity:.92;max-width:640px;margin-top:10px}
         .hero-stats-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px}
         @media (min-width: 900px){ .hero-stats-grid{grid-template-columns:repeat(2,1fr)} }
-        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(4,1fr)} }
+        @media (min-width: 1200px){ .hero-stats-grid{grid-template-columns:repeat(5,1fr)} }
         .hero-stat-card{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.24);border-radius:18px;padding:20px 22px;transition:transform .18s ease, background-color .18s ease}
         .hero-stat-card:hover{transform:translateY(-4px);background:rgba(255,255,255,.2)}
         .hero-stat-icon{width:52px;height:52px;border-radius:16px;background:#fff;color:#c96a09;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:0 0 auto}
@@ -984,33 +984,42 @@
                     <div class="hero-stats-grid">
                         @if(Auth::user()->hasPermission('view_users_tm'))
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-users"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $unapprovedCount }}</span>
-                                <span class="hero-stat-label">Total Unapproved Users</span>
-                            </div>
-                        </div>
-                        <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-check"></i></div>
-                            <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $approvedCount }}</span>
-                                <span class="hero-stat-label">Total Approved Users</span>
+                                <span class="hero-stat-value">{{ $totalUsersCount ?? $userCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Total Users</span>
                             </div>
                         </div>
                         @endif
                         @if(Auth::user()->hasPermission('view_training'))
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-book"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-book-open"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $totalCourses }}</span>
-                                <span class="hero-stat-label">Total Courses</span>
+                                <span class="hero-stat-value">{{ $publishedCoursesCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Published Courses</span>
                             </div>
                         </div>
                         <div class="hero-stat-card">
-                            <div class="hero-stat-icon"><i class="fas fa-user-hourglass"></i></div>
+                            <div class="hero-stat-icon"><i class="fas fa-hourglass-half"></i></div>
                             <div class="hero-stat-info">
-                                <span class="hero-stat-value">{{ $pendingTraineesCount }}</span>
-                                <span class="hero-stat-label">Pending Participants</span>
+                                <span class="hero-stat-value">{{ $pendingCoursesCount ?? $unpublishedCoursesCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Pending Courses</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-certificate"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $certificationsIssuedCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Certification Issued</span>
+                            </div>
+                        </div>
+                        @endif
+                        @if(Auth::user()->hasPermission('view_users_tm'))
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon"><i class="fas fa-user-clock"></i></div>
+                            <div class="hero-stat-info">
+                                <span class="hero-stat-value">{{ $pendingApprovalsCount ?? $unapprovedCount ?? 0 }}</span>
+                                <span class="hero-stat-label">Pending Approvals</span>
                             </div>
                         </div>
                         @endif
@@ -1062,12 +1071,12 @@
                         @if(Auth::user()->hasPermission('view_course_monitoring'))
                         <div>
                             <div style="display:flex;justify-content:center;gap:8px;margin-bottom:8px">
-                                <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Status</button>
-                                <button id="tm-course-tab-distribution" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Distribution</button>
+                                <button id="tm-course-tab-summary" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#0B2C74;color:#fff;font-weight:800">Enrollment</button>
+                                <button id="tm-course-tab-distribution" type="button" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800">Status</button>
                             </div>
                             <div id="tm-donut-courses" style="width:220px;height:220px;margin:0 auto"></div>
                             <div style="margin-top:10px;text-align:center">
-                                <div style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
+                                <div id="tm-course-total-label" style="color:#6b7280;font-size:.85rem;letter-spacing:.2px">Total Courses</div>
                                 <div id="tm-total-courses" style="font-weight:800;color:#0B2C74;font-size:1.5rem;line-height:1">{{ $cActive }}</div>
                             </div>
                             <div id="tm-legend-course-summary" style="display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
@@ -1075,8 +1084,9 @@
                                 <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Unpublished <span id="tm-course-legend-unpublished" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                             <div id="tm-legend-course-distribution" style="display:none;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;justify-content:center;margin-top:8px">
-                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">Classroom with Coach <span id="tm-course-legend-withcoach" style="color:#6b7280;margin-left:6px"></span></div>
-                                <div style="width:12px;height:12px;border-radius:50%;background:#B10606"></div><div style="color:#0B2C74;font-weight:800">Classroom without Coach <span id="tm-course-legend-withoutcoach" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#10b981"></div><div style="color:#0B2C74;font-weight:800">Completed <span id="tm-enroll-legend-completed" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#0B2C74"></div><div style="color:#0B2C74;font-weight:800">In Progress <span id="tm-enroll-legend-inprogress" style="color:#6b7280;margin-left:6px"></span></div>
+                                <div style="width:12px;height:12px;border-radius:50%;background:#94a3b8"></div><div style="color:#0B2C74;font-weight:800">Not Started <span id="tm-enroll-legend-notstarted" style="color:#6b7280;margin-left:6px"></span></div>
                             </div>
                         </div>
                         @endif
@@ -1183,9 +1193,11 @@
                           var cActive={{ $cActive }};
                           var cPublished={{ $publishedCoursesCount }};
                           var cUnpublished={{ $unpublishedCoursesCount }};
-                          var cWithCoach={{ $cWithCoach }};
-                          var cWithoutCoach={{ $cWithoutCoach }};
                           var cTotal = cActive;
+                          var eCompleted = 0;
+                          var eInProgress = cPublished;
+                          var eNotStarted = cUnpublished;
+                          var eTotal = cTotal;
                           function drawCourseDistribution(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
                             var sLegend=document.getElementById('tm-legend-course-summary');
@@ -1193,11 +1205,14 @@
                             if(sLegend) sLegend.style.display='none';
                             var btnS=document.getElementById('tm-course-tab-summary');
                             var btnD=document.getElementById('tm-course-tab-distribution');
-                            if(btnS&&btnD){ btnS.style.background='#fff'; btnS.style.color='#0B2C74'; btnD.style.background='#0B2C74'; btnD.style.color='#fff'; }
+                            if(btnS&&btnD){ btnS.style.background='#0B2C74'; btnS.style.color='#fff'; btnD.style.background='#fff'; btnD.style.color='#0B2C74'; }
                             var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
-                            renderArcDonut('tm-donut-courses', [cWithCoach,cWithoutCoach], ['#0B2C74','#B10606']);
-                            document.getElementById('tm-course-legend-withcoach').innerText = cWithCoach+' · '+pct(cWithCoach,cTotal)+'%';
-                            document.getElementById('tm-course-legend-withoutcoach').innerText = cWithoutCoach+' · '+pct(cWithoutCoach,cTotal)+'%';
+                            renderArcDonut('tm-donut-courses', [eCompleted,eInProgress,eNotStarted], ['#10b981','#0B2C74','#94a3b8']);
+                            document.getElementById('tm-enroll-legend-completed').innerText = eCompleted+' · '+pct(eCompleted,eTotal)+'%';
+                            document.getElementById('tm-enroll-legend-inprogress').innerText = eInProgress+' · '+pct(eInProgress,eTotal)+'%';
+                            document.getElementById('tm-enroll-legend-notstarted').innerText = eNotStarted+' · '+pct(eNotStarted,eTotal)+'%';
+                            var t=document.getElementById('tm-total-courses'); if(t){ t.innerText = eTotal; }
+                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Courses'; }
                           }
                           function drawCourseSummary(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
@@ -1206,17 +1221,19 @@
                             if(sLegend) sLegend.style.display='grid';
                             var btnS=document.getElementById('tm-course-tab-summary');
                             var btnD=document.getElementById('tm-course-tab-distribution');
-                            if(btnS&&btnD){ btnS.style.background='#0B2C74'; btnS.style.color='#fff'; btnD.style.background='#fff'; btnD.style.color='#0B2C74'; }
+                            if(btnS&&btnD){ btnS.style.background='#fff'; btnS.style.color='#0B2C74'; btnD.style.background='#0B2C74'; btnD.style.color='#fff'; }
                             var el=document.getElementById('tm-donut-courses'); if(el){ el.innerHTML=''; }
                             renderArcDonut('tm-donut-courses', [cPublished,cUnpublished], ['#0B2C74','#B10606']);
                             document.getElementById('tm-course-legend-published').innerText = cPublished+' · '+pct(cPublished,cTotal)+'%';
                             document.getElementById('tm-course-legend-unpublished').innerText = cUnpublished+' · '+pct(cUnpublished,cTotal)+'%';
+                            var t=document.getElementById('tm-total-courses'); if(t){ t.innerText = cTotal; }
+                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Courses'; }
                           }
-                          drawCourseSummary();
+                          drawCourseDistribution();
                           var tabCourseSummary=document.getElementById('tm-course-tab-summary');
                           var tabCourseDistribution=document.getElementById('tm-course-tab-distribution');
-                          if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseSummary); }
-                          if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseDistribution); }
+                          if(tabCourseSummary){ tabCourseSummary.addEventListener('click', drawCourseDistribution); }
+                          if(tabCourseDistribution){ tabCourseDistribution.addEventListener('click', drawCourseSummary); }
                         })();
                     </script>
                 </div>
@@ -1458,21 +1475,307 @@
                         </div>
                         <span style="color:#6b7280">Recent</span>
                     </div>
-                    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:10px">
-                        @forelse($activityLogs ?? [] as $log)
-                            <li style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 20px rgba(17,24,39,.06)">
-                                <div style="display:flex;align-items:center;justify-content:space-between">
-                                    <div style="font-weight:800;color:#0B2C74">{{ ucfirst($log->action) }} {{ class_basename($log->model_type) }}</div>
-                                    <span style="color:#94a3b8;font-size:.78rem">{{ $log->created_at->diffForHumans() }}</span>
-                                </div>
-                                <div style="color:#64748b;font-size:.9rem;margin-top:6px">
-                                    <strong>{{ $log->user->name ?? 'System' }}</strong>: {{ $log->description }}
-                                </div>
-                            </li>
-                        @empty
-                            <li style="padding:20px;text-align:center;color:#64748b">No activity logs yet.</li>
-                        @endforelse
-                    </ul>
+                    @php
+                        $tmLogRows = collect($activityLogs ?? [])->map(function($log){
+                            $userName = optional($log->user)->name ?: 'System';
+                            $userRole = optional($log->user)->role ? ucwords(str_replace('_',' ', optional($log->user)->role)) : 'System';
+                            $action = trim(ucfirst((string)($log->action ?? 'Activity')) . ' ' . class_basename((string)($log->model_type ?? '')));
+                            $details = (string)($log->description ?? '');
+                            $module = 'System';
+                            $actionLc = strtolower((string)($action));
+                            if(strpos($actionLc, 'course') !== false){ $module = 'Course Management'; }
+                            if(strpos($actionLc, 'user') !== false){ $module = 'User Management'; }
+                            if(strpos($actionLc, 'enroll') !== false || strpos($details, 'enroll') !== false){ $module = 'Training Management'; }
+                            $status = (stripos($action, 'failed') !== false || stripos($details, 'failed') !== false) ? 'Failed' : 'Success';
+                            return [
+                                'time' => optional($log->created_at)->toISOString(),
+                                'user_name' => $userName,
+                                'user_role' => $userRole,
+                                'action' => $action,
+                                'module' => $module,
+                                'details' => $details,
+                                'ip' => $log->ip_address ?? null,
+                                'status' => $status,
+                            ];
+                        })->values();
+                    @endphp
+                    <style>
+                        .tm-log-shell{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#fff}
+                        .tm-log-filters{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-wrap:wrap}
+                        .tm-log-control{position:relative;min-width:200px}
+                        .tm-log-control .tm-log-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem}
+                        .tm-log-control input,.tm-log-control select{width:100%;padding:10px 12px 10px 36px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-weight:700;outline:none;background:#fff}
+                        .tm-log-clear{display:inline-flex;align-items:center;gap:8px;background:#eff6ff;color:#0b3b8f;border:1px solid #bfdbfe;padding:10px 12px;border-radius:10px;font-weight:900;cursor:pointer}
+                        .tm-log-table-wrap{width:100%;overflow:auto}
+                        .tm-log-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0}
+                        .tm-log-table thead th{font-size:.72rem;font-weight:900;color:#475569;text-transform:uppercase;letter-spacing:.08em;padding:12px 14px;border-bottom:1px solid #e2e8f0;background:#fff;white-space:nowrap}
+                        .tm-log-table tbody td{padding:14px;border-bottom:1px solid #eef2f7;vertical-align:top;font-size:.9rem;color:#0f172a}
+                        .tm-log-muted{color:#64748b;font-weight:700;font-size:.85rem}
+                        .tm-log-user{display:flex;align-items:center;gap:10px}
+                        .tm-log-avatar{width:34px;height:34px;border-radius:999px;background:#e2e8f0;color:#0f172a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.78rem;flex-shrink:0}
+                        .tm-log-action{display:flex;align-items:flex-start;gap:10px}
+                        .tm-log-action-ico{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#eff6ff;color:#0b3b8f;border:1px solid #dbeafe}
+                        .tm-log-badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:999px;font-weight:900;font-size:.75rem;border:1px solid transparent;white-space:nowrap}
+                        .tm-log-badge.success{background:#ecfdf3;color:#166534;border-color:#bbf7d0}
+                        .tm-log-badge.failed{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
+                        .tm-log-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#fff}
+                        .tm-log-pages{display:flex;align-items:center;gap:6px}
+                        .tm-log-page{min-width:34px;height:34px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#0b3b8f;font-weight:900;cursor:pointer}
+                        .tm-log-page.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
+                        .tm-log-page:disabled{opacity:.5;cursor:not-allowed}
+                    </style>
+                    <div class="tm-log-shell">
+                        <div class="tm-log-filters">
+                            <div class="tm-log-control" style="min-width:240px">
+                                <i class="fas fa-calendar-alt tm-log-ico"></i>
+                                <input id="tmLogDateStart" type="date" />
+                            </div>
+                            <div class="tm-log-control" style="min-width:240px">
+                                <i class="fas fa-calendar-alt tm-log-ico"></i>
+                                <input id="tmLogDateEnd" type="date" />
+                            </div>
+                            <div class="tm-log-control" style="min-width:190px">
+                                <i class="fas fa-sliders tm-log-ico"></i>
+                                <select id="tmLogActivity">
+                                    <option value="all">All Activities</option>
+                                </select>
+                            </div>
+                            <div class="tm-log-control" style="min-width:190px">
+                                <i class="fas fa-users tm-log-ico"></i>
+                                <select id="tmLogUser">
+                                    <option value="all">All Users</option>
+                                </select>
+                            </div>
+                            <button type="button" class="tm-log-clear" id="tmLogClear">
+                                <i class="fas fa-rotate"></i> Clear Filters
+                            </button>
+                        </div>
+                        <div class="tm-log-table-wrap">
+                            <table class="tm-log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time & Date</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Details</th>
+                                        <th>IP Address</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tmLogBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="tm-log-footer">
+                            <div class="tm-log-muted" id="tmLogMeta"></div>
+                            <div class="tm-log-pages" id="tmLogPages"></div>
+                        </div>
+                    </div>
+                    <script>
+                        (function(){
+                            var raw = @json($tmLogRows);
+                            var rows = (raw || []).map(function(l){
+                                var t = l.time ? new Date(l.time) : null;
+                                var userName = String(l.user_name || 'System');
+                                var userRole = String(l.user_role || '');
+                                var action = String(l.action || '');
+                                var module = String(l.module || '');
+                                var details = String(l.details || '');
+                                var ip = l.ip ? String(l.ip) : '—';
+                                var status = String(l.status || 'Success');
+                                return { time: t, userName: userName, userRole: userRole, action: action, module: module, details: details, ip: ip, status: status };
+                            });
+
+                            function initials(name){
+                                var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+                                if(parts.length === 0) return 'NA';
+                                if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+                                return (parts[0][0] + parts[1][0]).toUpperCase();
+                            }
+                            function fmtDateTime(d){
+                                if(!(d instanceof Date) || isNaN(d.getTime())) return {date:'—', time:'—'};
+                                return {
+                                    date: d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }),
+                                    time: d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+                                };
+                            }
+                            function iconFor(action, module, status){
+                                var a = (action || '').toLowerCase();
+                                var m = (module || '').toLowerCase();
+                                if(status === 'Failed' || a.indexOf('failed') !== -1) return { ico:'fa-triangle-exclamation', bg:'#fee2e2', fg:'#b91c1c', bd:'#fecaca' };
+                                if(a.indexOf('approved') !== -1) return { ico:'fa-circle-check', bg:'#ecfdf3', fg:'#166534', bd:'#bbf7d0' };
+                                if(a.indexOf('enrolled') !== -1) return { ico:'fa-user-plus', bg:'#eff6ff', fg:'#0b3b8f', bd:'#dbeafe' };
+                                if(a.indexOf('assigned') !== -1) return { ico:'fa-people-arrows', bg:'#eef2ff', fg:'#4f46e5', bd:'#e0e7ff' };
+                                if(a.indexOf('edited') !== -1 || a.indexOf('updated') !== -1) return { ico:'fa-pen', bg:'#fff7ed', fg:'#9a3412', bd:'#fed7aa' };
+                                if(m.indexOf('course') !== -1) return { ico:'fa-book', bg:'#eff6ff', fg:'#0b3b8f', bd:'#dbeafe' };
+                                return { ico:'fa-bell', bg:'#f8fafc', fg:'#0b3b8f', bd:'#e2e8f0' };
+                            }
+
+                            var elStart = document.getElementById('tmLogDateStart');
+                            var elEnd = document.getElementById('tmLogDateEnd');
+                            var elActivity = document.getElementById('tmLogActivity');
+                            var elUser = document.getElementById('tmLogUser');
+                            var elBody = document.getElementById('tmLogBody');
+                            var elMeta = document.getElementById('tmLogMeta');
+                            var elPages = document.getElementById('tmLogPages');
+                            var elClear = document.getElementById('tmLogClear');
+                            if(!elActivity || !elUser || !elBody || !elMeta || !elPages) return;
+
+                            var pageSize = 8;
+                            var page = 1;
+
+                            function uniq(arr){
+                                var set = new Set();
+                                arr.forEach(function(v){ if(v) set.add(String(v)); });
+                                return Array.from(set).sort();
+                            }
+                            function rebuildFilterOptions(){
+                                var modules = uniq(rows.map(function(r){ return r.module; }));
+                                var users = uniq(rows.map(function(r){ return r.userName; }));
+                                modules.forEach(function(m){
+                                    var opt = document.createElement('option');
+                                    opt.value = m;
+                                    opt.textContent = m;
+                                    elActivity.appendChild(opt);
+                                });
+                                users.forEach(function(u){
+                                    var opt = document.createElement('option');
+                                    opt.value = u;
+                                    opt.textContent = u;
+                                    elUser.appendChild(opt);
+                                });
+                            }
+
+                            function inRange(d, start, end){
+                                if(!(d instanceof Date) || isNaN(d.getTime())) return false;
+                                if(start){
+                                    var s = new Date(start + 'T00:00:00');
+                                    if(d < s) return false;
+                                }
+                                if(end){
+                                    var e = new Date(end + 'T23:59:59');
+                                    if(d > e) return false;
+                                }
+                                return true;
+                            }
+
+                            function filtered(){
+                                var start = elStart ? elStart.value : '';
+                                var end = elEnd ? elEnd.value : '';
+                                var act = elActivity.value || 'all';
+                                var user = elUser.value || 'all';
+                                return rows.filter(function(r){
+                                    if(start || end){
+                                        if(!inRange(r.time, start, end)) return false;
+                                    }
+                                    if(act !== 'all' && r.module !== act) return false;
+                                    if(user !== 'all' && r.userName !== user) return false;
+                                    return true;
+                                });
+                            }
+
+                            function render(){
+                                var list = filtered();
+                                var total = list.length;
+                                var pageCount = Math.max(1, Math.ceil(total / pageSize));
+                                page = Math.min(page, pageCount);
+                                var startIdx = (page - 1) * pageSize;
+                                var endIdx = Math.min(total, startIdx + pageSize);
+                                var slice = list.slice(startIdx, endIdx);
+
+                                if(total === 0){
+                                    elBody.innerHTML = '<tr><td colspan="6" class="tm-log-muted" style="padding:18px;text-align:center">No activity logs found.</td></tr>';
+                                    elMeta.textContent = 'Showing 0 entries';
+                                    elPages.innerHTML = '';
+                                    return;
+                                }
+
+                                elBody.innerHTML = slice.map(function(r){
+                                    var dt = fmtDateTime(r.time);
+                                    var ico = iconFor(r.action, r.module, r.status);
+                                    var badgeClass = (String(r.status).toLowerCase() === 'failed') ? 'failed' : 'success';
+                                    return '' +
+                                        '<tr>' +
+                                            '<td><div style="font-weight:900;color:#0f172a">' + dt.date + '</div><div class="tm-log-muted">' + dt.time + '</div></td>' +
+                                            '<td><div class="tm-log-user">' +
+                                                '<div class="tm-log-avatar">' + initials(r.userName) + '</div>' +
+                                                '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.userName + '</div><div class="tm-log-muted">' + (r.userRole || '—') + '</div></div>' +
+                                            '</div></td>' +
+                                            '<td><div class="tm-log-action">' +
+                                                '<div class="tm-log-action-ico" style="background:' + ico.bg + ';color:' + ico.fg + ';border-color:' + ico.bd + '"><i class="fas ' + ico.ico + '"></i></div>' +
+                                                '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.action + '</div><div class="tm-log-muted">' + (r.module || '—') + '</div></div>' +
+                                            '</div></td>' +
+                                            '<td style="color:#334155">' + (r.details || '—') + '</td>' +
+                                            '<td class="tm-log-muted" style="white-space:nowrap">' + (r.ip || '—') + '</td>' +
+                                            '<td><span class="tm-log-badge ' + badgeClass + '">' + (r.status || 'Success') + '</span></td>' +
+                                        '</tr>';
+                                }).join('');
+
+                                elMeta.textContent = 'Showing ' + (startIdx + 1) + ' to ' + endIdx + ' of ' + total + ' entries';
+
+                                function pageButton(label, target, opts){
+                                    var b = document.createElement('button');
+                                    b.type = 'button';
+                                    b.className = 'tm-log-page' + (opts && opts.active ? ' active' : '');
+                                    b.textContent = label;
+                                    if(opts && opts.disabled){ b.disabled = true; }
+                                    b.addEventListener('click', function(){
+                                        if(opts && opts.disabled) return;
+                                        page = target;
+                                        render();
+                                    });
+                                    return b;
+                                }
+
+                                elPages.innerHTML = '';
+                                elPages.appendChild(pageButton('‹', Math.max(1, page - 1), { disabled: page === 1 }));
+
+                                var maxButtons = 7;
+                                var pages = [];
+                                if(pageCount <= maxButtons){
+                                    for(var i=1;i<=pageCount;i++) pages.push(i);
+                                } else {
+                                    pages.push(1);
+                                    var left = Math.max(2, page - 1);
+                                    var right = Math.min(pageCount - 1, page + 1);
+                                    if(left > 2) pages.push('…');
+                                    for(var j=left;j<=right;j++) pages.push(j);
+                                    if(right < pageCount - 1) pages.push('…');
+                                    pages.push(pageCount);
+                                }
+                                pages.forEach(function(p){
+                                    if(p === '…'){
+                                        var s = document.createElement('span');
+                                        s.textContent = '…';
+                                        s.style.color = '#94a3b8';
+                                        s.style.fontWeight = '900';
+                                        s.style.padding = '0 6px';
+                                        elPages.appendChild(s);
+                                        return;
+                                    }
+                                    elPages.appendChild(pageButton(String(p), p, { active: p === page }));
+                                });
+
+                                elPages.appendChild(pageButton('›', Math.min(pageCount, page + 1), { disabled: page === pageCount }));
+                            }
+
+                            rebuildFilterOptions();
+                            [elStart, elEnd, elActivity, elUser].forEach(function(el){
+                                if(!el) return;
+                                el.addEventListener('change', function(){ page = 1; render(); });
+                            });
+                            if(elClear){
+                                elClear.addEventListener('click', function(){
+                                    if(elStart) elStart.value = '';
+                                    if(elEnd) elEnd.value = '';
+                                    elActivity.value = 'all';
+                                    elUser.value = 'all';
+                                    page = 1;
+                                    render();
+                                });
+                            }
+                            render();
+                        })();
+                    </script>
                 </div>
             </section>
             <section id="profile-section" class="content-section">
