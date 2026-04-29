@@ -236,7 +236,7 @@
             <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-file-pen"></i> Draft Courses
             </a>
-            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            <a href="{{ $courseManagementBackRoute }}" class="back-link js-confirm-back" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-arrow-left"></i> Back to Course Management
             </a>
         </div>
@@ -256,7 +256,14 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
+<<<<<<< HEAD
             @if(!empty($visibleUpdateCourseErrors))
+=======
+            <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
+                <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
+            </div>
+            @if($errors->update_course->any())
+>>>>>>> 3dcc25d43f138accb065880e60015905b4709059
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($visibleUpdateCourseErrors as $error)
@@ -499,8 +506,8 @@
             <div style="width:60px;height:60px;background:#dcfce7;color:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.8rem;">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Draft Saved Successfully</div>
-            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">You can find it in the "Draft Courses" section of Course Management.</p>
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Saved in Drafts</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">You can find it in the Draft Courses section.</p>
             <div style="display:flex;justify-content:center;">
                 <button type="button" class="btn btn-submit" onclick="closeDraftSavedModal()" style="padding:10px 40px;background-color:#0d6efd;">OK</button>
             </div>
@@ -513,6 +520,16 @@
             <div style="display:flex;justify-content:center;gap:12px;">
                 <button type="button" class="btn btn-cancel" onclick="closeConfirmCertModal()" style="padding:10px 24px;">Cancel</button>
                 <button type="button" class="btn btn-submit" id="confirmCertBtn" style="padding:10px 24px;background-color:#0d6efd;">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="confirmBackModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(460px,92vw);padding:24px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Confirm Back</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">All changes will be saved in drafts.</p>
+            <div style="display:flex;justify-content:center;gap:12px;">
+                <button type="button" class="btn btn-cancel" onclick="closeConfirmBackModal()" style="padding:10px 24px;">Cancel</button>
+                <button type="button" class="btn btn-submit" id="confirmBackBtn" style="padding:10px 24px;background-color:#0d6efd;">Back</button>
             </div>
         </div>
     </div>
@@ -2774,30 +2791,51 @@
             const confirmBtn = document.getElementById('confirmCertBtn');
             modal.style.display = 'flex';
             confirmBtn.onclick = function() {
-                // Save draft first without alert/redirect
-                const form = document.getElementById('courseForm');
-                const data = new FormData(form);
-                const obj = {};
-                data.forEach((v,k)=>{ if(!(v instanceof File)) obj[k]=v; });
-                
-                // Save image draft if present
-                const imgPreview = document.getElementById('imagePreview');
-                const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
-                if(imgTag && imgTag.src.startsWith('data:image')) {
-                    obj['image_draft_data'] = imgTag.src;
-                }
-                
-                localStorage.setItem(draftKey(), JSON.stringify(obj));
-                
-                // Navigate
+                saveDraft(true);
                 window.top.location.href = url;
             };
         }
         function closeConfirmCertModal() {
             document.getElementById('confirmCertModal').style.display = 'none';
         }
-        function saveDraft(){
+        function confirmBackNavigation(url) {
+            const modal = document.getElementById('confirmBackModal');
+            const confirmBtn = document.getElementById('confirmBackBtn');
+            if (!modal || !confirmBtn) {
+                saveDraft(true);
+                window.top.location.href = url;
+                return;
+            }
+            modal.style.display = 'flex';
+            confirmBtn.onclick = function() {
+                saveDraft(true);
+                window.top.location.href = url;
+            };
+        }
+        function closeConfirmBackModal() {
+            const modal = document.getElementById('confirmBackModal');
+            if (modal) modal.style.display = 'none';
+        }
+        function setDraftStatus(mode, timeText = '') {
+            const el = document.getElementById('draftStatusText');
+            if (!el) return;
+            if (mode === 'saving') {
+                el.style.display = 'inline-flex';
+                el.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:#64748b"></i><span>Saving...</span>';
+                return;
+            }
+            if (mode === 'saved') {
+                const safeTime = String(timeText || '').trim();
+                el.style.display = 'inline-flex';
+                el.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981"></i><span>Saved in drafts' + (safeTime ? (' · ' + safeTime) : '') + '</span>';
+                return;
+            }
+            el.style.display = 'none';
+            el.innerHTML = '';
+        }
+        function saveDraft(silent = false){
             try {
+                setDraftStatus('saving');
                 const form = document.getElementById('courseForm');
                 const data = new FormData(form);
                 const obj = {};
@@ -2829,7 +2867,13 @@
                 
                 try {
                     localStorage.setItem(key, json);
-                    document.getElementById('draftSavedModal').style.display = 'flex';
+                    const now = new Date();
+                    const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    setDraftStatus('saved', stamp);
+                    if (!silent) {
+                        document.getElementById('draftSavedModal').style.display = 'flex';
+                    }
+                    return { ok: true, time: stamp };
                 } catch (e) {
                     if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
                         alert('Puno na ang storage ng iyong browser. Subukang magbura ng ibang drafts sa dashboard.');
@@ -2839,8 +2883,10 @@
                 }
             } catch (err) {
                 console.error('Failed to save draft:', err);
-                alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
+                if (!silent) alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
             }
+            setDraftStatus('hidden');
+            return { ok: false };
         }
         function closeDraftSavedModal() {
             document.getElementById('draftSavedModal').style.display = 'none';
@@ -2936,6 +2982,13 @@
             updateProgress();
             __bindAutosizeTextareas(document);
             initDynamicMenu();
+
+            document.querySelectorAll('a.js-confirm-back').forEach(a => {
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    confirmBackNavigation(a.href);
+                });
+            });
             
             const img = document.getElementById('image');
             if(img){

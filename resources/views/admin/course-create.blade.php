@@ -294,8 +294,8 @@
             </div>
         </div>
         <div class="header-right" style="display:flex; gap:10px; align-items:center;">
-            <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;">Draft saved at <span id="autoSaveTime"></span></span>
-            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;"><span id="autoSaveLabel">Saved in drafts</span> <span id="autoSaveTime"></span></span>
+            <a href="{{ $courseManagementBackRoute }}" class="back-link js-confirm-back" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-arrow-left"></i> Back to Course Management
             </a>
         </div>
@@ -319,7 +319,7 @@
                         <button type="button" id="openImportLibraryBtn" class="btn btn-cancel" style="padding:10px 14px;border-radius:10px;background:#f8fafc;border:1px solid #002C76;color:#002C76;font-weight:800;">
                             Import from Course Library
                         </button>
-                        <a href="{{ $courseCreateBackRoute }}" class="course-create-back" style="margin:0;">
+                        <a href="{{ $courseCreateBackRoute }}" class="course-create-back js-confirm-back" style="margin:0;">
                             <i class="fas fa-arrow-left"></i>
                             <span>{{ !empty($forTrainer) ? 'Back to Course Utilities' : 'Back to Course Management' }}</span>
                         </a>
@@ -338,7 +338,14 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
+<<<<<<< HEAD
             @if(!empty($visibleCreateCourseErrors))
+=======
+            <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
+                <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
+            </div>
+            @if($errors->create_course->any())
+>>>>>>> 3dcc25d43f138accb065880e60015905b4709059
                 <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($visibleCreateCourseErrors as $error)
@@ -617,8 +624,8 @@
             <div style="width:60px;height:60px;background:#dcfce7;color:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.8rem;">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Draft Saved Successfully</div>
-            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">You can find it in the "Draft Courses" section of Course Management.</p>
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Saved in Drafts</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">You can find it in the Draft Courses section.</p>
             <div style="display:flex;justify-content:center;">
                 <button type="button" class="btn btn-submit" onclick="closeDraftSavedModal()" style="padding:10px 40px;background-color:#0d6efd;">OK</button>
             </div>
@@ -631,6 +638,16 @@
             <div style="display:flex;justify-content:center;gap:12px;">
                 <button type="button" class="btn btn-cancel" onclick="closeConfirmCertModal()" style="padding:10px 24px;">Cancel</button>
                 <button type="button" class="btn btn-submit" id="confirmCertBtn" style="padding:10px 24px;background-color:#0d6efd;">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="confirmBackModal" style="position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:2200">
+        <div style="background:#fff;border-radius:14px;border:1px solid #e5e7eb;box-shadow:0 18px 40px rgba(0,0,0,.18);width:min(460px,92vw);padding:24px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:12px;">Confirm Back</div>
+            <p style="color:#64748b;font-size:0.95rem;margin-bottom:24px;line-height:1.5;">All changes will be saved in drafts.</p>
+            <div style="display:flex;justify-content:center;gap:12px;">
+                <button type="button" class="btn btn-cancel" onclick="closeConfirmBackModal()" style="padding:10px 24px;">Cancel</button>
+                <button type="button" class="btn btn-submit" id="confirmBackBtn" style="padding:10px 24px;background-color:#0d6efd;">Back</button>
             </div>
         </div>
     </div>
@@ -3125,10 +3142,10 @@
             document.getElementById('backToModules').addEventListener('click', ()=> switchTo(2));
             document.getElementById('backToCertificate').addEventListener('click', ()=> switchTo(3));
 
-            document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
-            document.getElementById('saveDraftBtn2').addEventListener('click', saveDraft);
-            document.getElementById('saveDraftBtn3').addEventListener('click', saveDraft);
-            document.getElementById('saveDraftBtn4').addEventListener('click', saveDraft);
+            document.getElementById('saveDraftBtn').addEventListener('click', () => saveDraft(false));
+            document.getElementById('saveDraftBtn2').addEventListener('click', () => saveDraft(false));
+            document.getElementById('saveDraftBtn3').addEventListener('click', () => saveDraft(false));
+            document.getElementById('saveDraftBtn4').addEventListener('click', () => saveDraft(false));
 
             ['name','description','image'].forEach(id=>{
                 const el = document.getElementById(id);
@@ -3478,35 +3495,30 @@
             const confirmBtn = document.getElementById('confirmCertBtn');
             modal.style.display = 'flex';
             confirmBtn.onclick = function() {
-                // Save draft first without alert/redirect
-                const form = document.getElementById('courseForm');
-                const data = new FormData(form);
-                const obj = {};
-                data.forEach((v, k) => {
-                    if (v instanceof File) return;
-                    if (k === 'subject_area[]') {
-                        if (!Array.isArray(obj.subject_area)) obj.subject_area = [];
-                        obj.subject_area.push(v);
-                        return;
-                    }
-                    obj[k] = v;
-                });
-                
-                // Save image draft if present
-                const imgPreview = document.getElementById('imagePreview');
-                const imgTag = imgPreview ? imgPreview.querySelector('img') : null;
-                if(imgTag && imgTag.src.startsWith('data:image')) {
-                    obj['image_draft_data'] = imgTag.src;
-                }
-                
-                localStorage.setItem(draftKey(), JSON.stringify(obj));
-                
-                // Navigate
+                saveDraft(true);
                 window.top.location.href = url;
             };
         }
         function closeConfirmCertModal() {
             document.getElementById('confirmCertModal').style.display = 'none';
+        }
+        function confirmBackNavigation(url) {
+            const modal = document.getElementById('confirmBackModal');
+            const confirmBtn = document.getElementById('confirmBackBtn');
+            if (!modal || !confirmBtn) {
+                saveDraft(true);
+                window.top.location.href = url;
+                return;
+            }
+            modal.style.display = 'flex';
+            confirmBtn.onclick = function() {
+                saveDraft(true);
+                window.top.location.href = url;
+            };
+        }
+        function closeConfirmBackModal() {
+            const modal = document.getElementById('confirmBackModal');
+            if (modal) modal.style.display = 'none';
         }
         let autoSaveTimer = null;
         function scheduleAutoSave() {
@@ -3534,8 +3546,27 @@
             window.location.reload();
         }
 
+        function setDraftStatus(mode, timeText = '') {
+            const el = document.getElementById('draftStatusText');
+            if (!el) return;
+            if (mode === 'saving') {
+                el.style.display = 'inline-flex';
+                el.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:#64748b"></i><span>Saving...</span>';
+                return;
+            }
+            if (mode === 'saved') {
+                const safeTime = String(timeText || '').trim();
+                el.style.display = 'inline-flex';
+                el.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981"></i><span>Saved in drafts' + (safeTime ? (' · ' + safeTime) : '') + '</span>';
+                return;
+            }
+            el.style.display = 'none';
+            el.innerHTML = '';
+        }
+
         function saveDraft(silent = false){
             try {
+                setDraftStatus('saving');
                 const form = document.getElementById('courseForm');
                 const data = new FormData(form);
                 const obj = {};
@@ -3579,13 +3610,16 @@
                 try {
                     localStorage.setItem(key, json);
                     updateClearDraftButtonVisibility();
+
+                    const now = new Date();
+                    const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    setDraftStatus('saved', stamp);
                     
                     // Show auto-save indicator
                     const indicator = document.getElementById('autoSaveIndicator');
                     const timeSpan = document.getElementById('autoSaveTime');
                     if (indicator && timeSpan) {
-                        const now = new Date();
-                        const stamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        indicator.style.opacity = '1';
                         timeSpan.textContent = stamp;
                         indicator.style.display = 'inline';
                         // Fade out after 3 seconds
@@ -3604,6 +3638,7 @@
                     } else {
                         console.log('Draft auto-saved');
                     }
+                    return { ok: true, time: stamp };
                 } catch (e) {
                     if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
                         if (!silent) alert('Puno na ang storage ng iyong browser. Subukang magbura ng ibang drafts sa dashboard.');
@@ -3615,6 +3650,8 @@
                 console.error('Failed to save draft:', err);
                 if (!silent) alert('Nagkaroon ng error sa pag-save ng draft: ' + err.message);
             }
+            setDraftStatus('hidden');
+            return { ok: false };
         }
         function closeDraftSavedModal() {
             document.getElementById('draftSavedModal').style.display = 'none';
@@ -3755,6 +3792,13 @@
             bindTabs();
             bindSectionReorderDnd();
             let restoredDraftTab = null;
+
+            document.querySelectorAll('a.js-confirm-back').forEach(a => {
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    confirmBackNavigation(a.href);
+                });
+            });
             
             // Check if there's an existing draft for this session or a specific load request
             const key = draftKey();

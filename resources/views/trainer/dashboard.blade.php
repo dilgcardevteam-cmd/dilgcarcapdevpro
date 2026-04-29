@@ -2618,11 +2618,11 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                        <span id="coachDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="coachDraftSavedTime"></span></span>
+                        <span id="coachDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;"><span id="coachDraftSavedLabel">Saved in drafts</span> <span id="coachDraftSavedTime"></span></span>
                         <button type="button" onclick="openImportCourseLibraryInCreateCoach()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
                             Import from Course Library
                         </button>
-                        <button type="button" onclick="backToCourseUtilities()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="confirmBackFromCourseCreateCoach()" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Utilities
                         </button>
                     </div>
@@ -3751,14 +3751,41 @@
 
         function updateCoachDraftSavedIndicator(timeText) {
             const wrap = document.getElementById('coachDraftSavedIndicator');
+            const label = document.getElementById('coachDraftSavedLabel');
             const time = document.getElementById('coachDraftSavedTime');
             if (!wrap || !time) return;
             if (!timeText) {
                 wrap.style.display = 'none';
                 return;
             }
+            if (String(timeText) === 'saving') {
+                if (label) label.textContent = 'Saving';
+                time.textContent = '';
+                wrap.style.display = 'inline';
+                return;
+            }
+            if (label) label.textContent = 'Saved in drafts';
             time.textContent = String(timeText);
             wrap.style.display = 'inline';
+        }
+
+        async function confirmBackFromCourseCreateCoach() {
+            const ok = typeof window.capdevConfirm === 'function'
+                ? await window.capdevConfirm('Confirm back. All changes will be saved in drafts.', {
+                    title: 'Confirm Back',
+                    confirmText: 'Back',
+                    cancelText: 'Cancel'
+                })
+                : window.confirm('Confirm back. All changes will be saved in drafts.');
+            if (!ok) return;
+            updateCoachDraftSavedIndicator('saving');
+            const frame = document.getElementById('courseCreateFrameCoach');
+            try {
+                if (frame && frame.contentWindow && typeof frame.contentWindow.saveDraft === 'function') {
+                    frame.contentWindow.saveDraft(true);
+                }
+            } catch (e) {}
+            backToCourseUtilities();
         }
 
         window.addEventListener('message', function (event) {

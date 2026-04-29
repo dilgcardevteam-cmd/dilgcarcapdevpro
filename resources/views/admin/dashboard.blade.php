@@ -5629,6 +5629,20 @@
                                                                 </button>
                                                             </form>
                                                         @endif
+                                                        @if(!$ay->is_active)
+                                                            <form method="POST"
+                                                                  action="{{ route('admin.settings.academic-year.destroy', $ay->id) }}"
+                                                                  style="display:inline"
+                                                                  data-confirm-message="Delete academic year {{ $ay->year_start }}? This cannot be undone."
+                                                                  data-confirm-title="Delete Academic Year"
+                                                                  data-confirm-ok="Delete">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn" style="font-size:.75rem; padding:6px 10px; background:#ef4444; color:#fff; border:1px solid #ef4444">
+                                                                    Delete
+                                                                </button>
+                                                            </form>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @empty
@@ -6350,11 +6364,11 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
                     <div style="display:flex; gap:10px; align-items:center;">
-                        <span id="adminDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="adminDraftSavedTime"></span></span>
+                        <span id="adminDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;"><span id="adminDraftSavedLabel">Saved in drafts</span> <span id="adminDraftSavedTime"></span></span>
                         <button type="button" onclick="openImportCourseLibraryInCreate()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
                             Import from Course Library
                         </button>
-                        <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="confirmBackFromCourseCreate('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
                         </button>
                     </div>
@@ -6369,9 +6383,6 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
-                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
-                            <i class="fas fa-file-pen"></i> Draft Courses
-                        </button>
                         <button type="button" onclick="navigateToSection('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
                         </button>
@@ -6441,9 +6452,6 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Archived <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
-                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
-                            <i class="fas fa-file-pen"></i> Draft Courses
-                        </button>
                         <button type="button" onclick="navigateToSection('course-management')" style="background-color:#002C76;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
                         </button>
@@ -10529,14 +10537,41 @@
 
         function updateAdminDraftSavedIndicator(timeText) {
             const wrap = document.getElementById('adminDraftSavedIndicator');
+            const label = document.getElementById('adminDraftSavedLabel');
             const time = document.getElementById('adminDraftSavedTime');
             if (!wrap || !time) return;
             if (!timeText) {
                 wrap.style.display = 'none';
                 return;
             }
+            if (String(timeText) === 'saving') {
+                if (label) label.textContent = 'Saving';
+                time.textContent = '';
+                wrap.style.display = 'inline';
+                return;
+            }
+            if (label) label.textContent = 'Saved in drafts';
             time.textContent = String(timeText);
             wrap.style.display = 'inline';
+        }
+
+        async function confirmBackFromCourseCreate(targetSectionId) {
+            const ok = typeof window.capdevConfirm === 'function'
+                ? await window.capdevConfirm('Confirm back. All changes will be saved in drafts.', {
+                    title: 'Confirm Back',
+                    confirmText: 'Back',
+                    cancelText: 'Cancel'
+                })
+                : window.confirm('Confirm back. All changes will be saved in drafts.');
+            if (!ok) return;
+            updateAdminDraftSavedIndicator('saving');
+            const frame = document.getElementById('courseCreateFrame');
+            try {
+                if (frame && frame.contentWindow && typeof frame.contentWindow.saveDraft === 'function') {
+                    frame.contentWindow.saveDraft(true);
+                }
+            } catch (e) {}
+            navigateToSection(targetSectionId || 'course-management');
         }
 
         window.addEventListener('message', function (event) {

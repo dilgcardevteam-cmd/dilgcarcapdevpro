@@ -2238,6 +2238,30 @@ class DashboardController extends Controller
         return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', "Academic Year {$academicYear->year_start} is now active.");
     }
 
+    public function destroyAcademicYear(AcademicYear $academicYear)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403);
+        }
+
+        if ($academicYear->is_active) {
+            return redirect()->route('dashboard', ['tab' => 'system-settings'])
+                ->with('error_settings', 'Cannot delete the active academic year.');
+        }
+
+        if ($academicYear->courses()->exists()) {
+            return redirect()->route('dashboard', ['tab' => 'system-settings'])
+                ->with('error_settings', 'Cannot delete this academic year because courses are already linked to it.');
+        }
+
+        $label = $academicYear->year_start;
+        $academicYear->delete();
+
+        return redirect()->route('dashboard', ['tab' => 'system-settings'])
+            ->with('success_settings', "Academic Year {$label} deleted successfully.");
+    }
+
     public function regionsJson()
     {
         $rows = \DB::table('regions')->orderBy('region_name')->get(['region_code as code','region_name as name']);
