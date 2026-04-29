@@ -2542,7 +2542,7 @@
                     <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
                     @foreach($academicYears as $ay)
                         <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                            {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                            {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                         </option>
                     @endforeach
                 </select>
@@ -2892,7 +2892,7 @@
                                 <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
                                 @foreach($academicYears as $ay)
                                     <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -3054,7 +3054,7 @@
                                         <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
                                         @foreach($academicYears as $ay)
                                             <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                                {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                                {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                                             </option>
                                         @endforeach
                                     </select>

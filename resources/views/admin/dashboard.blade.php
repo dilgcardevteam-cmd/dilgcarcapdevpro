@@ -5579,14 +5579,10 @@
                                     <h3 style="margin-top:0; color:#0b3b8f">Add New Academic Year</h3>
                                     <form id="academicYearStoreForm" method="POST" action="{{ route('admin.settings.academic-year.store') }}">
                                         @csrf
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px">
+                                        <div style="display:grid; grid-template-columns:1fr; gap:16px">
                                             <div>
-                                                <label class="form-label">Year Start</label>
-                                                <input type="number" name="year_start" class="input-pro" placeholder="e.g. 2025" required min="2000" max="2100">
-                                            </div>
-                                            <div>
-                                                <label class="form-label">Year End</label>
-                                                <input type="number" name="year_end" class="input-pro" placeholder="e.g. 2026" required min="2000" max="2100">
+                                                <label class="form-label">Academic Year</label>
+                                                <input type="number" name="year_start" class="input-pro" placeholder="e.g. 2026" required min="2000" max="2100">
                                             </div>
                                         </div>
                                         <div style="margin-top:16px; display:flex; gap:8px">
@@ -5612,7 +5608,7 @@
                                             @endphp
                                             @forelse($academicYears as $ay)
                                                 <tr style="{{ $ay->is_active ? 'background:#f0f7ff' : '' }}">
-                                                    <td style="font-weight:700">{{ $ay->year_start }} – {{ $ay->year_end }}</td>
+                                                    <td style="font-weight:700">{{ $ay->year_start }}</td>
                                                     <td>
                                                         @if($ay->is_active)
                                                             <span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:800">ACTIVE</span>
@@ -6224,7 +6220,7 @@
                                 <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
                                 @foreach($academicYears as $ay)
                                     <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -6778,8 +6774,8 @@
                                         <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
                                         @foreach($academicYears as $ay)
                                             <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                                {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
-                                            </option>
+                                                    {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                                </option>
                                         @endforeach
                                     </select>
                                     <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
@@ -7332,8 +7328,8 @@
                             <option value="" disabled selected>Select Target Year</option>
                             @foreach($academicYears as $ay)
                                 <option value="{{ $ay->id }}">
-                                    {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
-                                </option>
+                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                    </option>
                             @endforeach
                         </select>
                         <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>

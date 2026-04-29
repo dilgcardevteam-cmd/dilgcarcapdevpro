@@ -1495,7 +1495,7 @@ class CourseController extends Controller
 
         // Automatically assign active academic year
         $validated['academic_year_id'] = $activeYear->id;
-        $validated['academic_year'] = "{$activeYear->year_start}–{$activeYear->year_end}";
+        $validated['academic_year'] = (string) $activeYear->year_start;
 
         // Ensure DB columns that may be NOT NULL receive safe defaults
         if (!$request->filled('video_url')) {
@@ -4654,7 +4654,7 @@ class CourseController extends Controller
             \DB::commit();
 
             $targetYear = AcademicYear::find($targetYearId);
-            $yearLabel = $targetYear->year_start . ' - ' . $targetYear->year_end;
+            $yearLabel = $targetYear->year_start;
 
             return redirect()->route('dashboard', ['tab' => 'course-library', 'academic_year_id' => $targetYearId])
                 ->with('success_course', "Course successfully cloned to {$yearLabel}");

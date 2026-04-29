@@ -2210,13 +2210,12 @@ class DashboardController extends Controller
         }
 
         $request->validate([
-            'year_start' => 'required|integer|min:2000|max:2100',
-            'year_end' => 'required|integer|min:2000|max:2100|after_or_equal:year_start',
+            'year_start' => 'required|integer|min:2000|max:2100|unique:academic_years,year_start',
         ]);
 
         AcademicYear::create([
             'year_start' => $request->year_start,
-            'year_end' => $request->year_end,
+            'year_end' => $request->year_start, // Set same as year_start for one-year format
             'is_active' => false, // New ones are inactive by default
         ]);
 
@@ -2236,7 +2235,7 @@ class DashboardController extends Controller
         // Activate this one
         $academicYear->update(['is_active' => true]);
 
-        return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', "Academic Year {$academicYear->year_start}–{$academicYear->year_end} is now active.");
+        return redirect()->route('dashboard', ['tab' => 'system-settings'])->with('success_settings', "Academic Year {$academicYear->year_start} is now active.");
     }
 
     public function regionsJson()

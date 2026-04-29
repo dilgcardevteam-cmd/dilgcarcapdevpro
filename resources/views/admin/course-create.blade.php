@@ -378,8 +378,8 @@
                                     $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
                                 @endphp
                                 @if($activeYear)
-                                    <input type="text" name="academic_year_display" class="pro-input" value="{{ $activeYear->year_start }}–{{ $activeYear->year_end }}" readonly style="background:#f8fafc">
-                                    <input type="hidden" name="academic_year" value="{{ $activeYear->year_start }}–{{ $activeYear->year_end }}">
+                                    <input type="text" name="academic_year_display" class="pro-input" value="{{ $activeYear->year_start }}" readonly style="background:#f8fafc">
+                                    <input type="hidden" name="academic_year" value="{{ $activeYear->year_start }}">
                                     <input type="hidden" name="academic_year_id" value="{{ $activeYear->id }}">
                                 @else
                                     <div style="background:#fff5f5; border:1px solid #feb2b2; color:#c53030; padding:10px; border-radius:10px; font-size:.9rem; font-weight:700">

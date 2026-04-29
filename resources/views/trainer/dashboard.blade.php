@@ -750,6 +750,11 @@
             background-color: var(--bg-color);
         }
 
+        .coach-course-filters{display:grid;grid-template-columns:minmax(180px,1fr) minmax(200px,1.2fr) minmax(180px,.9fr) minmax(140px,.7fr);gap:14px;align-items:end;margin:10px 0 18px;padding:12px 14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.04)}
+        .coach-course-filters input,.coach-course-filters select{box-sizing:border-box}
+        @media(max-width:1100px){.coach-course-filters{grid-template-columns:1fr 1fr}.coach-course-filters__reset{grid-column:1 / -1}}
+        @media(max-width:680px){.coach-course-filters{grid-template-columns:1fr}}
+
         /* Cards */
         .stats-grid {
             display: grid;
@@ -2129,7 +2134,7 @@
                             <div style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;">Session Filter</div>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.1rem; font-weight: 800; color: #002C76; letter-spacing: -0.01em;">
-                                    Academic Year {{ $selectedYear ? $selectedYear->year_start . ' – ' . $selectedYear->year_end : 'N/A' }}
+                                    Academic Year {{ $selectedYear ? $selectedYear->year_start : 'N/A' }}
                                 </span>
                                 @if($selectedYear && $selectedYear->is_active)
                                     <span style="background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; border: 1px solid #bbf7d0;">ACTIVE</span>
@@ -2160,7 +2165,7 @@
                                     style="appearance: none; background: transparent; border: none; padding: 0 25px 0 10px; height: 36px; font-weight: 700; color: #002C76; cursor: pointer; outline: none; min-width: 140px; font-size: 0.9rem;">
                                 @foreach($academicYears as $ay)
                                     <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} – {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -2229,64 +2234,41 @@
                     </div>
                 </div>
 
-                <!-- Course List (Shortcut) -->
-                <div class="section-header">
-                    <h2 class="section-title">Dashboard</h2>
-                </div>
-
-                <!-- Academic Year Selector -->
                 @php
                     $academicYears = $academicYears ?? collect();
-                    $currentIndex = $academicYears->search(fn($ay) => $ay->id == $selectedYearId);
-                    $prevYear = $currentIndex !== false && $currentIndex < $academicYears->count() - 1 ? $academicYears[$currentIndex + 1] : null;
-                    $nextYear = $currentIndex !== false && $currentIndex > 0 ? $academicYears[$currentIndex - 1] : null;
                 @endphp
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 0 18px;background:#fff;padding:12px 20px;border-radius:16px;border:1px solid #e5eef7;box-shadow:0 4px 15px rgba(0,44,118,0.03);">
-                    <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:260px;">
-                        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);color:#002C76;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div>
-                            <div style="font-size:0.75rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Session Filter</div>
-                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                                <span style="font-size:1.1rem;font-weight:800;color:#002C76;letter-spacing:-0.01em;">
-                                    Academic Year {{ $selectedYear ? $selectedYear->year_start . ' – ' . $selectedYear->year_end : 'N/A' }}
-                                </span>
-                                @if($selectedYear && $selectedYear->is_active)
-                                    <span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:800;border:1px solid #bbf7d0;">ACTIVE</span>
-                                @else
-                                    <span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:800;border:1px solid #e2e8f0;">INACTIVE</span>
-                                @endif
-                            </div>
+                <div class="coach-course-filters">
+                    <div class="participant-course-filters__field">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Academic Year</div>
+                        <select onchange="window.location.href='{{ route('dashboard') }}?academic_year_id=' + this.value" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;cursor:pointer;">
+                            @foreach($academicYears as $ay)
+                                <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
+                                    {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="participant-course-filters__field">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Search Name</div>
+                        <div style="position:relative;">
+                            <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+                            <input id="coachCourseSearch" type="text" placeholder="Search by name..." style="width:100%;padding:12px 12px 12px 38px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;">
                         </div>
                     </div>
-
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <a href="{{ $prevYear ? route('dashboard', ['academic_year_id' => $prevYear->id]) : '#' }}"
-                           class="btn"
-                           title="Previous Year"
-                           style="width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:{{ $prevYear ? '#f1f5f9' : 'transparent' }};border:{{ $prevYear ? '1px solid #e2e8f0' : 'none' }};color:{{ $prevYear ? '#002C76' : '#cbd5e1' }};{{ !$prevYear ? 'cursor: not-allowed;' : '' }}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-
-                        <div style="position:relative;">
-                            <select onchange="window.location.href='{{ route('dashboard') }}?academic_year_id=' + this.value"
-                                    style="appearance:none;background:transparent;border:none;padding:0 25px 0 10px;height:36px;font-weight:700;color:#002C76;cursor:pointer;outline:none;min-width:140px;font-size:0.9rem;">
-                                @foreach($academicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} – {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <i class="fas fa-chevron-down" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:#64748b;font-size:0.7rem;"></i>
-                        </div>
-
-                        <a href="{{ $nextYear ? route('dashboard', ['academic_year_id' => $nextYear->id]) : '#' }}"
-                           class="btn"
-                           title="Next Year"
-                           style="width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:{{ $nextYear ? '#f1f5f9' : 'transparent' }};border:{{ $nextYear ? '1px solid #e2e8f0' : 'none' }};color:{{ $nextYear ? '#002C76' : '#cbd5e1' }};{{ !$nextYear ? 'cursor: not-allowed;' : '' }}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
+                    <div class="participant-course-filters__field">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Sort By</div>
+                        <select id="coachCourseSort" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;">
+                            <option value="newest" selected>Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="az">A - Z</option>
+                            <option value="za">Z - A</option>
+                        </select>
+                    </div>
+                    <div class="participant-course-filters__reset">
+                        <button id="coachCourseReset" type="button" style="width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#ffffff;color:#334155;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+                            <i class="fas fa-undo" style="color:#64748b;"></i>
+                            <span>Reset Filters</span>
+                        </button>
                     </div>
                 </div>
 
@@ -2296,7 +2278,7 @@
                         <h3 style="margin:0;color:#002C76;font-weight:800;letter-spacing:-.02em">Assigned Courses</h3>
                         <div style="color:#64748b;font-weight:700">{{ isset($myCourses) ? $myCourses->count() : 0 }} assigned</div>
                     </div>
-                    <div class="course-grid" style="margin-top:12px">
+                    <div id="coachAssignedCoursesGrid" class="course-grid" style="margin-top:12px">
                         @forelse($myCourses ?? collect() as $course)
                             @php
                                 $courseImage = null;
@@ -2322,7 +2304,7 @@
                                 $participantRoles = ['trainee','participant','central_office_participants','regional_office_participants','provincial_office_participants'];
                                 $studentsCount = $course->users ? $course->users->whereIn('role', $participantRoles)->count() : 0;
                             @endphp
-                            <div class="course-card" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
+                            <div class="course-card js-coach-course-card" data-name="{{ strtolower($course->name) }}" data-created="{{ optional($course->created_at)->timestamp ?? 0 }}" style="cursor: pointer; position: relative;" role="link" tabindex="0" onclick="window.location.href='{{ route('trainer.courses.enter', $course) }}'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('trainer.courses.enter', $course) }}';}">
                                 <div class="course-image">
                                     <img src="{{ $courseImage }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
@@ -2557,7 +2539,7 @@
                             <select id="academicYearFilterCoachUtilities" onchange="changeCoachUtilitiesYear(this.value)">
                                 @foreach(($academicYears ?? collect()) as $ay)
                                     <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} - {{ $ay->year_end }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -4592,6 +4574,57 @@
                     }
                 });
             }catch(_){}
+
+            // Coach Course Filters Logic
+            (function(){
+                var grid = document.getElementById('coachAssignedCoursesGrid');
+                var searchInput = document.getElementById('coachCourseSearch');
+                var sortSelect = document.getElementById('coachCourseSort');
+                var resetBtn = document.getElementById('coachCourseReset');
+                if(!grid || !searchInput || !sortSelect || !resetBtn) return;
+
+                function toInt(v){
+                    var n = parseInt(v, 10);
+                    return isNaN(n) ? 0 : n;
+                }
+
+                function applyFilters(){
+                    var q = (searchInput.value || '').trim().toLowerCase();
+                    var sort = (sortSelect.value || 'newest').trim();
+
+                    var cards = Array.prototype.slice.call(grid.querySelectorAll('.js-coach-course-card'));
+                    cards.forEach(function(card){
+                        var name = (card.dataset.name || '').toLowerCase();
+                        var matchName = !q || name.indexOf(q) !== -1;
+                        card.style.display = matchName ? '' : 'none';
+                    });
+
+                    var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+                    var hidden = cards.filter(function(c){ return c.style.display === 'none'; });
+                    
+                    visible.sort(function(a, b){
+                        if (sort === 'oldest') return toInt(a.dataset.created) - toInt(b.dataset.created);
+                        if (sort === 'az') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                        if (sort === 'za') return (b.dataset.name || '').localeCompare(a.dataset.name || '');
+                        return toInt(b.dataset.created) - toInt(a.dataset.created);
+                    });
+                    
+                    visible.forEach(function(c){ grid.appendChild(c); });
+                    hidden.forEach(function(c){ grid.appendChild(c); });
+                }
+
+                function resetFilters(){
+                    searchInput.value = '';
+                    sortSelect.value = 'newest';
+                    applyFilters();
+                }
+
+                searchInput.addEventListener('input', applyFilters);
+                sortSelect.addEventListener('change', applyFilters);
+                resetBtn.addEventListener('click', resetFilters);
+
+                applyFilters();
+            })();
         });
     </script>
 </body>
