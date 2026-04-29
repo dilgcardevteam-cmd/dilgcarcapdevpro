@@ -67,6 +67,9 @@
         .topic-row { display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:12px; border:1px dashed #e5e7eb; border-radius:8px; background:#f9fafb; }
         .topic-row > span { color:#6b7280; }
         .topic-row input[type="text"] { width: 100%; }
+        .topic-row.quiz-row { border-style: solid; border-color: rgba(59,130,246,.35); background: #f8fbff; }
+        .section-pill{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1px solid transparent;white-space:nowrap}
+        .section-pill.quiz{background:#eef2ff;color:#1d4ed8;border-color:rgba(29,78,216,.18)}
         .module-body .add-topic-btn { display:block; margin:10px auto 0; }
         .quick-toolbar { display:none; }
         .quick-btn { display:none; }
@@ -571,7 +574,6 @@
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
-                <button type="button" class="rail-btn" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Quiz</span></button>
                 <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
                 <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
@@ -648,6 +650,7 @@
                         </button>
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddTopic(this)"><i class="fas fa-stream"></i> Add Topic</div>
+                            <div class="kebab-item" onclick="kebabAddQuiz(this)"><i class="fas fa-circle-question"></i> Add Quiz</div>
                             <div class="kebab-item" onclick="kebabAddModule(this)"><i class="fas fa-layer-group"></i> Add Module</div>
                             <div class="kebab-item" onclick="kebabDeleteModule(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
                         </div>
@@ -672,30 +675,32 @@
             const icon = btn.querySelector('i');
             if (icon) icon.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
         }
-        function addTopicInput(ctx) {
-            const body = ctx && ctx.classList && ctx.classList.contains('module-body') ? ctx
-                        : ctx && ctx.closest ? ctx.closest('.module-body')
-                        : null;
-            const wrapper = body ? body.closest('.module-wrapper')
-                        : (ctx && ctx.closest ? ctx.closest('.module-wrapper') : null);
-            const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
-            const topics = body.querySelector('.topics');
-            const idx = topics.children.length;
+        function createSectionRow(moduleIndex, idx, kind) {
+            const k = (kind === 'quiz') ? 'quiz' : 'topic';
             const row = document.createElement('div');
-            row.className = 'topic-row';
+            row.className = 'topic-row' + (k === 'quiz' ? ' quiz-row' : '');
+            row.dataset.sectionKind = k;
+            const pill = k === 'quiz' ? `<span class="section-pill quiz">Quiz</span>` : '';
+            const addSubtopicItem = k === 'topic'
+                ? `<div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>`
+                : '';
             row.innerHTML = `
                 <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                        <span style="color:#6b7280;width:40px;">${moduleIndex+1}.${idx+1}</span>
-                        <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Topic title" required maxlength="80" style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+                        <span style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx+1}</span>
+                        <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="${k}">
+                        <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="${k === 'quiz' ? 'Quiz title' : 'Topic title'}" required maxlength="80" style="flex:1;min-width:0;">
                     </div>
                     <div style="position:relative;display:flex;gap:8px;align-items:center;">
+                        ${pill}
                         <button type="button" class="kebab-btn" title="More actions" onclick="openKebab(this)">
                             <i class="fas fa-ellipsis-vertical"></i>
                         </button>
                         <div class="kebab-menu">
-                            <div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>
-                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Topic</div>
+                            <div class="kebab-item" onclick="kebabInsertTopicAfter(this)"><i class="fas fa-stream"></i> Add Topic</div>
+                            <div class="kebab-item" onclick="kebabInsertQuizAfter(this)"><i class="fas fa-circle-question"></i> Add Quiz</div>
+                            ${addSubtopicItem}
+                            <div class="kebab-item" onclick="kebabDeleteSection(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
                         </div>
                     </div>
                 </div>
@@ -705,9 +710,37 @@
                 </div>
                 <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
             `;
-            topics.appendChild(row);
-            updateProgress();
+            return row;
         }
+
+        function addSectionInput(ctx, kind, insertAfterRow) {
+            const body = ctx && ctx.classList && ctx.classList.contains('module-body') ? ctx
+                : ctx && ctx.closest ? ctx.closest('.module-body')
+                : null;
+            const wrapper = body ? body.closest('.module-wrapper')
+                : (ctx && ctx.closest ? ctx.closest('.module-wrapper') : null);
+            if (!wrapper) return;
+            const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
+            const topics = wrapper.querySelector('.topics');
+            if (!topics) return;
+
+            const row = createSectionRow(moduleIndex, 0, kind);
+
+            if (insertAfterRow && insertAfterRow.parentElement === topics) {
+                const afterIndex = Array.from(topics.children).indexOf(insertAfterRow);
+                const insertIndex = afterIndex + 1;
+                topics.insertBefore(row, topics.children[insertIndex] || null);
+            } else {
+                topics.appendChild(row);
+            }
+
+            reindexTopics(topics);
+            updateProgress();
+            if (typeof setActiveAnchor === 'function') { setActiveAnchor(row); }
+        }
+
+        function addTopicInput(ctx) { addSectionInput(ctx, 'topic'); }
+        function addQuizInput(ctx, insertAfterRow) { addSectionInput(ctx, 'quiz', insertAfterRow); }
         function addTopicFromHeader(btn){
             const wrapper = btn.closest('.module-wrapper');
             if(!wrapper) return;
@@ -742,6 +775,12 @@
             if(body){ body.style.display='block'; addTopicInput(body); }
             el.closest('.kebab-menu').classList.remove('open');
         }
+        function kebabAddQuiz(el){
+            const wrapper = el.closest('.module-wrapper');
+            const body = wrapper?.querySelector('.module-body');
+            if(body){ body.style.display='block'; addQuizInput(body); }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
         function kebabAddModule(el){
             createModule(); el.closest('.kebab-menu').classList.remove('open');
         }
@@ -758,9 +797,33 @@
             }
             el.closest('.kebab-menu').classList.remove('open');
         }
-        async function kebabDeleteTopic(el){
-            if(!await window.capdevConfirm('Delete this topic?', { title: 'Delete Topic', confirmText: 'Delete' })) return;
-            const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); }
+        function kebabInsertTopicAfter(el){
+            const row = el.closest('.topic-row');
+            if(!row) return;
+            const body = row.closest('.module-body');
+            if(body){ body.style.display='block'; }
+            addSectionInput(row, 'topic', row);
+            el.closest('.kebab-menu').classList.remove('open');
+        }
+        function kebabInsertQuizAfter(el){
+            const row = el.closest('.topic-row');
+            if(!row) return;
+            const body = row.closest('.module-body');
+            if(body){ body.style.display='block'; }
+            addQuizInput(row, row);
+            el.closest('.kebab-menu').classList.remove('open');
+        }
+        async function kebabDeleteSection(el){
+            const row = el.closest('.topic-row');
+            if(!row) return;
+            const kind = String(row.dataset.sectionKind || row.querySelector('.section-kind')?.value || 'topic');
+            const title = kind === 'quiz' ? 'Delete Quiz' : 'Delete Topic';
+            const msg = kind === 'quiz' ? 'Delete this quiz?' : 'Delete this topic?';
+            if(!await window.capdevConfirm(msg, { title: title, confirmText: 'Delete' })) return;
+            const topics = row.parentElement;
+            row.remove();
+            reindexTopics(topics);
+            updateProgress();
             el.closest('.kebab-menu').classList.remove('open');
         }
         function reindexTopics(container){
@@ -771,7 +834,15 @@
                 row.querySelector('span').textContent = `${moduleIndex+1}.${idx+1}`;
                 const titleInput = row.querySelector('input[type=text]');
                 const qTextarea = row.querySelector('textarea[name$="[fields_json]"]') || row.querySelector('textarea');
+                const kindInput = row.querySelector('input.section-kind');
+                const kind = String(row.dataset.sectionKind || (kindInput ? kindInput.value : '') || 'topic');
+                row.dataset.sectionKind = (kind === 'quiz') ? 'quiz' : 'topic';
+                row.classList.toggle('quiz-row', row.dataset.sectionKind === 'quiz');
+                if (titleInput) titleInput.placeholder = row.dataset.sectionKind === 'quiz' ? 'Quiz title' : 'Topic title';
+                const pill = row.querySelector('.section-pill');
+                if (pill) pill.style.display = row.dataset.sectionKind === 'quiz' ? 'inline-flex' : 'none';
                 titleInput.name = `modules[${moduleIndex}][topics][${idx}][title]`;
+                if (kindInput) kindInput.name = `modules[${moduleIndex}][topics][${idx}][kind]`;
                 if(qTextarea){ qTextarea.name = `modules[${moduleIndex}][topics][${idx}][fields_json]`; }
                 // Reindex subtopics within this topic, if any
                 const subs = Array.from(row.querySelectorAll(':scope .subtopic-row'));
@@ -2421,8 +2492,12 @@
                         const title = titleInput ? titleInput.value : '';
                         const topics = [];
                         m.querySelectorAll('.topic-row').forEach((t, j) => {
+                            const kindInput = t.querySelector('.section-kind');
+                            const kind = String(t.dataset.sectionKind || (kindInput ? kindInput.value : '') || 'topic');
                             const tTitleInput = t.querySelector('input[name*="[title]"]');
                             const tTitle = tTitleInput ? tTitleInput.value : '';
+                            const fieldsAreaTop = t.querySelector('textarea[name*="[fields_json]"]');
+                            const fieldsJsonTop = fieldsAreaTop ? fieldsAreaTop.value : '';
                             const subtopics = [];
                             t.querySelectorAll('.subtopic-row').forEach((s, k) => {
                                 const sTitleInput = s.querySelector('input[name*="[title]"]');
@@ -2431,7 +2506,7 @@
                                 const fieldsJson = fieldsArea ? fieldsArea.value : '';
                                 subtopics.push({ title: sTitle, fields_json: fieldsJson });
                             });
-                            topics.push({ title: tTitle, subtopics: subtopics });
+                            topics.push({ kind: kind, title: tTitle, fields_json: fieldsJsonTop, subtopics: subtopics });
                         });
                         const examJsonArea = m.querySelector('.module-exam-json');
                         const examJson = examJsonArea ? examJsonArea.value : '';
@@ -2478,79 +2553,50 @@
                     const topicsContainer = wrapper.querySelector('.topics');
                     if (m.topics && Array.isArray(m.topics)) {
                         m.topics.forEach((t, j) => {
-                            addTopicInput(topicsContainer);
+                            const kind = String((t && t.kind) ? t.kind : 'topic');
+                            addSectionInput(topicsContainer, kind);
                             const topicRow = topicsContainer.lastElementChild;
                             topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
                             
-                            const subtopicsContainer = topicRow.querySelector('.subtopics');
+                            const topicFieldsArea = topicRow.querySelector('textarea[name*="[fields_json]"]');
+                            if (topicFieldsArea) topicFieldsArea.value = t.fields_json || '';
+                            const restoreFieldsIntoPanel = function(panel, fieldsJson, seed){
+                                if (!panel || !fieldsJson) return;
+                                try {
+                                    const fields = JSON.parse(fieldsJson);
+                                    if (!Array.isArray(fields)) return;
+                                    fields.forEach(function(f){
+                                        if (f.type === 'text') {
+                                            addTextField(panel);
+                                            const block = panel.querySelector('.field-block:last-child');
+                                            const editor = block ? block.querySelector('.editor') : null;
+                                            if (editor) editor.innerHTML = f.html || '';
+                                        } else if (f.type === 'question') {
+                                            addQuestionField(panel);
+                                            const block = panel.querySelector('.field-block:last-child');
+                                            const qTitle = block ? block.querySelector('.q-title') : null;
+                                            const qType = block ? block.querySelector('.q-type') : null;
+                                            if (qTitle) qTitle.value = (f.question && f.question.title) ? f.question.title : '';
+                                            if (qType) {
+                                                qType.value = (f.question && f.question.type) ? f.question.type : 'multiple_choice';
+                                                setupDefaultOptions(block);
+                                            }
+                                        }
+                                    });
+                                } catch (e) {}
+                                try { syncFieldsJSON(panel); } catch(e){}
+                            };
+                            restoreFieldsIntoPanel(topicRow.querySelector('.fields-panel'), t.fields_json || '', `t-${i}-${j}`);
+
                             if (t.subtopics && Array.isArray(t.subtopics)) {
                                 t.subtopics.forEach((s, k) => {
-                                    addSubtopicRow(topicRow); 
-                                    const subRow = subtopicsContainer.lastElementChild;
-                                    subRow.querySelector('input[name*="[title]"]').value = s.title || '';
-                                    const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
-                                    fieldsArea.value = s.fields_json || '';
-                                    
-                                    const panel = subRow.querySelector('.fields-panel');
-                                    if (s.fields_json) {
-                                        try {
-                                            const fields = JSON.parse(s.fields_json);
-                                            if (Array.isArray(fields)) {
-                                                fields.forEach(f => {
-                                                    if (f.type === 'text') {
-                                                        addTextField(panel);
-                                                        const block = panel.querySelector('.field-block:last-child');
-                                                        const editor = block.querySelector('.editor');
-                                                        if (editor) editor.innerHTML = f.html || '';
-                                                    } else if (f.type === 'question') {
-                                                        addQuestionField(panel);
-                                                        const block = panel.querySelector('.field-block:last-child');
-                                                        const qTitle = block.querySelector('.q-title');
-                                                        const qType = block.querySelector('.q-type');
-                                                        if (qTitle) qTitle.value = f.question.title || '';
-                                                        if (qType) {
-                                                            qType.value = f.question.type || 'multiple_choice';
-                                                            setupDefaultOptions(block); 
-                                                            if (f.question.type === 'multiple_choice' && f.question.options) {
-                                                                const optsDiv = block.querySelector('.q-options');
-                                                                optsDiv.innerHTML = '';
-                                                                f.question.options.forEach((opt, optIdx) => {
-                                                                    const div = document.createElement('div');
-                                                                    div.className = 'q-option-row';
-                                                                    const isCorrect = f.question.correct_answer == optIdx;
-                                                                    div.innerHTML = `<input type="radio" name="q-opt-${Date.now()}-${i}-${j}-${k}" ${isCorrect ? 'checked' : ''} disabled><input type="text" class="q-option" value="${opt.replace(/"/g, '&quot;')}" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                    optsDiv.appendChild(div);
-                                                                });
-                                                                const addBtn = document.createElement('button');
-                                                                addBtn.type = 'button';
-                                                                addBtn.className = 'btn-add-option';
-                                                                addBtn.innerText = '+ Add Option';
-                                                                addBtn.onclick = function() {
-                                                                    const div = document.createElement('div');
-                                                                    div.className = 'q-option-row';
-                                                                    div.innerHTML = `<input type="radio" disabled><input type="text" class="q-option" placeholder="Option"><button type="button" class="delete-btn" onclick="this.parentElement.remove(); syncFieldsJSON(this.closest('.fields-panel'))"><i class="fas fa-times"></i></button>`;
-                                                                    optsDiv.insertBefore(div, addBtn);
-                                                                };
-                                                                optsDiv.appendChild(addBtn);
-                                                            } else if (f.question.type === 'true_false') {
-                                                                const optsDiv = block.querySelector('.q-options');
-                                                                if (optsDiv) {
-                                                                    optsDiv.querySelectorAll('input[type="radio"]').forEach((r, rIdx) => {
-                                                                        if ((f.question.answer === 'true' && rIdx === 0) || (f.question.answer === 'false' && rIdx === 1)) {
-                                                                            r.checked = true;
-                                                                        }
-                                                                    });
-                                                                }
-                                                            } else if (f.question.type === 'identification') {
-                                                                const ansInput = block.querySelector('.q-id-answer');
-                                                                if (ansInput) ansInput.value = f.question.answer || '';
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        } catch (e) {}
-                                    }
+                                    const sub = addSubtopicRow(topicRow);
+                                    if (!sub) return;
+                                    const subTitle = sub.querySelector('input[name*="[title]"]');
+                                    if (subTitle) subTitle.value = s.title || '';
+                                    const fieldsArea = sub.querySelector('textarea[name*="[fields_json]"]');
+                                    if (fieldsArea) fieldsArea.value = s.fields_json || '';
+                                    restoreFieldsIntoPanel(sub.querySelector('.fields-panel'), s.fields_json || '', `s-${i}-${j}-${k}`);
                                 });
                             }
                         });
@@ -3424,30 +3470,6 @@
             const m = document.getElementById('correctModal');
             m.style.display='none';
             window.__correctWrap = null; window.__correctProceed = null;
-        }
-        function dmAddQuestion(){
-            const sel = document.querySelector('.field-block.selected-field');
-            if(sel){
-                const qBtn = sel.querySelectorAll('.inline-add button')[1];
-                if(qBtn) return addQuestionFieldAfter(qBtn);
-            }
-            const anchor = DM_STATE.currentAnchor;
-            let panel = anchor?.closest('.subtopic-row')?.querySelector('.fields-panel')
-                    || anchor?.querySelector?.('.fields-panel')
-                    || anchor?.closest('.topic-row')?.querySelector('.subtopic-row:last-of-type .fields-panel')
-                    || document.querySelector('.fields-panel');
-            if(!panel && anchor?.closest('.topic-row')){
-                addSubtopicRow(anchor.closest('.topic-row'));
-                panel = anchor.closest('.topic-row').querySelector('.subtopic-row:last-of-type .fields-panel');
-            }
-            if(panel){
-                addQuestionField(panel);
-                const last = panel.querySelector('.field-block:last-of-type');
-                setSelectedField(last);
-                if(last) setActiveAnchor(last);
-            }
-            const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
-            clearActiveAnchor();
         }
         function dmAddExam(){
             const anchor = DM_STATE.currentAnchor;
@@ -4387,7 +4409,8 @@
                 }
                 const topics = Array.isArray(mod.topics) ? mod.topics : [];
                 topics.forEach((t, ti)=>{
-                    addTopicInput(body);
+                    const kind = String((t && t.kind) ? t.kind : 'topic');
+                    addSectionInput(body, kind);
                     const topicRow = body.querySelector('.topic-row:last-of-type');
                     topicRow.querySelector('input[type="text"]').value = t.title || '';
                     const hasSubs = Array.isArray(t.subtopics) && t.subtopics.length > 0;

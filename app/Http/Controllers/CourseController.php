@@ -1577,6 +1577,7 @@ class CourseController extends Controller
                 }
                 if (!empty($subtopics)) {
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? 'topic'),
                         'title' => $topic['title'] ?? '',
                         'subtopics' => $subtopics,
                     ];
@@ -1600,6 +1601,7 @@ class CourseController extends Controller
                         if (empty($fields)) $fields = null;
                     }
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? 'topic'),
                         'title' => $topic['title'] ?? '',
                         'fields' => $fields,
                     ];
@@ -1849,6 +1851,7 @@ class CourseController extends Controller
                 }
                 if (!empty($subtopics)) {
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? 'topic'),
                         'title' => $topic['title'] ?? '',
                         'subtopics' => $subtopics,
                     ];
@@ -1871,6 +1874,7 @@ class CourseController extends Controller
                         if (empty($fields)) $fields = null;
                     }
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? 'topic'),
                         'title' => $topic['title'] ?? '',
                         'fields' => $fields,
                     ];
@@ -2645,6 +2649,7 @@ class CourseController extends Controller
                         ];
                     }
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? ($existingTopic['kind'] ?? 'topic')),
                         'title' => $topic['title'] ?? ($existingTopic['title'] ?? ''),
                         'subtopics' => $subtopics,
                     ];
@@ -2670,6 +2675,7 @@ class CourseController extends Controller
                         }
                     }
                     $topics[] = [
+                        'kind' => (string) ($topic['kind'] ?? ($existingTopic['kind'] ?? 'topic')),
                         'title' => $topic['title'] ?? ($existingTopic['title'] ?? ''),
                         'fields' => $fields,
                     ];

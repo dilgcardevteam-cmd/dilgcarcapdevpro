@@ -87,6 +87,9 @@
         .topic-row { display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:12px; border:1px dashed #e5e7eb; border-radius:8px; background:#f9fafb; }
         .topic-row > span { color:#6b7280; }
         .topic-row input[type="text"] { width: 100%; }
+        .topic-row.quiz-row { border-style: solid; border-color: rgba(59,130,246,.35); background: #f8fbff; }
+        .section-pill{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1px solid transparent;white-space:nowrap}
+        .section-pill.quiz{background:#eef2ff;color:#1d4ed8;border-color:rgba(29,78,216,.18)}
         .module-body .add-topic-btn { display:block; margin:10px auto 0; }
         .quick-toolbar { display:none; }
         .quick-btn { display:none; }
@@ -735,7 +738,6 @@
         <div class="dm-container" aria-label="Dynamic field menu">
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" data-type="field" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
-                <button type="button" class="rail-btn" data-type="field" title="Add Question" aria-label="Add Question" onclick="dmAddQuestion()"><i class="fas fa-dot-circle"></i><span class="rail-label">Add Quiz</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
@@ -885,6 +887,7 @@
                         </button>
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddTopic(this)"><i class="fas fa-stream"></i> Add Topic</div>
+                            <div class="kebab-item" onclick="kebabAddQuiz(this)"><i class="fas fa-circle-question"></i> Add Quiz</div>
                             <div class="kebab-item" onclick="kebabAddModule(this)"><i class="fas fa-layer-group"></i> Add Module</div>
                             <div class="kebab-item" onclick="kebabDeleteModule(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
                         </div>
@@ -925,6 +928,7 @@
                 <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:8px;flex:1;">
                         <span style="color:#6b7280;width:40px;">${moduleIndex+1}.${idx}</span>
+                        <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="topic">
                         <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Topic title" required maxlength="80" style="flex:1;">
                     </div>
                     <div style="position:relative;display:flex;gap:8px;align-items:center;">
@@ -943,6 +947,65 @@
             updateProgress();
             scheduleAutoSave();
         }
+
+        function addQuizInput(ctx) {
+            const body = ctx && ctx.classList && ctx.classList.contains('module-body') ? ctx
+                        : ctx && ctx.closest ? ctx.closest('.module-body')
+                        : null;
+            const wrapper = body ? body.closest('.module-wrapper')
+                        : (ctx && ctx.closest ? ctx.closest('.module-wrapper') : null);
+            const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
+            const topics = body.querySelector('.topics');
+            const idx = topics.children.length;
+            const row = document.createElement('div');
+            row.className = 'topic-row quiz-row';
+            row.dataset.sectionKind = 'quiz';
+            row.innerHTML = `
+                <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+                        <span style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx}</span>
+                        <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="quiz">
+                        <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Quiz title" required maxlength="80" style="flex:1;min-width:0;">
+                    </div>
+                    <div style="position:relative;display:flex;gap:8px;align-items:center;">
+                        <span class="section-pill quiz">Quiz</span>
+                        <button type="button" class="kebab-btn" title="More actions" onclick="openKebab(this)">
+                            <i class="fas fa-ellipsis-vertical"></i>
+                        </button>
+                        <div class="kebab-menu">
+                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fields-panel" style="margin-top:8px;">
+                    <div class="field-list"></div>
+                    <textarea name="modules[${moduleIndex}][topics][${idx}][fields_json]" style="display:none"></textarea>
+                </div>
+                <button type="button" class="panel-add-btn" title="Add Question" aria-label="Add Question" onclick="addQuestionToQuizRow(this, event)" style="width:auto;height:auto;border-radius:999px;padding:10px 14px;border:1px solid #1d4ed8;background:#eef2ff;color:#1d4ed8;font-weight:800;display:inline-flex;align-items:center;gap:8px;">
+                    Add Question
+                </button>
+            `;
+            topics.appendChild(row);
+            updateProgress();
+            scheduleAutoSave();
+        }
+
+        function addQuestionToQuizRow(btn, event){
+            if(event){
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const row = btn && btn.closest ? btn.closest('.quiz-row') : null;
+            const panel = row ? row.querySelector('.fields-panel') : null;
+            if(!panel) return;
+            addQuestionField(panel);
+            try{ syncFieldsJSON(panel); }catch(e){}
+            updateProgress();
+            scheduleAutoSave();
+            const last = panel.querySelector('.field-block:last-of-type');
+            if(last && typeof setActiveAnchor === 'function'){ setActiveAnchor(last); }
+        }
+
         function addSubtopicRow(btnOrRow){
             const topicRow = (btnOrRow && btnOrRow.closest) ? btnOrRow.closest('.topic-row') : btnOrRow;
             if(!topicRow) return;
@@ -1016,6 +1079,12 @@
             if(body){ body.style.display='block'; addTopicInput(body); }
             el.closest('.kebab-menu').classList.remove('open');
         }
+        function kebabAddQuiz(el){
+            const wrapper = el.closest('.module-wrapper');
+            const body = wrapper?.querySelector('.module-body');
+            if(body){ body.style.display='block'; addQuizInput(body); }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
         function kebabAddModule(el){
             createModule(); el.closest('.kebab-menu').classList.remove('open');
         }
@@ -1039,8 +1108,22 @@
             rows.forEach((row, idx) => {
                 row.querySelector('span').textContent = `${moduleIndex+1}.${idx}`;
                 const titleInput = row.querySelector('input[type=text]');
-                titleInput.name = `modules[${moduleIndex}][topics][${idx}][title]`;
-                reindexSubtopics(moduleIndex, idx, row);
+                const kindInput = row.querySelector('input.section-kind');
+                const kind = String(row.dataset.sectionKind || (kindInput ? kindInput.value : '') || 'topic');
+                row.dataset.sectionKind = kind === 'quiz' ? 'quiz' : 'topic';
+                row.classList.toggle('quiz-row', row.dataset.sectionKind === 'quiz');
+                if (titleInput) {
+                    titleInput.name = `modules[${moduleIndex}][topics][${idx}][title]`;
+                    titleInput.placeholder = row.dataset.sectionKind === 'quiz' ? 'Quiz title' : 'Topic title';
+                }
+                if (kindInput) kindInput.name = `modules[${moduleIndex}][topics][${idx}][kind]`;
+                const ta = row.querySelector('textarea[name$="[fields_json]"]');
+                if (ta && row.dataset.sectionKind === 'quiz') {
+                    ta.name = `modules[${moduleIndex}][topics][${idx}][fields_json]`;
+                }
+                if (row.querySelector('.subtopics')) {
+                    reindexSubtopics(moduleIndex, idx, row);
+                }
             });
         }
         function reindexSubtopics(moduleIndex, topicIndex, topicRow){
@@ -1661,10 +1744,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
-                        <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
-                        <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
-                    </div>
                     <div class="q-add-under" style="margin-top:10px;">
                         <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
                     </div>
@@ -1814,10 +1893,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
-                        <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
-                        <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
-                    </div>
                     <div class="q-add-under" style="margin-top:10px;">
                         <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
                     </div>
@@ -2151,10 +2226,6 @@
                         const guide = qb.querySelector('.q-enumeration-guide')?.value || '';
                         if(guide) q.expected_guide = guide;
                     }
-                    const fbC = qb.querySelector('.q-fb-correct')?.value || '';
-                    const fbI = qb.querySelector('.q-fb-incorrect')?.value || '';
-                    if(fbC) q.feedback_correct = fbC;
-                    if(fbI) q.feedback_incorrect = fbI;
                     nonRef.push({ type:'question', question: q });
                 } else if(t === 'reflection'){
                     ref.push({ 
@@ -3097,17 +3168,25 @@
                         const title = titleInput ? titleInput.value : '';
                         const topics = [];
                         m.querySelectorAll('.topic-row').forEach((t, j) => {
+                            const kindInput = t.querySelector('.section-kind');
+                            const kind = String(t.dataset.sectionKind || (kindInput ? kindInput.value : '') || 'topic');
                             const tTitleInput = t.querySelector('input[name*="[title]"]');
                             const tTitle = tTitleInput ? tTitleInput.value : '';
-                            const subtopics = [];
-                            t.querySelectorAll('.subtopic-row').forEach((s, k) => {
-                                const sTitleInput = s.querySelector('input[name*="[title]"]');
-                                const sTitle = sTitleInput ? sTitleInput.value : '';
-                                const fieldsArea = s.querySelector('textarea[name*="[fields_json]"]');
+                            if (kind === 'quiz' || t.classList.contains('quiz-row')) {
+                                const fieldsArea = t.querySelector('textarea[name*="[fields_json]"]');
                                 const fieldsJson = fieldsArea ? fieldsArea.value : '';
-                                subtopics.push({ title: sTitle, fields_json: fieldsJson });
-                            });
-                            topics.push({ title: tTitle, subtopics: subtopics });
+                                topics.push({ kind: 'quiz', title: tTitle, fields_json: fieldsJson, subtopics: [] });
+                            } else {
+                                const subtopics = [];
+                                t.querySelectorAll('.subtopic-row').forEach((s, k) => {
+                                    const sTitleInput = s.querySelector('input[name*="[title]"]');
+                                    const sTitle = sTitleInput ? sTitleInput.value : '';
+                                    const fieldsArea = s.querySelector('textarea[name*="[fields_json]"]');
+                                    const fieldsJson = fieldsArea ? fieldsArea.value : '';
+                                    subtopics.push({ title: sTitle, fields_json: fieldsJson });
+                                });
+                                topics.push({ kind: 'topic', title: tTitle, subtopics: subtopics });
+                            }
                         });
                         const examJsonArea = m.querySelector('.module-exam-json');
                         const examJson = examJsonArea ? examJsonArea.value : '';
@@ -3129,6 +3208,67 @@
             container.innerHTML = ''; // Clear existing
             
             if (!modules || !Array.isArray(modules)) return;
+
+            function hydrateFields(panel, fieldsJson) {
+                if (!panel || !fieldsJson) return;
+                try {
+                    const fields = JSON.parse(fieldsJson);
+                    if (!Array.isArray(fields)) return;
+                    fields.forEach(f => {
+                        if (f.type === 'text') {
+                            addTextField(panel);
+                            const block = panel.querySelector('.field-block:last-child');
+                            const editor = block.querySelector('.editor');
+                            if (editor) editor.innerHTML = f.html || '';
+                        } else if (f.type === 'question') {
+                            addQuestionField(panel);
+                            const block = panel.querySelector('.field-block:last-child');
+                            const qTitle = block.querySelector('.q-title');
+                            const qType = block.querySelector('.q-type');
+                            if (qTitle) qTitle.value = f.question.title || '';
+                            if (qType) {
+                                qType.value = isMultipleChoiceType(f.question.type) ? normalizeMcType(f.question.type) : (f.question.type || 'multiple_choice_single');
+                                setupDefaultOptions(block);
+                                if (isMultipleChoiceType(f.question.type) && Array.isArray(f.question.options) && f.question.options.length > 0) {
+                                    const optsDiv = block.querySelector('.q-options');
+                                    optsDiv.innerHTML = '';
+                                    const correctIndexes = normalizeCorrectAnswerIndexes({
+                                        choices: f.question.options,
+                                        correct_answers: f.question.correct_answers,
+                                        correct_answer: f.question.correct_answer,
+                                        answer_index: f.question.answer_index
+                                    });
+                                    f.question.options.forEach((opt, optIdx) => {
+                                        addOptionRow(optsDiv, '');
+                                        const row = optsDiv.querySelectorAll('.q-option-row')[optIdx];
+                                        if(row){
+                                            const input = row.querySelector('.q-option');
+                                            const radio = row.querySelector('.q-correct');
+                                            if(input) input.value = opt;
+                                            if(radio && correctIndexes.includes(optIdx)) radio.checked = true;
+                                        }
+                                    });
+                                    ensureAddOptionLink(optsDiv);
+                                } else if (f.question.type === 'true_false') {
+                                    const optsDiv = block.querySelector('.q-options');
+                                    if (optsDiv) {
+                                        optsDiv.querySelectorAll('input[type="radio"]').forEach((r, rIdx) => {
+                                            if ((f.question.answer === 'true' && rIdx === 0) || (f.question.answer === 'false' && rIdx === 1)) {
+                                                r.checked = true;
+                                            }
+                                        });
+                                    }
+                                } else if (f.question.type === 'identification') {
+                                    const ansInput = block.querySelector('.q-id-answer');
+                                    if (ansInput) ansInput.value = f.question.answer || '';
+                                }
+                            }
+                            updateQuestionCardSummary(block);
+                            collapseQuestionCard(block);
+                        }
+                    });
+                } catch (e) {}
+            }
 
             modules.forEach((m, i) => {
                 if (m.type === 'exam' || (!m.type && m.exam_json && !m.topics)) {
@@ -3154,81 +3294,30 @@
                     const topicsContainer = wrapper.querySelector('.topics');
                     if (m.topics && Array.isArray(m.topics)) {
                         m.topics.forEach((t, j) => {
-                            addTopicInput(topicsContainer);
-                            const topicRow = topicsContainer.lastElementChild;
-                            topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
-                            
-                            const subtopicsContainer = topicRow.querySelector('.subtopics');
-                            if (t.subtopics && Array.isArray(t.subtopics)) {
-                                t.subtopics.forEach((s, k) => {
-                                    addSubtopicRow(topicRow); 
-                                    const subRow = subtopicsContainer.lastElementChild;
-                                    subRow.querySelector('input[name*="[title]"]').value = s.title || '';
-                                    const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
-                                    fieldsArea.value = s.fields_json || '';
-                                    
-                                    const panel = subRow.querySelector('.fields-panel');
-                                    if (s.fields_json) {
-                                        try {
-                                            const fields = JSON.parse(s.fields_json);
-                                            if (Array.isArray(fields)) {
-                                                fields.forEach(f => {
-                                                    if (f.type === 'text') {
-                                                        addTextField(panel);
-                                                        const block = panel.querySelector('.field-block:last-child');
-                                                        const editor = block.querySelector('.editor');
-                                                        if (editor) editor.innerHTML = f.html || '';
-                                                    } else if (f.type === 'question') {
-                                                        addQuestionField(panel);
-                                                        const block = panel.querySelector('.field-block:last-child');
-                                                        const qTitle = block.querySelector('.q-title');
-                                                        const qType = block.querySelector('.q-type');
-                                                        if (qTitle) qTitle.value = f.question.title || '';
-                                                        if (qType) {
-                                                            qType.value = isMultipleChoiceType(f.question.type) ? normalizeMcType(f.question.type) : (f.question.type || 'multiple_choice_single');
-                                                            setupDefaultOptions(block); 
-                                                            if (isMultipleChoiceType(f.question.type) && Array.isArray(f.question.options) && f.question.options.length > 0) {
-                                                                const optsDiv = block.querySelector('.q-options');
-                                                                optsDiv.innerHTML = '';
-                                                                const correctIndexes = normalizeCorrectAnswerIndexes({
-                                                                    choices: f.question.options,
-                                                                    correct_answers: f.question.correct_answers,
-                                                                    correct_answer: f.question.correct_answer,
-                                                                    answer_index: f.question.answer_index
-                                                                });
-                                                                f.question.options.forEach((opt, optIdx) => {
-                                                                    addOptionRow(optsDiv, '');
-                                                                    const row = optsDiv.querySelectorAll('.q-option-row')[optIdx];
-                                                                    if(row){
-                                                                        const input = row.querySelector('.q-option');
-                                                                        const radio = row.querySelector('.q-correct');
-                                                                        if(input) input.value = opt;
-                                                                        if(radio && correctIndexes.includes(optIdx)) radio.checked = true;
-                                                                    }
-                                                                });
-                                                                ensureAddOptionLink(optsDiv);
-                                                            } else if (f.question.type === 'true_false') {
-                                                                const optsDiv = block.querySelector('.q-options');
-                                                                if (optsDiv) {
-                                                                    optsDiv.querySelectorAll('input[type="radio"]').forEach((r, rIdx) => {
-                                                                        if ((f.question.answer === 'true' && rIdx === 0) || (f.question.answer === 'false' && rIdx === 1)) {
-                                                                            r.checked = true;
-                                                                        }
-                                                                    });
-                                                                }
-                                                            } else if (f.question.type === 'identification') {
-                                                                const ansInput = block.querySelector('.q-id-answer');
-                                                                if (ansInput) ansInput.value = f.question.answer || '';
-                                                            }
-                                                        }
-                                                        updateQuestionCardSummary(block);
-                                                        collapseQuestionCard(block);
-                                                    }
-                                                });
-                                            }
-                                        } catch (e) {}
-                                    }
-                                });
+                            const kind = String((t && t.kind) ? t.kind : ((t && t.fields_json) ? 'quiz' : 'topic'));
+                            if (kind === 'quiz') {
+                                addQuizInput(topicsContainer);
+                                const quizRow = topicsContainer.lastElementChild;
+                                quizRow.querySelector('input[name*="[title]"]').value = t.title || '';
+                                const ta = quizRow.querySelector('textarea[name*="[fields_json]"]');
+                                if (ta) ta.value = t.fields_json || '';
+                                hydrateFields(quizRow.querySelector('.fields-panel'), t.fields_json || '');
+                            } else {
+                                addTopicInput(topicsContainer);
+                                const topicRow = topicsContainer.lastElementChild;
+                                topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
+                                
+                                const subtopicsContainer = topicRow.querySelector('.subtopics');
+                                if (t.subtopics && Array.isArray(t.subtopics)) {
+                                    t.subtopics.forEach((s, k) => {
+                                        addSubtopicRow(topicRow); 
+                                        const subRow = subtopicsContainer.lastElementChild;
+                                        subRow.querySelector('input[name*="[title]"]').value = s.title || '';
+                                        const fieldsArea = subRow.querySelector('textarea[name*="[fields_json]"]');
+                                        fieldsArea.value = s.fields_json || '';
+                                        hydrateFields(subRow.querySelector('.fields-panel'), s.fields_json || '');
+                                    });
+                                }
                             }
                         });
                     }
