@@ -252,10 +252,12 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
+
             <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
                 <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
             </div>
             @if($errors->update_course->any())
+
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($errors->update_course->all() as $error)
