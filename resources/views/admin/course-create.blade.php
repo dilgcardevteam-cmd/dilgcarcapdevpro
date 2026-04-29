@@ -88,6 +88,9 @@
         .topic-row > span { color:#6b7280; }
         .topic-row input[type="text"] { width: 100%; }
         .topic-row.quiz-row { border-style: solid; border-color: rgba(59,130,246,.35); background: #f8fbff; }
+        .section-drag-handle{ width:18px; height:28px; display:inline-flex; align-items:center; justify-content:center; border:none; background:transparent; color:#94a3b8; cursor:grab; padding:0; border-radius:6px; user-select:none; flex:0 0 auto; line-height:1; font-size:16px; }
+        .section-drag-handle:hover{ background:#eef2ff; color:#1e3a8a; }
+        .topic-row.dragging{ opacity:.6; }
         .section-pill{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1px solid transparent;white-space:nowrap}
         .section-pill.quiz{background:#eef2ff;color:#1d4ed8;border-color:rgba(29,78,216,.18)}
         .module-body .add-topic-btn { display:block; margin:10px auto 0; }
@@ -110,6 +113,10 @@
         .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
         .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
         .step.done .step-index { background: #10b981; color: #ffffff; }
+        .step.active { background: var(--brand); color: #ffffff; border-color: var(--brand); box-shadow: 0 6px 12px rgba(13,110,253,0.25); }
+        .step.active .step-index { background: rgba(255,255,255,0.22); color: #ffffff; }
+        .step.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.2); }
+        .step:disabled { opacity: 0.5; cursor: not-allowed; }
         @media (max-width: 640px){
             .progress-steps { grid-template-columns: 1fr; }
             .exam-meta-row { flex-wrap:wrap; align-items:flex-start; }
@@ -194,6 +201,9 @@
         .capdev-question-card.is-collapsed .q-summary-chevron { transform:rotate(-90deg); }
         .q-collapse-body { max-height:1600px; opacity:1; padding:0; transition:max-height .24s ease, opacity .18s ease, padding .2s ease; }
         .capdev-question-card.is-collapsed .q-collapse-body { max-height:0; opacity:0; padding-top:0; padding-bottom:0; overflow:hidden; }
+        .q-minimize-row{ display:flex; justify-content:flex-end; padding:10px 10px 0 10px; }
+        .q-minimize-btn{ width:34px; height:34px; border-radius:10px; border:1px solid #e5e7eb; background:#ffffff; color:#0f3b8f; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
+        .q-minimize-btn:hover{ background:#f1f5ff; border-color:#c8d4ff; }
         @media (max-width:640px) { .q-summary-toggle { align-items:flex-start; flex-direction:column; } .q-summary-meta { align-self:flex-start; } }
         .course-create-topline {
             display: flex;
@@ -317,18 +327,12 @@
                     <div id="courseProgressFill" class="progress-fill"></div>
                 </div>
                 <div id="courseProgressText" class="progress-status">0% complete</div>
-                <div class="progress-steps">
-                    <span id="step1" class="step"><span class="step-index">1</span><span>Details</span></span>
-                    <span id="step2" class="step"><span class="step-index">2</span><span>Modules</span></span>
-                    <span id="step3" class="step"><span class="step-index">3</span><span>Certificate</span></span>
-                    <span id="step4" class="step"><span class="step-index">4</span><span>Finalize</span></span>
+                <div class="progress-steps" role="tablist" aria-label="Course setup steps">
+                    <button type="button" id="step1" class="step active" role="tab" aria-controls="tab1" aria-selected="true"><span class="step-index">1</span><span>Details</span></button>
+                    <button type="button" id="step2" class="step disabled" role="tab" aria-controls="tab2" aria-selected="false" aria-disabled="true" disabled><span class="step-index">2</span><span>Modules</span></button>
+                    <button type="button" id="step3" class="step disabled" role="tab" aria-controls="tab3" aria-selected="false" aria-disabled="true" disabled><span class="step-index">3</span><span>Certificate</span></button>
+                    <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
-            </div>
-            <div class="tabs" role="tablist">
-                <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
-                <button id="tabBtn2" class="tab disabled" role="tab" aria-controls="tab2" aria-selected="false" tabindex="-1">Modules Management</button>
-                <button id="tabBtn3" class="tab disabled" role="tab" aria-controls="tab3" aria-selected="false" tabindex="-1">Certificate</button>
-                <button id="tabBtn4" class="tab disabled" role="tab" aria-controls="tab4" aria-selected="false" tabindex="-1">Finalize</button>
             </div>
             @if($errors->create_course->any())
                 <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
@@ -342,7 +346,6 @@
             @endif
             <form id="courseForm" action="{{ !empty($forTrainer) ? route('trainer.courses.store') : route('courses.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
-                <input type="hidden" name="finalize_accepted" id="finalize_accepted" value="0">
                 @if(request()->boolean('embedded'))
                     <input type="hidden" name="embedded" value="1">
                 @endif
@@ -594,12 +597,11 @@
                         </div>
                     </div>
 
-                    <div class="actions" style="justify-content: space-between; margin-top:30px;">
+                    <div class="actions" style="justify-content: space-between; margin-top:30px; position:sticky; bottom:0; background:rgba(255,255,255,.92); backdrop-filter:blur(6px); padding:12px 0; border-top:1px solid #eef2f7;">
                         <button type="button" class="btn btn-cancel" id="backToCertificate">Back</button>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn4">Save Draft</button>
-                            <button type="button" class="btn btn-cancel" id="finalizeAcceptBtn">Accept Finalization</button>
-                            <button type="submit" class="btn {{ !empty($forTrainer) ? 'btn-blue' : 'btn-blue' }}" id="submitBtn" disabled>{{ !empty($forTrainer) ? 'Submit' : 'Add Course' }}</button>
+                            <button type="submit" class="btn btn-blue" id="submitBtn" disabled>{{ !empty($forTrainer) ? 'Submit Course' : 'Accept Course' }}</button>
                         </div>
                     </div>
                 </div>
@@ -739,6 +741,7 @@
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" data-type="field" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
+                <button type="button" class="rail-btn" data-type="structure" title="Add Quiz" aria-label="Add Quiz" onclick="dmAddQuiz()"><i class="fas fa-circle-question"></i><span class="rail-label">Add Quiz</span></button>
                 <button type="button" class="rail-btn" data-type="structure" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
             </div>
@@ -927,7 +930,8 @@
             row.innerHTML = `
                 <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                        <span style="color:#6b7280;width:40px;">${moduleIndex+1}.${idx}</span>
+                        <button type="button" class="section-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</button>
+                        <span class="section-idx" style="color:#6b7280;width:40px;">${moduleIndex+1}.${idx}</span>
                         <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="topic">
                         <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Topic title" required maxlength="80" style="flex:1;">
                     </div>
@@ -937,6 +941,7 @@
                         </button>
                         <div class="kebab-menu">
                             <div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>
+                            <div class="kebab-item" onclick="kebabAddQuizAfter(this)"><i class="fas fa-circle-question"></i> Add Quiz</div>
                             <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Topic</div>
                         </div>
                     </div>
@@ -963,7 +968,8 @@
             row.innerHTML = `
                 <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-                        <span style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx}</span>
+                        <button type="button" class="section-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</button>
+                        <span class="section-idx" style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx}</span>
                         <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="quiz">
                         <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="Quiz title" required maxlength="80" style="flex:1;min-width:0;">
                     </div>
@@ -973,7 +979,7 @@
                             <i class="fas fa-ellipsis-vertical"></i>
                         </button>
                         <div class="kebab-menu">
-                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Section</div>
+                            <div class="kebab-item" onclick="kebabDeleteTopic(this)"><i class="fas fa-trash-alt"></i> Delete Quiz</div>
                         </div>
                     </div>
                 </div>
@@ -981,7 +987,7 @@
                     <div class="field-list"></div>
                     <textarea name="modules[${moduleIndex}][topics][${idx}][fields_json]" style="display:none"></textarea>
                 </div>
-                <button type="button" class="panel-add-btn" title="Add Question" aria-label="Add Question" onclick="addQuestionToQuizRow(this, event)" style="width:auto;height:auto;border-radius:999px;padding:10px 14px;border:1px solid #1d4ed8;background:#eef2ff;color:#1d4ed8;font-weight:800;display:inline-flex;align-items:center;gap:8px;">
+                <button type="button" class="panel-add-btn" title="Add Question" aria-label="Add Question" onclick="addQuestionToQuizRow(this, event)" style="width:auto;height:auto;border-radius:999px;padding:12px 18px;border:1px solid #0f3b8f;background:#0f3b8f;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:8px;">
                     Add Question
                 </button>
             `;
@@ -1054,8 +1060,10 @@
             }
         }
         async function removeTopicRow(btn){
-            if(!await window.capdevConfirm('Remove this topic and its fields?', { title: 'Remove Topic', confirmText: 'Remove' })) return;
             const row = btn.closest('.topic-row');
+            const kind = String(row?.dataset.sectionKind || row?.querySelector('.section-kind')?.value || 'topic');
+            const label = kind === 'quiz' ? 'Quiz' : 'Topic';
+            if(!await window.capdevConfirm(`Remove this ${label.toLowerCase()} and its fields?`, { title: `Remove ${label}`, confirmText: 'Remove' })) return;
             const topics = row.parentElement;
             row.remove();
             reindexTopics(topics);
@@ -1096,9 +1104,29 @@
             const topicRow = el.closest('.topic-row'); if(topicRow){ addSubtopicRow(topicRow); }
             el.closest('.kebab-menu').classList.remove('open');
         }
+        function kebabAddQuizAfter(el){
+            const topicRow = el.closest('.topic-row');
+            const body = topicRow?.closest('.module-body');
+            const topics = body?.querySelector('.topics');
+            if(topicRow && body && topics){
+                addQuizInput(body);
+                const newRow = topics.lastElementChild;
+                if(newRow){
+                    topics.insertBefore(newRow, topicRow.nextSibling);
+                    reindexTopics(topics);
+                    if(typeof setActiveAnchor === 'function') setActiveAnchor(newRow);
+                }
+                updateProgress();
+                scheduleAutoSave();
+            }
+            el.closest('.kebab-menu').classList.remove('open');
+        }
         async function kebabDeleteTopic(el){
-            if(!await window.capdevConfirm('Delete this topic?', { title: 'Delete Topic', confirmText: 'Delete' })) return;
-            const topicRow = el.closest('.topic-row'); if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); scheduleAutoSave(); }
+            const topicRow = el.closest('.topic-row');
+            const kind = String(topicRow?.dataset.sectionKind || topicRow?.querySelector('.section-kind')?.value || 'topic');
+            const label = kind === 'quiz' ? 'Quiz' : 'Topic';
+            if(!await window.capdevConfirm(`Delete this ${label.toLowerCase()}?`, { title: `Delete ${label}`, confirmText: 'Delete' })) return;
+            if(topicRow){ const topics = topicRow.parentElement; topicRow.remove(); reindexTopics(topics); updateProgress(); scheduleAutoSave(); }
             el.closest('.kebab-menu').classList.remove('open');
         }
         function reindexTopics(container){
@@ -1106,7 +1134,8 @@
             const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
             const rows = Array.from(container.children);
             rows.forEach((row, idx) => {
-                row.querySelector('span').textContent = `${moduleIndex+1}.${idx}`;
+                const idxEl = row.querySelector('.section-idx') || row.querySelector('span');
+                if (idxEl) idxEl.textContent = `${moduleIndex+1}.${idx}`;
                 const titleInput = row.querySelector('input[type=text]');
                 const kindInput = row.querySelector('input.section-kind');
                 const kind = String(row.dataset.sectionKind || (kindInput ? kindInput.value : '') || 'topic');
@@ -1124,6 +1153,49 @@
                 if (row.querySelector('.subtopics')) {
                     reindexSubtopics(moduleIndex, idx, row);
                 }
+            });
+        }
+        function bindSectionReorderDnd(){
+            if (window.__capdevSectionDndBound) return;
+            window.__capdevSectionDndBound = true;
+            const state = { row: null, container: null };
+            document.addEventListener('dragstart', function(e){
+                const handle = e.target && e.target.closest ? e.target.closest('.section-drag-handle') : null;
+                if(!handle) return;
+                const row = handle.closest('.topic-row');
+                const container = row ? row.parentElement : null;
+                if(!row || !container || !container.classList.contains('topics')) return;
+                state.row = row;
+                state.container = container;
+                row.classList.add('dragging');
+                try { e.dataTransfer.effectAllowed = 'move'; } catch (err) {}
+                try { e.dataTransfer.setData('text/plain', 'section'); } catch (err) {}
+            });
+            document.addEventListener('dragend', function(){
+                if(state.row) state.row.classList.remove('dragging');
+                state.row = null;
+                state.container = null;
+            });
+            document.addEventListener('dragover', function(e){
+                if(!state.row || !state.container) return;
+                const container = e.target && e.target.closest ? e.target.closest('.topics') : null;
+                if(!container || container !== state.container) return;
+                e.preventDefault();
+                const overRow = e.target && e.target.closest ? e.target.closest('.topic-row') : null;
+                if(!overRow || overRow === state.row) return;
+                const rect = overRow.getBoundingClientRect();
+                const before = e.clientY < (rect.top + rect.height / 2);
+                container.insertBefore(state.row, before ? overRow : overRow.nextSibling);
+            });
+            document.addEventListener('drop', function(e){
+                if(!state.row || !state.container) return;
+                const container = e.target && e.target.closest ? e.target.closest('.topics') : null;
+                if(!container || container !== state.container) return;
+                e.preventDefault();
+                state.row.classList.remove('dragging');
+                reindexTopics(container);
+                updateProgress();
+                scheduleAutoSave();
             });
         }
         function reindexSubtopics(moduleIndex, topicIndex, topicRow){
@@ -1662,6 +1734,9 @@
                         <i class="fas fa-chevron-down q-summary-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="q-collapse-body">
+                        <div class="q-minimize-row">
+                            <button type="button" class="q-minimize-btn" onclick="toggleQuestionCard(this)" title="Minimize" aria-label="Minimize"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
+                        </div>
                         ${bodyHtml}
                     </div>
                 </div>
@@ -1726,7 +1801,7 @@
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = capdevQuestionCardShell(`
-                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start">
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
@@ -1744,9 +1819,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-add-under" style="margin-top:10px;">
-                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
-                    </div>
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
@@ -1875,7 +1947,7 @@
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = capdevQuestionCardShell(`
-                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start">
                         <label class="q-col" style="display:block">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
@@ -1893,9 +1965,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-add-under" style="margin-top:10px;">
-                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
-                    </div>
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
@@ -2217,14 +2286,18 @@
                             q.answer_index = answerIndexes[0];
                         }
                     } else if(type === 'identification'){
-                        const guide = qb.querySelector('.q-identification-guide')?.value || '';
-                        if(guide) q.teacher_notes = guide;
+                        const ans = String(qb.querySelector('.q-id-answer')?.value || '').trim().toUpperCase();
+                        const desc = String(qb.querySelector('.q-id-desc')?.value || '').trim();
+                        if(ans) q.answer = ans;
+                        if(desc) q.description = desc;
                     } else if(type === 'essay'){
                         const rb = qb.querySelector('.q-essay')?.value || '';
                         if(rb) q.instructions = rb;
                     } else if(type === 'enumeration'){
-                        const guide = qb.querySelector('.q-enumeration-guide')?.value || '';
-                        if(guide) q.expected_guide = guide;
+                        const answers = Array.from(qb.querySelectorAll('.q-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                        const desc = String(qb.querySelector('.q-enum-desc')?.value || '').trim();
+                        if(answers.length) q.answers = answers;
+                        if(desc) q.description = desc;
                     }
                     nonRef.push({ type:'question', question: q });
                 } else if(t === 'reflection'){
@@ -2257,7 +2330,7 @@
             const block = document.createElement('div');
             block.className = 'q-block';
             block.innerHTML = `
-                <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start">
                     <label class="q-col" style="display:block">
                         <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                         <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
@@ -2319,13 +2392,34 @@
                 addOptionRow(options, 'True');
                 addOptionRow(options, 'False');
             } else if(type === 'identification'){
-                addGuide('Manual checking required. Optional guide for teachers.');
-                const ta = document.createElement('textarea');
-                ta.className = 'q-identification-guide';
-                ta.rows = 2;
-                ta.placeholder = 'Expected answer guide or notes for teacher (optional)';
-                ta.style.width = '100%';
-                options.appendChild(ta);
+                addGuide('Note: Answer will be saved in UPPERCASE as the standard answer.');
+                const fieldsPanel = options.closest('.fields-panel');
+                const ans = document.createElement('input');
+                ans.type = 'text';
+                ans.className = 'q-id-answer';
+                ans.placeholder = 'Answer';
+                ans.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;text-transform:uppercase;';
+                ans.addEventListener('input', function(){
+                    const start = typeof ans.selectionStart === 'number' ? ans.selectionStart : null;
+                    const end = typeof ans.selectionEnd === 'number' ? ans.selectionEnd : null;
+                    const up = String(ans.value || '').toUpperCase();
+                    if(ans.value !== up) ans.value = up;
+                    if(start != null && end != null){
+                        try{ ans.setSelectionRange(start, end); }catch(_) {}
+                    }
+                    if(fieldsPanel) syncFieldsJSON(fieldsPanel);
+                });
+                options.appendChild(ans);
+                const note = document.createElement('div');
+                note.style.cssText = 'color:#64748b;font-size:.82rem;font-weight:700;margin:6px 0 10px 0;';
+                options.appendChild(note);
+                const desc = document.createElement('textarea');
+                desc.className = 'q-id-desc';
+                desc.rows = 2;
+                desc.placeholder = 'Description (optional)';
+                desc.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;';
+                desc.addEventListener('input', ()=> { if(fieldsPanel) syncFieldsJSON(fieldsPanel); });
+                options.appendChild(desc);
             } else if(type === 'essay'){
                 addGuide('Manual checking required. Optional rubric or instructions.');
                 const ta = document.createElement('textarea');
@@ -2335,13 +2429,60 @@
                 ta.style.width = '100%';
                 options.appendChild(ta);
             } else if(type === 'enumeration'){
-                addGuide('Manual checking required. Optional expected answers list.');
-                const ta = document.createElement('textarea');
-                ta.className = 'q-enumeration-guide';
-                ta.rows = 2;
-                ta.placeholder = 'Expected answers list or guide for teacher (optional)';
-                ta.style.width = '100%';
-                options.appendChild(ta);
+                addGuide('Add the standard answers (saved in UPPERCASE).');
+                const fieldsPanel = options.closest('.fields-panel');
+                const wrap = document.createElement('div');
+                wrap.className = 'q-enum-answers';
+                wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+                function addRow(value){
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+                    row.innerHTML = `
+                        <input type="text" class="q-enum-answer" placeholder="Answer" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;text-transform:uppercase;">
+                        <button type="button" class="btn btn-small q-enum-remove" style="background:#e5e7eb;color:#111827;">Remove</button>
+                    `;
+                    const input = row.querySelector('.q-enum-answer');
+                    input.value = String(value || '').toUpperCase();
+                    input.addEventListener('input', function(){
+                        const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
+                        const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
+                        const up = String(input.value || '').toUpperCase();
+                        if(input.value !== up) input.value = up;
+                        if(start != null && end != null){
+                            try{ input.setSelectionRange(start, end); }catch(_) {}
+                        }
+                        if(fieldsPanel) syncFieldsJSON(fieldsPanel);
+                    });
+                    row.querySelector('.q-enum-remove').addEventListener('click', function(){
+                        const rows = wrap.querySelectorAll('.q-option-row');
+                        if(rows.length <= 1) return;
+                        row.remove();
+                        if(fieldsPanel) syncFieldsJSON(fieldsPanel);
+                    });
+                    wrap.appendChild(row);
+                }
+                addRow('');
+                addRow('');
+                options.appendChild(wrap);
+                const addBtn = document.createElement('button');
+                addBtn.type='button';
+                addBtn.className='add-option-link';
+                addBtn.style.cssText='background:none;border:none;color:#0d6efd;cursor:pointer;text-align:left;padding:0;margin-top:4px;font-weight:800;';
+                addBtn.textContent='Add answer';
+                addBtn.addEventListener('click', ()=> { addRow(''); if(fieldsPanel) syncFieldsJSON(fieldsPanel); });
+                options.appendChild(addBtn);
+                const note = document.createElement('div');
+                note.style.cssText = 'color:#64748b;font-size:.82rem;font-weight:700;margin:6px 0 10px 0;';
+                note.textContent = 'Note: Answers will be saved in UPPERCASE as the standard answer.';
+                options.appendChild(note);
+                const desc = document.createElement('textarea');
+                desc.className = 'q-enum-desc';
+                desc.rows = 2;
+                desc.placeholder = 'Description (optional)';
+                desc.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;';
+                desc.addEventListener('input', ()=> { if(fieldsPanel) syncFieldsJSON(fieldsPanel); });
+                options.appendChild(desc);
             }
         }
         function addOptionRow(container, placeholder){
@@ -2511,14 +2652,18 @@
                 } else if(type === 'true_false'){
                     q.options = ['True','False'];
                 } else if(type === 'identification'){
-                    const guide = b.querySelector('.q-identification-guide')?.value || '';
-                    if(guide) q.teacher_notes = guide;
+                    const ans = String(b.querySelector('.q-id-answer')?.value || '').trim().toUpperCase();
+                    const desc = String(b.querySelector('.q-id-desc')?.value || '').trim();
+                    if(ans) q.answer = ans;
+                    if(desc) q.description = desc;
                 } else if(type === 'essay'){
                     const rb = b.querySelector('.q-essay')?.value || '';
                     if(rb) q.instructions = rb;
                 } else if(type === 'enumeration'){
-                    const guide = b.querySelector('.q-enumeration-guide')?.value || '';
-                    if(guide) q.expected_guide = guide;
+                    const answers = Array.from(b.querySelectorAll('.q-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                    const desc = String(b.querySelector('.q-enum-desc')?.value || '').trim();
+                    if(answers.length) q.answers = answers;
+                    if(desc) q.description = desc;
                 }
                 questions.push(q);
             });
@@ -2713,21 +2858,8 @@
         function isCertificateStepComplete(){
             return !!document.querySelector('input[name="certification_id"]:checked');
         }
-        function isFinalizeAccepted(){
-            const el = document.getElementById('finalize_accepted');
-            if (el) return String(el.value || '0') === '1';
-            return false;
-        }
-        function setFinalizeAccepted(value, options = {}){
-            const { scheduleSave = true } = options;
-            const next = !!value;
-            const el = document.getElementById('finalize_accepted');
-            if (el) el.value = next ? '1' : '0';
-            updateProgress();
-            if (scheduleSave) scheduleAutoSave();
-        }
         function isFinalizeStepComplete(){
-            return isDetailsStepComplete() && isModulesStepComplete() && isCertificateStepComplete() && isFinalizeAccepted();
+            return isDetailsStepComplete() && isModulesStepComplete() && isCertificateStepComplete();
         }
         function updateProgress(){
             const step1 = document.getElementById('step1');
@@ -2739,13 +2871,7 @@
             const detailsDone = isDetailsStepComplete();
             const modulesDone = isModulesStepComplete();
             const certificateDone = isCertificateStepComplete();
-            let finalizeAccepted = isFinalizeAccepted();
-            if (finalizeAccepted && !(detailsDone && modulesDone && certificateDone)) {
-                finalizeAccepted = false;
-                const el = document.getElementById('finalize_accepted');
-                if (el) el.value = '0';
-            }
-            const finalizeDone = detailsDone && modulesDone && certificateDone && finalizeAccepted;
+            const finalizeDone = detailsDone && modulesDone && certificateDone;
 
             step1.classList.toggle('done', detailsDone);
             step2.classList.toggle('done', modulesDone);
@@ -2757,35 +2883,25 @@
             if (progressFill) progressFill.style.width = `${percent}%`;
             if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/4 steps)`;
 
-            const tab2Btn = document.getElementById('tabBtn2');
-            const tab3Btn = document.getElementById('tabBtn3');
-            const tab4Btn = document.getElementById('tabBtn4');
-            
             const enable2 = detailsDone;
-            tab2Btn.classList.toggle('disabled', !enable2);
-            tab2Btn.setAttribute('aria-disabled', enable2 ? 'false' : 'true');
-            tab2Btn.setAttribute('tabindex', enable2 ? '0' : '-1');
+            step2.classList.toggle('disabled', !enable2);
+            step2.disabled = !enable2;
+            step2.setAttribute('aria-disabled', enable2 ? 'false' : 'true');
 
             const enable3 = detailsDone && modulesDone;
-            tab3Btn.classList.toggle('disabled', !enable3);
-            tab3Btn.setAttribute('aria-disabled', enable3 ? 'false' : 'true');
-            tab3Btn.setAttribute('tabindex', enable3 ? '0' : '-1');
+            step3.classList.toggle('disabled', !enable3);
+            step3.disabled = !enable3;
+            step3.setAttribute('aria-disabled', enable3 ? 'false' : 'true');
 
             const enable4 = detailsDone && modulesDone && certificateDone;
-            tab4Btn.classList.toggle('disabled', !enable4);
-            tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
-            tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
+            step4.classList.toggle('disabled', !enable4);
+            step4.disabled = !enable4;
+            step4.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
 
-            const acceptBtn = document.getElementById('finalizeAcceptBtn');
-            if (acceptBtn) {
-                acceptBtn.disabled = !enable4 || finalizeDone;
-                acceptBtn.textContent = finalizeDone ? 'Finalization Accepted' : 'Accept Finalization';
-                acceptBtn.style.opacity = (!enable4 || finalizeDone) ? '0.7' : '1';
-            }
             const submitBtn = document.getElementById('submitBtn');
             if (submitBtn) {
-                submitBtn.disabled = !finalizeDone;
-                submitBtn.style.opacity = finalizeDone ? '1' : '0.6';
+                submitBtn.disabled = !enable4;
+                submitBtn.style.opacity = enable4 ? '1' : '0.6';
             }
         }
         const COURSE_CREATE_TAB_QUERY = 'course-create';
@@ -2859,13 +2975,11 @@
 
             [1,2,3,4].forEach(n => {
                 const t = document.getElementById('tab' + n);
-                const b = document.getElementById('tabBtn' + n);
+                const s = document.getElementById('step' + n);
                 if (t) t.classList.toggle('active', normalizedTab === n);
-                if (b) {
-                    b.classList.toggle('active', normalizedTab === n);
-                    b.setAttribute('aria-selected', normalizedTab === n ? 'true' : 'false');
-                    if (normalizedTab === n) b.removeAttribute('tabindex');
-                    else b.setAttribute('tabindex', '-1');
+                if (s) {
+                    s.classList.toggle('active', normalizedTab === n);
+                    s.setAttribute('aria-selected', normalizedTab === n ? 'true' : 'false');
                 }
             });
 
@@ -2964,9 +3078,6 @@
             updateProgress();
         }
         function updateCertSelection(input) {
-            if (isFinalizeAccepted()) {
-                setFinalizeAccepted(false, { scheduleSave: false });
-            }
             document.querySelectorAll('.cert-card').forEach(card => {
                 card.style.borderColor = '#e5e7eb';
                 card.style.background = '#fff';
@@ -2983,14 +3094,14 @@
             updateProgress();
         }
         function bindTabs(){
-            document.getElementById('tabBtn1').addEventListener('click', ()=> switchTo(1));
-            document.getElementById('tabBtn2').addEventListener('click', ()=>{
+            document.getElementById('step1').addEventListener('click', ()=> switchTo(1));
+            document.getElementById('step2').addEventListener('click', ()=>{
                 if(validateDetails()) switchTo(2);
             });
-            document.getElementById('tabBtn3').addEventListener('click', ()=>{
+            document.getElementById('step3').addEventListener('click', ()=>{
                 if(validateDetails() && validateModules()) switchTo(3);
             });
-            document.getElementById('tabBtn4').addEventListener('click', ()=>{
+            document.getElementById('step4').addEventListener('click', ()=>{
                 if(validateDetails() && validateModules() && isCertificateStepComplete()) switchTo(4);
             });
             document.getElementById('nextToModules').addEventListener('click', ()=>{
@@ -3014,17 +3125,6 @@
             document.getElementById('saveDraftBtn2').addEventListener('click', saveDraft);
             document.getElementById('saveDraftBtn3').addEventListener('click', saveDraft);
             document.getElementById('saveDraftBtn4').addEventListener('click', saveDraft);
-            const finalizeAcceptBtn = document.getElementById('finalizeAcceptBtn');
-            if (finalizeAcceptBtn) {
-                finalizeAcceptBtn.addEventListener('click', ()=>{
-                    updateProgress();
-                    if (!(validateDetails() && validateModules() && isCertificateStepComplete())) {
-                        switchTo(3);
-                        return;
-                    }
-                    setFinalizeAccepted(true);
-                });
-            }
 
             ['name','description','image'].forEach(id=>{
                 const el = document.getElementById(id);
@@ -3055,12 +3155,6 @@
                     const err = document.getElementById('certError');
                     if(err) err.style.display = 'block';
                     return; 
-                }
-                if(!isFinalizeAccepted()) {
-                    e.preventDefault();
-                    switchTo(4);
-                    alert('Please accept finalization to submit.');
-                    return;
                 }
             });
             // Prevent accidental submit when pressing Enter inside exam builders/inputs
@@ -3260,7 +3354,46 @@
                                     }
                                 } else if (f.question.type === 'identification') {
                                     const ansInput = block.querySelector('.q-id-answer');
-                                    if (ansInput) ansInput.value = f.question.answer || '';
+                                    if (ansInput) ansInput.value = String(f.question.answer || '').toUpperCase();
+                                    const descInput = block.querySelector('.q-id-desc');
+                                    if (descInput) descInput.value = String(f.question.description || '');
+                                } else if (f.question.type === 'enumeration') {
+                                    const answers = Array.isArray(f.question.answers) ? f.question.answers : [];
+                                    const wrap = block.querySelector('.q-enum-answers');
+                                    if (wrap) {
+                                        wrap.innerHTML = '';
+                                        const vals = answers.length ? answers : ['', ''];
+                                        vals.forEach(v => {
+                                            const row = document.createElement('div');
+                                            row.className = 'q-option-row';
+                                            row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+                                            row.innerHTML = `
+                                                <input type="text" class="q-enum-answer" placeholder="Answer" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;text-transform:uppercase;">
+                                                <button type="button" class="btn btn-small q-enum-remove" style="background:#e5e7eb;color:#111827;">Remove</button>
+                                            `;
+                                            const input = row.querySelector('.q-enum-answer');
+                                            input.value = String(v || '').toUpperCase();
+                                            row.querySelector('.q-enum-remove').addEventListener('click', function(){
+                                                const rows = wrap.querySelectorAll('.q-option-row');
+                                                if(rows.length <= 1) return;
+                                                row.remove();
+                                                syncFieldsJSON(panel);
+                                            });
+                                            input.addEventListener('input', function(){
+                                                const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
+                                                const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
+                                                const up = String(input.value || '').toUpperCase();
+                                                if(input.value !== up) input.value = up;
+                                                if(start != null && end != null){
+                                                    try{ input.setSelectionRange(start, end); }catch(_) {}
+                                                }
+                                                syncFieldsJSON(panel);
+                                            });
+                                            wrap.appendChild(row);
+                                        });
+                                    }
+                                    const descInput = block.querySelector('.q-enum-desc');
+                                    if (descInput) descInput.value = String(f.question.description || '');
                                 }
                             }
                             updateQuestionCardSummary(block);
@@ -3426,7 +3559,6 @@
                 obj['modules'] = serializeModules();
                 obj['current_tab'] = CURRENT_TAB;
                 obj['current_step'] = getStepNameForTab(CURRENT_TAB);
-                obj['finalize_accepted'] = isFinalizeAccepted() ? '1' : '0';
                 
                 // Save materials metadata
                 const materialsInput = document.getElementById('course_materials');
@@ -3491,11 +3623,6 @@
             if(!raw) return null;
             try{
                 const obj = JSON.parse(raw);
-                if (obj['finalize_accepted'] !== undefined) {
-                    const accepted = String(obj['finalize_accepted']) === '1';
-                    const el = document.getElementById('finalize_accepted');
-                    if (el) el.value = accepted ? '1' : '0';
-                }
                 // Restore top-level fields
                 ['name','description','video_url','certification_id'].forEach(k=>{
                     if(obj[k] === undefined) return;
@@ -3622,6 +3749,7 @@
         }
         document.addEventListener('DOMContentLoaded', function(){
             bindTabs();
+            bindSectionReorderDnd();
             let restoredDraftTab = null;
             
             // Check if there's an existing draft for this session or a specific load request
@@ -4468,7 +4596,7 @@
                         <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-form-inputs" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
-                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
+                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start">
                                 <label class="q-col" style="display:block">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                                     <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
@@ -5099,8 +5227,11 @@
                             <div class="eq-choices" style="display:grid;gap:12px;margin-bottom:20px;"></div>
 
                             <div class="eq-id" style="display:none;margin-bottom:20px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Guide (Optional)</label>
-                                <textarea class="eq-id-answer" placeholder="Optional notes or expected answer guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;" rows="2"></textarea>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Answer</label>
+                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:8px;">
+                                <div style="color:#64748b;font-size:.82rem;font-weight:700;margin:0 0 12px 0;">Note: Answer will be saved in UPPERCASE as the standard answer.</div>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Description (Optional)</label>
+                                <textarea class="eq-id-desc" placeholder="Optional description / notes for this question" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;" rows="2"></textarea>
                             </div>
 
                             <div class="eq-tf" style="display:none;margin-bottom:20px;">
@@ -5127,8 +5258,12 @@
                             <div class="eq-enum" style="display:none;margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Required Number of Answers</label>
                                 <input class="eq-enum-required-count" type="number" min="1" step="1" placeholder="Example: 3" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:12px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Expected Answers Guide (Optional)</label>
-                                <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Answers</label>
+                                <div class="eq-enum-answers" style="display:grid;gap:8px;margin-bottom:8px;"></div>
+                                <button type="button" class="btn btn-small eq-enum-add" style="background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;margin-bottom:10px;">Add Answer</button>
+                                <div style="color:#64748b;font-size:.82rem;font-weight:700;margin:0 0 12px 0;">Note: Answers will be saved in UPPERCASE as the standard answer.</div>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Description (Optional)</label>
+                                <textarea class="eq-enum-desc" placeholder="Optional description / notes for this question" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
                                 <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
@@ -5204,12 +5339,34 @@
                 const currentCorrect = Array.from(wrapChoices.querySelectorAll('.eq-correct:checked')).map(input => Number(input.value));
                 wrapChoices.innerHTML = '';
                 const group = 'course_exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                function choiceLabel(i){
+                    return 'Choice ' + (i < 26 ? String.fromCharCode(65 + i) : String(i + 1));
+                }
+                function reindexChoiceRows(){
+                    const rows = Array.from(wrapChoices.querySelectorAll('.q-option-row'));
+                    rows.forEach((r, idx)=>{
+                        const opt = r.querySelector('.eq-option');
+                        if(opt) opt.placeholder = choiceLabel(idx);
+                        const correct = r.querySelector('.eq-correct');
+                        if(correct) correct.value = String(idx);
+                    });
+                    const canRemove = rows.length > 2;
+                    rows.forEach((r)=>{
+                        const btn = r.querySelector('.eq-choice-remove-inline');
+                        if(!btn) return;
+                        btn.disabled = !canRemove;
+                        btn.style.opacity = canRemove ? '1' : '.45';
+                        btn.style.cursor = canRemove ? 'pointer' : 'default';
+                    });
+                }
                 const helper = document.createElement('div');
                 helper.className = 'mc-helper-text';
                 helper.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;color:#475569;font-size:.88rem;font-weight:700;';
                 helper.innerHTML = '<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:4px 10px;">'+helperText+'</span>';
                 wrapChoices.appendChild(helper);
-                ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                const count = Math.max(4, currentChoices.length);
+                for(let i = 0; i < count; i++){
+                    const ph = choiceLabel(i);
                     const row = document.createElement('div');
                     row.className = 'q-option-row';
                     row.style.cssText = 'display:flex; align-items:center; gap:12px; background:#fff; padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:12px; transition:all .2s;';
@@ -5218,6 +5375,7 @@
                             <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
                             <input type="text" class="eq-option" placeholder="${ph}" style="flex:1;border:none;outline:none;font-size:0.95rem;font-weight:600;background:transparent;padding:4px 0;">
                         </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-weight:800;">Remove</button>
                     `;
                     const optionInput = row.querySelector('.eq-option');
                     const correctInput = row.querySelector('.eq-correct');
@@ -5231,8 +5389,65 @@
                         row.style.borderColor = correctInput.checked ? '#10b981' : '#e2e8f0';
                         row.style.background = correctInput.checked ? '#ecfdf5' : '#fff';
                     });
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            syncExamJSON();
+                        });
+                    }
                     wrapChoices.appendChild(row);
+                }
+                const add = document.createElement('button');
+                add.type = 'button';
+                add.className = 'eq-choice-add-inline';
+                add.textContent = 'Add option';
+                add.style.cssText = 'margin-top:10px;background:transparent;border:none;color:#2563eb;font-weight:800;cursor:pointer;padding:0;align-self:flex-start;';
+                add.addEventListener('click', (e)=>{
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const i = wrapChoices.querySelectorAll('.q-option-row').length;
+                    const ph = choiceLabel(i);
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex; align-items:center; gap:12px; background:#fff; padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:12px; transition:all .2s;';
+                    row.innerHTML = `
+                        <label style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;margin:0;">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
+                            <input type="text" class="eq-option" placeholder="${ph}" style="flex:1;border:none;outline:none;font-size:0.95rem;font-weight:600;background:transparent;padding:4px 0;">
+                        </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-weight:800;">Remove</button>
+                    `;
+                    const input = row.querySelector('.eq-option');
+                    const correctInput = row.querySelector('.eq-correct');
+                    input.addEventListener('focus', () => row.style.borderColor = '#002C76');
+                    input.addEventListener('blur', () => row.style.borderColor = '#e2e8f0');
+                    row.addEventListener('change', () => {
+                        row.style.borderColor = correctInput.checked ? '#10b981' : '#e2e8f0';
+                        row.style.background = correctInput.checked ? '#ecfdf5' : '#fff';
+                    });
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            syncExamJSON();
+                        });
+                    }
+                    wrapChoices.insertBefore(row, add);
+                    reindexChoiceRows();
+                    try { input.focus(); } catch (err) {}
+                    syncExamJSON();
                 });
+                wrapChoices.appendChild(add);
+                reindexChoiceRows();
             }
             function renderEnumerationAnswers(values){
                 const answerWrap = wrap.querySelector('.eq-enum-answers');
@@ -5472,10 +5687,11 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
-                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim().toUpperCase();
+                    const desc = String(wrap.querySelector('.eq-id-desc')?.value || '').trim();
                     const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, answer: ans, description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
@@ -5488,11 +5704,12 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
                     const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i => String(i.value || '').trim().toUpperCase()).filter(v => v !== '');
+                    const desc = String(wrap.querySelector('.eq-enum-desc')?.value || '').trim();
                     const maxPointsVal = getBuilderPointsValue(wrap, t);
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, answers: answers.length ? answers : ['',''], required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text };
                 }
@@ -5511,13 +5728,13 @@
                 if(isMultipleChoiceType(t)){
                     obj = buildMultipleChoicePayload(t, '', ['', '', '', ''], [], '');
                 }else if(t==='identification'){
-                    obj = { type:'identification', text:'', teacher_notes: '', max_points: '' };
+                    obj = { type:'identification', text:'', answer: '', description: '', max_points: '' };
                 }else if(t==='true_false'){
                     obj = { type:'true_false', text:'', answer: null, max_points: '' };
                 }else if(t==='essay'){
                     obj = { type:'essay', text:'', instructions: '', max_points: '' };
                 }else if(t==='enumeration'){
-                    obj = { type:'enumeration', text:'', required_answers_count: '', expected_guide: '', max_points: '' };
+                    obj = { type:'enumeration', text:'', answers:['', ''], required_answers_count: '', description: '', max_points: '' };
                 } else {
                     obj = { type:String(t||'multiple_choice_single'), text:'', max_points: '' };
                 }
@@ -5548,10 +5765,10 @@
                 const tVal = tSel ? tSel.value : 'multiple_choice_single';
                 let obj = null;
                 if(isMultipleChoiceType(tVal)){ obj = buildMultipleChoicePayload(tVal, '', ['', '', '', ''], [], ''); }
-                else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '', max_points: '' }; }
+                else if(tVal==='identification'){ obj = { type:'identification', text:'', answer: '', description: '', max_points: '' }; }
                 else if(tVal==='true_false'){ obj = { type:'true_false', text:'', answer: null, max_points: '' }; }
                 else if(tVal==='essay'){ obj = { type:'essay', text:'', max_points: '' }; }
-                else if(tVal==='enumeration'){ obj = { type:'enumeration', text:'', answers:['', ''], max_points: '' }; }
+                else if(tVal==='enumeration'){ obj = { type:'enumeration', text:'', answers:['', ''], required_answers_count: '', description: '', max_points: '' }; }
                 else { obj = { type:String(tVal||'multiple_choice_single'), text:'', max_points: '' }; }
                 const node = document.createElement('div');
                 node.className = 'q-item';
@@ -5821,8 +6038,10 @@
                     commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='identification'){
-                const notes = String(payload.teacher_notes || payload.answer || '');
-                wrap.querySelector('.eq-id-answer').value = notes;
+                const ans = String(payload.answer || payload.correct_answer || payload.teacher_notes || '').toUpperCase();
+                const ansEl = wrap.querySelector('.eq-id-answer'); if(ansEl) ansEl.value = ans;
+                const desc = String(payload.description || '');
+                const descEl = wrap.querySelector('.eq-id-desc'); if(descEl) descEl.value = desc;
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -5845,13 +6064,21 @@
                     essayPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='enumeration'){
-                const guide = String(payload.expected_guide || (Array.isArray(payload.answers) ? payload.answers.join(', ') : ''));
-                const guideEl = wrap.querySelector('.eq-enum-guide');
-                if(guideEl) guideEl.value = guide;
+                let answers = Array.isArray(payload.answers) ? payload.answers : [];
+                if(!answers.length){
+                    const rawGuide = String(payload.expected_guide || payload.guide || '');
+                    if(rawGuide){
+                        answers = rawGuide.split(',').map(s=> s.trim()).filter(Boolean);
+                    }
+                }
+                if(!answers.length) answers = ['', ''];
+                ensureEnumerationRows(wrap, answers.map(a=> String(a || '').toUpperCase()));
                 const requiredCount = wrap.querySelector('.eq-enum-required-count');
                 if(requiredCount){
                     requiredCount.value = String(payload.required_answers_count || (Array.isArray(payload.answers) ? payload.answers.length : '') || '');
                 }
+                const desc = String(payload.description || '');
+                const descEl = wrap.querySelector('.eq-enum-desc'); if(descEl) descEl.value = desc;
                 const enumPoints = wrap.querySelector('.eq-enum-points');
                 if(enumPoints){
                     const maxPoints = payload.max_points;
@@ -5875,6 +6102,10 @@
             if(boxEnum) boxEnum.style.display = (t==='enumeration') ? 'block' : 'none';
             if(isMultipleChoiceType(t)){
                 ensureChoiceRows(wrap);
+            } else if (t === 'enumeration') {
+                if (wrap.querySelectorAll('.eq-enum-answer').length === 0) {
+                    ensureEnumerationRows(wrap, ['', '']);
+                }
             }
         }
         function ensureChoiceRows(wrap){
@@ -5997,12 +6228,14 @@
             rows.forEach(row=>{ const inp=row.querySelector('.eq-option'); if(inp) inp.value=''; });
             wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
             wrap.querySelector('.eq-id-answer').value='';
+            const idDesc = wrap.querySelector('.eq-id-desc'); if(idDesc) idDesc.value = '';
             wrap.querySelector('.eq-tf-answer').value='true';
             const commonPoints = wrap.querySelector('.eq-common-points'); if(commonPoints) commonPoints.value='';
             const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='';
             const essayNotes = wrap.querySelector('.eq-essay-notes'); if(essayNotes) essayNotes.value='';
-            const enumGuide = wrap.querySelector('.eq-enum-guide'); if(enumGuide) enumGuide.value='';
             const enumRequired = wrap.querySelector('.eq-enum-required-count'); if(enumRequired) enumRequired.value='';
+            const enumDesc = wrap.querySelector('.eq-enum-desc'); if(enumDesc) enumDesc.value='';
+            ensureEnumerationRows(wrap, ['', '']);
             const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='';
             const builder = wrap.querySelector('.eq-text'); if(builder) builder.focus();
         }
@@ -6027,11 +6260,30 @@
                 (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
                 return false;
             }
+            if(type === 'identification'){
+                const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim();
+                if(!ans){
+                    alert('Answer is required.');
+                    wrap.querySelector('.eq-id-answer')?.focus();
+                    return false;
+                }
+            }
             if(type === 'enumeration'){
                 const requiredValue = wrap.querySelector('.eq-enum-required-count')?.value || '';
                 const required = Number(requiredValue);
                 if(requiredValue === '' || !Number.isInteger(required) || required < 1){
                     alert('Required number of answers must be at least 1.');
+                    wrap.querySelector('.eq-enum-required-count')?.focus();
+                    return false;
+                }
+                const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> String(i.value || '').trim()).filter(Boolean);
+                if(answers.length === 0){
+                    alert('At least 1 answer is required.');
+                    wrap.querySelector('.eq-enum-answer')?.focus();
+                    return false;
+                }
+                if(required > answers.length){
+                    alert('Required number of answers cannot be greater than the number of answers provided.');
                     wrap.querySelector('.eq-enum-required-count')?.focus();
                     return false;
                 }
@@ -6041,6 +6293,16 @@
         (function bindBuilderLiveUpdate(){
             document.addEventListener('input', function(e){
                 const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
+                if(e.target && (e.target.classList?.contains('eq-id-answer') || e.target.classList?.contains('eq-enum-answer'))){
+                    const el = e.target;
+                    const start = typeof el.selectionStart === 'number' ? el.selectionStart : null;
+                    const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : null;
+                    const up = String(el.value || '').toUpperCase();
+                    if(el.value !== up) el.value = up;
+                    if(start != null && end != null){
+                        try{ el.setSelectionRange(start, end); }catch(_) {}
+                    }
+                }
                 const idx = getActiveExamIndex(wrap);
                 const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
                 if(idx >= items.length) return;
@@ -6054,10 +6316,11 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = buildMultipleChoicePayload(t, text, opts, checked, maxPoints);
                 }else if(t==='identification'){
-                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim().toUpperCase();
+                    const desc = String(wrap.querySelector('.eq-id-desc')?.value || '').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, answer: ans, description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const val = wrap.querySelector('.eq-tf-answer').value;
                     const ans = val === '' ? null : (val === 'true');
@@ -6070,10 +6333,12 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
+                    const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                    const desc = String(wrap.querySelector('.eq-enum-desc')?.value || '').trim();
                     const maxPointsVal = wrap.querySelector('.eq-enum-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, answers: answers.length ? answers : ['',''], required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);
@@ -6185,6 +6450,19 @@
                 addTopicInput(moduleBody);
                 const lastTopic = moduleBody.querySelector('.topic-row:last-of-type');
                 if(lastTopic) setActiveAnchor(lastTopic);
+            }
+            const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
+        }
+        function dmAddQuiz(){
+            const anchor = DM_STATE.currentAnchor;
+            const wrapper = anchor?.closest('.module-wrapper');
+            const moduleBody = wrapper ? wrapper.querySelector('.module-body') : document.querySelector('.module-wrapper .module-body');
+            if(moduleBody){
+                expandModuleAccordion(moduleBody);
+                addQuizInput(moduleBody);
+                const lastQuiz = moduleBody.querySelector('.topic-row.quiz-row:last-of-type');
+                if(lastQuiz) setActiveAnchor(lastQuiz);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();

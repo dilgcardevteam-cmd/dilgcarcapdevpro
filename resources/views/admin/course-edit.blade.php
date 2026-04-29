@@ -68,6 +68,9 @@
         .topic-row > span { color:#6b7280; }
         .topic-row input[type="text"] { width: 100%; }
         .topic-row.quiz-row { border-style: solid; border-color: rgba(59,130,246,.35); background: #f8fbff; }
+        .section-drag-handle{ width:18px; height:28px; display:inline-flex; align-items:center; justify-content:center; border:none; background:transparent; color:#94a3b8; cursor:grab; padding:0; border-radius:6px; user-select:none; flex:0 0 auto; line-height:1; font-size:16px; }
+        .section-drag-handle:hover{ background:#eef2ff; color:#1e3a8a; }
+        .topic-row.dragging{ opacity:.6; }
         .section-pill{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1px solid transparent;white-space:nowrap}
         .section-pill.quiz{background:#eef2ff;color:#1d4ed8;border-color:rgba(29,78,216,.18)}
         .module-body .add-topic-btn { display:block; margin:10px auto 0; }
@@ -90,6 +93,12 @@
         .step-index { width: 24px; height: 24px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #334155; font-size: .78rem; font-weight: 800; flex: 0 0 24px; }
         .step.done { background: #ecfeff; color: #0f766e; border-color: #99f6e4; }
         .step.done .step-index { background: #10b981; color: #ffffff; }
+        .step.active { background: var(--brand); color: #ffffff; border-color: var(--brand); box-shadow: 0 6px 12px rgba(13,110,253,0.25); }
+        .step.active .step-index { background: rgba(255,255,255,0.22); color: #ffffff; }
+        .step.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.2); }
+        .step:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-blue { background:#0038A7; }
+        .btn-blue:hover { background:#002f8c; }
         @media (max-width: 640px){
             .progress-steps { grid-template-columns: 1fr; }
             .exam-meta-row { flex-wrap:wrap; align-items:flex-start; }
@@ -181,6 +190,9 @@
         .capdev-question-card.is-collapsed .q-summary-chevron { transform:rotate(-90deg); }
         .q-collapse-body { max-height:1600px; opacity:1; padding:0; transition:max-height .24s ease, opacity .18s ease, padding .2s ease; }
         .capdev-question-card.is-collapsed .q-collapse-body { max-height:0; opacity:0; padding-top:0; padding-bottom:0; overflow:hidden; }
+        .q-minimize-row{ display:flex; justify-content:flex-end; padding:10px 10px 0 10px; }
+        .q-minimize-btn{ width:34px; height:34px; border-radius:10px; border:1px solid #e5e7eb; background:#ffffff; color:#0f3b8f; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; }
+        .q-minimize-btn:hover{ background:#f1f5ff; border-color:#c8d4ff; }
         @media (max-width:640px) { .q-summary-toggle { align-items:flex-start; flex-direction:column; } .q-summary-meta { align-self:flex-start; } }
         .preview { margin:8px 0 0; font-size:0.85rem; color:#6b7280; }
         html, body { scrollbar-width: none; -ms-overflow-style: none; }
@@ -233,18 +245,12 @@
                     <div id="courseProgressFill" class="progress-fill"></div>
                 </div>
                 <div id="courseProgressText" class="progress-status">0% complete</div>
-                <div class="progress-steps">
-                    <span id="step1" class="step"><span class="step-index">1</span><span>Details</span></span>
-                    <span id="step2" class="step"><span class="step-index">2</span><span>Modules</span></span>
-                    <span id="step3" class="step"><span class="step-index">3</span><span>Certificate</span></span>
-                    <span id="step4" class="step"><span class="step-index">4</span><span>Finalize</span></span>
+                <div class="progress-steps" role="tablist" aria-label="Course setup steps">
+                    <button type="button" id="step1" class="step active" role="tab" aria-controls="tab1" aria-selected="true"><span class="step-index">1</span><span>Details</span></button>
+                    <button type="button" id="step2" class="step disabled" role="tab" aria-controls="tab2" aria-selected="false" aria-disabled="true" disabled><span class="step-index">2</span><span>Modules</span></button>
+                    <button type="button" id="step3" class="step disabled" role="tab" aria-controls="tab3" aria-selected="false" aria-disabled="true" disabled><span class="step-index">3</span><span>Certificate</span></button>
+                    <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
-            </div>
-            <div class="tabs" role="tablist">
-                <button id="tabBtn1" class="tab active" role="tab" aria-controls="tab1" aria-selected="true">Course Details</button>
-                <button id="tabBtn2" class="tab" role="tab" aria-controls="tab2" aria-selected="false" tabindex="0">Modules Management</button>
-                <button id="tabBtn3" class="tab" role="tab" aria-controls="tab3" aria-selected="false" tabindex="0">Certificate</button>
-                <button id="tabBtn4" class="tab disabled" role="tab" aria-controls="tab4" aria-selected="false" tabindex="-1">Finalize</button>
             </div>
             @if($errors->update_course->any())
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
@@ -473,11 +479,11 @@
                         </div>
                     </div>
 
-                    <div class="actions" style="justify-content: space-between; margin-top:30px;">
+                    <div class="actions" style="justify-content: space-between; margin-top:30px; position:sticky; bottom:0; background:rgba(255,255,255,.92); backdrop-filter:blur(6px); padding:12px 0; border-top:1px solid #eef2f7;">
                         <button type="button" class="btn btn-cancel" id="backToCertificate">Back</button>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn btn-cancel" id="saveDraftBtn4" onclick="saveDraft()">Save Draft</button>
-                            <button type="submit" class="btn btn-submit" id="submitBtn">Update Course</button>
+                            <button type="submit" class="btn btn-blue" id="submitBtn">Update Course</button>
                         </div>
                     </div>
                 </div>
@@ -575,6 +581,7 @@
             <div class="dm-rail" role="toolbar" aria-orientation="vertical" aria-label="Section tools">
                 <button type="button" class="rail-btn" title="Add Field" aria-label="Add Field" onclick="dmAddTextInput()"><i class="fas fa-font"></i><span class="rail-label">Add Field</span></button>
                 <button type="button" class="rail-btn" title="Add Topic" aria-label="Add Topic" onclick="dmAddTopic()"><i class="fas fa-stream"></i><span class="rail-label">Add Topic</span></button>
+                <button type="button" class="rail-btn" title="Add Quiz" aria-label="Add Quiz" onclick="dmAddQuiz()"><i class="fas fa-circle-question"></i><span class="rail-label">Add Quiz</span></button>
                 <button type="button" class="rail-btn" title="Add Module" aria-label="Add Module" onclick="dmAddModule()"><i class="fas fa-layer-group"></i><span class="rail-label">Add Module</span></button>
             </div>
             </div>
@@ -684,10 +691,20 @@
             const addSubtopicItem = k === 'topic'
                 ? `<div class="kebab-item" onclick="kebabAddSubtopic(this)"><i class="fas fa-plus"></i> Add Subtopic</div>`
                 : '';
+            const addBtnHtml = k === 'quiz'
+                ? `
+                    <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                        <button type="button" onclick="addQuestionToQuizRow(this, event)" style="border:1px solid #0f3b8f;background:#0f3b8f;color:#fff;font-weight:800;padding:12px 18px;border-radius:999px;">
+                            Add Question
+                        </button>
+                    </div>
+                `
+                : `<button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>`;
             row.innerHTML = `
                 <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
                     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-                        <span style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx+1}</span>
+                        <button type="button" class="section-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</button>
+                        <span class="section-idx" style="color:#6b7280;width:40px;flex:0 0 auto;">${moduleIndex+1}.${idx+1}</span>
                         <input type="hidden" class="section-kind" name="modules[${moduleIndex}][topics][${idx}][kind]" value="${k}">
                         <input type="text" name="modules[${moduleIndex}][topics][${idx}][title]" placeholder="${k === 'quiz' ? 'Quiz title' : 'Topic title'}" required maxlength="80" style="flex:1;min-width:0;">
                     </div>
@@ -708,7 +725,7 @@
                     <div class="field-list"></div>
                     <textarea name="modules[${moduleIndex}][topics][${idx}][fields_json]" style="display:none"></textarea>
                 </div>
-                <button type="button" class="panel-add-btn" title="Add field" aria-label="Add field" onclick="openRailFromAdd(this, event)"><i class="fas fa-plus"></i></button>
+                ${addBtnHtml}
             `;
             return row;
         }
@@ -737,6 +754,16 @@
             reindexTopics(topics);
             updateProgress();
             if (typeof setActiveAnchor === 'function') { setActiveAnchor(row); }
+        }
+        function addQuestionToQuizRow(btn, event){
+            if(event) event.preventDefault();
+            const row = btn.closest('.topic-row');
+            if(!row) return;
+            const panel = row.querySelector('.fields-panel');
+            if(!panel) return;
+            addQuestionField(panel);
+            try{ syncFieldsJSON(panel); }catch(e){}
+            updateProgress();
         }
 
         function addTopicInput(ctx) { addSectionInput(ctx, 'topic'); }
@@ -831,7 +858,8 @@
             const moduleIndex = Array.from(wrapper.parentElement.children).indexOf(wrapper);
             const rows = Array.from(container.children);
             rows.forEach((row, idx) => {
-                row.querySelector('span').textContent = `${moduleIndex+1}.${idx+1}`;
+                const idxEl = row.querySelector('.section-idx') || row.querySelector('span');
+                if (idxEl) idxEl.textContent = `${moduleIndex+1}.${idx+1}`;
                 const titleInput = row.querySelector('input[type=text]');
                 const qTextarea = row.querySelector('textarea[name$="[fields_json]"]') || row.querySelector('textarea');
                 const kindInput = row.querySelector('input.section-kind');
@@ -854,6 +882,49 @@
                     if(sTitle) sTitle.name = `modules[${moduleIndex}][topics][${idx}][subtopics][${si}][title]`;
                     if(ta) ta.name = `modules[${moduleIndex}][topics][${idx}][subtopics][${si}][fields_json]`;
                 });
+            });
+        }
+        function bindSectionReorderDnd(){
+            if (window.__capdevSectionDndBound) return;
+            window.__capdevSectionDndBound = true;
+            const state = { row: null, container: null };
+            document.addEventListener('dragstart', function(e){
+                const handle = e.target && e.target.closest ? e.target.closest('.section-drag-handle') : null;
+                if(!handle) return;
+                const row = handle.closest('.topic-row');
+                const container = row ? row.parentElement : null;
+                if(!row || !container || !container.classList.contains('topics')) return;
+                state.row = row;
+                state.container = container;
+                row.classList.add('dragging');
+                try { e.dataTransfer.effectAllowed = 'move'; } catch (err) {}
+                try { e.dataTransfer.setData('text/plain', 'section'); } catch (err) {}
+            });
+            document.addEventListener('dragend', function(){
+                if(state.row) state.row.classList.remove('dragging');
+                state.row = null;
+                state.container = null;
+            });
+            document.addEventListener('dragover', function(e){
+                if(!state.row || !state.container) return;
+                const container = e.target && e.target.closest ? e.target.closest('.topics') : null;
+                if(!container || container !== state.container) return;
+                e.preventDefault();
+                const overRow = e.target && e.target.closest ? e.target.closest('.topic-row') : null;
+                if(!overRow || overRow === state.row) return;
+                const rect = overRow.getBoundingClientRect();
+                const before = e.clientY < (rect.top + rect.height / 2);
+                container.insertBefore(state.row, before ? overRow : overRow.nextSibling);
+            });
+            document.addEventListener('drop', function(e){
+                if(!state.row || !state.container) return;
+                const container = e.target && e.target.closest ? e.target.closest('.topics') : null;
+                if(!container || container !== state.container) return;
+                e.preventDefault();
+                state.row.classList.remove('dragging');
+                reindexTopics(container);
+                updateProgress();
+                try{ if(typeof scheduleAutoSave === 'function') scheduleAutoSave(); }catch(err){}
             });
         }
         function addSubtopicRow(topicRow){
@@ -1400,13 +1471,24 @@
                         <i class="fas fa-chevron-down q-summary-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="q-collapse-body">
+                        <div class="q-minimize-row">
+                            <button type="button" class="q-minimize-btn" onclick="toggleQuestionCard(this)" title="Minimize" aria-label="Minimize"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>
+                        </div>
                         ${bodyHtml}
                     </div>
                 </div>
             `;
         }
+        function isMultipleChoiceType(type){
+            return ['multiple_choice', 'multiple_choice_single', 'multiple_choice_multiple'].includes(String(type || ''));
+        }
+        function normalizeMcType(type){
+            return String(type || 'multiple_choice_single') === 'multiple_choice_multiple' ? 'multiple_choice_multiple' : 'multiple_choice_single';
+        }
         function questionTypeLabel(value){
-            return String(value || 'multiple_choice').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            const raw = String(value || 'multiple_choice_single');
+            const normalized = isMultipleChoiceType(raw) ? normalizeMcType(raw) : raw;
+            return String(normalized || 'multiple_choice_single').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
         function updateQuestionCardSummary(block){
             if(!block) return;
@@ -1415,7 +1497,7 @@
             const preview = block.querySelector('.q-summary-preview');
             const meta = block.querySelector('.q-summary-meta');
             const text = (block.querySelector('.q-title')?.value || '').trim();
-            const type = block.querySelector('.q-type')?.value || 'multiple_choice';
+            const type = block.querySelector('.q-type')?.value || 'multiple_choice_single';
             if(number) number.textContent = index > 0 ? `Question ${index}` : 'Question';
             if(preview) preview.textContent = text || 'Untitled question';
             if(meta) meta.textContent = questionTypeLabel(type);
@@ -1464,15 +1546,16 @@
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = capdevQuestionCardShell(`
-                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
-                        <label class="q-col" style="display:block">
+                    <div class="q-header" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;align-items:start">
+                        <label class="q-col" style="display:block;min-width:0;">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
                         </label>
-                        <label class="q-col" style="display:block;padding-left:16px">
+                        <label class="q-col" style="display:block;min-width:0;padding-left:16px">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
-                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
@@ -1481,13 +1564,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
-                        <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
-                        <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
-                    </div>
-                    <div class="q-add-under" style="margin-top:10px;">
-                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
-                    </div>
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
@@ -1608,15 +1684,16 @@
             block.setAttribute('data-type','question');
             block.setAttribute('data-correct', `correct-${Date.now()}-${Math.floor(Math.random()*1000)}`);
             block.innerHTML = capdevQuestionCardShell(`
-                    <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end">
-                        <label class="q-col" style="display:block">
+                    <div class="q-header" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;align-items:start">
+                        <label class="q-col" style="display:block;min-width:0;">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                             <textarea class="q-title q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;"></textarea>
                         </label>
-                        <label class="q-col" style="display:block;padding-left:16px">
+                        <label class="q-col" style="display:block;min-width:0;padding-left:16px">
                             <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                             <select class="q-type">
-                                <option value="multiple_choice">Multiple Choice</option>
+                                <option value="multiple_choice_single">Multiple Choice (Single Answer)</option>
+                                <option value="multiple_choice_multiple">Multiple Choice (Multiple Answers)</option>
                                 <option value="identification">Identification</option>
                                 <option value="true_false">True or False</option>
                                 <option value="essay">Essay</option>
@@ -1625,13 +1702,6 @@
                         </label>
                     </div>
                     <div class="q-options"></div>
-                    <div class="q-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
-                        <textarea class="q-fb-correct" rows="2" placeholder="Feedback when answer is correct (optional)"></textarea>
-                        <textarea class="q-fb-incorrect" rows="2" placeholder="Feedback when answer is incorrect (optional)"></textarea>
-                    </div>
-                    <div class="q-add-under" style="margin-top:10px;">
-                        <button type="button" class="btn btn-small" style="background:#0f3b8f;color:#fff" onclick="addQuestionFieldAfter(this)"><i class="fas fa-plus" style="margin-right:6px"></i>Add Question</button>
-                    </div>
                     <div class="q-actions">
                         <div class="right" style="position:relative;">
                             <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="duplicateField(this)" title="Duplicate" aria-label="Duplicate question"><i class="fas fa-clone"></i></button>
@@ -1895,7 +1965,8 @@
             return null;
         }
         function setupDefaultOptions(block){
-            const type = block.querySelector('.q-type') ? block.querySelector('.q-type').value : 'multiple_choice';
+            const rawType = block.querySelector('.q-type') ? block.querySelector('.q-type').value : 'multiple_choice_single';
+            const type = isMultipleChoiceType(rawType) ? normalizeMcType(rawType) : rawType;
             const options = block.querySelector('.q-options');
             options.innerHTML = '';
             const oldGuide = block.querySelector('.q-correct-guide');
@@ -1907,8 +1978,8 @@
                 g.textContent = text;
                 options.parentElement.insertBefore(g, options);
             }
-            if(type === 'multiple_choice'){
-                addGuide('Mark the circle for the correct answer.');
+            if(isMultipleChoiceType(type)){
+                addGuide(type === 'multiple_choice_multiple' ? 'Select all correct answers.' : 'Select one correct answer.');
                 addOptionRow(options, 'Choice A');
                 addOptionRow(options, 'Choice B');
                 addOptionRow(options, 'Choice C');
@@ -1919,18 +1990,96 @@
                 addOptionRow(options, 'True');
                 addOptionRow(options, 'False');
             } else if(type === 'identification'){
-                const box = document.createElement('div');
-                box.className = 'q-blanks';
-                options.appendChild(box);
-                addBlankAnswerRow(box, 'Answer 1');
-                addBlankAnswerRow(box, 'Answer 2');
-                ensureAddBlankLink(box);
+                addGuide('Enter the standard answer (saved in UPPERCASE).');
+                const fp = options.closest('.fields-panel');
+                const ans = document.createElement('input');
+                ans.type = 'text';
+                ans.className = 'q-id-answer';
+                ans.placeholder = 'Answer';
+                ans.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;text-transform:uppercase;';
+                ans.addEventListener('input', function(){
+                    const start = typeof ans.selectionStart === 'number' ? ans.selectionStart : null;
+                    const end = typeof ans.selectionEnd === 'number' ? ans.selectionEnd : null;
+                    const up = String(ans.value || '').toUpperCase();
+                    if(ans.value !== up) ans.value = up;
+                    if(start != null && end != null){
+                        try{ ans.setSelectionRange(start, end); }catch(_) {}
+                    }
+                    if(fp) syncFieldsJSON(fp);
+                });
+                options.appendChild(ans);
+                const note = document.createElement('div');
+                note.style.cssText = 'color:#64748b;font-size:.82rem;font-weight:700;margin:6px 0 10px 0;';
+                note.textContent = 'Note: Answer will be saved in UPPERCASE as the standard answer.';
+                options.appendChild(note);
+                const desc = document.createElement('textarea');
+                desc.className = 'q-id-desc';
+                desc.rows = 2;
+                desc.placeholder = 'Description (optional)';
+                desc.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;';
+                desc.addEventListener('input', ()=> { if(fp) syncFieldsJSON(fp); });
+                options.appendChild(desc);
             } else if(type === 'essay'){
                 const ta = document.createElement('textarea');
                 ta.className = 'q-essay';
                 ta.rows = 3;
                 ta.placeholder = 'Rubric or guidance (optional)';
                 options.appendChild(ta);
+            } else if(type === 'enumeration'){
+                addGuide('Add the standard answers (saved in UPPERCASE).');
+                const fp = options.closest('.fields-panel');
+                const wrap = document.createElement('div');
+                wrap.className = 'q-enum-answers';
+                wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+                function addRow(value){
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+                    row.innerHTML = `
+                        <input type="text" class="q-enum-answer" placeholder="Answer" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;text-transform:uppercase;">
+                        <button type="button" class="btn btn-small q-enum-remove" style="background:#e5e7eb;color:#111827;">Remove</button>
+                    `;
+                    const input = row.querySelector('.q-enum-answer');
+                    input.value = String(value || '').toUpperCase();
+                    input.addEventListener('input', function(){
+                        const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
+                        const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
+                        const up = String(input.value || '').toUpperCase();
+                        if(input.value !== up) input.value = up;
+                        if(start != null && end != null){
+                            try{ input.setSelectionRange(start, end); }catch(_) {}
+                        }
+                        if(fp) syncFieldsJSON(fp);
+                    });
+                    row.querySelector('.q-enum-remove').addEventListener('click', function(){
+                        const rows = wrap.querySelectorAll('.q-option-row');
+                        if(rows.length <= 1) return;
+                        row.remove();
+                        if(fp) syncFieldsJSON(fp);
+                    });
+                    wrap.appendChild(row);
+                }
+                addRow('');
+                addRow('');
+                options.appendChild(wrap);
+                const addBtn = document.createElement('button');
+                addBtn.type='button';
+                addBtn.className='add-option-link';
+                addBtn.style.cssText='background:none;border:none;color:#0d6efd;cursor:pointer;text-align:left;padding:0;margin-top:4px;font-weight:800;';
+                addBtn.textContent='Add answer';
+                addBtn.addEventListener('click', ()=> { addRow(''); if(fp) syncFieldsJSON(fp); });
+                options.appendChild(addBtn);
+                const note = document.createElement('div');
+                note.style.cssText = 'color:#64748b;font-size:.82rem;font-weight:700;margin:6px 0 10px 0;';
+                note.textContent = 'Note: Answers will be saved in UPPERCASE as the standard answer.';
+                options.appendChild(note);
+                const desc = document.createElement('textarea');
+                desc.className = 'q-enum-desc';
+                desc.rows = 2;
+                desc.placeholder = 'Description (optional)';
+                desc.style.cssText = 'width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;';
+                desc.addEventListener('input', ()=> { if(fp) syncFieldsJSON(fp); });
+                options.appendChild(desc);
             }
         }
         function addOptionRow(container, placeholder){
@@ -1942,9 +2091,13 @@
             if (fb) {
                 group = fb.getAttribute('data-correct') || group;
             }
+            const currentTypeRaw = container.closest('.q-block')?.querySelector('.q-type')?.value || 'multiple_choice_single';
+            const currentType = isMultipleChoiceType(currentTypeRaw) ? normalizeMcType(currentTypeRaw) : currentTypeRaw;
+            const inputType = currentType === 'multiple_choice_multiple' ? 'checkbox' : 'radio';
+            const nameAttr = inputType === 'radio' ? `name="${group}"` : '';
             row.innerHTML = `
                 <label style="display:flex;align-items:center;gap:8px;flex:1;">
-                    <input type="radio" class="q-correct" name="${group}">
+                    <input type="${inputType}" class="q-correct" ${nameAttr}>
                     <input type="text" class="q-option" placeholder="${placeholder||'Add option'}">
                 </label>
                 <button type="button" class="btn btn-small" style="background:#e5e7eb;color:#111827;" onclick="removeOptionRow(this)">X</button>
@@ -2061,16 +2214,22 @@
                 } else if(t === 'question'){
                     updateQuestionCardSummary(b);
                     const qb = b.querySelector('.q-block');
-                    const type = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice';
+                    const rawType = qb.querySelector('.q-type') ? qb.querySelector('.q-type').value : 'multiple_choice_single';
+                    const type = isMultipleChoiceType(rawType) ? normalizeMcType(rawType) : rawType;
                     const title = qb.querySelector('.q-title').value || 'Untitled Question';
                     const required = false;
                     const q = { type, title, required };
-                    if(type === 'multiple_choice' || type === 'true_false'){
+                    if(isMultipleChoiceType(type) || type === 'true_false'){
                         const opts = Array.from(qb.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
                         q.options = opts.length ? opts : (type==='true_false' ? ['True','False'] : []);
                         const rows = Array.from(qb.querySelectorAll('.q-option-row'));
-                        const answerIndex = rows.findIndex(r => r.querySelector('.q-correct') && r.querySelector('.q-correct').checked);
-                        if(answerIndex >= 0) q.answer_index = answerIndex;
+                        const correctIndexes = [];
+                        rows.forEach((r, idx)=>{ if(r.querySelector('.q-correct')?.checked) correctIndexes.push(idx); });
+                        if(type === 'multiple_choice_multiple'){
+                            if(correctIndexes.length) q.answer_indices = correctIndexes;
+                        } else {
+                            if(correctIndexes.length) q.answer_index = correctIndexes[0];
+                        }
                     } else if(type === 'matching'){
                         const pairs = [];
                         qb.querySelectorAll('.q-matching .match-row').forEach(r=>{
@@ -2082,14 +2241,20 @@
                     } else if(type === 'fill_blank'){
                         const answers = Array.from(qb.querySelectorAll('.q-blanks .q-blank-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
                         q.answers = answers;
+                    } else if(type === 'identification'){
+                        const ans = String(qb.querySelector('.q-id-answer')?.value || '').trim().toUpperCase();
+                        const desc = String(qb.querySelector('.q-id-desc')?.value || '').trim();
+                        if(ans) q.answer = ans;
+                        if(desc) q.description = desc;
                     } else if(type === 'essay'){
                         const rb = qb.querySelector('.q-essay')?.value || '';
                         if(rb) q.rubric = rb;
+                    } else if(type === 'enumeration'){
+                        const answers = Array.from(qb.querySelectorAll('.q-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                        const desc = String(qb.querySelector('.q-enum-desc')?.value || '').trim();
+                        if(answers.length) q.answers = answers;
+                        if(desc) q.description = desc;
                     }
-                    const fbC = qb.querySelector('.q-fb-correct')?.value || '';
-                    const fbI = qb.querySelector('.q-fb-incorrect')?.value || '';
-                    if(fbC) q.feedback_correct = fbC;
-                    if(fbI) q.feedback_incorrect = fbI;
                     fields.push({ type:'question', question: q });
                 } else if(t === 'exam'){
                     const duration = parseInt(b.querySelector('.exam-duration')?.value || '0', 10) || 0;
@@ -2288,43 +2453,31 @@
             if (progressFill) progressFill.style.width = `${percent}%`;
             if (progressText) progressText.textContent = `${percent}% complete (${completedCount}/4 steps)`;
 
-            const tab2Btn = document.getElementById('tabBtn2');
-            const tab3Btn = document.getElementById('tabBtn3');
-            const tab4Btn = document.getElementById('tabBtn4');
-            
             const enable2 = detailsDone;
-            if (tab2Btn) {
-                tab2Btn.classList.toggle('disabled', !enable2);
-                tab2Btn.setAttribute('aria-disabled', enable2 ? 'false' : 'true');
-                tab2Btn.setAttribute('tabindex', enable2 ? '0' : '-1');
-            }
+            step2.classList.toggle('disabled', !enable2);
+            step2.disabled = !enable2;
+            step2.setAttribute('aria-disabled', enable2 ? 'false' : 'true');
 
             const enable3 = detailsDone && modulesDone;
-            if (tab3Btn) {
-                tab3Btn.classList.toggle('disabled', !enable3);
-                tab3Btn.setAttribute('aria-disabled', enable3 ? 'false' : 'true');
-                tab3Btn.setAttribute('tabindex', enable3 ? '0' : '-1');
-            }
+            step3.classList.toggle('disabled', !enable3);
+            step3.disabled = !enable3;
+            step3.setAttribute('aria-disabled', enable3 ? 'false' : 'true');
 
             const enable4 = detailsDone && modulesDone && certificateDone;
-            if (tab4Btn) {
-                tab4Btn.classList.toggle('disabled', !enable4);
-                tab4Btn.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
-                tab4Btn.setAttribute('tabindex', enable4 ? '0' : '-1');
-            }
+            step4.classList.toggle('disabled', !enable4);
+            step4.disabled = !enable4;
+            step4.setAttribute('aria-disabled', enable4 ? 'false' : 'true');
         }
         function switchTo(tab){
             if (tab === 4) renderSummary();
 
             [1,2,3,4].forEach(n => {
                 const t = document.getElementById('tab' + n);
-                const b = document.getElementById('tabBtn' + n);
                 if (t) t.classList.toggle('active', tab === n);
-                if (b) {
-                    b.classList.toggle('active', tab === n);
-                    b.setAttribute('aria-selected', tab === n ? 'true' : 'false');
-                    if (tab === n) b.removeAttribute('tabindex');
-                    else b.setAttribute('tabindex', '-1');
+                const s = document.getElementById('step' + n);
+                if (s) {
+                    s.classList.toggle('active', tab === n);
+                    s.setAttribute('aria-selected', tab === n ? 'true' : 'false');
                 }
             });
 
@@ -2430,14 +2583,10 @@
             updateProgress();
         }
         function bindTabs(){
-            const b1 = document.getElementById('tabBtn1');
-            const b2 = document.getElementById('tabBtn2');
-            const b3 = document.getElementById('tabBtn3');
-            const b4 = document.getElementById('tabBtn4');
-            b1 && b1.addEventListener('click', ()=> switchTo(1));
-            b2 && b2.addEventListener('click', ()=> { if(validateDetails()) switchTo(2); });
-            b3 && b3.addEventListener('click', ()=> { if(validateDetails() && validateModules()) switchTo(3); });
-            b4 && b4.addEventListener('click', ()=> { if(validateDetails() && validateModules() && isCertificateStepComplete()) switchTo(4); });
+            document.getElementById('step1')?.addEventListener('click', ()=> switchTo(1));
+            document.getElementById('step2')?.addEventListener('click', ()=> { if(validateDetails()) switchTo(2); });
+            document.getElementById('step3')?.addEventListener('click', ()=> { if(validateDetails() && validateModules()) switchTo(3); });
+            document.getElementById('step4')?.addEventListener('click', ()=> { if(validateDetails() && validateModules() && isCertificateStepComplete()) switchTo(4); });
             
             document.getElementById('backToDetails').addEventListener('click', ()=> switchTo(1));
             document.getElementById('backToModules').addEventListener('click', ()=> switchTo(2));
@@ -2553,7 +2702,10 @@
                     const topicsContainer = wrapper.querySelector('.topics');
                     if (m.topics && Array.isArray(m.topics)) {
                         m.topics.forEach((t, j) => {
-                            const kind = String((t && t.kind) ? t.kind : 'topic');
+                            const inferredKind = (t && t.kind)
+                                ? String(t.kind)
+                                : ((t && t.fields_json && String(t.fields_json).trim() !== '' && (!Array.isArray(t.subtopics) || t.subtopics.length === 0)) ? 'quiz' : 'topic');
+                            const kind = inferredKind === 'quiz' ? 'quiz' : 'topic';
                             addSectionInput(topicsContainer, kind);
                             const topicRow = topicsContainer.lastElementChild;
                             topicRow.querySelector('input[name*="[title]"]').value = t.title || '';
@@ -2577,10 +2729,11 @@
                                             const qTitle = block ? block.querySelector('.q-title') : null;
                                             const qType = block ? block.querySelector('.q-type') : null;
                                             if (qTitle) qTitle.value = (f.question && f.question.title) ? f.question.title : '';
-                                            if (qType) {
-                                                qType.value = (f.question && f.question.type) ? f.question.type : 'multiple_choice';
-                                                setupDefaultOptions(block);
-                                            }
+                                    if (qType) {
+                                        const t = (f.question && f.question.type) ? f.question.type : 'multiple_choice_single';
+                                        qType.value = isMultipleChoiceType(t) ? normalizeMcType(t) : t;
+                                        setupDefaultOptions(block);
+                                    }
                                         }
                                     });
                                 } catch (e) {}
@@ -2588,7 +2741,7 @@
                             };
                             restoreFieldsIntoPanel(topicRow.querySelector('.fields-panel'), t.fields_json || '', `t-${i}-${j}`);
 
-                            if (t.subtopics && Array.isArray(t.subtopics)) {
+                            if (kind === 'topic' && t.subtopics && Array.isArray(t.subtopics)) {
                                 t.subtopics.forEach((s, k) => {
                                     const sub = addSubtopicRow(topicRow);
                                     if (!sub) return;
@@ -2773,6 +2926,7 @@
         }
         document.addEventListener('DOMContentLoaded', function(){
             bindTabs();
+            bindSectionReorderDnd();
             restoreDraft();
             bindSubjectAreaDropdown();
             updateProgress();
@@ -3154,13 +3308,13 @@
                         </div>
                         <div class="exam-q-list" style="display:none"></div>
                         <div class="exam-q-builder" style="margin-top:10px;border-top:1px dashed #e5e7eb;padding-top:10px">
-                            <div class="q-header" style="display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:end">
-                                <label class="q-col" style="display:block">
+                            <div class="q-header" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:32px;align-items:start">
+                                <label class="q-col" style="display:block;min-width:0;">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question</div>
                                     <textarea class="eq-text q-autosize" placeholder="Enter question" rows="3" data-min-lines="3" data-max-lines="10" style="resize:none;transition:height .15s ease;overflow:hidden;" required></textarea>
                                 </label>
 
-                                <label class="q-col" style="display:block">
+                                <label class="q-col" style="display:block;min-width:0;">
                                     <div class="q-label" style="font-weight:700;color:#111827;margin-bottom:6px">Question Type</div>
                                     <select class="eq-type">
                                         <option value="multiple_choice">Multiple Choice (Single Answer)</option>
@@ -3211,19 +3365,100 @@
             __bindAutosizeTextareas(host);
             function renderChoices(){
                 const wrap = host.querySelector('.eq-choices');
+                const t = host.querySelector('.eq-type')?.value || 'multiple_choice';
+                const inputType = (t === 'multiple_choice_multiple') ? 'checkbox' : 'radio';
+                const currentChoices = Array.from(wrap.querySelectorAll('.eq-option')).map(input => input.value);
+                const currentCorrect = Array.from(wrap.querySelectorAll('.eq-correct:checked')).map(input => Number(input.value));
                 wrap.innerHTML = '';
                 const group = 'exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                function choiceLabel(i){
+                    return 'Choice ' + (i < 26 ? String.fromCharCode(65 + i) : String(i + 1));
+                }
+                function reindexChoiceRows(){
+                    const rows = Array.from(wrap.querySelectorAll('.q-option-row'));
+                    rows.forEach((r, idx)=>{
+                        const opt = r.querySelector('.eq-option');
+                        if(opt) opt.placeholder = choiceLabel(idx);
+                        const correct = r.querySelector('.eq-correct');
+                        if(correct) correct.value = String(idx);
+                    });
+                    const canRemove = rows.length > 2;
+                    rows.forEach((r)=>{
+                        const btn = r.querySelector('.eq-choice-remove-inline');
+                        if(!btn) return;
+                        btn.disabled = !canRemove;
+                        btn.style.opacity = canRemove ? '1' : '.45';
+                        btn.style.cursor = canRemove ? 'pointer' : 'default';
+                    });
+                }
+                const count = Math.max(4, currentChoices.length);
+                for(let i = 0; i < count; i++){
+                    const ph = choiceLabel(i);
                     const row = document.createElement('div');
                     row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
                     row.innerHTML = `
                         <label style="display:flex;align-items:center;gap:8px;flex:1;">
-                            <input type="radio" class="eq-correct" name="${group}" value="${i}">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}">
                             <input type="text" class="eq-option" placeholder="${ph}">
                         </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-weight:800;">Remove</button>
                     `;
+                    const optionInput = row.querySelector('.eq-option');
+                    const correctInput = row.querySelector('.eq-correct');
+                    if(optionInput) optionInput.value = currentChoices[i] || '';
+                    if(correctInput) correctInput.checked = currentCorrect.includes(i);
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            try { syncExamJSON(); } catch (err) {}
+                        });
+                    }
                     wrap.appendChild(row);
+                }
+                const add = document.createElement('button');
+                add.type = 'button';
+                add.textContent = 'Add option';
+                add.style.cssText = 'margin-top:8px;background:transparent;border:none;color:#2563eb;font-weight:800;cursor:pointer;padding:0;';
+                add.addEventListener('click', (e)=>{
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const i = wrap.querySelectorAll('.q-option-row').length;
+                    const ph = choiceLabel(i);
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+                    row.innerHTML = `
+                        <label style="display:flex;align-items:center;gap:8px;flex:1;">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}">
+                            <input type="text" class="eq-option" placeholder="${ph}">
+                        </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-weight:800;">Remove</button>
+                    `;
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            try { syncExamJSON(); } catch (err) {}
+                        });
+                    }
+                    wrap.insertBefore(row, add);
+                    const input = row.querySelector('.eq-option');
+                    try { input.focus(); } catch (err) {}
+                    reindexChoiceRows();
+                    try { syncExamJSON(); } catch (err) {}
                 });
+                wrap.appendChild(add);
+                reindexChoiceRows();
             }
             function renderEnumerationAnswers(values){
                 const wrap = host.querySelector('.eq-enum-answers');
@@ -3243,7 +3478,7 @@
             renderChoices();
             function syncBuilderBoxes(){
                 const t = host.querySelector('.eq-type').value;
-                host.querySelector('.eq-choices').style.display = (t==='multiple_choice') ? 'block':'none';
+                host.querySelector('.eq-choices').style.display = (t==='multiple_choice' || t==='multiple_choice_multiple') ? 'block':'none';
                 host.querySelector('.eq-id').style.display = (t==='identification') ? 'block':'none';
                 host.querySelector('.eq-tf').style.display = (t==='true_false') ? 'block':'none';
                 host.querySelector('.eq-points').style.display = (t==='essay' || t==='enumeration') ? 'none':'block';
@@ -3254,7 +3489,7 @@
                 const idAns = host.querySelector('.eq-id-answer');
                 if(qText){ qText.required = true; }
                 if(idAns){ idAns.required = (t==='identification'); }
-                if(t==='multiple_choice' && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
+                if((t==='multiple_choice' || t==='multiple_choice_multiple') && host.querySelectorAll('.eq-option').length===0){ renderChoices(); }
                 if(t==='enumeration' && host.querySelectorAll('.eq-enum-answer').length===0){ renderEnumerationAnswers(); }
             }
             host.addEventListener('click', function(e){
@@ -3547,12 +3782,12 @@
 
                         <!-- Question Builder Card -->
                         <div class="exam-q-builder" style="background:#f8fafc;padding:20px;border-radius:16px;border:1px solid #e2e8f0;">
-                            <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
-                                <div>
+                            <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;margin-bottom:20px;align-items:start;">
+                                <div style="min-width:0;">
                                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Question Text</label>
-                                    <textarea class="eq-text q-autosize" placeholder="Type your question here..." rows="3" style="width:100%;padding:14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;resize:none;outline:none;transition:all .2s;"></textarea>
+                                    <textarea class="eq-text q-autosize" placeholder="Type your question here..." rows="3" style="width:100%;min-width:0;padding:14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;resize:none;outline:none;transition:all .2s;"></textarea>
                                 </div>
-                                <div>
+                                <div style="min-width:0;">
                                     <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Question Type</label>
                                     <select class="eq-type" style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;background:#fff;outline:none;cursor:pointer;">
                                         <option value="multiple_choice">Multiple Choice</option>
@@ -3567,8 +3802,11 @@
                             <div class="eq-choices" style="display:grid;gap:12px;margin-bottom:20px;"></div>
 
                             <div class="eq-id" style="display:none;margin-bottom:20px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Guide (Optional)</label>
-                                <textarea class="eq-id-answer" placeholder="Optional notes or expected answer guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;" rows="2"></textarea>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Answer</label>
+                                <input class="eq-id-answer" type="text" placeholder="Enter answer" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:8px;">
+                                <div style="color:#64748b;font-size:.82rem;font-weight:700;margin:0 0 12px 0;">Note: Answer will be saved in UPPERCASE as the standard answer.</div>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Description (Optional)</label>
+                                <textarea class="eq-id-desc" placeholder="Optional description / notes for this question" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;" rows="2"></textarea>
                             </div>
 
                             <div class="eq-tf" style="display:none;margin-bottom:20px;">
@@ -3595,8 +3833,12 @@
                             <div class="eq-enum" style="display:none;margin-bottom:20px;">
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Required Number of Answers</label>
                                 <input class="eq-enum-required-count" type="number" min="1" step="1" placeholder="Example: 3" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;margin-bottom:12px;">
-                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Teacher Notes / Expected Answers Guide (Optional)</label>
-                                <textarea class="eq-enum-guide" placeholder="Optional expected answers or guide for manual checking" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Answers</label>
+                                <div class="eq-enum-answers" style="display:grid;gap:8px;margin-bottom:8px;"></div>
+                                <button type="button" class="btn btn-small eq-enum-add" style="background:#eef2ff;color:#0f3b8f;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;margin-bottom:10px;">Add Answer</button>
+                                <div style="color:#64748b;font-size:.82rem;font-weight:700;margin:0 0 12px 0;">Note: Answers will be saved in UPPERCASE as the standard answer.</div>
+                                <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Description (Optional)</label>
+                                <textarea class="eq-enum-desc" placeholder="Optional description / notes for this question" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;resize:vertical;margin-bottom:12px;" rows="2"></textarea>
                                 <label style="display:block;font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Points</label>
                                 <input class="eq-enum-points" type="number" min="1" step="0.01" required placeholder="Enter point value" style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-weight:600;outline:none;">
                             </div>
@@ -3664,24 +3906,112 @@
             __bindAutosizeTextareas(wrap);
             function renderChoices(){
                 const wrapChoices = wrap.querySelector('.eq-choices');
+                const t = wrap.querySelector('.eq-type')?.value || 'multiple_choice';
+                const inputType = (t === 'multiple_choice_multiple') ? 'checkbox' : 'radio';
+                const helperText = inputType === 'checkbox' ? 'Select all that apply' : 'Select one correct answer';
+                const currentChoices = Array.from(wrapChoices.querySelectorAll('.eq-option')).map(input => input.value);
+                const currentCorrect = Array.from(wrapChoices.querySelectorAll('.eq-correct:checked')).map(input => Number(input.value));
                 wrapChoices.innerHTML = '';
                 const group = 'course_exam_correct_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                ['Choice A','Choice B','Choice C','Choice D'].forEach((ph,i)=>{
+                function choiceLabel(i){
+                    return 'Choice ' + (i < 26 ? String.fromCharCode(65 + i) : String(i + 1));
+                }
+                function reindexChoiceRows(){
+                    const rows = Array.from(wrapChoices.querySelectorAll('.q-option-row'));
+                    rows.forEach((r, idx)=>{
+                        const opt = r.querySelector('.eq-option');
+                        if(opt) opt.placeholder = choiceLabel(idx);
+                        const correct = r.querySelector('.eq-correct');
+                        if(correct) correct.value = String(idx);
+                    });
+                    const canRemove = rows.length > 2;
+                    rows.forEach((r)=>{
+                        const btn = r.querySelector('.eq-choice-remove-inline');
+                        if(!btn) return;
+                        btn.disabled = !canRemove;
+                        btn.style.opacity = canRemove ? '1' : '.45';
+                        btn.style.cursor = canRemove ? 'pointer' : 'default';
+                    });
+                }
+                const helper = document.createElement('div');
+                helper.className = 'mc-helper-text';
+                helper.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;color:#475569;font-size:.88rem;font-weight:700;';
+                helper.innerHTML = '<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:4px 10px;">'+helperText+'</span>';
+                wrapChoices.appendChild(helper);
+                const count = Math.max(4, currentChoices.length);
+                for(let i = 0; i < count; i++){
+                    const ph = choiceLabel(i);
                     const row = document.createElement('div');
                     row.className = 'q-option-row';
                     row.style.cssText = 'display:flex; align-items:center; gap:12px; background:#fff; padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:12px; transition:all .2s;';
                     row.innerHTML = `
                         <label style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;margin:0;">
-                            <input type="radio" class="eq-correct" name="${group}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
                             <input type="text" class="eq-option" placeholder="${ph}" style="flex:1;border:none;outline:none;font-size:0.95rem;font-weight:600;background:transparent;padding:4px 0;">
                         </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-weight:800;">Remove</button>
                     `;
+                    const optionInput = row.querySelector('.eq-option');
+                    const correctInput = row.querySelector('.eq-correct');
+                    if(optionInput) optionInput.value = currentChoices[i] || '';
+                    if(correctInput) correctInput.checked = currentCorrect.includes(i);
                     // Add focus effect to row
                     const input = row.querySelector('.eq-option');
                     input.addEventListener('focus', () => row.style.borderColor = '#002C76');
                     input.addEventListener('blur', () => row.style.borderColor = '#e2e8f0');
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            try { syncExamJSON(); } catch (err) {}
+                        });
+                    }
                     wrapChoices.appendChild(row);
+                }
+                const add = document.createElement('button');
+                add.type = 'button';
+                add.textContent = 'Add option';
+                add.style.cssText = 'margin-top:10px;background:transparent;border:none;color:#2563eb;font-weight:800;cursor:pointer;padding:0;align-self:flex-start;';
+                add.addEventListener('click', (e)=>{
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const i = wrapChoices.querySelectorAll('.q-option-row').length;
+                    const ph = choiceLabel(i);
+                    const row = document.createElement('div');
+                    row.className = 'q-option-row';
+                    row.style.cssText = 'display:flex; align-items:center; gap:12px; background:#fff; padding:8px 16px; border:1.5px solid #e2e8f0; border-radius:12px; transition:all .2s;';
+                    row.innerHTML = `
+                        <label style="display:flex;align-items:center;gap:12px;flex:1;cursor:pointer;margin:0;">
+                            <input type="${inputType}" class="eq-correct" name="${inputType === 'radio' ? group : group+'[]'}" value="${i}" style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;">
+                            <input type="text" class="eq-option" placeholder="${ph}" style="flex:1;border:none;outline:none;font-size:0.95rem;font-weight:600;background:transparent;padding:4px 0;">
+                        </label>
+                        <button type="button" class="eq-choice-remove-inline" style="background:#e5e7eb;color:#111827;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-weight:800;">Remove</button>
+                    `;
+                    const input = row.querySelector('.eq-option');
+                    input.addEventListener('focus', () => row.style.borderColor = '#002C76');
+                    input.addEventListener('blur', () => row.style.borderColor = '#e2e8f0');
+                    const removeBtn = row.querySelector('.eq-choice-remove-inline');
+                    if(removeBtn){
+                        removeBtn.addEventListener('click', (e)=>{
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(removeBtn.disabled) return;
+                            row.remove();
+                            reindexChoiceRows();
+                            try { syncExamJSON(); } catch (err) {}
+                        });
+                    }
+                    wrapChoices.insertBefore(row, add);
+                    try { input.focus(); } catch (err) {}
+                    reindexChoiceRows();
+                    try { syncExamJSON(); } catch (err) {}
                 });
+                wrapChoices.appendChild(add);
+                reindexChoiceRows();
             }
             function ensureEnumerationRows(wrap, values){
                 const answerWrap = wrap.querySelector('.eq-enum-answers');
@@ -3780,7 +4110,7 @@
                         const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                         obj = { type:'essay', text, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     }else if(t==='enumeration'){
-                        obj = { type:'enumeration', text, required_answers_count: '', expected_guide: '', max_points: '' };
+                        obj = { type:'enumeration', text, answers:['', ''], required_answers_count: '', description: '', max_points: '' };
                     } else {
                         obj = { type:String(t||'multiple_choice'), text };
                     }
@@ -3817,11 +4147,30 @@
                     (wrap.querySelector('.eq-common-points') || wrap.querySelector('.eq-essay-points') || wrap.querySelector('.eq-enum-points'))?.focus();
                     return false;
                 }
+                if((wrap.querySelector('.eq-type')?.value || '') === 'identification'){
+                    const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim();
+                    if(!ans){
+                        alert('Answer is required.');
+                        wrap.querySelector('.eq-id-answer')?.focus();
+                        return false;
+                    }
+                }
                 if((wrap.querySelector('.eq-type')?.value || '') === 'enumeration'){
                     const requiredValue = wrap.querySelector('.eq-enum-required-count')?.value || '';
                     const requiredCount = Number(requiredValue);
                     if(requiredValue === '' || !Number.isInteger(requiredCount) || requiredCount < 1){
                         alert('Required number of answers must be at least 1.');
+                        wrap.querySelector('.eq-enum-required-count')?.focus();
+                        return false;
+                    }
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> String(i.value || '').trim()).filter(Boolean);
+                    if(answers.length === 0){
+                        alert('At least 1 answer is required.');
+                        wrap.querySelector('.eq-enum-answer')?.focus();
+                        return false;
+                    }
+                    if(requiredCount > answers.length){
+                        alert('Required number of answers cannot be greater than the number of answers provided.');
                         wrap.querySelector('.eq-enum-required-count')?.focus();
                         return false;
                     }
@@ -3849,10 +4198,11 @@
                     obj = { type:t, text, choices: opts, correct_answers: checkedIndexes.map(i=>String.fromCharCode(65+i)), max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     if(t === 'multiple_choice') obj.answer_index = checkedIndexes[0];
                 }else if(t==='identification'){
-                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim().toUpperCase();
+                    const desc = String(wrap.querySelector('.eq-id-desc')?.value || '').trim();
                     const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, answer: ans, description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
                     const maxPointsVal = builderPointsValue();
@@ -3864,11 +4214,12 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
                     const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                    const desc = String(wrap.querySelector('.eq-enum-desc')?.value || '').trim();
                     const maxPointsVal = builderPointsValue();
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, answers: answers.length ? answers : ['',''], required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const currentNode = wrap.querySelectorAll('.exam-q-list .q-item')[activeIdx];
                 if (currentNode) {
@@ -3881,13 +4232,13 @@
                     blankObj = { type:t, text:'', choices:['','','',''], correct_answers: [], max_points: '' };
                     if(t === 'multiple_choice') blankObj.answer_index = null;
                 }else if(t==='identification'){
-                    blankObj = { type:'identification', text:'', teacher_notes: '', max_points: '' };
+                    blankObj = { type:'identification', text:'', answer: '', description: '', max_points: '' };
                 }else if(t==='true_false'){
                     blankObj = { type:'true_false', text:'', answer: true, max_points: '' };
                 }else if(t==='essay'){
                     blankObj = { type:'essay', text:'', instructions: '', max_points: '' };
                 }else if(t==='enumeration'){
-                    blankObj = { type:'enumeration', text:'', required_answers_count: '', expected_guide: '', max_points: '' };
+                    blankObj = { type:'enumeration', text:'', answers:['', ''], required_answers_count: '', description: '', max_points: '' };
                 } else {
                     blankObj = { type:String(t||'multiple_choice'), text:'' };
                 }
@@ -3901,11 +4252,13 @@
                 wrap.querySelectorAll('.eq-option').forEach(i=> i.value='');
                 wrap.querySelectorAll('.eq-correct').forEach(r=> r.checked=false);
                 wrap.querySelector('.eq-id-answer').value='';
+                const idDesc = wrap.querySelector('.eq-id-desc'); if(idDesc) idDesc.value='';
                 wrap.querySelector('.eq-tf-answer').value='true';
                 const commonPoints2 = wrap.querySelector('.eq-common-points'); if(commonPoints2) commonPoints2.value='';
                 const essayPoints = wrap.querySelector('.eq-essay-points'); if(essayPoints) essayPoints.value='';
                 const essayNotes = wrap.querySelector('.eq-essay-notes'); if(essayNotes) essayNotes.value='';
-                const enumGuide = wrap.querySelector('.eq-enum-guide'); if(enumGuide) enumGuide.value='';
+                const enumDesc = wrap.querySelector('.eq-enum-desc'); if(enumDesc) enumDesc.value='';
+                ensureEnumerationRows(wrap, ['', '']);
                 const enumPoints = wrap.querySelector('.eq-enum-points'); if(enumPoints) enumPoints.value='';
                 syncBuilderBoxes();
                 syncExamJSON();
@@ -4050,8 +4403,10 @@
                     commonPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='identification'){
-                const notes = String(payload.teacher_notes || payload.answer || '');
-                wrap.querySelector('.eq-id-answer').value = notes;
+                const ans = String(payload.answer || payload.correct_answer || payload.teacher_notes || '').toUpperCase();
+                const ansEl = wrap.querySelector('.eq-id-answer'); if(ansEl) ansEl.value = ans;
+                const desc = String(payload.description || '');
+                const descEl = wrap.querySelector('.eq-id-desc'); if(descEl) descEl.value = desc;
                 const commonPoints = wrap.querySelector('.eq-common-points');
                 if(commonPoints){
                     const maxPoints = payload.max_points;
@@ -4074,9 +4429,21 @@
                     essayPoints.value = (maxPoints === '' || maxPoints == null) ? '' : String(maxPoints);
                 }
             }else if(type==='enumeration'){
-                const guide = String(payload.expected_guide || (Array.isArray(payload.answers) ? payload.answers.join(', ') : ''));
-                const guideEl = wrap.querySelector('.eq-enum-guide');
-                if(guideEl) guideEl.value = guide;
+                let answers = Array.isArray(payload.answers) ? payload.answers : [];
+                if(!answers.length){
+                    const rawGuide = String(payload.expected_guide || payload.guide || '');
+                    if(rawGuide){
+                        answers = rawGuide.split(',').map(s=> s.trim()).filter(Boolean);
+                    }
+                }
+                if(!answers.length) answers = ['', ''];
+                ensureEnumerationRows(wrap, answers.map(a=> String(a || '').toUpperCase()));
+                const requiredCount = wrap.querySelector('.eq-enum-required-count');
+                if(requiredCount){
+                    requiredCount.value = String(payload.required_answers_count || (Array.isArray(payload.answers) ? payload.answers.length : '') || '');
+                }
+                const desc = String(payload.description || '');
+                const descEl = wrap.querySelector('.eq-enum-desc'); if(descEl) descEl.value = desc;
                 const enumPoints = wrap.querySelector('.eq-enum-points');
                 if(enumPoints){
                     const maxPoints = payload.max_points;
@@ -4196,6 +4563,16 @@
             window.__EXAM_DIRTY = new Set();
             document.addEventListener('input', function(e){
                 const wrap = e.target.closest('.exam-wrapper'); if(!wrap) return;
+                if(e.target && (e.target.classList?.contains('eq-id-answer') || e.target.classList?.contains('eq-enum-answer'))){
+                    const el = e.target;
+                    const start = typeof el.selectionStart === 'number' ? el.selectionStart : null;
+                    const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : null;
+                    const up = String(el.value || '').toUpperCase();
+                    if(el.value !== up) el.value = up;
+                    if(start != null && end != null){
+                        try{ el.setSelectionRange(start, end); }catch(_) {}
+                    }
+                }
                 const idx = getActiveExamIndex(wrap);
                 const items = Array.from(wrap.querySelectorAll('.exam-q-list .q-item'));
                 if(idx >= items.length) return;
@@ -4210,10 +4587,11 @@
                     obj = { type:t, text, choices: opts, correct_answers: checked.map(i=>String.fromCharCode(65+i)), max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                     if(t === 'multiple_choice') obj.answer_index = checked[0] ?? null;
                 }else if(t==='identification'){
-                    const notes = (wrap.querySelector('.eq-id-answer').value||'').trim();
+                    const ans = String(wrap.querySelector('.eq-id-answer')?.value || '').trim().toUpperCase();
+                    const desc = String(wrap.querySelector('.eq-id-desc')?.value || '').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'identification', text, teacher_notes: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'identification', text, answer: ans, description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='true_false'){
                     const ans = wrap.querySelector('.eq-tf-answer').value === 'true';
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value;
@@ -4225,11 +4603,12 @@
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
                     obj = { type:'essay', text, instructions: notes, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }else if(t==='enumeration'){
-                    const guide = (wrap.querySelector('.eq-enum-guide').value||'').trim();
                     const requiredAnswers = Number(wrap.querySelector('.eq-enum-required-count')?.value || 0);
+                    const answers = Array.from(wrap.querySelectorAll('.eq-enum-answer')).map(i=> String(i.value || '').trim().toUpperCase()).filter(v=> v !== '');
+                    const desc = String(wrap.querySelector('.eq-enum-desc')?.value || '').trim();
                     const maxPointsVal = wrap.querySelector('.eq-common-points')?.value || wrap.querySelector('.eq-enum-points')?.value;
                     const maxPoints = maxPointsVal === '' ? '' : Number(maxPointsVal);
-                    obj = { type:'enumeration', text, required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', expected_guide: guide, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
+                    obj = { type:'enumeration', text, answers: answers.length ? answers : ['',''], required_answers_count: Number.isInteger(requiredAnswers) && requiredAnswers > 0 ? requiredAnswers : '', description: desc, max_points: (maxPoints === '' || isNaN(maxPoints)) ? '' : maxPoints };
                 }
                 const node = items[idx];
                 node.dataset.payload = JSON.stringify(obj);
@@ -4344,9 +4723,23 @@
             const wrapper = anchor?.closest('.module-wrapper');
             const moduleBody = wrapper ? wrapper.querySelector('.module-body') : document.querySelector('.module-wrapper .module-body');
             if(moduleBody){
+                moduleBody.style.display = 'block';
                 addTopicInput(moduleBody);
                 const lastTopic = moduleBody.querySelector('.topic-row:last-of-type');
                 if(lastTopic) setActiveAnchor(lastTopic);
+            }
+            const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
+            clearActiveAnchor();
+        }
+        function dmAddQuiz(){
+            const anchor = DM_STATE.currentAnchor;
+            const wrapper = anchor?.closest('.module-wrapper');
+            const moduleBody = wrapper ? wrapper.querySelector('.module-body') : document.querySelector('.module-wrapper .module-body');
+            if(moduleBody){
+                moduleBody.style.display = 'block';
+                addQuizInput(moduleBody);
+                const lastQuiz = moduleBody.querySelector('.topic-row.quiz-row:last-of-type');
+                if(lastQuiz) setActiveAnchor(lastQuiz);
             }
             const p = document.getElementById('dmPanel'); if(p) p.classList.remove('open');
             clearActiveAnchor();
@@ -4409,10 +4802,72 @@
                 }
                 const topics = Array.isArray(mod.topics) ? mod.topics : [];
                 topics.forEach((t, ti)=>{
-                    const kind = String((t && t.kind) ? t.kind : 'topic');
+                    const inferredKind = (t && t.kind)
+                        ? String(t.kind)
+                        : ((t && ((Array.isArray(t.fields) && t.fields.length > 0) || (t.fields_json && String(t.fields_json).trim() !== '')) && (!Array.isArray(t.subtopics) || t.subtopics.length === 0)) ? 'quiz' : 'topic');
+                    const kind = inferredKind === 'quiz' ? 'quiz' : 'topic';
                     addSectionInput(body, kind);
                     const topicRow = body.querySelector('.topic-row:last-of-type');
                     topicRow.querySelector('input[type="text"]').value = t.title || '';
+                    if (kind === 'quiz') {
+                        let fieldsArr = Array.isArray(t.fields) ? t.fields : null;
+                        if (!fieldsArr) {
+                            const fieldsJson = t.fields_json || '';
+                            try { fieldsArr = typeof fieldsJson === 'string' ? JSON.parse(fieldsJson) : fieldsJson; } catch (e) { fieldsArr = []; }
+                        }
+                        if (!Array.isArray(fieldsArr)) fieldsArr = [];
+                        const fieldsJson = (()=>{ try{ return JSON.stringify(fieldsArr); }catch(e){ return '[]'; } })();
+                        const ta = topicRow.querySelector('textarea[name*="[fields_json]"]');
+                        if (ta) ta.value = fieldsJson;
+                        const panel = topicRow.querySelector('.fields-panel');
+                        const list = panel ? panel.querySelector('.field-list') : null;
+                        if (list) list.innerHTML = '';
+                        if (panel && Array.isArray(fieldsArr)) {
+                            fieldsArr.forEach(f=>{
+                                if(f.type === 'text'){
+                                    addTextField(panel);
+                                    const last = panel.querySelector('.field-block:last-of-type .editor');
+                                    if(last) last.innerHTML = f.html || '';
+                                } else if(f.type === 'question'){
+                                    addQuestionField(panel);
+                                    const block = panel.querySelector('.field-block:last-of-type');
+                                    const q = f.question || {};
+                                    const qTitle = block.querySelector('.q-title');
+                                    if(qTitle) qTitle.value = q.title || '';
+                                    const qType = block.querySelector('.q-type');
+                                    if(qType){
+                                        const t = q.type || 'multiple_choice_single';
+                                        qType.value = isMultipleChoiceType(t) ? normalizeMcType(t) : t;
+                                        setupDefaultOptions(block);
+                                    }
+                                    const opts = block.querySelector('.q-options');
+                                    if(opts){
+                                        opts.innerHTML = '';
+                                        const arr = Array.isArray(q.options) ? q.options : [];
+                                        arr.forEach((opt, idx)=>{
+                                            addOptionRow(opts, '');
+                                            const row = opts.querySelectorAll('.q-option-row')[idx];
+                                            if(row){ row.querySelector('.q-option').value = opt; }
+                                        });
+                                        if(arr.length === 0){ addOptionRow(opts, 'Option 1'); addOptionRow(opts, ''); }
+                                        const rows = Array.from(opts.querySelectorAll('.q-option-row'));
+                                        const correctRaw = Array.isArray(q.answer_indices) ? q.answer_indices : ((q.answer_index !== undefined && q.answer_index !== null) ? [q.answer_index] : []);
+                                        const correct = Array.from(new Set(correctRaw.map(n=> parseInt(n, 10)).filter(n=> Number.isFinite(n))));
+                                        correct.forEach(idx=>{
+                                            if(rows[idx]){
+                                                const r = rows[idx].querySelector('.q-correct');
+                                                if(r) r.checked = true;
+                                            }
+                                        });
+                                    }
+                                    updateQuestionCardSummary(block);
+                                    collapseQuestionCard(block);
+                                }
+                            });
+                            try{ syncFieldsJSON(panel); }catch(e){}
+                        }
+                        return;
+                    }
                     const hasSubs = Array.isArray(t.subtopics) && t.subtopics.length > 0;
                     if(hasSubs){
                         t.subtopics.forEach((s)=>{
@@ -4432,6 +4887,12 @@
                                     const block = panel.querySelector('.field-block:last-of-type');
                                     const q = f.question || {};
                                     block.querySelector('.q-title').value = q.title || '';
+                                    const qType = block.querySelector('.q-type');
+                                    if(qType){
+                                        const t = q.type || 'multiple_choice_single';
+                                        qType.value = isMultipleChoiceType(t) ? normalizeMcType(t) : t;
+                                        setupDefaultOptions(block);
+                                    }
                                     const opts = block.querySelector('.q-options');
                                     opts.innerHTML = '';
                                     const arr = Array.isArray(q.options) ? q.options : [];
@@ -4442,58 +4903,20 @@
                                     });
                                     if(arr.length === 0){ addOptionRow(opts, 'Option 1'); addOptionRow(opts, ''); }
                                     const rows = Array.from(opts.querySelectorAll('.q-option-row'));
-                                    if(Number.isInteger(q.answer_index) && rows[q.answer_index]){
-                                        const r = rows[q.answer_index].querySelector('.q-correct');
-                                        if(r) r.checked = true;
-                                    }
-                                    const fbc = block.querySelector('.q-fb-correct');
-                                    const fbi = block.querySelector('.q-fb-incorrect');
-                                    if(fbc) fbc.value = q.feedback_correct || '';
-                                    if(fbi) fbi.value = q.feedback_incorrect || '';
+                                    const correctRaw = Array.isArray(q.answer_indices) ? q.answer_indices : ((q.answer_index !== undefined && q.answer_index !== null) ? [q.answer_index] : []);
+                                    const correct = Array.from(new Set(correctRaw.map(n=> parseInt(n, 10)).filter(n=> Number.isFinite(n))));
+                                    correct.forEach(idx=>{
+                                        if(rows[idx]){
+                                            const r = rows[idx].querySelector('.q-correct');
+                                            if(r) r.checked = true;
+                                        }
+                                    });
                                     updateQuestionCardSummary(block);
                                     collapseQuestionCard(block);
                                 }
                             });
                             syncFieldsJSON(panel);
                         });
-                    } else {
-                        addSubtopicRow(topicRow);
-                        const sub = topicRow.querySelector('.subtopic-row:last-of-type');
-                        const panel = sub.querySelector('.fields-panel');
-                        const fields = Array.isArray(t.fields) ? t.fields : [];
-                        fields.forEach(f=>{
-                            if(f.type === 'text'){
-                                addTextField(panel);
-                                const last = panel.querySelector('.field-block:last-of-type .editor');
-                                if(last) last.innerHTML = f.html || '';
-                            } else if(f.type === 'question'){
-                                addQuestionField(panel);
-                                const block = panel.querySelector('.field-block:last-of-type');
-                                const q = f.question || {};
-                                block.querySelector('.q-title').value = q.title || '';
-                                const opts = block.querySelector('.q-options');
-                                opts.innerHTML = '';
-                                const arr = Array.isArray(q.options) ? q.options : [];
-                                arr.forEach((opt, idx)=>{
-                                    addOptionRow(opts, '');
-                                    const row = opts.querySelectorAll('.q-option-row')[idx];
-                                    if(row){ row.querySelector('.q-option').value = opt; }
-                                });
-                                if(arr.length === 0){ addOptionRow(opts, 'Option 1'); addOptionRow(opts, ''); }
-                                const rows = Array.from(opts.querySelectorAll('.q-option-row'));
-                                if(Number.isInteger(q.answer_index) && rows[q.answer_index]){
-                                    const r = rows[q.answer_index].querySelector('.q-correct');
-                                    if(r) r.checked = true;
-                                }
-                                const fbc = block.querySelector('.q-fb-correct');
-                                const fbi = block.querySelector('.q-fb-incorrect');
-                                if(fbc) fbc.value = q.feedback_correct || '';
-                                if(fbi) fbi.value = q.feedback_incorrect || '';
-                                updateQuestionCardSummary(block);
-                                collapseQuestionCard(block);
-                            }
-                        });
-                        syncFieldsJSON(panel);
                     }
                 });
             });

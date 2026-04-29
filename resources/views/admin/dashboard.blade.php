@@ -6332,22 +6332,10 @@
                             <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
-                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        Created by: {{ $creator ? $creator->name : 'N/A' }}
-                                    </div>
-                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        Start: {{ $startText }}
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
-                                        @if(!$course->course_expiration_date)
-                                            <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }}, 'settings')" style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-calendar-times"></i> Set Expiration
-                                            </button>
-                                        @else
-                                            <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
-                                        @endif
-                                    </div>
+                                <div style="margin-top:auto;display:flex;justify-content:flex-end;">
+                                    <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})" style="background:#002C76;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;">
+                                        View
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -6860,7 +6848,7 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 12px;">
-                            <button type="button" class="btn" onclick="showContent('course-library')" style="background: #ffffff; border: 1.5px solid #e2e8f0; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn" onclick="closeViewCourseModal()" style="background: #ffffff; border: 1.5px solid #e2e8f0; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                             <button id="pro_view_edit_btn" type="button" class="btn" style="background: #2563eb; color: #fff; padding: 10px 20px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
@@ -6885,13 +6873,6 @@
                             <div class="course-main-card">
                                 <h3 style="margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">About this Course</h3>
                                 <div id="pro_view_course_desc" style="font-size: 1.05rem; color: #475569; line-height: 1.7; white-space: pre-wrap;"></div>
-                                
-                                <div style="margin-top: 40px;">
-                                    <h3 style="margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Course Materials</h3>
-                                    <div id="pro_view_materials_list" style="display: flex; flex-wrap: wrap; gap: 12px;">
-                                        <!-- Materials tags injected here -->
-                                    </div>
-                                </div>
                             </div>
                             <div class="course-side-card">
                                 <img id="pro_view_course_image" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
@@ -10938,7 +10919,7 @@
             // Populate initial basic data
             document.getElementById('pro_view_course_name').innerText = courseData.name || 'Untitled Course';
             document.getElementById('pro_view_course_creator').innerText = courseData.creator_name || 'Admin';
-            document.getElementById('pro_view_course_date').innerText = courseData.created_at || 'N/A';
+            document.getElementById('pro_view_course_date').innerText = 'Loading dates...';
             
             // Show loading states
             document.getElementById('pro_view_course_desc').innerHTML = '<p style="color:#94a3b8;">Loading course details...</p>';
@@ -10956,6 +10937,43 @@
                         .replace(/>/g, '&gt;')
                         .replace(/"/g, '&quot;')
                         .replace(/'/g, '&#39;');
+                    const parseSubjectAreas = (value) => {
+                        if (!value) return [];
+                        if (Array.isArray(value)) return value;
+                        if (typeof value === 'string') {
+                            const raw = value.trim();
+                            if (raw.startsWith('[')) {
+                                try {
+                                    const parsed = JSON.parse(raw);
+                                    if (Array.isArray(parsed)) return parsed;
+                                } catch (e) {}
+                            }
+                            return raw.split(',').map(s => s.trim());
+                        }
+                        return [];
+                    };
+                    const subjectText = (value) => {
+                        const parts = parseSubjectAreas(value)
+                            .map(v => (typeof v === 'string' ? v.trim() : ''))
+                            .filter(v => v !== '');
+                        return parts.join(', ');
+                    };
+                    const formatDateYmd = (value) => {
+                        const raw = String(value || '').trim();
+                        if (!raw) return '';
+                        try {
+                            const d = new Date(raw + 'T00:00:00');
+                            if (Number.isNaN(d.getTime())) return '';
+                            return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                        } catch (e) {
+                            return '';
+                        }
+                    };
+                    const dateRangeText = (startValue, endValue) => {
+                        const start = formatDateYmd(startValue) || 'Not set';
+                        const end = formatDateYmd(endValue) || 'Not set';
+                        return `${start} - ${end}`;
+                    };
                     const parseTopicFields = (fieldsValue) => {
                         if (!fieldsValue) return [];
                         if (Array.isArray(fieldsValue)) return fieldsValue;
@@ -11060,8 +11078,11 @@
                     };
                     
                     // Update badges
-                    document.getElementById('view_course_category_badge').innerText = c.subject_area || 'General';
-                    document.getElementById('pro_view_course_subject').innerText = c.subject_area || 'General';
+                    const subjectsLabel = subjectText(c.subject_area);
+                    const firstSubject = parseSubjectAreas(c.subject_area).map(v => (typeof v === 'string' ? v.trim() : '')).filter(Boolean)[0] || '';
+                    document.getElementById('view_course_category_badge').innerText = firstSubject || 'General';
+                    document.getElementById('pro_view_course_subject').innerText = subjectsLabel || 'General';
+                    document.getElementById('pro_view_course_date').innerText = dateRangeText(c.start_date, c.course_expiration_date);
                     const cert = c.certification || null;
                     document.getElementById('pro_view_course_certification').innerText = cert?.name || 'None';
                     document.getElementById('pro_view_course_cert').innerText = cert ? 'Certification Enabled' : 'No Certification';
@@ -11191,32 +11212,6 @@
                         visibilityBadge.innerText = isPublished ? 'PUBLIC' : 'PRIVATE';
                         visibilityBadge.style.background = isPublished ? '#ecfdf5' : '#fef2f2';
                         visibilityBadge.style.color = isPublished ? '#10b981' : '#ef4444';
-                    }
-
-                    // Materials
-                    const materialsContainer = document.getElementById('pro_view_materials_list');
-                    materialsContainer.innerHTML = '';
-                    if (c.materials && c.materials.length > 0) {
-                        c.materials.forEach(m => {
-                            const fileName = m.file_name || (m.file_path ? m.file_path.split('/').pop() : (m.title || 'Material'));
-                            const ext = (fileName.split('.').pop() || '').toLowerCase();
-                            let icon = 'fa-file';
-                            if (ext === 'pdf') icon = 'fa-file-pdf';
-                            else if (['doc', 'docx'].includes(ext)) icon = 'fa-file-word';
-                            
-                            const tag = document.createElement('a');
-                            const fileUrl = m.file_url || (m.file_path ? `/storage/${m.file_path}` : '#');
-                            tag.className = 'material-tag';
-                            tag.href = fileUrl;
-                            tag.target = '_blank';
-                            tag.rel = 'noopener noreferrer';
-                            tag.download = fileName;
-                            tag.title = `Open ${fileName}`;
-                            tag.innerHTML = `<i class="fas ${icon}"></i> ${fileName}`;
-                            materialsContainer.appendChild(tag);
-                        });
-                    } else {
-                        materialsContainer.innerHTML = '<p style="color:#94a3b8;font-size:0.9rem;font-weight:500;">No additional materials provided.</p>';
                     }
 
                     // Modules (Curriculum)
@@ -11423,7 +11418,7 @@
         });
 
         function closeViewCourseModal() {
-            showContent('course-library', document.querySelector('.menu-item[onclick*=\'course-management\']'));
+            showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']'));
         }
 
 

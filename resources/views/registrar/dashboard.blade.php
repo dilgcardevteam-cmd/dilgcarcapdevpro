@@ -2986,7 +2986,10 @@
                             }
                             $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
                         @endphp
-                        <a class="course-card js-course-card-tm" href="{{ route('admin.courses.show', $course) }}" data-course-name="{{ strtolower($course->name) }}" style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
+                        <div class="course-card js-course-card-tm" role="button" tabindex="0" data-course-name="{{ strtolower($course->name) }}"
+                             onclick="window.location.href='{{ route('admin.courses.show', $course) }}'"
+                             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('admin.courses.show', $course) }}';}"
+                             style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
                             @if($img)
                                 <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
                             @else
@@ -2995,25 +2998,13 @@
                             <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
                                 <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                 <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
-                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        Created by: {{ $creator ? $creator->name : 'N/A' }}
-                                    </div>
-                                    <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        Start: {{ $startText }}
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:10px;">
-                                        @if(!$course->course_expiration_date)
-                                            <span style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
-                                                <i class="fas fa-calendar-times"></i> Set Expiration
-                                            </span>
-                                        @else
-                                            <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
-                                        @endif
-                                    </div>
+                                <div style="margin-top:auto;display:flex;justify-content:flex-end;">
+                                    <button type="button" onclick="event.stopPropagation(); window.location.href='{{ route('admin.courses.show', $course) }}'" style="background:#002C76;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;">
+                                        View
+                                    </button>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     @endforeach
                 </div>
             </section>
@@ -3083,7 +3074,10 @@
                                         }
                                         $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
                                     @endphp
-                                    <a class="library-course-item js-library-course-tm" data-name="{{ strtolower($course->name) }}" href="{{ route('admin.courses.show', $course) }}" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-decoration:none; display:flex; flex-direction:column; height:280px;">
+                                    <div class="library-course-item js-library-course-tm" role="button" tabindex="0" data-name="{{ strtolower($course->name) }}"
+                                         onclick="window.location.href='{{ route('admin.courses.show', $course) }}'"
+                                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('admin.courses.show', $course) }}';}"
+                                         style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-decoration:none; display:flex; flex-direction:column; height:280px;">
                                         @if($img)
                                             <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
                                         @else
@@ -3092,19 +3086,13 @@
                                         <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
                                             <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
                                             <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px;">
-                                                <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    Created by: {{ $creator ? $creator->name : 'N/A' }}
-                                                </div>
-                                                <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                    Start: {{ $startText }}
-                                                </div>
-                                                @if($course->course_expiration_date)
-                                                    <span style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;">Expires: {{ \Carbon\Carbon::parse($course->course_expiration_date)->format('M d, Y') }}</span>
-                                                @endif
+                                            <div style="margin-top:auto;display:flex;justify-content:flex-end;">
+                                                <button type="button" onclick="event.stopPropagation(); window.location.href='{{ route('admin.courses.show', $course) }}'" style="background:#002C76;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;">
+                                                    View
+                                                </button>
                                             </div>
                                         </div>
-                                    </a>
+                                    </div>
                                 @endforeach
                             </div>
                         @endif
@@ -3201,8 +3189,6 @@
                                     <h3 class="course-title">{{ $course->name }}</h3>
                                     <div class="course-sub">{{ Str::limit($course->description, 120) }}</div>
                                     <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">
-                                        <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Created by: {{ $creator ? $creator->name : 'N/A' }}</div>
-                                        <div style="color:var(--light-text);font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Start: {{ $startText }}</div>
                                         <div class="course-footer" style="padding-top:10px">
                                             <span style="font-weight:900;color:#475569">Archived</span>
                                             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
