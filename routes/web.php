@@ -149,6 +149,7 @@ Route::post('/admin/system-settings/backup/restore', [DashboardController::class
 // Academic Year Management
 Route::post('/admin/system-settings/academic-year', [DashboardController::class, 'storeAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.store');
 Route::post('/admin/system-settings/academic-year/{academicYear}/activate', [DashboardController::class, 'activateAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.activate');
+Route::delete('/admin/system-settings/academic-year/{academicYear}', [DashboardController::class, 'destroyAcademicYear'])->middleware(['auth'])->name('admin.settings.academic-year.destroy');
 
 // Field of Work Management
 Route::get('/admin/system-settings/field-of-work', [DashboardController::class, 'getFieldOfWorks'])->middleware(['auth'])->name('admin.settings.field-of-work.index');
