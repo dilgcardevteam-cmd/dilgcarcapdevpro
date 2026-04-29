@@ -203,7 +203,11 @@
         #subjectAreaDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #subjectAreaDropdown::-webkit-scrollbar-track { background: transparent; }
     </style>
-    @if($errors->update_course->any())
+    @php
+        $updateCourseErrors = $errors->update_course->all();
+        $visibleUpdateCourseErrors = array_values(array_filter($updateCourseErrors, fn ($error) => $error !== 'Course materials could not be saved. Please try again.'));
+    @endphp
+    @if(!empty($visibleUpdateCourseErrors))
         <script>
             window.addEventListener('DOMContentLoaded', function(){
                 alert('Please fix the errors and submit again.');
@@ -252,10 +256,10 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
-            @if($errors->update_course->any())
+            @if(!empty($visibleUpdateCourseErrors))
                 <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
-                        @foreach ($errors->update_course->all() as $error)
+                        @foreach ($visibleUpdateCourseErrors as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>

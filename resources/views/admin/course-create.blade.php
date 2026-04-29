@@ -265,7 +265,11 @@
         #subjectAreaDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #subjectAreaDropdown::-webkit-scrollbar-track { background: transparent; }
     </style>
-    @if($errors->create_course->any())
+    @php
+        $createCourseErrors = $errors->create_course->all();
+        $visibleCreateCourseErrors = array_values(array_filter($createCourseErrors, fn ($error) => $error !== 'Course materials could not be saved. Please try again.'));
+    @endphp
+    @if(!empty($visibleCreateCourseErrors))
         <script>
             // Keep a minimal place to show validation errors as alert for now
             window.addEventListener('DOMContentLoaded', function(){
@@ -334,10 +338,10 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
-            @if($errors->create_course->any())
+            @if(!empty($visibleCreateCourseErrors))
                 <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
-                        @foreach ($errors->create_course->all() as $error)
+                        @foreach ($visibleCreateCourseErrors as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
