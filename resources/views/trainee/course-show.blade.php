@@ -238,12 +238,6 @@
         .sub-item{border-radius:12px;display:flex;align-items:flex-start;gap:8px}
         .sub-item::before{content:'•';color:#94a3b8;line-height:1.2}
         .sub-item.active{background:#eef2ff;border-left:3px solid var(--blue-500)}
-        .sub-item.quiz-item{ background:#fff9f0; border:1px solid #ffedd5; border-radius:12px; margin-top:8px; font-weight:700; color:#9a3412; }
-        .sub-item.quiz-item:hover{ background:#ffedd5; }
-        .sub-item.quiz-item.locked{ opacity:.6; cursor:not-allowed; }
-        .module.standalone-exam{ border:2px solid #fee2e2; background:#fff5f5; }
-        .module.standalone-exam .module-header{ background:#fff1f1; }
-        .module.standalone-exam .module-title{ color:#b91c1c; }
         
         /* Sidebar Tabs */
         .sidebar-tabs {
@@ -600,9 +594,6 @@
         let finalExamUnlocked = @json($finalExamUnlocked ?? false);
         const csrf = "{{ csrf_token() }}";
         let reflectionMap = {};
-        let completedModuleIndexes = [];
-        let quizAccessMap = {};
-        let examAccessMap = {};
         const ENFORCE_LOCKS_ALL = false;
 
         function redirectToAllowedModule(message){
@@ -649,30 +640,6 @@
             return !!finalExamUnlocked;
         }
 
-        function isSubtopicQuiz(mi, ti, si) {
-            const m = (course.modules||[])[mi]||{};
-            const t = (m.topics||[])[ti]||{};
-            const s = (t.subtopics||[])[si]||{};
-            const fields = ('fields' in s) ? s.fields : (s.fields_json ? (typeof s.fields_json==='string'?JSON.parse(s.fields_json):s.fields_json) : []);
-            return Array.isArray(fields) && fields.some(f => f.type === 'question');
-        }
-
-        function isSubtopicLocked(mi, ti, si) {
-            if(IS_TRAINER) return false;
-            // Topic Quiz or normal subtopic locking: 
-            // Lock if any previous subtopic in the same topic is not completed
-            for(let i=0; i<si; i++) {
-                if(!hasReflection(mi, ti, i)) return true;
-            }
-            return false;
-        }
-
-        function isModuleExamLocked(mi){
-            if(IS_TRAINER) return false;
-            // Module Exam is locked until all topics in the module are completed
-            return !isClientModuleCompleted(mi);
-        }
-
         async function syncServerAccessState(){
             try{
                 const res = await fetch("{{ route('courses.access-state', $course) }}", {credentials:'same-origin'});
@@ -681,15 +648,6 @@
                 if(!data?.ok) return false;
                 if(data.allowed_module_index !== null && data.allowed_module_index !== undefined){
                     allowedModuleIndex = Number(data.allowed_module_index);
-                }
-                if(Array.isArray(data.completed_module_indexes)){
-                    completedModuleIndexes = data.completed_module_indexes.map(Number);
-                }
-                if(data.quiz_access){
-                    quizAccessMap = data.quiz_access;
-                }
-                if(data.exam_access){
-                    examAccessMap = data.exam_access;
                 }
                 finalExamUnlocked = !!data.final_exam_unlocked;
                 return true;
@@ -708,30 +666,10 @@
         function recalculateClientAccessState(){
             const modules = Array.isArray(course.modules) ? course.modules : [];
             const contentIndexes = [];
-            
-            // Track completed modules for quiz unlocking
-            const newCompletedIndexes = [];
             modules.forEach((module, index)=>{
-                const isCompleted = isClientModuleCompleted(index);
-                if(isCompleted){
-                    newCompletedIndexes.push(index);
-                }
                 const topics = Array.isArray(module?.topics) ? module.topics : [];
-                if(topics.length){ 
-                    contentIndexes.push(index);
-                    // Embedded quiz is unlocked if module lessons are completed
-                    quizAccessMap[index] = isCompleted;
-                } else {
-                    // Standalone exam logic: for now, it's unlocked if previous content modules are done
-                    // This is a rough client-side approximation
-                    let prevDone = true;
-                    for(const ci of contentIndexes) {
-                        if(!isClientModuleCompleted(ci)) { prevDone = false; break; }
-                    }
-                    examAccessMap[index] = prevDone;
-                }
+                if(topics.length){ contentIndexes.push(index); }
             });
-            completedModuleIndexes = newCompletedIndexes;
 
             if(!contentIndexes.length){
                 if(finalExamModuleIndex !== null && finalExamModuleIndex !== undefined){
@@ -790,38 +728,6 @@
             if(titleEl) titleEl.textContent = title;
             if(bodyEl) bodyEl.innerHTML = body;
         }
-        function showLockedQuiz(mi){
-            const m = (course.modules||[])[mi]||{};
-            const title = `${mi+1}.Q Module Quiz`;
-            const body = `
-                <div class="lock" style="background:#fff7ed;border:2px dashed #fdba74;border-radius:12px;color:#223;display:flex;align-items:center;justify-content:center;min-height:360px;">
-                    <div style="text-align:center;max-width:520px;padding:18px">
-                        <div style="font-size:3rem;margin-bottom:10px;color:#f97316;"><i class="fas fa-lock"></i></div>
-                        <div style="font-weight:800;font-size:1.25rem;margin-bottom:6px;">Quiz Locked</div>
-                        <div style="color:#445;">Complete the lesson first to unlock this quiz.</div>
-                    </div>
-                </div>`;
-            const titleEl = document.getElementById('contentTitle');
-            const bodyEl = document.getElementById('contentBody');
-            if(titleEl) titleEl.textContent = title;
-            if(bodyEl) bodyEl.innerHTML = body;
-        }
-        function showLockedExam(mi){
-            const m = (course.modules||[])[mi]||{};
-            const title = `${mi+1}.E Module Exam`;
-            const body = `
-                <div class="lock" style="background:#fef2f2;border:2px dashed #fecaca;border-radius:12px;color:#223;display:flex;align-items:center;justify-content:center;min-height:360px;">
-                    <div style="text-align:center;max-width:520px;padding:18px">
-                        <div style="font-size:3rem;margin-bottom:10px;color:#ef4444;"><i class="fas fa-lock"></i></div>
-                        <div style="font-weight:800;font-size:1.25rem;margin-bottom:6px;">Exam Locked</div>
-                        <div style="color:#445;">This exam is currently locked. Complete all required modules to unlock it.</div>
-                    </div>
-                </div>`;
-            const titleEl = document.getElementById('contentTitle');
-            const bodyEl = document.getElementById('contentBody');
-            if(titleEl) titleEl.textContent = title;
-            if(bodyEl) bodyEl.innerHTML = body;
-        }
         async function renderOutline(){
             const el=document.getElementById('outline');
             el.innerHTML='';
@@ -862,34 +768,18 @@
                     tEl.setAttribute('data-ti',ti);
                     const titleTxt = (typeof t==='string')?t:(t.title||'Topic');
                     const num = `${mi+1}.${ti}`;
-                    
-                    const subtopics = Array.isArray(t.subtopics) ? t.subtopics : [];
-                    const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
-
-                    let subItemsHTML = subtopics.map((s,si)=>{
-                        const isQuiz = isSubtopicQuiz(mi, ti, si);
-                        const locked = isSubtopicLocked(mi, ti, si);
-                        const label = `${mi+1}.${ti}.${si+1} ${(isQuiz ? 'Quiz' : (s.title||'Subtopic'))}`;
-                        const icon = isQuiz ? (locked ? 'lock' : 'clipboard-check') : (locked ? 'lock' : 'circle');
-                        const itemClass = isQuiz ? 'sub-item quiz-item' : 'sub-item';
-                        
-                        return `<div class="${itemClass}${locked?' locked':''}" data-si="${si}">
-                            <i class="fas fa-${icon}" style="margin-right:8px; font-size:0.75rem; color:${locked?'#94a3b8':(isQuiz?'#9a3412':'#94a3b8')}"></i>
-                            <span>${label}</span>
-                        </div>`;
-                    }).join('');
-
                     let html = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
                         <span class="title">${num}. ${titleTxt}</span>
                         <span class="count" id="cnt_${mi}_${ti}"></span>
                         <button class="toggle" aria-label="Toggle subtopics"><i class="fas fa-chevron-down"></i></button>
                     </div>`;
-                    
-                    if (subItemsHTML !== '') {
-                        html += `<div class="subs" aria-hidden="true">${subItemsHTML}</div>`;
+                    if (Array.isArray(t.subtopics) && t.subtopics.length){
+                        const items = t.subtopics.map((s,si)=>`<div class="sub-item" data-si="${si}">
+                            <span>${mi+1}.${ti}.${si+1}a ${(s.title||'Subtopic')}</span>
+                        </div>`).join('');
+                        html += `<div class="subs" aria-hidden="true">${items}</div>`;
                     }
-
                     tEl.innerHTML = html;
                     const head = tEl.querySelector('.topic-head');
                     const toggleBtn = tEl.querySelector('.toggle');
@@ -913,15 +803,11 @@
                         tEl.querySelectorAll('.sub-item').forEach(n=>{
                             n.addEventListener('click',(e)=>{
                                 const si = parseInt(n.getAttribute('data-si'),10);
-                                if (isSubtopicLocked(mi, ti, si)) {
-                                    if (isSubtopicQuiz(mi, ti, si)) showLockedQuiz(mi, ti, si);
-                                    else showLockedSubtopic(mi, ti, si);
-                                    return;
-                                }
                                 document.querySelectorAll('.sub-item').forEach(x=>x.classList.remove('active'));
                                 n.classList.add('active');
                                 openTopic(mi,ti);
                                 openSubtopic(mi,ti,si);
+                                promptReflection(mi,ti,si);
                                 e.stopPropagation();
                             });
                         });
@@ -937,19 +823,16 @@
                 el.appendChild(mod);
                 // initialize progress
                 if(!viewOnly){ updateProgressFor(mi); }
-                // Module Exam (Standalone)
-                if (m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
+                // Add a separate Module Exam block only when the exam is embedded within a content module
+                // Skip when this is an exam-only module to avoid duplication
+                if (!isExamOnly && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
                     const modEx = document.createElement('div');
-                    modEx.className = 'module standalone-exam';
-                    const locked = isModuleExamLocked(mi);
-                    if (locked) {
-                        modEx.classList.add('locked');
-                    }
-                    const exTitle = m.exam.title ? `Module Exam: ${m.exam.title}` : 'Module Exam';
+                    modEx.className = 'module';
+                    const exTitle = m.exam.title ? `Module Quiz: ${m.exam.title}` : 'Module Quiz';
                     modEx.innerHTML = `
                         <div class="module-header" data-mi="${mi}">
                             <div class="module-left">
-                                <div class="module-title"><span>${locked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${exTitle}</span></div>
+                                <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${exTitle}</span></div>
                                 <div class="progress-mini"><span id="bar_ex_${mi}"></span></div>
                             </div>
                             <div class="mod-badges">
@@ -964,25 +847,18 @@
                     // Create a single exam "topic" row for consistent UX
                     const tEl = document.createElement('div');
                     tEl.className='topic';
-                    if (locked) {
-                        tEl.classList.add('locked');
-                    }
                     tEl.setAttribute('data-mi',mi);
                     tEl.setAttribute('data-ti','exam');
-                    const num = `${mi+1}.E`;
+                    const num = `${mi+1}.Q`;
                     const qCount = m.exam.questions.length;
                     const badge = `<span class="count" style="display:inline-block">${qCount}</span>`;
                     tEl.innerHTML = `<div class="topic-head">
-                        <i class="fas fa-${locked ? 'lock' : 'circle'}" style="font-size:.6rem;color:#9ca3af"></i>
-                        <span class="title">${num}. ${m.exam.title ? m.exam.title : 'Module Exam'}</span>
+                        <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
+                        <span class="title">${num}. ${m.exam.title ? ('Module Quiz: '+m.exam.title) : 'Module Quiz'}</span>
                         ${badge}
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
                     head.addEventListener('click', (e)=>{
-                        if (locked) {
-                            showLockedExam(mi);
-                            return;
-                        }
                         document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
                         tEl.classList.add('active');
                         openExam(mi);
@@ -1257,7 +1133,6 @@
                                         const actions = submitBtn.parentElement; if(actions){ actions.style.display='none'; }
                                         updateProgressFor(bMi);
                                         await syncServerAccessState();
-                                        renderOutline(); // Refresh locks
                                         try{ localStorage.setItem('course_progress_broadcast', String(Date.now())); }catch(e){}
                                         const resetBtn = summary.querySelector('[data-act="reset-ref"]');
                                         if(resetBtn){
@@ -1270,7 +1145,7 @@
                                                 if(actions){ actions.style.display='flex'; }
                                                 unmarkReflection(bMi,bTi,-1);
                                                 updateProgressFor(bMi);
-                                                syncServerAccessState().then(() => renderOutline());
+                                                syncServerAccessState();
                                                 input.focus();
                                     };
                                 }
@@ -1321,7 +1196,6 @@
                                         sum2.style.display='none';
                                         unmarkReflection(mi2,ti2,-1);
                                         updateProgressFor(mi2);
-                                        syncServerAccessState().then(() => renderOutline());
                                     };
                                 }
                             }
@@ -1361,9 +1235,8 @@
                                     if(btn2){ btn2.disabled=false; btn2.textContent='Done'; if(btn2.parentElement){ btn2.parentElement.style.display='flex'; } }
                                     sum2.style.display='none';
                                     unmarkReflection(mi2,ti2,-1);
-                                        updateProgressFor(mi2);
-                                        syncServerAccessState().then(() => renderOutline());
-                                    };
+                                    updateProgressFor(mi2);
+                                };
                             }
                         }
                     }
@@ -1372,10 +1245,6 @@
         }
         async function openExam(mi){
             console.log('openExam initiated for module index:', mi);
-            if (isModuleExamLocked(mi)) {
-                showLockedExam(mi);
-                return;
-            }
             if(!canAccessFinalExam(mi)){
                 await syncServerAccessState();
                 if(!canAccessFinalExam(mi)){
@@ -1385,33 +1254,18 @@
             }
             const m = (course.modules||[])[mi]||{};
             const ex = m.exam||{};
-            renderExamInterface(mi, ex);
-        }
-
-        async function renderExamInterface(mi, ex, ti=null, si=null){
-            const isTopicQuiz = (ti !== null && si !== null);
             const timerMode = ex.timer_mode || (ex.timer_minutes > 0 ? 'timed' : 'untimed');
             const timerMins = timerMode === 'timed' ? (parseInt(ex.timer_minutes||0,10) || 0) : 0;
             const qs = Array.isArray(ex.questions)? ex.questions : [];
             const titleEl = document.getElementById('contentTitle');
             const bodyEl = document.getElementById('contentBody');
             
-            if (isTopicQuiz) {
-                if(titleEl) titleEl.textContent = `${mi+1}.${ti}.${si+1} Topic Quiz: ${ex.title || 'Untitled'}`;
-            } else {
-                const m = (course.modules||[])[mi]||{};
-                const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
-                const labelPrefix = isExamOnly ? 'Module Exam' : 'Module Quiz';
-                const labelShort = isExamOnly ? 'E' : 'Q';
-                if(titleEl) titleEl.textContent = `${mi+1}.${labelShort} ${labelPrefix}`;
-            }
-
-            if(!qs.length){
-                if(bodyEl) bodyEl.innerHTML = `<div class="field" style="background:#f8fafc;">No questions added.</div>`;
-                return;
-            }
-            // ... the rest of the question rendering logic ...
-
+            // Distinguish between Quiz and Exam title based on whether module has topics
+            const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
+            const labelPrefix = isExamOnly ? 'Module Exam' : 'Module Quiz';
+            const labelShort = isExamOnly ? 'E' : 'Q';
+            
+            if(titleEl) titleEl.textContent = `${mi+1}.${labelShort} ${labelPrefix}`;
             if(!qs.length){
                 if(bodyEl) bodyEl.innerHTML = `<div class="field" style="background:#f8fafc;">No questions added.</div>`;
                 return;
@@ -1635,7 +1489,7 @@
                 bodyEl.innerHTML = header + `<div id="examResult" style="display:none;margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;font-weight:800"></div>` + preface + bodyWrap + confirmOverlay + warningOverlay;
             }
             if(!IS_TRAINER){
-                const keyBase = `exam_${course.id}_${mi}` + (isTopicQuiz ? `_ti_${ti}_si_${si}` : '');
+                const keyBase = `exam_${course.id}_${mi}`;
                 const fullscreenHost = document.documentElement;
                 const examWarningThreshold = 1;
                 const examAutoSubmitThreshold = 3;
@@ -2048,8 +1902,6 @@
                                 credentials:'same-origin',
                                 body: JSON.stringify({
                                     mi: mi,
-                                    ti: ti,
-                                    si: si,
                                     answers: JSON.parse(answersStr),
                                     duration_ms: 0,
                                     exam_integrity: writeExamIntegrity({
@@ -2121,11 +1973,7 @@
                     // If we don't have retake info in summary, try to fetch it
                     if (summary && summary.passed === false && typeof summary.retake_requested === 'undefined') {
                         try {
-                            let url = "{{ route('courses.module-exam.attempt', $course) }}?mi="+encodeURIComponent(mi);
-                            if(ti !== null && si !== null) {
-                                url += "&ti="+encodeURIComponent(ti)+"&si="+encodeURIComponent(si);
-                            }
-                            const r = await fetch(url, {credentials:'same-origin'});
+                            const r = await fetch("{{ route('courses.module-exam.attempt', $course) }}?mi="+encodeURIComponent(mi), {credentials:'same-origin'});
                             const j = await r.json();
                             if (j && j.ok) {
                                 retakeRequested = !!j.retake_requested;
@@ -2937,68 +2785,9 @@
                 }
             }
         }
-        function showLockedSubtopic(mi, ti, si){
-            const m = (course.modules||[])[mi]||{};
-            const t = (m.topics||[])[ti]||{};
-            const s = (t.subtopics||[])[si]||{};
-            const title = `${mi+1}.${ti}.${si+1} ${s.title||'Locked Subtopic'}`;
-            const body = `
-                <div class="lock" style="background:#f8fafc;border:2px dashed #e2e8f0;border-radius:12px;color:#223;display:flex;align-items:center;justify-content:center;min-height:360px;">
-                    <div style="text-align:center;max-width:520px;padding:18px">
-                        <div style="font-size:3rem;margin-bottom:10px;color:#94a3b8;"><i class="fas fa-lock"></i></div>
-                        <div style="font-weight:800;font-size:1.25rem;margin-bottom:6px;">Subtopic Locked</div>
-                        <div style="color:#445;">Complete the previous lessons in this topic to unlock this content.</div>
-                    </div>
-                </div>`;
-            const titleEl = document.getElementById('contentTitle');
-            const bodyEl = document.getElementById('contentBody');
-            if(titleEl) titleEl.textContent = title;
-            if(bodyEl) bodyEl.innerHTML = body;
-        }
-
-        async function openSubtopic(mi, ti, si){
-            if (isSubtopicLocked(mi, ti, si)) {
-                if (isSubtopicQuiz(mi, ti, si)) showLockedQuiz(mi, ti, si);
-                else showLockedSubtopic(mi, ti, si);
-                return;
-            }
-
-            const m = (course.modules||[])[mi]||{};
-            const t = (m.topics||[])[ti]||{};
-            const s = (t.subtopics||[])[si]||{};
-            
-            if (isSubtopicQuiz(mi, ti, si)) {
-                openTopicQuiz(mi, ti, si);
-                return;
-            }
-
-            document.getElementById('contentTitle').textContent = `${mi+1}.${ti}.${si+1} ${s.title||'Subtopic'}`;
-            const body = document.getElementById('contentBody');
-            body.innerHTML = `<div class="subfields" id="active_sub_fields"></div>`;
-            const container = document.getElementById('active_sub_fields');
-            const fields = ('fields' in s) ? s.fields : (s.fields_json ? (typeof s.fields_json==='string'?JSON.parse(s.fields_json):s.fields_json) : []);
-            renderFieldsInto(container, fields, mi, ti, si);
-            
-            // Auto-prompt reflection for content subtopics
-            promptReflection(mi, ti, si);
-        }
-
-        async function openTopicQuiz(mi, ti, si){
-            const m = (course.modules||[])[mi]||{};
-            const t = (m.topics||[])[ti]||{};
-            const s = (t.subtopics||[])[si]||{};
-            
-            const fields = ('fields' in s) ? s.fields : (s.fields_json ? (typeof s.fields_json==='string'?JSON.parse(s.fields_json):s.fields_json) : []);
-            const questions = fields.filter(f => f.type === 'question').map(f => f.question);
-            
-            const quizData = {
-                title: s.title || 'Topic Quiz',
-                questions: questions,
-                timer_mode: 'untimed'
-            };
-
-            // Reuse the existing exam interface for topic quizzes
-            renderExamInterface(mi, quizData, ti, si);
+        function openSubtopic(mi,ti,si){
+            const section = document.getElementById(`sub_${mi}_${ti}_${si}`);
+            if(section){ section.scrollIntoView({behavior:'smooth', block:'start'}); }
         }
         function sanitizeContent(html){
             try{
@@ -3634,10 +3423,7 @@
         }
         (async function initPage(){
             if(!viewOnly){
-                try{ 
-                    await syncServerAccessState();
-                    await loadReflectionMap(); 
-                }catch(e){}
+                try{ await loadReflectionMap(); }catch(e){}
             }
             await renderOutline();
             // Ensure exam progress bars are not full by default and only fill on pass (>= 75 or passing_score)

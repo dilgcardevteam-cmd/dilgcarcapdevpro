@@ -100,23 +100,6 @@ class Course extends Model
         return $this->belongsTo(Certification::class);
     }
 
-    public function moduleProgress()
-    {
-        return $this->hasMany(ModuleProgress::class);
-    }
-
-    /**
-     * Check if a specific module is completed by a user.
-     */
-    public function isModuleCompletedBy(int $userId, int $moduleIndex): bool
-    {
-        return $this->moduleProgress()
-            ->where('user_id', $userId)
-            ->where('module_index', $moduleIndex)
-            ->where('is_completed', true)
-            ->exists();
-    }
-
     protected $casts = [
         'modules' => 'array',
         'is_published' => 'boolean',
