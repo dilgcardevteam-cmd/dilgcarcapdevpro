@@ -3611,14 +3611,6 @@
                     </style>
                     <div class="tm-log-shell">
                         <div class="tm-log-filters">
-                            <div class="tm-log-control" style="min-width:240px">
-                                <i class="fas fa-calendar-alt tm-log-ico"></i>
-                                <input id="tmLogDateStart" type="date" />
-                            </div>
-                            <div class="tm-log-control" style="min-width:240px">
-                                <i class="fas fa-calendar-alt tm-log-ico"></i>
-                                <input id="tmLogDateEnd" type="date" />
-                            </div>
                             <div class="tm-log-control" style="min-width:190px">
                                 <i class="fas fa-sliders tm-log-ico"></i>
                                 <select id="tmLogActivity">
@@ -3639,11 +3631,9 @@
                             <table class="tm-log-table">
                                 <thead>
                                     <tr>
-                                        <th>Time & Date</th>
                                         <th>User</th>
                                         <th>Action</th>
                                         <th>Details</th>
-                                        <th>IP Address</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -3676,13 +3666,6 @@
                                 if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
                                 return (parts[0][0] + parts[1][0]).toUpperCase();
                             }
-                            function fmtDateTime(d){
-                                if(!(d instanceof Date) || isNaN(d.getTime())) return {date:'—', time:'—'};
-                                return {
-                                    date: d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }),
-                                    time: d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-                                };
-                            }
                             function iconFor(action, module, status){
                                 var a = (action || '').toLowerCase();
                                 var m = (module || '').toLowerCase();
@@ -3695,8 +3678,6 @@
                                 return { ico:'fa-bell', bg:'#f8fafc', fg:'#0b3b8f', bd:'#e2e8f0' };
                             }
 
-                            var elStart = document.getElementById('tmLogDateStart');
-                            var elEnd = document.getElementById('tmLogDateEnd');
                             var elActivity = document.getElementById('tmLogActivity');
                             var elUser = document.getElementById('tmLogUser');
                             var elBody = document.getElementById('tmLogBody');
@@ -3716,7 +3697,10 @@
                             function rebuildFilterOptions(){
                                 var modules = uniq(rows.map(function(r){ return r.module; }));
                                 var users = uniq(rows.map(function(r){ return r.userName; }));
+                                if(modules.indexOf('Course Management') === -1){ modules.push('Course Management'); }
+                                modules.sort();
                                 modules.forEach(function(m){
+                                    if(!m) return;
                                     var opt = document.createElement('option');
                                     opt.value = m;
                                     opt.textContent = m;
@@ -3730,28 +3714,10 @@
                                 });
                             }
 
-                            function inRange(d, start, end){
-                                if(!(d instanceof Date) || isNaN(d.getTime())) return false;
-                                if(start){
-                                    var s = new Date(start + 'T00:00:00');
-                                    if(d < s) return false;
-                                }
-                                if(end){
-                                    var e = new Date(end + 'T23:59:59');
-                                    if(d > e) return false;
-                                }
-                                return true;
-                            }
-
                             function filtered(){
-                                var start = elStart ? elStart.value : '';
-                                var end = elEnd ? elEnd.value : '';
                                 var act = elActivity.value || 'all';
                                 var user = elUser.value || 'all';
                                 return rows.filter(function(r){
-                                    if(start || end){
-                                        if(!inRange(r.time, start, end)) return false;
-                                    }
                                     if(act !== 'all' && r.module !== act) return false;
                                     if(user !== 'all' && r.userName !== user) return false;
                                     return true;
@@ -3768,19 +3734,17 @@
                                 var slice = list.slice(startIdx, endIdx);
 
                                 if(total === 0){
-                                    elBody.innerHTML = '<tr><td colspan="6" class="tm-log-muted" style="padding:18px;text-align:center">No activity logs found.</td></tr>';
+                                    elBody.innerHTML = '<tr><td colspan="4" class="tm-log-muted" style="padding:18px;text-align:center">No activity logs found.</td></tr>';
                                     elMeta.textContent = 'Showing 0 entries';
                                     elPages.innerHTML = '';
                                     return;
                                 }
 
                                 elBody.innerHTML = slice.map(function(r){
-                                    var dt = fmtDateTime(r.time);
                                     var ico = iconFor(r.action, r.module, r.status);
                                     var badgeClass = (String(r.status).toLowerCase() === 'failed') ? 'failed' : 'success';
                                     return '' +
                                         '<tr>' +
-                                            '<td><div style="font-weight:900;color:#0f172a">' + dt.date + '</div><div class="tm-log-muted">' + dt.time + '</div></td>' +
                                             '<td><div class="tm-log-user">' +
                                                 '<div class="tm-log-avatar">' + initials(r.userName) + '</div>' +
                                                 '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.userName + '</div><div class="tm-log-muted">' + (r.userRole || '—') + '</div></div>' +
@@ -3790,7 +3754,6 @@
                                                 '<div><div style="font-weight:900;color:#0f172a;line-height:1.15">' + r.action + '</div><div class="tm-log-muted">' + (r.module || '—') + '</div></div>' +
                                             '</div></td>' +
                                             '<td style="color:#334155">' + (r.details || '—') + '</td>' +
-                                            '<td class="tm-log-muted" style="white-space:nowrap">' + (r.ip || '—') + '</td>' +
                                             '<td><span class="tm-log-badge ' + badgeClass + '">' + (r.status || 'Success') + '</span></td>' +
                                         '</tr>';
                                 }).join('');
@@ -3844,14 +3807,12 @@
                             }
 
                             rebuildFilterOptions();
-                            [elStart, elEnd, elActivity, elUser].forEach(function(el){
+                            [elActivity, elUser].forEach(function(el){
                                 if(!el) return;
                                 el.addEventListener('change', function(){ page = 1; render(); });
                             });
                             if(elClear){
                                 elClear.addEventListener('click', function(){
-                                    if(elStart) elStart.value = '';
-                                    if(elEnd) elEnd.value = '';
                                     elActivity.value = 'all';
                                     elUser.value = 'all';
                                     page = 1;
