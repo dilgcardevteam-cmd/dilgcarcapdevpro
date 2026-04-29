@@ -1940,6 +1940,12 @@
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
+                        @if(Auth::user()->hasPermission('view_training'))
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'course-management' ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
+                        </li>
+                        @endif
                         @if(Auth::user()->canManageUsers())
                         <li class="menu-item menu-sub-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
@@ -1950,12 +1956,6 @@
                         <li class="menu-item menu-sub-item {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}" onclick="showContent('trainer-trainee-management', this)">
                             <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                             <span class="menu-text">Training Management</span>
-                        </li>
-                        @endif
-                        @if(Auth::user()->hasPermission('view_training'))
-                        <li class="menu-item menu-sub-item {{ request('tab') == 'course-management' ? 'active' : '' }}" onclick="showContent('course-management', this)">
-                            <div class="menu-icon"><i class="fas fa-book"></i></div>
-                            <span class="menu-text">Course Management</span>
                         </li>
                         @endif
                         @if(Auth::user()->canViewReports())
@@ -3013,11 +3013,11 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Add <strong>Course</strong></h1>
                     <div style="display:flex; gap:10px; align-items:center;">
-                        <span id="tmDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;"><span id="tmDraftSavedLabel">Saved in drafts</span> <span id="tmDraftSavedTime"></span></span>
+                        <span id="tmDraftSavedIndicator" style="font-size:0.86rem;color:#64748b;font-weight:700;display:none;">Draft saved at <span id="tmDraftSavedTime"></span></span>
                         <button type="button" onclick="openImportCourseLibraryInCreateTM()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
                             Import from Course Library
                         </button>
-                        <button type="button" onclick="confirmBackFromCourseCreateTM('course-management')" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="showContent('course-management', document.querySelector(\".menu-item[onclick*='course-management']\"))" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
                         </button>
                     </div>
@@ -3104,6 +3104,9 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Draft Courses
+                        </button>
                         <button type="button" onclick="showContent('course-management', null)" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             Back to Course Management
                         </button>
@@ -3160,6 +3163,9 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin: 0;">Archived <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="openDraftCoursesModal()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
+                            Draft Courses
+                        </button>
                         <button type="button" onclick="showContent('course-management', null)" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             Back to Course Management
                         </button>
@@ -3851,41 +3857,14 @@
 
     function updateTMDraftSavedIndicator(timeText) {
         const wrap = document.getElementById('tmDraftSavedIndicator');
-        const label = document.getElementById('tmDraftSavedLabel');
         const time = document.getElementById('tmDraftSavedTime');
         if (!wrap || !time) return;
         if (!timeText) {
             wrap.style.display = 'none';
             return;
         }
-        if (String(timeText) === 'saving') {
-            if (label) label.textContent = 'Saving';
-            time.textContent = '';
-            wrap.style.display = 'inline';
-            return;
-        }
-        if (label) label.textContent = 'Saved in drafts';
         time.textContent = String(timeText);
         wrap.style.display = 'inline';
-    }
-
-    async function confirmBackFromCourseCreateTM(targetSectionId) {
-        const ok = typeof window.capdevConfirm === 'function'
-            ? await window.capdevConfirm('Confirm back. All changes will be saved in drafts.', {
-                title: 'Confirm Back',
-                confirmText: 'Back',
-                cancelText: 'Cancel'
-            })
-            : window.confirm('Confirm back. All changes will be saved in drafts.');
-        if (!ok) return;
-        updateTMDraftSavedIndicator('saving');
-        const frame = document.getElementById('courseCreateFrameTM');
-        try {
-            if (frame && frame.contentWindow && typeof frame.contentWindow.saveDraft === 'function') {
-                frame.contentWindow.saveDraft(true);
-            }
-        } catch (e) {}
-        showContent(targetSectionId || 'course-management', document.querySelector(".menu-item[onclick*='course-management']"));
     }
 
     window.addEventListener('message', function (event) {
