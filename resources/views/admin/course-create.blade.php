@@ -263,6 +263,13 @@
 </head>
 <body class="{{ request()->boolean('embedded') ? 'embedded-create' : '' }}">
     @if(empty($forTrainer) && !request()->boolean('embedded'))
+    @php
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $tmRoles = ['training_manager', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'];
+        $courseManagementBackRoute = in_array($actorRole, $tmRoles, true)
+            ? route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
+            : route('dashboard', ['tab' => 'course-management']);
+    @endphp
     <header class="header">
         <div class="header-left">
             <div class="header-title">
@@ -271,7 +278,7 @@
         </div>
         <div class="header-right" style="display:flex; gap:10px; align-items:center;">
             <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;">Draft saved at <span id="autoSaveTime"></span></span>
-            <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-arrow-left"></i> Back to Course Management
             </a>
         </div>
@@ -281,9 +288,13 @@
         <div class="card" aria-live="polite">
             @if(!request()->boolean('embedded'))
                 @php
+                    $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+                    $tmRoles = ['training_manager', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'];
                     $courseCreateBackRoute = !empty($forTrainer)
-                        ? route('dashboard', ['tab' => 'course-utilities'])
-                        : route('dashboard', ['tab' => 'course-management']);
+                        ? route('dashboard', ['portal' => 'coach', 'tab' => 'course-utilities'])
+                        : (in_array($actorRole, $tmRoles, true)
+                            ? route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
+                            : route('dashboard', ['tab' => 'course-management']));
                 @endphp
                 <div class="course-create-topline">
                     <h1 class="course-create-page-title">Create Course</h1>
@@ -431,7 +442,7 @@
                                 </div>
                                 <div id="subjectError" class="error-text" style="display:none;"></div>
                             </div>
-                            <div style="display:grid; grid-template-columns: {{ empty($forTrainer) ? '1fr 1fr' : '1fr' }}; gap:12px; margin-top:12px;">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
                                 <div class="section">
                                     <div class="section-title"><i class="fas fa-calendar-plus"></i> Course Start Date</div>
                                     <div style="position:relative;">
@@ -439,7 +450,6 @@
                                     </div>
                                     <div id="startDateError" class="error-text" style="display:none;"></div>
                                 </div>
-                                @if(empty($forTrainer))
                                 <div class="section">
                                     <div class="section-title"><i class="fas fa-calendar-times"></i> Course Expiration Date</div>
                                     <div style="position:relative;">
@@ -447,7 +457,6 @@
                                     </div>
                                     <div id="expirationError" class="error-text" style="display:none;"></div>
                                 </div>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -480,7 +489,7 @@
                     <div class="section">
                         <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                             <span><i class="fas fa-certificate"></i> Select Certificate Template</span>
-                            <a href="javascript:void(0)" onclick="confirmGoToCertifications('{{ route('dashboard', ['tab' => 'certification-management']) }}')" style="color:#0d6efd; font-size:0.85rem; font-weight:600; text-decoration:none;">
+                            <a href="javascript:void(0)" onclick="confirmGoToCertifications('{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}')" style="color:#0d6efd; font-size:0.85rem; font-weight:600; text-decoration:none;">
                                 <i class="fas fa-external-link-alt" style="margin-right:4px;"></i>Go to Certifications
                             </a>
                         </div>
@@ -509,7 +518,7 @@
                                 <div style="grid-column: 1/-1; text-align:center; padding:40px; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:12px;">
                                     <i class="fas fa-certificate" style="font-size:3rem; color:#e2e8f0; margin-bottom:12px; display:block;"></i>
                                     <div style="color:#64748b; font-weight:600;">No certificate templates available.</div>
-                                    <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Please <a href="{{ route('dashboard', ['tab' => 'certification-management']) }}" target="_top" style="color:#0d6efd; text-decoration:underline;">add templates in Certificate Management</a> first.</div>
+                                    <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Please <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" target="_top" style="color:#0d6efd; text-decoration:underline;">add templates in Certificate Management</a> first.</div>
                                 </div>
                             @endforelse
                         </div>
@@ -548,12 +557,10 @@
                                                 <span class="summary-label">Start Date</span>
                                                 <div id="summaryStart" style="font-weight: 700; color: #1e293b;">Not Set</div>
                                             </div>
-                                            @if(empty($forTrainer))
                                             <div>
                                                 <span class="summary-label">Expiration Date</span>
                                                 <div id="summaryExpiration" style="font-weight: 700; color: #1e293b;">Not Set</div>
                                             </div>
-                                            @endif
                                         </div>
                                     </div>
                                     <div id="summaryImageWrapper">

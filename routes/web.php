@@ -115,7 +115,7 @@ Route::get('/registrar/courses/{course}/participants', [CourseController::class,
 Route::get('/trainee/courses/{course}', [CourseController::class, 'traineeShow'])->middleware(['auth'])->name('trainee.courses.show');
 Route::get('/trainee/courses/{course}/outline', [CourseController::class, 'traineeOutline'])->middleware(['auth'])->name('trainee.courses.outline');
 // Trainer: enter class (landing replicates trainee view with trainer capabilities)
-Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.enter');
+Route::get('/trainer/courses/{course}', [CourseController::class, 'trainerLanding'])->withTrashed()->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.enter');
 // Trainer view-only course outline page
 Route::get('/trainer/courses/{course}/view', [CourseController::class, 'trainerView'])->withTrashed()->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.view');
 // Trainer: update course banner image only

@@ -4258,10 +4258,14 @@
                             || request()->hasAny(['search', 'roles', 'statuses', 'page'])
                             || in_array(request('tab'), ['user-management', 'user-details-section', 'course-management', 'pending-courses', 'course-create', 'course-library', 'certification-management', 'access-management', 'system-settings'], true)
                         );
-                    $coachPortalActive = ($portalQuery === 'coach');
+                    $coachPortalActive = ($portalQuery === 'coach')
+                        || ($portalQuery === 'admin' && request('tab') === 'certification-management');
                     $participantPortalActive = ($portalQuery === 'participant');
                     $tmPortalActive = in_array($portalQuery, ['tm', 'training_manager'], true);
                     $canCoachPortal = !$isSuperAdmin && (Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication'));
+                    $canCoachCourseUtilities = Auth::user()->hasPermission('add_courses_coach');
+                    $canCoachCertifications = Auth::user()->hasPermission('view_certifications')
+                        || $canCoachCourseUtilities;
                     $canParticipantPortal = !$isSuperAdmin && Auth::user()->hasPermission('view_modules');
                     $canAdminPortal = Auth::user()->hasPermission('view_users')
                         || Auth::user()->hasPermission('create_users')
@@ -4338,6 +4342,18 @@
                         <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}'">
                             <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                             <span class="menu-text">My Courses</span>
+                        </li>
+                        @endif
+                        @if($canCoachCourseUtilities)
+                        <li class="menu-item menu-sub-item {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'course-utilities']) }}'">
+                            <div class="menu-icon"><i class="fas fa-screwdriver-wrench"></i></div>
+                            <span class="menu-text">Course Utilities</span>
+                        </li>
+                        @endif
+                        @if($canCoachCertifications)
+                        <li class="menu-item menu-sub-item {{ request('tab') === 'certification-management' ? 'active' : '' }}" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_classes'))

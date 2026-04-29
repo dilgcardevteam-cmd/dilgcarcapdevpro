@@ -200,6 +200,13 @@
     </script>
 </head>
 <body>
+    @php
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $tmRoles = ['training_manager', 'central_office_training_manager', 'regional_office_training_manager', 'provincial_office_training_manager'];
+        $courseManagementBackRoute = in_array($actorRole, $tmRoles, true)
+            ? route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
+            : route('dashboard', ['tab' => 'course-management']);
+    @endphp
     <header class="header" style="background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
         <div class="header-left">
             <div class="header-title">
@@ -210,7 +217,7 @@
             <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-file-pen"></i> Draft Courses
             </a>
-            <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
                 <i class="fas fa-arrow-left"></i> Back to Course Management
             </a>
         </div>
@@ -367,7 +374,7 @@
                     <div class="section">
                         <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
                             <span><i class="fas fa-certificate"></i> Select Certificate Template</span>
-                            <a href="javascript:void(0)" onclick="confirmGoToCertifications('{{ route('dashboard', ['tab' => 'certification-management']) }}')" style="color:#0d6efd; font-size:0.85rem; font-weight:600; text-decoration:none;">
+                            <a href="javascript:void(0)" onclick="confirmGoToCertifications('{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}')" style="color:#0d6efd; font-size:0.85rem; font-weight:600; text-decoration:none;">
                                 <i class="fas fa-external-link-alt" style="margin-right:4px;"></i>Go to Certifications
                             </a>
                         </div>
@@ -396,7 +403,7 @@
                                 <div style="grid-column: 1/-1; text-align:center; padding:40px; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:12px;">
                                     <i class="fas fa-certificate" style="font-size:3rem; color:#e2e8f0; margin-bottom:12px; display:block;"></i>
                                     <div style="color:#64748b; font-weight:600;">No certificate templates available.</div>
-                                    <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Please <a href="{{ route('dashboard', ['tab' => 'certification-management']) }}" target="_top" style="color:#0d6efd; text-decoration:underline;">add templates in Certificate Management</a> first.</div>
+                                    <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Please <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" target="_top" style="color:#0d6efd; text-decoration:underline;">add templates in Certificate Management</a> first.</div>
                                 </div>
                             @endforelse
                         </div>

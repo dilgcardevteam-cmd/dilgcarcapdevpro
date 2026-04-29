@@ -1993,13 +1993,14 @@
             <ul class="nav-menu">
                 @php
                     $coachCreateCourseActive = request()->routeIs('trainer.courses.create');
-                    $coachCreateCourseVisible = strtolower((string) Auth::user()->role) === 'coach'
-                        && Auth::user()->hasPermission('add_courses_coach');
+                    $coachCreateCourseVisible = Auth::user()->hasPermission('add_courses_coach');
+                    $coachCertificationVisible = Auth::user()->hasPermission('view_certifications')
+                        || Auth::user()->hasPermission('add_courses_coach');
                     $coachCourseUtilitiesActive = in_array(request('tab'), ['course-utilities','course-create','pending-courses','archived-courses','course-library'], true);
                     $portalActive = $coachCreateCourseActive
                         || $coachCourseUtilitiesActive
                         || !request('tab')
-                        || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements'], true);
+                        || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements','certification-management'], true);
                 @endphp
                 <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-coach">
                     <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
@@ -2027,6 +2028,14 @@
                             <a href="{{ route('dashboard', ['tab' => 'course-utilities']) }}" class="nav-link {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="showContent('course-utilities', this)">
                                 <i class="fas fa-screwdriver-wrench nav-icon"></i>
                                 <span class="nav-text">Course Utilities</span>
+                            </a>
+                        </li>
+                        @endif
+                        @if($coachCertificationVisible)
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link {{ request('tab') === 'certification-management' ? 'active' : '' }}">
+                                <i class="fas fa-certificate nav-icon"></i>
+                                <span class="nav-text">Certifications</span>
                             </a>
                         </li>
                         @endif
@@ -2097,63 +2106,6 @@
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
-                    </ul>
-                </li>
-                @endif
-                @if(
-                    Auth::user()->hasPermission('view_users')
-                    || Auth::user()->hasPermission('create_users')
-                    || Auth::user()->hasPermission('edit_users')
-                    || Auth::user()->hasPermission('delete_users')
-                    || Auth::user()->hasPermission('view_monitoring')
-                    || Auth::user()->hasPermission('view_access_control')
-                    || Auth::user()->hasPermission('edit_access_control')
-                )
-                <li class="nav-portal" id="portal-dropdown-admin">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Admin Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-admin">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
-                        </li>
-                        @if(Auth::user()->hasPermission('view_users'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'user-management']) }}" class="nav-link">
-                                <i class="fas fa-users nav-icon"></i>
-                                <span class="nav-text">User Management</span>
-                            </a>
-                        </li>
-                        @endif
-                        @if(Auth::user()->hasPermission('view_courses'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'course-management']) }}" class="nav-link">
-                                <i class="fas fa-book nav-icon"></i>
-                                <span class="nav-text">Course Management</span>
-                            </a>
-                        </li>
-                        @endif
-                        @if(Auth::user()->hasPermission('view_certifications'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link">
-                                <i class="fas fa-certificate nav-icon"></i>
-                                <span class="nav-text">Certifications</span>
-                            </a>
-                        </li>
-                        @endif
-                        @if(Auth::user()->role === 'super_admin')
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'access-management']) }}" class="nav-link">
-                                <i class="fas fa-shield-alt nav-icon"></i>
-                                <span class="nav-text">Access Control</span>
-                            </a>
-                        </li>
-                        @endif
                     </ul>
                 </li>
                 @endif
@@ -3794,6 +3746,11 @@
             if (!document.getElementById('course-utilities')) return;
             if (!document.getElementById('coachSubmissionsTbody')) return;
             renderCoachDraftRows();
+            const requestedTab = new URLSearchParams(window.location.search).get('submission_tab');
+            if (requestedTab) {
+                switchCoachSubmissionTab(requestedTab);
+                return;
+            }
             const activeBtn = document.querySelector('#course-utilities .submissions-tab.active');
             const tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'all';
             COACH_SUBMISSIONS_ACTIVE_TAB = tab || 'all';

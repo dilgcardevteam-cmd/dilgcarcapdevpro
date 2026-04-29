@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Mail\IncompleteActivityReminder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
@@ -1375,12 +1376,13 @@ class CourseController extends Controller
         $actorRole = strtolower((string) (auth()->user()->role ?? ''));
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
-        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+        $registrarRoles = ['registrar'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles, $registrarRoles), true)) {
             abort(403);
         }
         $certifications = \App\Models\Certification::all();
         $libraryQuery = \App\Models\Course::where('is_published', true);
-        if (in_array($actorRole, $tmRoles, true)) {
+        if (in_array($actorRole, array_merge($tmRoles, $registrarRoles), true)) {
             $levelRoles = [];
             if ($actorRole === 'central_office_training_manager') {
                 $levelRoles = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
@@ -1411,7 +1413,8 @@ class CourseController extends Controller
         $actorRole = strtolower((string) (auth()->user()->role ?? ''));
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
-        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+        $registrarRoles = ['registrar'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles, $registrarRoles), true)) {
             abort(403);
         }
         $certifications = \App\Models\Certification::all();
@@ -1453,7 +1456,8 @@ class CourseController extends Controller
         $actorRole = strtolower((string) (auth()->user()->role ?? ''));
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
-        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+        $registrarRoles = ['registrar'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles, $registrarRoles), true)) {
             abort(403);
         }
         // Ensure an active academic year exists
@@ -1471,7 +1475,7 @@ class CourseController extends Controller
             'academic_year' => 'nullable|string|max:20',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
-            'image' => 'required_without:image_draft_data|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
             'image_draft_data' => 'nullable|string',
             'certification_id' => 'nullable|exists:certifications,id',
             'course_type' => 'required|in:free,controlled',
@@ -1716,7 +1720,11 @@ class CourseController extends Controller
         }
 
         if ($request->boolean('embedded')) {
-            $target = route('dashboard', ['tab' => 'course-management', 'clear_draft' => 'draft_course_create']);
+            $targetParams = ['tab' => 'course-management', 'clear_draft' => 'draft_course_create'];
+            if (in_array($actorRole, $tmRoles, true)) {
+                $targetParams['portal'] = 'tm';
+            }
+            $target = route('dashboard', $targetParams);
             $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             return response(
                 "<!doctype html><html><body><script>window.top.location.href={$encodedTarget};</script></body></html>",
@@ -1749,8 +1757,10 @@ class CourseController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'video_url' => 'nullable|url',
             'video' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'image_draft_data' => 'nullable|string',
             'certification_id' => 'nullable|exists:certifications,id',
+            'course_expiration_date' => 'nullable|date',
             'start_date' => 'nullable|date',
             'materials.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,mp4,webm,ogg',
         ]);
@@ -1791,6 +1801,26 @@ class CourseController extends Controller
                 return back()
                     ->withErrors(['image' => 'Image upload failed on server. Check storage permissions or disk space.'], 'create_course')
                     ->withInput();
+            }
+        } elseif ($request->filled('image_draft_data')) {
+            try {
+                $base64 = $request->input('image_draft_data');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $data = substr($base64, strpos($base64, ',') + 1);
+                    $type = strtolower($type[1]);
+                    if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp', 'svg'])) {
+                        throw new \Exception('Invalid image type');
+                    }
+                    $data = base64_decode($data);
+                    if ($data === false) {
+                        throw new \Exception('base64_decode failed');
+                    }
+                    $fileName = 'course_images/' . uniqid() . '.' . $type;
+                    Storage::disk('public')->put($fileName, $data);
+                    $validated['image_path'] = $fileName;
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Trainer draft image restoration failed', ['error' => $e->getMessage()]);
             }
         }
         if ($request->hasFile('video')) {
@@ -1930,6 +1960,9 @@ class CourseController extends Controller
 
         if (auth()->check()) {
             $validated['trainer_id'] = auth()->id();
+            if (Schema::hasColumn('courses', 'submitted_by_user_id')) {
+                $validated['submitted_by_user_id'] = auth()->id();
+            }
         }
 
         if ($request->course_type === 'controlled') {
@@ -1980,7 +2013,26 @@ class CourseController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard', ['portal' => 'coach'])->with('success', 'Course submitted to training manager for approval.');
+        if ($request->boolean('embedded')) {
+            $target = route('dashboard', [
+                'portal' => 'coach',
+                'tab' => 'course-utilities',
+                'submission_tab' => 'pending',
+            ]);
+            $encodedTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            return response(
+                "<!doctype html><html><body><script>window.top.location.href={$encodedTarget};</script></body></html>",
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
+        }
+
+        return redirect()->route('dashboard', [
+                'portal' => 'coach',
+                'tab' => 'course-utilities',
+                'submission_tab' => 'pending',
+            ])
+            ->with('success', 'Course submitted to training manager for approval.');
     }
 
     public function adminShow($course)

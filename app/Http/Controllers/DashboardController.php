@@ -51,10 +51,13 @@ class DashboardController extends Controller
         }
         $canCoachPortal = !$isSuperAdmin && ($user->hasPermission('view_courses_coach') || $user->hasPermission('view_classes') || $user->hasPermission('view_communication'));
         $canParticipantPortal = !$isSuperAdmin && $user->hasPermission('view_modules');
+        $canManageCertificationsFromCoach = !$isSuperAdmin && $user->hasPermission('add_courses_coach');
         $canAdminPortal = $user->hasPermission('view_users')
             || $user->hasPermission('create_users')
             || $user->hasPermission('edit_users')
             || $user->hasPermission('delete_users')
+            || $user->hasPermission('view_certifications')
+            || $canManageCertificationsFromCoach
             || $user->hasPermission('view_monitoring')
             || $user->hasPermission('view_access_control')
             || $user->hasPermission('edit_access_control');
