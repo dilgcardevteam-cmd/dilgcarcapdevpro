@@ -1495,7 +1495,11 @@ class CourseController extends Controller
 
         // Automatically assign active academic year
         $validated['academic_year_id'] = $activeYear->id;
-        $validated['academic_year'] = (string) $activeYear->year_start;
+        if (Schema::hasColumn('courses', 'academic_year')) {
+            $validated['academic_year'] = (string) $activeYear->year_start;
+        } else {
+            unset($validated['academic_year']);
+        }
 
         // Ensure DB columns that may be NOT NULL receive safe defaults
         if (!$request->filled('video_url')) {
@@ -1775,6 +1779,13 @@ class CourseController extends Controller
             }
         }
         $validated['subject_area'] = json_encode(array_keys($normalizedAreas), JSON_UNESCAPED_UNICODE);
+
+        $academicYear = \App\Models\AcademicYear::find($validated['academic_year_id']);
+        if (Schema::hasColumn('courses', 'academic_year')) {
+            $validated['academic_year'] = (string) optional($academicYear)->year_start;
+        } else {
+            unset($validated['academic_year']);
+        }
 
         if (!$request->filled('video_url')) {
             $validated['video_url'] = '';

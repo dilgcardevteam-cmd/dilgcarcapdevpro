@@ -265,7 +265,15 @@
         #subjectAreaDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #subjectAreaDropdown::-webkit-scrollbar-track { background: transparent; }
     </style>
+<<<<<<< Updated upstream
     @if($errors->create_course->any())
+=======
+    @php
+        $createCourseErrors = $errors->create_course->all();
+        $visibleCreateCourseErrors = $createCourseErrors;
+    @endphp
+    @if(!empty($visibleCreateCourseErrors))
+>>>>>>> Stashed changes
         <script>
             // Keep a minimal place to show validation errors as alert for now
             window.addEventListener('DOMContentLoaded', function(){
@@ -334,6 +342,7 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
+<<<<<<< Updated upstream
 
 
             <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
@@ -341,6 +350,12 @@
             </div>
             @if($errors->create_course->any())
 
+=======
+            <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
+                <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
+            </div>
+            @if(!empty($visibleCreateCourseErrors))
+>>>>>>> Stashed changes
                 <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($errors->create_course->all() as $error)
@@ -355,6 +370,7 @@
                 @if(request()->boolean('embedded'))
                     <input type="hidden" name="embedded" value="1">
                 @endif
+                <input type="hidden" name="draft_key" id="draft_key" value="">
                 <div id="tab1" class="tab-content active">
                     <div class="two-col">
                         <div class="left">
@@ -534,7 +550,7 @@
                                 </div>
                             @endforelse
                         </div>
-                        <div id="certError" class="error-text" style="display:none; margin-top:10px;">Please select a certificate template.</div>
+                        <div id="certError" class="error-text" style="display:none; margin-top:10px;">Please select a certificate template if you want to attach one to this course.</div>
                     </div>
 
                     <div class="actions" style="justify-content: space-between; margin-top:30px;">
@@ -2836,12 +2852,14 @@
             const name = document.getElementById('name');
             const desc = document.getElementById('description');
             const image = document.getElementById('image');
+            const courseType = document.querySelector('input[name="course_type"]:checked');
 
             const validName = !!name && !!name.value.trim() && name.value.trim().length <= 100;
             const validDesc = !!desc && !!desc.value.trim() && desc.value.trim().length <= 1000;
             const validSubj = getSelectedSubjectAreas().length > 0;
+            const validCourseType = !!courseType;
 
-            if (!validName || !validDesc || !validSubj) return false;
+            if (!validName || !validDesc || !validSubj || !validCourseType) return false;
 
             if (image && image.required) {
                 const draft = document.getElementById('image_draft_data');
@@ -2861,7 +2879,11 @@
         function isModulesStepComplete(){
             return document.querySelectorAll('.module-wrapper').length > 0;
         }
+        function hasCertificateOptions(){
+            return document.querySelectorAll('input[name="certification_id"]').length > 0;
+        }
         function isCertificateStepComplete(){
+            if(!hasCertificateOptions()) return true;
             return !!document.querySelector('input[name="certification_id"]:checked');
         }
         function isFinalizeStepComplete(){
@@ -3138,6 +3160,13 @@
                     el.addEventListener('input', updateProgress);
                     el.addEventListener('change', updateProgress);
                 }
+            });
+            document.querySelectorAll('input[name="course_type"]').forEach(el => {
+                el.addEventListener('change', updateProgress);
+            });
+            ['start_date','course_expiration_date'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', updateProgress);
             });
             document.querySelectorAll('input[name="subject_area[]"]').forEach(el => {
                 el.addEventListener('change', updateProgress);
@@ -3630,7 +3659,7 @@
             try{
                 const obj = JSON.parse(raw);
                 // Restore top-level fields
-                ['name','description','video_url','certification_id'].forEach(k=>{
+                ['name','description','video_url','certification_id','start_date','course_expiration_date'].forEach(k=>{
                     if(obj[k] === undefined) return;
                     const el = document.querySelector(`[name="${k}"]`);
                     if(!el) return;
@@ -3643,6 +3672,13 @@
                         }
                     }
                 });
+                if (obj['course_type'] !== undefined) {
+                    const val = String(obj['course_type'] || '').trim();
+                    if (val) {
+                        const input = document.querySelector(`input[name="course_type"][value="${val}"]`);
+                        if (input) input.checked = true;
+                    }
+                }
                 if (obj.subject_area !== undefined) {
                     const rawAreas = obj.subject_area;
                     const areas = Array.isArray(rawAreas)
@@ -3815,19 +3851,14 @@
                     }
                 });
                 
-                // Clear draft on successful submit
                 form.addEventListener('submit', () => {
                     isSubmitting = true;
-                    const key = draftKey();
-                    // We'll clear it after a short delay to ensure the form actually submits
-                    setTimeout(() => {
-                        localStorage.removeItem(key);
-                        deleteFilesFromDB(key + '_materials');
-                        sessionStorage.removeItem('draft_course_key');
-                        sessionStorage.removeItem(COURSE_CREATE_TAB_KEY);
-                        sessionStorage.removeItem(COURSE_CREATE_STEP_KEY);
-                        try { if (periodicAutoSave) window.clearInterval(periodicAutoSave); } catch (e) {}
-                    }, 1000);
+                    try {
+                        const dk = draftKey();
+                        const draftKeyInput = document.getElementById('draft_key');
+                        if (draftKeyInput) draftKeyInput.value = dk;
+                    } catch (e) {}
+                    try { if (periodicAutoSave) window.clearInterval(periodicAutoSave); } catch (e) {}
                 });
             }
 
@@ -3997,6 +4028,11 @@
                     importFromCourseLibrary(id);
                 });
             });
+
+            try {
+                const draftKeyInput = document.getElementById('draft_key');
+                if (draftKeyInput) draftKeyInput.value = draftKey();
+            } catch (e) {}
         });
 
         // Dynamic Menu (follows active field)
