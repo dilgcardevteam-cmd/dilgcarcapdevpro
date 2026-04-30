@@ -454,26 +454,29 @@
         </main>
     </div>
     <div id="manualEnrollModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3 class="modal-title">Add Participants</h3>
                 <button type="button" class="close-modal" onclick="closeManualEnrollModal()">&times;</button>
             </div>
             <form action="{{ route('courses.participants.manual', $course->id) }}" method="POST">
                 @csrf
-                <div class="form-group">
-                    <label class="form-label">Select Users</label>
-                    <div style="max-height:200px;overflow-y:auto;border:1px solid #ddd;padding:10px;border-radius:4px;">
-                        @foreach($potentialTrainees as $pt)
-                            <label style="display:block;margin-bottom:5px;">
-                                <input type="checkbox" name="user_ids[]" value="{{ $pt->id }}"> {{ $pt->name }} ({{ $pt->email }})
-                            </label>
-                        @endforeach
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">Search for a participant by their Account ID and Name to manually enroll them.</p>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #002C76;">Account ID</label>
+                        <input type="text" name="account_id" class="form-control" placeholder="e.g. 2024-0001" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #002C76;">First and Last Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                     </div>
                 </div>
-                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
-                    <button type="button" class="btn" style="background:#eee;color:#333" onclick="closeManualEnrollModal()">Cancel</button>
-                    <button type="submit" class="btn btn-blue">Add Selected</button>
+                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:15px;border-top: 1px solid #eee;">
+                    <button type="button" class="btn" style="background:#f1f5f9;color:#475569;font-weight: 700;" onclick="closeManualEnrollModal()">Cancel</button>
+                    <button type="submit" class="btn btn-blue" style="font-weight: 700;">Enroll Participant</button>
                 </div>
             </form>
         </div>

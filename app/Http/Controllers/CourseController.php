@@ -4530,16 +4530,18 @@ class CourseController extends Controller
             ->first();
 
         if (!$user) {
-            return redirect()->back()->with('error_enroll', 'Participant not found or unauthorized for your office level.');
+            return redirect()->back()->with('error_enroll', 'Participant not found or unauthorized for your office level. Please check the Account ID and Name.');
         }
 
         if ($course->users()->where('user_id', $user->id)->exists()) {
             return redirect()->back()->with('error_enroll', 'Participant is already enrolled in this course.');
         }
 
-        if (!$course->isEnrollable()) {
-            return redirect()->back()
-                ->with('error_enroll', 'Participants cannot be enrolled until the course is published and the admin expiration date plus registrar enrollment dates are complete and open.');
+        // Check if course is published and not expired
+        // Training Managers can enroll users even after enrollment deadline if needed, 
+        // but we still respect overall course publication and admin expiration.
+        if (!$course->is_published) {
+            return redirect()->back()->with('error_enroll', 'Course must be published before enrolling participants.');
         }
 
         $course->users()->attach($user->id, [
@@ -4551,7 +4553,7 @@ class CourseController extends Controller
         Notification::create([
             'user_id' => $user->id,
             'title' => 'Manual Enrollment',
-            'message' => "You have been manually enrolled in the course: {$course->name}.",
+            'message' => "You have been manually enrolled in the course: {$course->name} by the Training Manager.",
             'type' => 'enrollment_approved',
             'related_id' => $course->id,
             'link' => route('dashboard'),

@@ -477,13 +477,55 @@
             </div>
             </div>
             <div class="submit">
+                <button type="button" class="btn" style="background:#002C76; margin-right: 10px;" onclick="openManualEnrollModal()"><i class="fas fa-user-plus"></i> Add Participants</button>
                 <button type="submit" class="btn"><i class="fas fa-save"></i> Save Participants</button>
             </div>
         </form>
     </div>
         </main>
     </div>
+
+    <div id="manualEnrollModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center;">
+        <div class="modal-content" style="background:#fff; padding:25px; border-radius:14px; width:100%; max-width:500px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid #eee;">
+                <h3 class="modal-title" style="margin:0; color:#002C76; font-weight:800;">Add Participants</h3>
+                <button type="button" class="close-modal" onclick="closeManualEnrollModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer; color:#64748b;">&times;</button>
+            </div>
+            <form action="{{ route('courses.participants.manual', $course->id) }}" method="POST">
+                @csrf
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">Search for a participant by their Account ID and Name to manually enroll them.</p>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="form-label" style="display:block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #002C76; margin-bottom:8px;">Account ID</label>
+                        <input type="text" name="account_id" class="form-control" placeholder="e.g. 2024-0001" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; outline:none;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display:block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #002C76; margin-bottom:8px;">First and Last Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; outline:none;">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:15px; border-top: 1px solid #eee;">
+                    <button type="button" class="btn" style="background:#f1f5f9; color:#475569; font-weight: 700;" onclick="closeManualEnrollModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background:#002C76; color:#fff; font-weight: 700;">Enroll Participant</button>
+                </div>
+            </form>
+        </div>
+    </div>
 <script>
+    function openManualEnrollModal() {
+        document.getElementById('manualEnrollModal').style.display = 'flex';
+    }
+    function closeManualEnrollModal() {
+        document.getElementById('manualEnrollModal').style.display = 'none';
+    }
+    window.onclick = function(event) {
+        const manualModal = document.getElementById('manualEnrollModal');
+        if (event.target == manualModal) {
+            closeManualEnrollModal();
+        }
+    }
     document.querySelectorAll('.tab-btn').forEach(btn=>{
         btn.addEventListener('click', ()=>{
             document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
