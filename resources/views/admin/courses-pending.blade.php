@@ -29,14 +29,15 @@
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-title">
-            <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-        </div>
-        <div>
-            <a href="{{ route('dashboard', ['tab' => 'course-management']) }}" class="back-link">Back to Course Management</a>
-        </div>
-    </header>
+    @include('admin.partials.course-admin-header', [
+        'headerLinks' => [
+            [
+                'href' => route('dashboard', ['tab' => 'course-management']),
+                'label' => 'Back to Course Management',
+                'icon' => 'fas fa-arrow-left',
+            ],
+        ],
+    ])
     <div class="page">
         <h1>Pending Courses</h1>
         @if($pendingCourses->isEmpty())

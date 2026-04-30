@@ -1997,7 +1997,7 @@
             </div>
             <ul class="nav-menu">
                 @php
-                    $coachCreateCourseActive = request()->routeIs('trainer.courses.create');
+                    $coachCreateCourseActive = request()->routeIs('trainer.courses.create') || request()->routeIs('courses.create');
                     $coachCreateCourseVisible = Auth::user()->hasPermission('add_courses_coach');
                     $coachCertificationVisible = Auth::user()->hasPermission('view_certifications')
                         || Auth::user()->hasPermission('add_courses_coach');
@@ -2628,7 +2628,7 @@
                     </div>
                 </div>
                 <div class="course-create-shell">
-                    <iframe id="courseCreateFrameCoach" title="Create course form" src="{{ request('tab') === 'course-create' ? route('trainer.courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
+                    <iframe id="courseCreateFrameCoach" title="Create course form" src="{{ request('tab') === 'course-create' ? route('courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
                 </div>
             </div>
 
@@ -3772,7 +3772,7 @@
         function ensureCourseCreateFrameLoadedCoach() {
             const frame = document.getElementById('courseCreateFrameCoach');
             if (frame && !frame.getAttribute('src')) {
-                frame.setAttribute('src', @json(route('trainer.courses.create', ['embedded' => 1])));
+                frame.setAttribute('src', @json(route('courses.create', ['embedded' => 1])));
             }
         }
 

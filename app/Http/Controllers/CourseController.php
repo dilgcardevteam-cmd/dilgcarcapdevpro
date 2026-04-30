@@ -24,6 +24,42 @@ class CourseController extends Controller
 {
     use HandlesCertification;
 
+    private function adminCourseRoles(): array
+    {
+        return ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+    }
+
+    private function trainingManagerCourseRoles(): array
+    {
+        return ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+    }
+
+    private function registrarCourseRoles(): array
+    {
+        return ['registrar'];
+    }
+
+    private function trainerCourseRoles(): array
+    {
+        return ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
+    }
+
+    private function buildCourseCreateDashboardRoute(string $actorRole, array $extra = []): array
+    {
+        $params = array_filter([
+            'tab' => 'course-create',
+            'step' => $extra['step'] ?? null,
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        if (in_array($actorRole, array_merge($this->trainingManagerCourseRoles(), $this->registrarCourseRoles()), true)) {
+            $params['portal'] = 'tm';
+        } elseif (in_array($actorRole, $this->trainerCourseRoles(), true)) {
+            $params['portal'] = 'coach';
+        }
+
+        return $params;
+    }
+
     private function allowedSubjectAreas(): array
     {
         $allowed = \App\Models\Course::subjectAreaOptions();
@@ -1371,12 +1407,23 @@ class CourseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    public function createEntry(Request $request)
+    {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+
+        if (in_array($actorRole, $this->trainerCourseRoles(), true)) {
+            return $this->trainerCreate($request);
+        }
+
+        return $this->create($request);
+    }
+
     public function create(Request $request)
     {
         $actorRole = strtolower((string) (auth()->user()->role ?? ''));
-        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
-        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
-        $registrarRoles = ['registrar'];
+        $adminRoles = $this->adminCourseRoles();
+        $tmRoles = $this->trainingManagerCourseRoles();
+        $registrarRoles = $this->registrarCourseRoles();
         if (!in_array($actorRole, array_merge($adminRoles, $tmRoles, $registrarRoles), true)) {
             abort(403);
         }
@@ -1398,11 +1445,10 @@ class CourseController extends Controller
             });
         }
         $libraryCourses = $libraryQuery->with('users')->orderByDesc('created_at')->take(60)->get();
-        if (auth()->check() && auth()->user()->role === 'admin' && !$request->boolean('embedded')) {
-            return redirect()->route('dashboard', [
-                'tab' => 'course-create',
-                'certifications' => $certifications,
-            ]);
+        if (!$request->boolean('embedded')) {
+            return redirect()->route('dashboard', $this->buildCourseCreateDashboardRoute($actorRole, [
+                'step' => $request->query('step'),
+            ]));
         }
 
         return view('admin.course-create', compact('certifications', 'libraryCourses'));
@@ -1421,13 +1467,22 @@ class CourseController extends Controller
         return view('admin.course-edit', compact('course', 'certifications'));
     }
 
-    public function trainerCreate()
+    public function trainerCreate(Request $request)
     {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        if (!in_array($actorRole, $this->trainerCourseRoles(), true)) {
+            abort(403);
+        }
+
+        if (!$request->boolean('embedded')) {
+            return redirect()->route('dashboard', $this->buildCourseCreateDashboardRoute($actorRole, [
+                'step' => $request->query('step'),
+            ]));
+        }
+
         $forTrainer = true;
         $certifications = \App\Models\Certification::all();
-        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
-        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
-        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $tmRoles = $this->trainingManagerCourseRoles();
         $libraryQuery = \App\Models\Course::where('is_published', true);
         if (in_array($actorRole, $tmRoles, true)) {
             $levelRoles = [];

@@ -3084,7 +3084,7 @@
                     </div>
                 </div>
                 <div class="course-create-shell">
-                    <iframe id="courseCreateFrameTM" title="Create course form" src="{{ request('tab') == 'course-create' ? route('admin.courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
+                    <iframe id="courseCreateFrameTM" title="Create course form" src="{{ request('tab') == 'course-create' ? route('courses.create', array_filter(['embedded' => 1, 'step' => request('step')])) : '' }}"></iframe>
                 </div>
             </section>
 
@@ -4359,7 +4359,7 @@
 
     function buildCourseCreateFrameUrlTM(options = {}) {
         const { bustCache = false } = options || {};
-        const url = new URL(@json(route('admin.courses.create', ['embedded' => 1])));
+        const url = new URL(@json(route('courses.create', ['embedded' => 1])));
         try {
             const topUrl = new URL(window.location.href);
             const step = topUrl.searchParams.get('step');

@@ -265,15 +265,7 @@
         #subjectAreaDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #subjectAreaDropdown::-webkit-scrollbar-track { background: transparent; }
     </style>
-<<<<<<< Updated upstream
     @if($errors->create_course->any())
-=======
-    @php
-        $createCourseErrors = $errors->create_course->all();
-        $visibleCreateCourseErrors = $createCourseErrors;
-    @endphp
-    @if(!empty($visibleCreateCourseErrors))
->>>>>>> Stashed changes
         <script>
             // Keep a minimal place to show validation errors as alert for now
             window.addEventListener('DOMContentLoaded', function(){
@@ -291,19 +283,15 @@
             ? route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
             : route('dashboard', ['tab' => 'course-management']);
     @endphp
-    <header class="header">
-        <div class="header-left">
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
-        </div>
-        <div class="header-right" style="display:flex; gap:10px; align-items:center;">
-            <span id="autoSaveIndicator" style="font-size: 0.8rem; color: #64748b; font-style: italic; display: none;">Draft saved at <span id="autoSaveTime"></span></span>
-            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-arrow-left"></i> Back to Course Management
-            </a>
-        </div>
-    </header>
+    @include('admin.partials.course-admin-header', [
+        'headerLinks' => [
+            [
+                'href' => $courseManagementBackRoute,
+                'label' => 'Back to Course Management',
+                'icon' => 'fas fa-arrow-left',
+            ],
+        ],
+    ])
     @endif
     <div class="page-container">
         <div class="card" aria-live="polite">
@@ -342,20 +330,10 @@
                     <button type="button" id="step4" class="step disabled" role="tab" aria-controls="tab4" aria-selected="false" aria-disabled="true" disabled><span class="step-index">4</span><span>Finalize</span></button>
                 </div>
             </div>
-<<<<<<< Updated upstream
-
-
             <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
                 <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
             </div>
             @if($errors->create_course->any())
-
-=======
-            <div style="display:flex;justify-content:flex-end;margin:10px 0 0;">
-                <span id="draftStatusText" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:6px 10px;font-weight:800;font-size:0.8rem;"></span>
-            </div>
-            @if(!empty($visibleCreateCourseErrors))
->>>>>>> Stashed changes
                 <div id="serverCreateErrors" style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin-bottom:15px;">
                     <ul style="margin:0;padding-left:20px;">
                         @foreach ($errors->create_course->all() as $error)

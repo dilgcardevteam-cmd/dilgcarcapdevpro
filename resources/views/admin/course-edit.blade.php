@@ -222,21 +222,21 @@
             ? route('dashboard', ['portal' => 'tm', 'tab' => 'course-management'])
             : route('dashboard', ['tab' => 'course-management']);
     @endphp
-    <header class="header" style="background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
-        <div class="header-left">
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:40px; display:block;">
-            </div>
-        </div>
-        <div class="header-right" style="display:flex; gap:10px;">
-            <a href="{{ route('dashboard', ['tab' => 'draft-courses']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-file-pen"></i> Draft Courses
-            </a>
-            <a href="{{ $courseManagementBackRoute }}" class="back-link" style="margin:0; background-color: #002C76; color: white; padding: 8px 16px; border-radius: 5px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-                <i class="fas fa-arrow-left"></i> Back to Course Management
-            </a>
-        </div>
-    </header>
+    @include('admin.partials.course-admin-header', [
+        'headerLinks' => [
+            [
+                'href' => route('dashboard', ['tab' => 'draft-courses']),
+                'label' => 'Draft Courses',
+                'icon' => 'fas fa-file-pen',
+                'variant' => 'secondary',
+            ],
+            [
+                'href' => $courseManagementBackRoute,
+                'label' => 'Back to Course Management',
+                'icon' => 'fas fa-arrow-left',
+            ],
+        ],
+    ])
     <div class="page-container">
         <h1>Edit Course</h1>
         <div class="card" aria-live="polite">

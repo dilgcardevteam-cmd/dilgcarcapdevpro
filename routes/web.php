@@ -92,6 +92,7 @@ Route::get('/stats/users-gender-by-province', [DashboardController::class, 'user
 Route::get('/stats/region-analytics', [DashboardController::class, 'regionAnalytics'])->middleware(['auth'])->name('stats.region.analytics');
 Route::get('/stats/province-analytics', [DashboardController::class, 'provinceAnalytics'])->middleware(['auth'])->name('stats.province.analytics');
 Route::get('/stats/monthly-growth', [DashboardController::class, 'monthlyGrowth'])->middleware(['auth'])->name('stats.monthly.growth');
+Route::get('/courses/create', [CourseController::class, 'createEntry'])->middleware(['auth'])->name('courses.create');
 Route::get('/admin/courses/create', [CourseController::class, 'create'])->middleware(['auth'])->name('admin.courses.create');
 Route::get('/admin/courses/{course}/edit', [CourseController::class, 'edit'])->middleware(['auth'])->name('admin.courses.edit');
 // Place pending BEFORE the dynamic {course} route to avoid shadowing
