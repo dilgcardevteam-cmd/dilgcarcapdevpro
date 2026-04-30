@@ -2690,8 +2690,9 @@
                                                 </span>
                                                 @if(Auth::user()->canManageTraining())
                                                 @php
-                                                    $currentTrainer = $course->users->filter(fn($u) => in_array($u->role, ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach']))->first();
-                                                    $trainerId = $currentTrainer ? $currentTrainer->id : '';
+                                                    $trainerId = $course->trainer_id
+                                                        ?: optional($course->users->first(fn($u) => in_array($u->role, ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'])))->id
+                                                        ?: '';
                                                 @endphp
                                                 <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
                                                     onclick="event.stopPropagation(); openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}', '{{ $trainerId }}')">
@@ -2888,8 +2889,8 @@
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                             </div>
                                             @php
-                                                $s = optional($course->enrollment_start_at)->format('M d, Y');
-                                                $e = optional($course->enrollment_end_at)->format('M d, Y');
+                                                $s = optional($course->enrollment_start_date)->format('M d, Y');
+                                                $e = optional($course->enrollment_end_date)->format('M d, Y');
                                             @endphp
                                             @if($s || $e)
                                                 <div class="muted" style="font-size:.85rem;margin-top:6px">

@@ -730,12 +730,10 @@
                                     <div><i class="fas fa-clock"></i> End: {{ $course->end_date ? $course->end_date->format('M d, Y') : 'Not set' }}</div>
                                 </div>
                                 @php
-                                    $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-                                    $coachNames = $course->users ? $course->users->whereIn('role', $coachRoles)->pluck('name')->join(', ') : null;
                                     $enrollable = $course->isEnrollable();
                                 @endphp
 
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $coachNames ?: 'TBA' }}</p>
+                                <p style="color: var(--light-text); margin: 0; font-size: 0.85rem;">Coach: {{ $course->coach_display_name }}</p>
                                 <div class="course-footer">
                                     <div style="display: flex; gap: 5px;">
                                         @if(!$enrollable)
@@ -1666,7 +1664,13 @@
             document.getElementById('detail-description').innerText = course.description;
             document.getElementById('detail-category-badge').innerText = course.subject_area || 'General';
             document.getElementById('detail-subject-area').innerText = course.subject_area || 'General';
-            document.getElementById('detail-trainer').innerText = "Coach: " + (course.users && course.users.find(u => u.role === 'trainer') ? course.users.find(u => u.role === 'trainer').name : 'TBA');
+            let coachText = course.coach_display_name || 'TBA';
+            if (coachText === 'TBA' && course.users && Array.isArray(course.users)) {
+                const roles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                const names = course.users.filter(u => roles.includes(u.role || '')).map(u => u.name).filter(Boolean);
+                if (names.length) coachText = names.join(', ');
+            }
+            document.getElementById('detail-trainer').innerText = "Coach: " + coachText;
             const hero = document.getElementById('detail-hero');
             hero.style.backgroundImage = `url('${course.image_url || "https://via.placeholder.com/800x300?text=No+Image"}')`;
             renderCurriculum(course.modules, isEnrolled, 'curriculum-list');

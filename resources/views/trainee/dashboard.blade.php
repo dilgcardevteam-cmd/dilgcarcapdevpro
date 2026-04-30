@@ -1562,10 +1562,7 @@
                                 <p class="course-desc" style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px;">{{ Str::limit($course->description, 100) }}</p>
 
                                 <div class="card-meta" style="margin-bottom: 15px;">
-                                    @php
-                                        $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
-                                    @endphp
-                                    <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
+                                    <span><i class="fas fa-user"></i> Coach: {{ $course->coach_display_name }}</span>
                                     @if($course->start_date)
                                         <span style="color: #0f172a; font-weight: 700;"><i class="fas fa-calendar-check"></i> Course Starts: {{ $course->start_date->format('M d, Y') }}</span>
                                     @endif
@@ -1704,10 +1701,7 @@
                                 <p class="course-desc" style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px;">{{ Str::limit($course->description, 100) }}</p>
 
                                 <div class="card-meta" style="margin-bottom: 15px;">
-                                    @php
-                                        $coachNames = $course->users ? $course->users->whereIn('role', ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'])->pluck('name')->join(', ') : null;
-                                    @endphp
-                                    <span><i class="fas fa-user"></i> Coach: {{ $coachNames ?: 'TBA' }}</span>
+                                    <span><i class="fas fa-user"></i> Coach: {{ $course->coach_display_name }}</span>
                                     @if($course->enrollment_start_date)
                                         <span><i class="fas fa-calendar-alt"></i> Enroll Start: {{ $course->enrollment_start_date->format('M d') }}</span>
                                     @endif
@@ -1794,10 +1788,7 @@
                                         <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
                                     </div>
                                     <div class="card-meta">
-                                        @php
-                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
-                                        @endphp
-                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
+                                        <span><i class="fas fa-user"></i> Coach: {{ $course->coach_display_name }}</span>
                                         <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
                                         <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
                                     </div>
@@ -1884,10 +1875,7 @@
                                     <span>Modules: {{ $progressData[$course->id]['total_modules'] }}</span>
                                 </div>
                                     <div class="card-meta">
-                                        @php
-                                            $coach = $course->users->whereIn('role', ['coach', 'trainer'])->first();
-                                        @endphp
-                                        <span><i class="fas fa-user"></i> Coach: {{ $coach->name ?? 'TBA' }}</span>
+                                        <span><i class="fas fa-user"></i> Coach: {{ $course->coach_display_name }}</span>
                                         <span><i class="fas fa-calendar-alt"></i> Start: {{ $course->start_date ? $course->start_date->format('M d') : 'TBA' }}</span>
                                         <span><i class="fas fa-calendar-check"></i> End: {{ $course->end_date ? $course->end_date->format('M d') : 'TBA' }}</span>
                                     </div>
@@ -2960,8 +2948,8 @@
             // Coach display (prefer assigned coaches/trainers)
             (function(){
                 const span = document.getElementById('detail-trainer');
-                let coachText = 'TBA';
-                if (course.users && Array.isArray(course.users)) {
+                let coachText = course.coach_display_name || 'TBA';
+                if (coachText === 'TBA' && course.users && Array.isArray(course.users)) {
                     const roles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
                     const names = course.users.filter(u=>roles.includes(u.role||'')).map(u=>u.name).filter(Boolean);
                     if (names.length) coachText = names.join(', ');

@@ -2513,11 +2513,21 @@ class CourseController extends Controller
                 'enrollment_start_date' => 'required|date',
                 'enrollment_end_date' => 'required|date|after_or_equal:enrollment_start_date',
             ]);
+
+            if (!$course->course_expiration_date) {
+                return back()->with('error_user', 'Set the course expiration date first before publishing the course.');
+            }
+
             if (!empty($data['trainer_id'])) {
                 $course->trainer_id = $data['trainer_id'];
                 // Also attach to pivot table if not already linked
                 if (!$course->users()->where('user_id', $data['trainer_id'])->exists()) {
                     $course->users()->attach($data['trainer_id'], ['status' => 'active']);
+                }
+            } elseif (!$course->trainer_id && !empty($course->submitted_by_user_id)) {
+                $course->trainer_id = $course->submitted_by_user_id;
+                if (!$course->users()->where('user_id', $course->submitted_by_user_id)->exists()) {
+                    $course->users()->attach($course->submitted_by_user_id, ['status' => 'active']);
                 }
             }
             $course->enrollment_start_date = $data['enrollment_start_date'];
@@ -3765,6 +3775,7 @@ class CourseController extends Controller
                 'course_expiration_date' => $course->course_expiration_date ? \Carbon\Carbon::parse($course->course_expiration_date)->format('Y-m-d') : null,
                 'created_at' => optional($course->created_at)->format('M d, Y'),
                 'creator_name' => $creator ? $creator->name : 'N/A',
+                'coach_display_name' => $course->coach_display_name,
                 'certification' => $course->certification ? [
                     'id' => $course->certification->id,
                     'name' => $course->certification->name,
@@ -4033,7 +4044,8 @@ class CourseController extends Controller
             $course->restore();
         }
 
-        $course->is_published = true;
+        $wasPendingApproval = !$course->is_published;
+        $course->is_published = $wasPendingApproval ? false : true;
         $course->save();
 
         // Activate coach/trainer pivot so they can enter class after admin approval
@@ -4083,12 +4095,16 @@ class CourseController extends Controller
             );
         }
 
+        $message = $wasPendingApproval
+            ? 'Course approved successfully. Set the enrollment schedule and publish it when ready.'
+            : 'Course approved successfully.';
+
         if (in_array($actorRole, $tmRoles, true)) {
             return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => $returnTab])
-                ->with('success_course', 'Course approved successfully.');
+                ->with('success_course', $message);
         }
         return redirect()->route('dashboard', ['tab' => $returnTab])
-            ->with('success_course', 'Course approved successfully.');
+            ->with('success_course', $message);
     }
 
     public function forceDelete(Request $request, $id)

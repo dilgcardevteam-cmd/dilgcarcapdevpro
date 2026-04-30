@@ -537,6 +537,16 @@
         align-items: center;
         justify-content: center;
         pointer-events: none;
+        z-index: 2;
+    }
+
+    .field-with-icon .fow-dropdown-container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .field-with-icon .fow-dropdown-trigger {
+        padding-left: 44px;
     }
 
     .field-with-icon input,

@@ -1444,18 +1444,41 @@
                                                 <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
                                             </div>
                                             <div style="display:flex;align-items:center;gap:8px">
-                                                @php $pub = (bool)($course->is_published ?? false); @endphp
+                                                @php
+                                                    $pub = (bool)($course->is_published ?? false);
+                                                    $readyToPublish = !empty($course->course_expiration_date)
+                                                        && !empty($course->enrollment_start_date)
+                                                        && !empty($course->enrollment_end_date);
+                                                @endphp
                                                 <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;{{ $pub ? 'background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0' : 'background:#fff7ed;color:#9a3412;border:1px solid #fed7aa' }}">
                                                     {{ $pub ? 'Published' : 'Unpublished' }}
                                                 </span>
-                                                <form method="POST" action="{{ route('courses.publish', $course) }}" style="margin:0" data-confirm-message="Are you sure?" data-confirm-title="Confirm Action">
-                                                    @csrf
-                                                    <input type="hidden" name="return_tab" value="trainer-trainee-management">
-                                                    <input type="hidden" name="published" value="{{ $pub ? '0':'1' }}">
-                                                    <button type="submit" class="btn-view" style="background:{{ $pub?'#ef4444':'#10b981' }};border-color:transparent">
-                                                        <i class="fas {{ $pub?'fa-eye-slash':'fa-bullhorn' }}"></i> {{ $pub ? 'Close Course' : 'Publish Course' }}
-                                                    </button>
-                                                </form>
+                                                @if($pub)
+                                                    <form method="POST" action="{{ route('courses.publish', $course) }}" style="margin:0" data-confirm-message="Are you sure?" data-confirm-title="Confirm Action">
+                                                        @csrf
+                                                        <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                        <input type="hidden" name="published" value="0">
+                                                        <button type="submit" class="btn-view" style="background:#ef4444;border-color:transparent">
+                                                            <i class="fas fa-eye-slash"></i> Close Course
+                                                        </button>
+                                                    </form>
+                                                @elseif($readyToPublish)
+                                                    <form method="POST" action="{{ route('courses.publish', $course) }}" style="margin:0" data-confirm-message="Are you sure?" data-confirm-title="Confirm Action">
+                                                        @csrf
+                                                        <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                        <input type="hidden" name="published" value="1">
+                                                        <input type="hidden" name="trainer_id" value="{{ $course->trainer_id }}">
+                                                        <input type="hidden" name="enrollment_start_date" value="{{ optional($course->enrollment_start_date)->format('Y-m-d') }}">
+                                                        <input type="hidden" name="enrollment_end_date" value="{{ optional($course->enrollment_end_date)->format('Y-m-d') }}">
+                                                        <button type="submit" class="btn-view" style="background:#10b981;border-color:transparent">
+                                                            <i class="fas fa-bullhorn"></i> Publish Course
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view" style="background:#f59e0b;border-color:transparent;color:#fff;">
+                                                        <i class="fas fa-calendar-alt"></i> Set Schedule First
+                                                    </a>
+                                                @endif
                                                 <a href="{{ route('registrar.courses.participants', $course) }}" class="btn-view">View Course</a>
                                             </div>
                                         </div>

@@ -13,7 +13,7 @@ class Course extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
-    protected $appends = ['image_url', 'enrollment_status', 'course_active_status', 'can_enroll', 'can_access'];
+    protected $appends = ['image_url', 'enrollment_status', 'course_active_status', 'can_enroll', 'can_access', 'coach_display_name'];
 
     public function getEnrollmentStatusAttribute()
     {
@@ -231,6 +231,47 @@ class Course extends Model
     public function trainer()
     {
         return $this->belongsTo(User::class, 'trainer_id');
+    }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(User::class, 'submitted_by_user_id');
+    }
+
+    public function getCoachDisplayNameAttribute(): string
+    {
+        $coachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
+
+        if ($this->relationLoaded('trainer') && $this->trainer && in_array($this->trainer->role ?? '', $coachRoles, true)) {
+            return (string) $this->trainer->name;
+        }
+
+        if (!$this->relationLoaded('trainer') && $this->trainer_id) {
+            $trainer = $this->trainer()->first();
+            if ($trainer && in_array($trainer->role ?? '', $coachRoles, true)) {
+                return (string) $trainer->name;
+            }
+        }
+
+        if ($this->relationLoaded('submittedBy') && $this->submittedBy && in_array($this->submittedBy->role ?? '', $coachRoles, true)) {
+            return (string) $this->submittedBy->name;
+        }
+
+        if (!$this->relationLoaded('submittedBy') && $this->submitted_by_user_id) {
+            $submittedBy = $this->submittedBy()->first();
+            if ($submittedBy && in_array($submittedBy->role ?? '', $coachRoles, true)) {
+                return (string) $submittedBy->name;
+            }
+        }
+
+        $coachNames = $this->users()
+            ->whereIn('role', $coachRoles)
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return (string) ($coachNames->join(', ') ?: 'TBA');
     }
 
     /**

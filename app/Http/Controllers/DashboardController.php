@@ -887,7 +887,8 @@ class DashboardController extends Controller
                 }
                 
                 if ($showCourses) {
-                    $availableCourses = Course::where('is_published', true)
+                    $availableCourses = Course::with(['users', 'trainer', 'submittedBy'])
+                        ->where('is_published', true)
                         ->where('academic_year_id', $selectedYearId);
                     if (!empty($excludedIds)) {
                         $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
@@ -1014,7 +1015,8 @@ class DashboardController extends Controller
 
         // For coaches, show all published courses in the preview
         $excludedIds = array_map('intval', array_keys($courseStatuses));
-        $availableCourses = Course::where('is_published', true);
+        $availableCourses = Course::with(['users', 'trainer', 'submittedBy'])
+            ->where('is_published', true);
         if (!empty($excludedIds)) {
             $availableCourses = $availableCourses->whereNotIn('id', $excludedIds);
         }
