@@ -1151,6 +1151,39 @@
         #course-management .course-stat-card.archived .course-stat-icon { background: #475569; }
         #course-management .course-stat-card.library .course-stat-icon { background: #10b981; }
 
+        #course-management .cm-shell{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 24px rgba(15,23,42,.06);overflow:hidden}
+        #course-management .cm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid #eef2f7}
+        #course-management .cm-title{font-size:1.25rem;font-weight:900;color:#0f172a;letter-spacing:-.02em}
+        #course-management .cm-subtitle{margin-top:4px;color:#64748b;font-weight:600;font-size:.92rem}
+        #course-management .cm-create{display:inline-flex;align-items:center;gap:10px;background:#0B2C74;color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
+        #course-management .cm-create i{font-size:.9rem}
+        #course-management .cm-tabs{display:flex;gap:10px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid #eef2f7;background:#fbfdff}
+        #course-management .cm-tab{display:inline-flex;align-items:center;gap:10px;border:1px solid #e5e7eb;background:#fff;color:#0f172a;padding:8px 12px;border-radius:12px;font-weight:800;cursor:pointer}
+        #course-management .cm-tab .cm-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 8px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:.82rem;font-weight:900}
+        #course-management .cm-tab.is-selected{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+        #course-management .cm-tab.is-selected .cm-count{background:#dbeafe;color:#1d4ed8}
+        #course-management .cm-panel{padding:14px 18px}
+        #course-management .cm-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+        #course-management .cm-table thead th{background:#f8fafc;color:#475569;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:12px 14px;border-bottom:1px solid #eef2f7}
+        #course-management .cm-table tbody td{padding:12px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+        #course-management .cm-table tbody tr:last-child td{border-bottom:none}
+        #course-management .cm-course{display:flex;align-items:center;gap:12px;min-width:0}
+        #course-management .cm-thumb{width:44px;height:44px;border-radius:10px;background:#eef4ff;background-size:cover;background-position:center;flex:0 0 44px;border:1px solid #e5e7eb}
+        #course-management .cm-course-name{font-weight:900;color:#0f172a;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
+        #course-management .cm-course-desc{margin-top:2px;color:#64748b;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+        #course-management .cm-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:.82rem;border:1px solid transparent}
+        #course-management .cm-pill.active{background:#eff6ff;color:#1d4ed8;border-color:#dbeafe}
+        #course-management .cm-pill.pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+        #course-management .cm-pill.draft{background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe}
+        #course-management .cm-pill.archived{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+        #course-management .cm-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+        #course-management .cm-btn{border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:#0f172a;text-decoration:none}
+        #course-management .cm-btn.primary{background:#0B2C74;border-color:#0B2C74;color:#fff}
+        #course-management .cm-btn.success{background:#10b981;border-color:#10b981;color:#fff}
+        #course-management .cm-btn.danger{background:#ef4444;border-color:#ef4444;color:#fff}
+        #course-management .cm-btn:disabled{opacity:.55;cursor:not-allowed}
+        #course-management .cm-empty{padding:18px;text-align:center;color:#64748b;font-weight:700}
+
         #course-create .course-create-shell {
             background: #ffffff;
             border: 1px solid #dbe2ea;
@@ -1781,6 +1814,52 @@
             gap: 24px;
         }
 
+        .course-overview-stack { display: flex; flex-direction: column; gap: 24px; }
+        .course-overview-right { display: flex; flex-direction: column; gap: 24px; }
+        .course-overview-card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .course-overview-card-title { margin: 0; font-size: 1.1rem; font-weight: 800; color: #1e293b; }
+        .course-overview-icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #2563eb; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .course-overview-icon-btn:hover { background: #eff6ff; border-color: #bfdbfe; }
+        .course-preview-action { background: #eff6ff; color: #2563eb; border: 1.5px solid #bfdbfe; padding: 8px 12px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
+        .course-preview-action:hover { background: #dbeafe; }
+        .course-details-list { display: grid; gap: 10px; }
+        .course-details-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .course-details-row:last-child { border-bottom: none; }
+        .course-details-label { display: flex; align-items: center; gap: 10px; color: #475569; font-weight: 800; font-size: 0.85rem; }
+        .course-details-label i { color: #94a3b8; }
+        .course-details-value { color: #0f172a; font-weight: 800; font-size: 0.9rem; text-align: right; }
+        .course-overview-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .course-overview-stat { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; align-items: center; gap: 14px; }
+        .course-overview-stat-ico { width: 46px; height: 46px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex: 0 0 46px; font-size: 1.05rem; }
+        .course-overview-stat-ico.blue { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+        .course-overview-stat-ico.green { background: #ecfdf5; color: #10b981; border: 1px solid #bbf7d0; }
+        .course-overview-stat-ico.orange { background: #fff7ed; color: #f97316; border: 1px solid #fed7aa; }
+        .course-overview-stat-ico.purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+        .course-overview-stat-label { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.06em; color: #94a3b8; text-transform: uppercase; }
+        .course-overview-stat-value { margin-top: 4px; font-size: 1.15rem; font-weight: 900; color: #0f172a; }
+        .course-overview-stat-sub { margin-top: 2px; font-size: 0.8rem; font-weight: 700; color: #64748b; }
+        .overview-modules { display: grid; gap: 12px; }
+        .overview-module { border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; }
+        .overview-module-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; cursor: pointer; }
+        .overview-module-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .overview-module-num { width: 28px; height: 28px; border-radius: 999px; background: #2563eb; color: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: 0 0 28px; font-size: 0.85rem; }
+        .overview-module-title { font-weight: 900; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .overview-module-meta { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f1f5f9; color: #334155; font-weight: 900; font-size: 0.75rem; }
+        .overview-module-body { display: none; padding: 0 16px 12px 56px; }
+        .overview-topic { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .overview-topic:last-child { border-bottom: none; }
+        .overview-topic-num { width: 44px; color: #64748b; font-weight: 900; font-size: 0.85rem; }
+        .overview-topic-title { flex: 1; color: #0f172a; font-weight: 800; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .overview-topic-ok { width: 28px; height: 28px; border-radius: 10px; background: #ecfdf5; border: 1px solid #bbf7d0; color: #10b981; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; }
+        .overview-exams { display: grid; gap: 12px; }
+        .overview-exam { border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; background: #ffffff; }
+        .overview-exam-title { font-weight: 900; color: #0f172a; }
+        .overview-exam-meta { margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; color: #64748b; font-weight: 700; font-size: 0.82rem; }
+        .overview-exam-chip { background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155; font-weight: 900; font-size: 0.72rem; border-radius: 999px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; }
+
+        @media (max-width: 1200px) {
+            .course-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
         .course-main-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -6223,143 +6302,418 @@
                 </div>
             </section>
             <!-- Course Management Section -->
-            <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1 class="welcome-title" style="margin: 0;"> <strong>Course Management</strong></h1>
-                    <div style="display: flex; gap: 55px; align-items: center;">
-                        <div style="position: relative; width: 250px;">
-                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                            <input type="text" id="courseSearchInput" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
-                        </div>
-                        <div style="position: relative; width: 220px;">
-                            <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                            <select id="academicYearFilterManagement" onchange="filterByAcademicYearManagement(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
-                                <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
-                                @foreach($academicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
-                        </div>
-                    </div>
-                </div>
-
+            <section id="course-management" class="content-section {{ in_array(request('tab'), ['course-management','pending-courses','archived-courses','course-library'], true) ? 'active' : '' }}">
                 @php
-                    $activeCoursesCount = $courses->count();
-                    $pendingCoursesCount = $pendingCourses->count();
-                    $draftCoursesCount = 0;
-                    $archivedCoursesCount = $archivedCourses->count();
+                    $allCoursesLocal = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses : collect([]);
+                    $pendingCoursesLocal = (isset($pendingCourses) && $pendingCourses instanceof \Illuminate\Support\Collection) ? $pendingCourses : collect([]);
+                    $pendingIdsLocal = $pendingCoursesLocal->pluck('id')->map(fn($v) => (int) $v)->all();
+                    $activeCoursesLocal = $allCoursesLocal->filter(fn($c) => (bool) ($c->is_published ?? false))->values();
+                    $draftCoursesLocal = $allCoursesLocal->filter(fn($c) => !(bool) ($c->is_published ?? false) && !in_array((int) ($c->id ?? 0), $pendingIdsLocal, true))->values();
+                    $archivedCoursesLocal = (isset($archivedCourses) && $archivedCourses instanceof \Illuminate\Support\Collection) ? $archivedCourses : collect([]);
+                    $rejectedCoursesLocal = collect([]);
+                    $libraryCoursesLocal = $activeCoursesLocal;
+                    $activeCoursesCount = $activeCoursesLocal->count();
+                    $pendingCoursesCountLocal = $pendingCoursesLocal->count();
+                    $rejectedCoursesCountLocal = $rejectedCoursesLocal->count();
+                    $draftCoursesCountLocal = $draftCoursesLocal->count();
+                    $archivedCoursesCountLocal = $archivedCoursesLocal->count();
+                    $formatSubjectAreas = function ($raw) {
+                        if (is_array($raw)) {
+                            $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $raw), fn($v) => $v !== ''));
+                            return $vals ? implode(', ', $vals) : '—';
+                        }
+                        if ($raw === null) return '—';
+                        $str = trim((string) $raw);
+                        $str = trim($str, "\"");
+                        if ($str === '') return '—';
+                        if (\Illuminate\Support\Str::startsWith($str, '[')) {
+                            $decoded = json_decode($str, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $decoded), fn($v) => $v !== ''));
+                                return $vals ? implode(', ', $vals) : '—';
+                            }
+                        }
+                        return $str;
+                    };
                 @endphp
-                <div class="course-stats-grid">
-                    <div class="course-stat-card active"
-                         role="button"
-                         tabindex="0"
-                         onclick="showContent('course-management', document.querySelector('.menu-item[onclick*=\'course-management\']))"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Active Courses</p>
-                            <p class="course-stat-value">{{ $activeCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-graduation-cap"></i></span>
-                    </div>
-                    <div class="course-stat-card pending"
-                         role="button"
-                         tabindex="0"
-                         onclick="window.location.href='{{ route('dashboard', ['tab' => 'pending-courses']) }}'"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Pending Courses</p>
-                            <p class="course-stat-value">{{ $pendingCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-hourglass-half"></i></span>
-                    </div>
-                    <div class="course-stat-card draft"
-                         role="button"
-                         tabindex="0"
-                         onclick="navigateToSection('draft-courses')"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Draft Courses</p>
-                            <p id="draftCoursesCount" class="course-stat-value">{{ $draftCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-file-pen"></i></span>
-                    </div>
-                    <div class="course-stat-card archived"
-                         role="button"
-                         tabindex="0"
-                         onclick="navigateToSection('archived-courses')"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Archived Courses</p>
-                            <p class="course-stat-value">{{ $archivedCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
-                    </div>
-                    <div class="course-stat-card library"
-                         role="button"
-                         tabindex="0"
-                         onclick="showContent('course-library', document.querySelector('.menu-item[onclick*=\'course-management\']'))"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Course Library</p>
-                            <p class="course-stat-value">View</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-layer-group"></i></span>
-                    </div>
-                </div>
-                
-                @if(session('success_course'))
-                    <div class="alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                        {{ session('success_course') }}
-                    </div>
-                @endif
 
-                <div class="course-grid">
-                    @if(Auth::user()->hasPermission('create_courses'))
-                    <button type="button" class="course-card add-course-card" onclick="openAddCourseModal()" aria-label="Add Course" style="border:0;">
-                        <span class="add-course-plus"><i class="fas fa-plus"></i></span>
-                        <p class="add-course-title">Add Course</p>
-                    </button>
-                    @endif
-                    @foreach($courses as $course)
-                        @php
-                            $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp;
-                            $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                            $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
-                        @endphp
-                            <div class="course-card"
-                             role="button"
-                             tabindex="0"
-                             onclick="openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})"
-                             onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }"
-                             style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
-                            @php
-                                $img = !empty($course->image_path) ? $course->image_url : null;
-                                if (!$img) {
-                                    $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
-                                }
-                                if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
-                                    $img = $course->image_path;
-                                }
-                                $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
-                            @endphp
-                            <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ $ph }}'">
-                            <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                                <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <div style="margin-top:auto;display:flex;justify-content:flex-end;">
-                                    <button type="button" onclick="event.stopPropagation(); openViewCourseModal({{ json_encode(['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')]) }})" style="background:#002C76;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;">
-                                        View
-                                    </button>
-                                </div>
+                <div class="cm-shell">
+                    <div class="cm-head">
+                        <div>
+                            <div class="cm-title">Course Management</div>
+                            <div class="cm-subtitle">Manage and review all course submissions.</div>
+                        </div>
+                        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                            <div style="position: relative; width: 240px;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                <input type="text" id="courseSearchInputAdmin" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
                             </div>
+                            <div style="position: relative; width: 220px;">
+                                <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                <select id="academicYearFilterManagementAdmin" onchange="filterByAcademicYearCourseManagementAdmin(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                    <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                    @foreach($academicYears as $ay)
+                                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                            {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                            </div>
+                            @if(Auth::user()->hasPermission('create_courses'))
+                                <button type="button" class="cm-create" onclick="openAddCourseModal()">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Create New Course</span>
+                                </button>
+                            @endif
                         </div>
-                    @endforeach
-                </div>
+                    </div>
 
-                <!-- Archived Courses list removed; use modal via the 'Archived Courses' button -->
+                    <div class="cm-tabs">
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="active" onclick="switchCourseManagementTabAdmin('active')">
+                            <span><i class="fas fa-circle-check" style="color:#1d4ed8"></i> Active Courses</span>
+                            <span class="cm-count">{{ $activeCoursesCount }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="pending" onclick="switchCourseManagementTabAdmin('pending')">
+                            <span><i class="fas fa-hourglass-half" style="color:#d97706"></i> Pending Courses</span>
+                            <span class="cm-count">{{ $pendingCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="rejected" onclick="switchCourseManagementTabAdmin('rejected')">
+                            <span><i class="fas fa-circle-xmark" style="color:#dc2626"></i> Rejected Courses</span>
+                            <span class="cm-count">{{ $rejectedCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="draft" onclick="switchCourseManagementTabAdmin('draft')">
+                            <span><i class="fas fa-file-pen" style="color:#7c3aed"></i> Draft Courses</span>
+                            <span class="cm-count">{{ $draftCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="archived" onclick="switchCourseManagementTabAdmin('archived')">
+                            <span><i class="fas fa-box-archive" style="color:#475569"></i> Archived Courses</span>
+                            <span class="cm-count">{{ $archivedCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-admin" data-cm-tab="library" onclick="switchCourseManagementTabAdmin('library')">
+                            <span><i class="fas fa-layer-group" style="color:#10b981"></i> Courses Library</span>
+                            <span class="cm-count">{{ $libraryCoursesLocal->count() }}</span>
+                        </button>
+                    </div>
+
+                    @if(session('success_course'))
+                        <div style="padding:14px 18px;color:#155724;background:#f0fff6;border-top:1px solid #e7f7ee;border-bottom:1px solid #e7f7ee;font-weight:700;">
+                            {{ session('success_course') }}
+                        </div>
+                    @endif
+
+                    <div class="cm-panel" data-cm-panel="active">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Published On</th>
+                                    <th>Last Updated</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($activeCoursesLocal->sortByDesc('created_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $publishedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $publishedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $updatedOn = $course->updated_at ? $course->updated_at->format('M d, Y') : '—';
+                                        $updatedTime = $course->updated_at ? $course->updated_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                        $modalPayload = ['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')];
+                                    @endphp
+                                    <tr class="js-course-card-admin" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill active">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $publishedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $publishedTime }}</div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $updatedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $updatedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <button type="button" class="cm-btn primary" onclick='openViewCourseModal(@json($modalPayload))'>View</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="cm-empty">No active courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="pending" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Submitted By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Submitted On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pendingCoursesLocal as $course)
+                                    @php
+                                        $submitter = $course->users->first(function ($u) {
+                                            return in_array(strtolower((string) $u->role), [
+                                                'coach',
+                                                'trainer',
+                                                'central_office_coach',
+                                                'regional_office_coach',
+                                                'provincial_office_coach',
+                                            ], true);
+                                        });
+                                        $img = $course->image_url;
+                                        $submittedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $submittedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                        $modalPayload = ['id' => $course->id, 'name' => $course->name, 'creator_name' => ($submitter ? $submitter->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')];
+                                    @endphp
+                                    <tr class="js-course-card-admin" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $submitter?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $submitter?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill pending">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $submittedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $submittedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <button type="button" class="cm-btn" onclick='openViewCourseModal(@json($modalPayload))'>View</button>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin:0;display:inline" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course" data-confirm-stop-propagation="true">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="course-management">
+                                                    <button type="submit" class="cm-btn success"><i class="fas fa-check"></i> Approve</button>
+                                                </form>
+                                                <button type="button" class="cm-btn danger" disabled><i class="fas fa-xmark"></i> Reject</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No pending courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="rejected" style="display:none">
+                        <div class="cm-empty">No rejected courses found.</div>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="draft" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Last Updated</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($draftCoursesLocal->sortByDesc('updated_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $updatedOn = $course->updated_at ? $course->updated_at->format('M d, Y') : '—';
+                                        $updatedTime = $course->updated_at ? $course->updated_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                        $modalPayload = ['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')];
+                                    @endphp
+                                    <tr class="js-course-card-admin" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill draft">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $updatedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $updatedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <button type="button" class="cm-btn primary" onclick='openViewCourseModal(@json($modalPayload))'>View</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No draft courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="archived" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Archived On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($archivedCoursesLocal->sortByDesc('deleted_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $archivedOn = $course->deleted_at ? $course->deleted_at->format('M d, Y') : '—';
+                                        $archivedTime = $course->deleted_at ? $course->deleted_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                        $modalPayload = ['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')];
+                                    @endphp
+                                    <tr class="js-course-card-admin" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill archived">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $archivedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $archivedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <button type="button" class="cm-btn" onclick='openViewCourseModal(@json($modalPayload))'>View</button>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin:0;display:inline" data-confirm-message="Unarchive this course?" data-confirm-title="Unarchive Course" data-confirm-stop-propagation="true">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="course-management">
+                                                    <button type="submit" class="cm-btn success">Unarchive</button>
+                                                </form>
+                                                <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" style="margin:0;display:inline" data-confirm-message="Permanently delete this course? This cannot be undone." data-confirm-title="Delete Course" data-confirm-stop-propagation="true" data-confirm-ok="Delete">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="cm-btn danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No archived courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="library" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Published On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($libraryCoursesLocal->sortByDesc('created_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $publishedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $publishedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                        $modalPayload = ['id' => $course->id, 'name' => $course->name, 'creator_name' => ($creator ? $creator->name : null), 'created_at' => optional($course->created_at)->format('M d, Y')];
+                                    @endphp
+                                    <tr class="js-course-card-admin" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill active">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $publishedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $publishedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <button type="button" class="cm-btn primary" onclick='openViewCourseModal(@json($modalPayload))'>View</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No courses found in the library.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Course Create Section -->
@@ -6382,7 +6736,7 @@
             </section>
 
             <!-- Pending Courses Section -->
-            <section id="pending-courses" class="content-section {{ request('tab') == 'pending-courses' ? 'active' : '' }}">
+            <section id="pending-courses" class="content-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
@@ -6451,7 +6805,7 @@
                 @endif
             </section>
 
-            <section id="archived-courses" class="content-section {{ request('tab') == 'archived-courses' ? 'active' : '' }}">
+            <section id="archived-courses" class="content-section">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin:0;">Archived <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
@@ -6755,7 +7109,7 @@
             </section>
 
             <!-- Course Library Section -->
-            <section id="course-library" class="content-section {{ request('tab') == 'course-library' ? 'active' : '' }}">
+            <section id="course-library" class="content-section">
                 <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
                     <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
                         <div style="display: flex; align-items: center; gap: 16px;">
@@ -6870,8 +7224,9 @@
 
                     <div class="course-view-nav">
                         <div class="course-nav-item active" onclick="switchCourseViewTab('overview', this)">Overview</div>
-                        <div class="course-nav-item" onclick="switchCourseViewTab('modules', this)">Curriculum</div>
-                        <div class="course-nav-item" onclick="switchCourseViewTab('exams', this)">Exams & Assessments</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('modules', this)">Modules &amp; Topics</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('enrollment', this)">Enrollment</div>
+                        <div class="course-nav-item" onclick="switchCourseViewTab('examinations', this)">Examinations</div>
                         <div class="course-nav-item" onclick="switchCourseViewTab('certificate', this)">Certificate</div>
                         <div class="course-nav-item" onclick="switchCourseViewTab('settings', this)">Settings</div>
                     </div>
@@ -6881,20 +7236,95 @@
                     <!-- Overview Tab -->
                     <div id="course-tab-overview" class="course-tab-content">
                         <div class="course-content-grid">
-                            <div class="course-main-card">
-                                <h3 style="margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">About this Course</h3>
-                                <div id="pro_view_course_desc" style="font-size: 1.05rem; color: #475569; line-height: 1.7; white-space: pre-wrap;"></div>
-                            </div>
-                            <div class="course-side-card">
-                                <img id="pro_view_course_image" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
-                                <div style="display: flex; flex-direction: column; gap: 16px;">
-                                    <div style="padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                                        <p style="margin: 0; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Subject Area</p>
-                                        <p id="pro_view_course_subject" style="margin: 4px 0 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;"></p>
+                            <div class="course-overview-stack">
+                                <div class="course-main-card" style="padding: 24px;">
+                                    <div class="course-overview-card-head">
+                                        <h3 class="course-overview-card-title">Course Description</h3>
+                                        <button type="button" class="course-overview-icon-btn" id="pro_view_overview_edit_desc_btn" aria-label="Edit course">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
                                     </div>
-                                    <div style="padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                                        <p style="margin: 0; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Certification</p>
-                                        <p id="pro_view_course_certification" style="margin: 4px 0 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;"></p>
+                                    <div id="pro_view_course_desc" style="font-size: 0.98rem; color: #475569; line-height: 1.7; white-space: pre-wrap; font-weight: 600;"></div>
+                                </div>
+
+                                <div class="course-main-card" style="padding: 24px;">
+                                    <div class="course-overview-card-head">
+                                        <h3 class="course-overview-card-title">Modules &amp; Topics</h3>
+                                        <button type="button" class="course-preview-action" id="pro_view_overview_expand_all" onclick="toggleAllOverviewModules()">
+                                            Expand All
+                                        </button>
+                                    </div>
+                                    <div id="pro_view_overview_modules_container" class="overview-modules"></div>
+                                </div>
+
+                                <div class="course-overview-stats">
+                                    <div class="course-overview-stat">
+                                        <div class="course-overview-stat-ico blue"><i class="fas fa-users"></i></div>
+                                        <div>
+                                            <div class="course-overview-stat-label">Participants</div>
+                                            <div id="pro_view_overview_participants" class="course-overview-stat-value">—</div>
+                                            <div class="course-overview-stat-sub">Enrolled</div>
+                                        </div>
+                                    </div>
+                                    <div class="course-overview-stat">
+                                        <div class="course-overview-stat-ico green"><i class="fas fa-calendar-check"></i></div>
+                                        <div>
+                                            <div class="course-overview-stat-label">Enrollment Date</div>
+                                            <div id="pro_view_overview_enrollment_date" class="course-overview-stat-value">—</div>
+                                            <div class="course-overview-stat-sub" id="pro_view_overview_enrollment_sub">Not available</div>
+                                        </div>
+                                    </div>
+                                    <div class="course-overview-stat">
+                                        <div class="course-overview-stat-ico orange"><i class="fas fa-clock"></i></div>
+                                        <div>
+                                            <div class="course-overview-stat-label">Duration</div>
+                                            <div id="pro_view_overview_duration" class="course-overview-stat-value">—</div>
+                                            <div class="course-overview-stat-sub" id="pro_view_overview_duration_sub">Not specified</div>
+                                        </div>
+                                    </div>
+                                    <div class="course-overview-stat">
+                                        <div class="course-overview-stat-ico purple"><i class="fas fa-list-check"></i></div>
+                                        <div>
+                                            <div class="course-overview-stat-label">Total Modules</div>
+                                            <div id="pro_view_overview_modules_total" class="course-overview-stat-value">—</div>
+                                            <div class="course-overview-stat-sub">Modules</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="course-overview-right">
+                                <div class="course-side-card">
+                                    <div class="course-overview-card-head" style="margin-bottom: 14px;">
+                                        <h3 class="course-overview-card-title">Course Preview</h3>
+                                        <a id="pro_view_overview_preview_btn" class="course-preview-action" href="#" target="_blank" rel="noopener">
+                                            Preview Course <i class="fas fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                    <img id="pro_view_course_image" src="" style="width: 100%; height: 260px; object-fit: cover; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc;">
+                                </div>
+
+                                <div class="course-side-card">
+                                    <div class="course-overview-card-head" style="margin-bottom: 6px;">
+                                        <h3 class="course-overview-card-title">Course Details</h3>
+                                    </div>
+                                    <div class="course-details-list">
+                                        <div class="course-details-row">
+                                            <div class="course-details-label"><i class="fas fa-layer-group"></i> Course Category</div>
+                                            <div id="pro_view_detail_category" class="course-details-value">—</div>
+                                        </div>
+                                        <div class="course-details-row">
+                                            <div class="course-details-label"><i class="fas fa-user"></i> Created By</div>
+                                            <div id="pro_view_detail_created_by" class="course-details-value">—</div>
+                                        </div>
+                                        <div class="course-details-row">
+                                            <div class="course-details-label"><i class="fas fa-calendar-day"></i> Created On</div>
+                                            <div id="pro_view_detail_created_on" class="course-details-value">—</div>
+                                        </div>
+                                        <div class="course-details-row">
+                                            <div class="course-details-label"><i class="fas fa-clock-rotate-left"></i> Last Updated</div>
+                                            <div id="pro_view_detail_updated_on" class="course-details-value">—</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -6910,19 +7340,50 @@
                         </div>
                     </div>
 
-                    <!-- Exams Tab -->
-                    <div id="course-tab-exams" class="course-tab-content" style="display: none;">
+                    <div id="course-tab-enrollment" class="course-tab-content" style="display: none;">
                         <div class="course-main-card" style="max-width: 900px; margin: 0 auto;">
-                            <div id="pro_view_exams_container">
-                                <div style="text-align: center; padding: 40px; color: #64748b;">
-                                    <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
-                                    <p style="font-weight: 600;">Course assessments and final exams will appear here.</p>
+                            <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Enrollment</h3>
+                            <div style="display:grid; gap:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px;">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div style="width:44px;height:44px;border-radius:14px;background:#ecfdf5;border:1px solid #bbf7d0;color:#10b981;display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:900;color:#0f172a;">Enrollment Window</div>
+                                            <div style="color:#64748b;font-weight:700;font-size:.86rem;">Participants can enroll only within this date range.</div>
+                                        </div>
+                                    </div>
+                                    <div id="pro_view_enrollment_window" style="font-weight:900;color:#0f172a;">—</div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px; background:#fff; border:1px solid #e2e8f0; border-radius:14px;">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div style="width:44px;height:44px;border-radius:14px;background:#eff6ff;border:1px solid #dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:900;color:#0f172a;">Participants</div>
+                                            <div style="color:#64748b;font-weight:700;font-size:.86rem;">Currently enrolled participants.</div>
+                                        </div>
+                                    </div>
+                                    <div id="pro_view_enrollment_participants" style="font-weight:900;color:#0f172a;">—</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Certificate Tab -->
+                    <div id="course-tab-examinations" class="course-tab-content" style="display: none;">
+                        <div class="course-main-card" style="max-width: 900px; margin: 0 auto;">
+                            <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Examinations</h3>
+                            <div id="pro_view_exams_container">
+                                <div style="text-align: center; padding: 40px; color: #64748b;">
+                                    <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
+                                    <p style="font-weight: 600;">Course examinations will appear here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="course-tab-certificate" class="course-tab-content" style="display: none;">
                         <div class="course-main-card" style="max-width: 900px; margin: 0 auto; text-align: center;">
                             <h3 style="margin: 0 0 24px; font-size: 1.25rem; font-weight: 800; color: #1e293b;">Course Certificate</h3>
@@ -9797,13 +10258,24 @@
             if (sectionId === 'dashboard-home') {
                 url.searchParams.delete('tab');
                 url.searchParams.delete('step');
+                url.searchParams.delete('cm');
             } else {
                 url.searchParams.set('tab', sectionId);
                 if (sectionId !== 'course-create') {
                     url.searchParams.delete('step');
                 }
+                if (sectionId !== 'course-management') {
+                    url.searchParams.delete('cm');
+                } else {
+                    const cm = url.searchParams.get('cm') || (window.__adminCourseMgmtTab || 'active');
+                    url.searchParams.set('cm', cm);
+                }
             }
             window.history.pushState({}, '', url.toString());
+
+            if (sectionId === 'course-management' && typeof switchCourseManagementTabAdmin === 'function') {
+                switchCourseManagementTabAdmin(url.searchParams.get('cm') || 'active', { skipUrl: true });
+            }
 
             // Close sidebar on mobile
             if (window.innerWidth <= 992) {
@@ -9859,11 +10331,114 @@
                 openDraftCoursesModal();
                 return;
             }
+            if (sectionId === 'pending-courses') {
+                const menuItem = document.querySelector(".menu-item[onclick*='course-management']");
+                showContent('course-management', menuItem);
+                if (typeof switchCourseManagementTabAdmin === 'function') {
+                    switchCourseManagementTabAdmin('pending');
+                }
+                return;
+            }
+            if (sectionId === 'archived-courses') {
+                const menuItem = document.querySelector(".menu-item[onclick*='course-management']");
+                showContent('course-management', menuItem);
+                if (typeof switchCourseManagementTabAdmin === 'function') {
+                    switchCourseManagementTabAdmin('archived');
+                }
+                return;
+            }
+            if (sectionId === 'course-library') {
+                const menuItem = document.querySelector(".menu-item[onclick*='course-management']");
+                showContent('course-management', menuItem);
+                if (typeof switchCourseManagementTabAdmin === 'function') {
+                    switchCourseManagementTabAdmin('library');
+                }
+                return;
+            }
             const menuItem = Array.from(document.querySelectorAll('.menu-item')).find(item => 
                 item.getAttribute('onclick') && item.getAttribute('onclick').includes(sectionId)
             );
             showContent(sectionId, menuItem);
         }
+
+        function filterByAcademicYearCourseManagementAdmin(yearId) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('academic_year_id', yearId);
+            url.searchParams.set('tab', 'course-management');
+            const currentCm = url.searchParams.get('cm') || (window.__adminCourseMgmtTab || '');
+            if (currentCm) {
+                url.searchParams.set('cm', currentCm);
+            }
+            window.location.href = url.toString();
+        }
+
+        function switchCourseManagementTabAdmin(tab, opts){
+            const t = String(tab || '').toLowerCase();
+            window.__adminCourseMgmtTab = t || 'active';
+            const panels = document.querySelectorAll('#course-management [data-cm-panel]');
+            panels.forEach(p => {
+                const isActive = String(p.getAttribute('data-cm-panel')) === window.__adminCourseMgmtTab;
+                p.style.display = isActive ? '' : 'none';
+            });
+            document.querySelectorAll('#course-management .js-cm-tab-admin').forEach(el => {
+                el.classList.toggle('is-selected', String(el.getAttribute('data-cm-tab')) === window.__adminCourseMgmtTab);
+            });
+            const skipUrl = !!(opts && opts.skipUrl);
+            if (!skipUrl) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', 'course-management');
+                url.searchParams.set('cm', window.__adminCourseMgmtTab);
+                window.history.pushState({}, '', url.toString());
+            }
+            const input = document.getElementById('courseSearchInputAdmin');
+            if (input) {
+                const ev = new Event('input');
+                input.dispatchEvent(ev);
+            }
+        }
+
+        (function(){
+            function bindCourseSearchAdmin(){
+                const input = document.getElementById('courseSearchInputAdmin');
+                if(!input) return;
+                input.addEventListener('input', function(){
+                    const q = String(input.value || '').toLowerCase().trim();
+                    const tab = window.__adminCourseMgmtTab || 'active';
+                    const panel = document.querySelector(`#course-management [data-cm-panel="${tab}"]`);
+                    if(!panel) return;
+                    const rows = panel.querySelectorAll('.js-course-card-admin');
+                    rows.forEach(row => {
+                        const name = String(row.getAttribute('data-course-name') || '');
+                        row.style.display = q ? (name.includes(q) ? '' : 'none') : '';
+                    });
+                });
+            }
+            function initCourseManagementTabFromUrl(){
+                const cmSection = document.getElementById('course-management');
+                if(!cmSection) return;
+                const url = new URL(window.location.href);
+                const tab = (url.searchParams.get('tab') || '').toLowerCase();
+                const mapped = { 'pending-courses': 'pending', 'archived-courses': 'archived', 'course-library': 'library' };
+                const cm = mapped[tab] || url.searchParams.get('cm') || 'active';
+                if(tab === 'course-management' || mapped[tab]) {
+                    switchCourseManagementTabAdmin(cm, { skipUrl: true });
+                    if (mapped[tab]) {
+                        url.searchParams.set('tab', 'course-management');
+                        url.searchParams.set('cm', cm);
+                        window.history.replaceState({}, '', url.toString());
+                    }
+                }
+            }
+            if(document.readyState === 'loading'){
+                document.addEventListener('DOMContentLoaded', function(){
+                    initCourseManagementTabFromUrl();
+                    bindCourseSearchAdmin();
+                });
+            }else{
+                initCourseManagementTabFromUrl();
+                bindCourseSearchAdmin();
+            }
+        })();
 
         // Modal Functions
         function openDisplaySection(user) {
@@ -11002,14 +11577,136 @@
             }
         }
 
+        function renderOverviewModulesHTML(modules) {
+            const escape = (value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const list = Array.isArray(modules) ? modules : [];
+            if (!list.length) {
+                return '<div style="text-align:center;padding:22px;color:#64748b;font-weight:700;">No modules added yet.</div>';
+            }
+            return `
+                <div class="overview-modules">
+                    ${list.map((mod, mi) => {
+                        const topics = Array.isArray(mod?.topics) ? mod.topics : [];
+                        return `
+                            <div class="overview-module" data-ovm="1" data-open="0">
+                                <div class="overview-module-head" onclick="toggleOverviewModule(this)">
+                                    <div class="overview-module-left">
+                                        <div class="overview-module-num">${mi + 1}</div>
+                                        <div class="overview-module-title">Module ${mi + 1}: ${escape(mod?.title || '')}</div>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span class="overview-module-meta">${topics.length} ${topics.length === 1 ? 'Topic' : 'Topics'}</span>
+                                        <i class="fas fa-chevron-down" style="color:#94a3b8; transition: transform .2s ease;"></i>
+                                    </div>
+                                </div>
+                                <div class="overview-module-body">
+                                    ${topics.length ? topics.map((t, ti) => `
+                                        <div class="overview-topic">
+                                            <div class="overview-topic-num">${mi + 1}.${ti + 1}</div>
+                                            <div class="overview-topic-title">${escape(t?.title || '')}</div>
+                                            <div class="overview-topic-ok"><i class="fas fa-check"></i></div>
+                                        </div>
+                                    `).join('') : '<div style="padding:12px 0;color:#64748b;font-weight:700;">No topics</div>'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderOverviewExamsHTML(assessments) {
+            const list = Array.isArray(assessments) ? assessments : [];
+            if (!list.length) {
+                return '<div style="text-align:center;padding:22px;color:#64748b;font-weight:700;">No examinations found.</div>';
+            }
+            const short = list.slice(0, 3);
+            return `
+                <div class="overview-exams">
+                    ${short.map(a => {
+                        const typeLabel = String(a?.type || 'assessment').replace(/_/g, ' ');
+                        const due = a?.due_date || 'No deadline';
+                        const q = Number.isFinite(Number.parseInt(a?.question_count, 10)) ? Number.parseInt(a?.question_count, 10) : 0;
+                        const moduleTitle = a?.module_title ? String(a.module_title) : '';
+                        return `
+                            <div class="overview-exam">
+                                <div class="overview-exam-title">${a?.title || 'Untitled Exam'}</div>
+                                <div class="overview-exam-meta">
+                                    <span class="overview-exam-chip"><i class="fas fa-tasks"></i> ${typeLabel}</span>
+                                    <span class="overview-exam-chip"><i class="fas fa-question-circle"></i> ${q} Q</span>
+                                    <span class="overview-exam-chip"><i class="fas fa-clock"></i> ${due}</span>
+                                    ${moduleTitle ? `<span class="overview-exam-chip"><i class="fas fa-layer-group"></i> ${moduleTitle}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    ${list.length > 3 ? `<div style="text-align:center;color:#64748b;font-weight:800;font-size:.85rem;">+${list.length - 3} more</div>` : ''}
+                </div>
+            `;
+        }
+
+        function toggleOverviewModule(headEl) {
+            const mod = headEl?.closest?.('.overview-module');
+            if (!mod) return;
+            const body = mod.querySelector('.overview-module-body');
+            const icon = headEl.querySelector('.fa-chevron-down');
+            const isOpen = body && body.style.display === 'block';
+            if (body) body.style.display = isOpen ? 'none' : 'block';
+            mod.setAttribute('data-open', isOpen ? '0' : '1');
+            if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            updateOverviewExpandAllButton();
+        }
+
+        function updateOverviewExpandAllButton() {
+            const btn = document.getElementById('pro_view_overview_expand_all');
+            if (!btn) return;
+            const mods = document.querySelectorAll('#pro_view_overview_modules_container .overview-module[data-ovm="1"]');
+            if (!mods.length) return;
+            let openCount = 0;
+            mods.forEach(m => {
+                if (m.getAttribute('data-open') === '1') openCount++;
+            });
+            btn.textContent = openCount === mods.length ? 'Collapse All' : 'Expand All';
+        }
+
+        function toggleAllOverviewModules() {
+            const mods = document.querySelectorAll('#pro_view_overview_modules_container .overview-module[data-ovm="1"]');
+            if (!mods.length) return;
+            let openCount = 0;
+            mods.forEach(m => {
+                if (m.getAttribute('data-open') === '1') openCount++;
+            });
+            const shouldOpen = openCount !== mods.length;
+            mods.forEach(m => {
+                const body = m.querySelector('.overview-module-body');
+                const icon = m.querySelector('.overview-module-head .fa-chevron-down');
+                if (body) body.style.display = shouldOpen ? 'block' : 'none';
+                m.setAttribute('data-open', shouldOpen ? '1' : '0');
+                if (icon) icon.style.transform = shouldOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            });
+            updateOverviewExpandAllButton();
+        }
+
         async function openViewCourseModal(courseData, startTab = 'overview') {
             // Instead of a modal, we now use the main content section
             showContent('course-view-details', document.querySelector('.menu-item[onclick*=\'course-management\']'));
+
+            const normalizedStart = (() => {
+                const raw = String(startTab || '').toLowerCase();
+                if (raw === 'reports') return 'certificate';
+                if (raw === 'exams' || raw === 'examination' || raw === 'examinations') return 'examinations';
+                return raw || 'overview';
+            })();
             
             // Switch to requested tab (defaults to overview)
-            const targetNav = document.querySelector(`.course-nav-item[onclick*="'${startTab}'"]`);
+            const targetNav = document.querySelector(`.course-nav-item[onclick*="'${normalizedStart}'"]`);
             if (targetNav) {
-                switchCourseViewTab(startTab, targetNav);
+                switchCourseViewTab(normalizedStart, targetNav);
             } else {
                 const firstTab = document.querySelector('.course-nav-item');
                 if (firstTab) switchCourseViewTab('overview', firstTab);
@@ -11023,6 +11720,14 @@
             // Show loading states
             document.getElementById('pro_view_course_desc').innerHTML = '<p style="color:#94a3b8;">Loading course details...</p>';
             document.getElementById('pro_view_modules_container').innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#2563eb;"></i></div>';
+            const overviewModules = document.getElementById('pro_view_overview_modules_container');
+            if (overviewModules) {
+                overviewModules.innerHTML = '<div style="text-align:center;padding:26px;"><i class="fas fa-spinner fa-spin" style="font-size:1.2rem;color:#2563eb;"></i></div>';
+            }
+            const overviewExams = document.getElementById('pro_view_overview_exams_container');
+            if (overviewExams) {
+                overviewExams.innerHTML = '<div style="text-align:center;padding:26px;"><i class="fas fa-spinner fa-spin" style="font-size:1.2rem;color:#2563eb;"></i></div>';
+            }
             
             try {
                 const response = await fetch(`/courses/${courseData.id}/details-ajax`);
@@ -11180,12 +11885,15 @@
                     const subjectsLabel = subjectText(c.subject_area);
                     const firstSubject = parseSubjectAreas(c.subject_area).map(v => (typeof v === 'string' ? v.trim() : '')).filter(Boolean)[0] || '';
                     document.getElementById('view_course_category_badge').innerText = firstSubject || 'General';
-                    document.getElementById('pro_view_course_subject').innerText = subjectsLabel || 'General';
+                    const subjectEl = document.getElementById('pro_view_course_subject');
+                    if (subjectEl) subjectEl.innerText = subjectsLabel || 'General';
                     document.getElementById('pro_view_course_date').innerText = dateRangeText(c.start_date, c.course_expiration_date);
                     const cert = c.certification || null;
-                    document.getElementById('pro_view_course_certification').innerText = cert?.name || 'None';
+                    const certInfoEl = document.getElementById('pro_view_course_certification');
+                    if (certInfoEl) certInfoEl.innerText = cert?.name || 'None';
                     document.getElementById('pro_view_course_cert').innerText = cert ? 'Certification Enabled' : 'No Certification';
-                    document.getElementById('pro_view_cert_name').innerText = cert?.name || 'Certificate of Completion';
+                    const certNameEl = document.getElementById('pro_view_cert_name');
+                    if (certNameEl) certNameEl.innerText = cert?.name || 'Certificate of Completion';
                     const certificateBody = document.getElementById('pro_view_certificate_body');
                     if (certificateBody) {
                         if (cert?.file_url) {
@@ -11228,6 +11936,103 @@
                     
                     // Description
                     document.getElementById('pro_view_course_desc').innerText = c.description || 'No description provided.';
+
+                    const creatorLabel = c.creator_name || courseData.creator_name || '—';
+                    const creatorNode = document.getElementById('pro_view_course_creator');
+                    if (creatorNode) creatorNode.innerText = creatorLabel;
+
+                    const statusBadge = document.getElementById('view_course_status_badge');
+                    if (statusBadge) {
+                        const isPublished = !!c.is_published;
+                        const isTrashed = !!result.course.trashed;
+                        if (isTrashed) {
+                            statusBadge.innerText = 'Archived';
+                            statusBadge.style.background = '#f1f5f9';
+                            statusBadge.style.color = '#475569';
+                        } else if (isPublished) {
+                            statusBadge.innerText = 'Published';
+                            statusBadge.style.background = '#ecfdf5';
+                            statusBadge.style.color = '#10b981';
+                        } else {
+                            statusBadge.innerText = 'Unpublished';
+                            statusBadge.style.background = '#fff7ed';
+                            statusBadge.style.color = '#f97316';
+                        }
+                    }
+
+                    const overviewEdit = document.getElementById('pro_view_overview_edit_desc_btn');
+                    if (overviewEdit) {
+                        overviewEdit.onclick = () => window.location.href = `/admin/courses/${c.id}/edit`;
+                    }
+                    const overviewPreview = document.getElementById('pro_view_overview_preview_btn');
+                    if (overviewPreview) {
+                        overviewPreview.href = `/trainee/courses/${c.id}`;
+                    }
+
+                    const detailCategory = document.getElementById('pro_view_detail_category');
+                    const detailCreatedBy = document.getElementById('pro_view_detail_created_by');
+                    const detailCreatedOn = document.getElementById('pro_view_detail_created_on');
+                    const detailUpdatedOn = document.getElementById('pro_view_detail_updated_on');
+                    if (detailCategory) detailCategory.innerText = subjectsLabel || 'General';
+                    if (detailCreatedBy) detailCreatedBy.innerText = creatorLabel;
+                    if (detailCreatedOn) detailCreatedOn.innerText = c.created_at || courseData.created_at || '—';
+                    if (detailUpdatedOn) detailUpdatedOn.innerText = c.updated_at || c.created_at || courseData.created_at || '—';
+
+                    const participantsEl = document.getElementById('pro_view_overview_participants');
+                    if (participantsEl) {
+                        const n = Number.parseInt(c.participants_count, 10);
+                        participantsEl.innerText = Number.isFinite(n) ? String(n) : '0';
+                    }
+                    const enrollmentParticipantsEl = document.getElementById('pro_view_enrollment_participants');
+                    if (enrollmentParticipantsEl) {
+                        const n = Number.parseInt(c.participants_count, 10);
+                        enrollmentParticipantsEl.innerText = Number.isFinite(n) ? String(n) : '0';
+                    }
+                    const enrollmentEl = document.getElementById('pro_view_overview_enrollment_date');
+                    const enrollmentSub = document.getElementById('pro_view_overview_enrollment_sub');
+                    if (enrollmentEl) {
+                        const start = formatDateYmd(c.enrollment_start_date);
+                        const end = formatDateYmd(c.enrollment_end_date);
+                        if (start || end) {
+                            enrollmentEl.innerText = `${start || '—'} - ${end || '—'}`;
+                            if (enrollmentSub) enrollmentSub.innerText = '';
+                        } else {
+                            enrollmentEl.innerText = '—';
+                            if (enrollmentSub) enrollmentSub.innerText = 'Not available';
+                        }
+                    }
+                    const enrollmentWindowEl = document.getElementById('pro_view_enrollment_window');
+                    if (enrollmentWindowEl) {
+                        const start = formatDateYmd(c.enrollment_start_date);
+                        const end = formatDateYmd(c.enrollment_end_date);
+                        enrollmentWindowEl.innerText = (start || end) ? `${start || '—'} - ${end || '—'}` : 'Not available';
+                    }
+                    const durationEl = document.getElementById('pro_view_overview_duration');
+                    const durationSub = document.getElementById('pro_view_overview_duration_sub');
+                    if (durationEl) {
+                        const start = formatDateYmd(c.start_date);
+                        const end = formatDateYmd(c.end_date);
+                        if (start || end) {
+                            durationEl.innerText = `${start || '—'} - ${end || '—'}`;
+                            if (durationSub) durationSub.innerText = '';
+                        } else {
+                            durationEl.innerText = '—';
+                            if (durationSub) durationSub.innerText = 'Not specified';
+                        }
+                    }
+                    const modulesTotalEl = document.getElementById('pro_view_overview_modules_total');
+                    if (modulesTotalEl) {
+                        const len = Array.isArray(c.modules) ? c.modules.length : 0;
+                        modulesTotalEl.innerText = String(len);
+                    }
+
+                    if (overviewModules) {
+                        overviewModules.innerHTML = renderOverviewModulesHTML(c.modules || []);
+                        updateOverviewExpandAllButton();
+                    }
+                    if (overviewExams) {
+                        overviewExams.innerHTML = renderOverviewExamsHTML(c.assessments || []);
+                    }
                     
                     // Image
                     const imgEl = document.getElementById('pro_view_course_image');
@@ -11375,8 +12180,10 @@
 
                     // Assessments
                     const examsContainer = document.getElementById('pro_view_exams_container');
-                    examsContainer.innerHTML = '';
-                    if (c.assessments && c.assessments.length > 0) {
+                    if (examsContainer) {
+                        examsContainer.innerHTML = '';
+                    }
+                    if (examsContainer && c.assessments && c.assessments.length > 0) {
                         c.assessments.forEach((a, examIndex) => {
                             const typeLabel = (a.type || 'assessment').replace(/_/g, ' ').toUpperCase();
                             const metaBits = [
@@ -11487,7 +12294,7 @@
                             }
                             examsContainer.appendChild(examItem);
                         });
-                    } else {
+                    } else if (examsContainer) {
                         examsContainer.innerHTML = `
                             <div style="text-align: center; padding: 40px; color: #64748b;">
                                 <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>

@@ -7,22 +7,26 @@
     <title>Manage Participants - {{ $course->name }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root{--blue:#002C76;--primary-blue:#002C76;--green:#00a859;--bg:#f4f6f9;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--ring:#60a5fa}
+        :root{--blue:#002C76;--primary-blue:#002C76;--green:#00a859;--bg:#f4f6f9;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--ring:#60a5fa;--sidebar-width:280px;--sidebar-collapsed:88px;--header-height:72px}
         body{font-family:'DM Sans', sans-serif;margin:0;background:var(--bg);color:var(--text)}
         .container{max-width:1100px;margin:28px auto;padding:0 18px 40px}
-        .dashboard-container{display:flex;min-height:calc(100vh - 80px)}
-        .sidebar{width:260px;background:var(--primary-blue);color:#fff;display:flex;flex-direction:column;transition:left 0.3s ease}
+        .dashboard-container{margin-left:var(--sidebar-width);padding-top:var(--header-height);min-height:100vh}
+        .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-width);background:var(--primary-blue);color:#fff;display:flex;flex-direction:column;transition:width .25s ease,transform .4s cubic-bezier(0.4, 0, 0.2, 1);z-index:2100}
+        body.sidebar-collapsed .sidebar{width:var(--sidebar-collapsed)}
+        body.sidebar-collapsed .menu-text{display:none}
+        body.sidebar-collapsed .menu-chevron{display:none}
+        body.sidebar-collapsed .menu-item.menu-sub-item{padding-left:20px}
+        body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed)}
+        body.sidebar-collapsed .header{left:var(--sidebar-collapsed)}
         @media (max-width: 992px) {
+            :root{--sidebar-width:0px}
+            .dashboard-container{margin-left:0;padding-top:var(--header-height)}
             .sidebar {
-                position: fixed;
-                top: 0;
-                left: -260px;
-                bottom: 0;
-                z-index: 2000;
-                width: 260px;
+                left: -280px;
+                width: 280px;
             }
             .sidebar.open {
-                left: 0;
+                transform: translateX(280px);
             }
             .sidebar-overlay {
                 display: none;
@@ -35,16 +39,13 @@
             .sidebar-overlay.open {
                 display: block;
             }
-            .header-toggle {
-                display: flex !important;
-                margin-right: 15px;
-            }
             .header {
-                padding: 10px 15px;
+                left: 0;
+                padding: 0 12px;
             }
         }
         .header-toggle {
-            display: none;
+            display: inline-flex;
             width: 44px;
             height: 44px;
             background: #fff;
@@ -57,21 +58,39 @@
             font-size: 1.2rem;
             box-shadow: 0 8px 18px rgba(15,23,42,.04);
         }
-        .sidebar .sidebar-toggle{display:none}
-        .sidebar .menu{list-style:none;margin:0;padding:12px 0}
-        .sidebar .menu li a{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,0.9);text-decoration:none;padding:12px 20px}
-        .sidebar .menu li a:hover{background:rgba(255,255,255,0.1)}
-        .sidebar .menu li.active a{background:rgba(255,255,255,0.15);font-weight:700}
-        .menu i{width:20px;text-align:center}
-        .main-content{flex:1;min-width:0}
-        .topbar{display:flex;justify-content:flex-end;margin-bottom:14px}
+        .sidebar-brand{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center}
+        .sidebar-logo{height:56px;transition:all .2s ease}
+        body.sidebar-collapsed .sidebar-logo{height:44px;width:44px;object-fit:contain}
+        .sidebar-menu{list-style:none;padding:0;margin:0}
+        .menu-item{padding:15px 20px;cursor:pointer;display:flex;align-items:center;transition:background-color 0.2s;white-space:nowrap;overflow:hidden}
+        .menu-item:hover, .menu-item.active{background-color:rgba(255,255,255,0.1)}
+        .menu-icon{width:30px;text-align:center;margin-right:15px;font-size:1.1rem}
+        .menu-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+        .menu-dropdown{list-style:none;margin:0;padding:0}
+        .menu-dropdown-toggle{width:100%;position:relative;overflow:visible;padding-right:58px;box-sizing:border-box}
+        .menu-chevron{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;transition:transform 0.2s ease;background:transparent;color:#ffffff;flex-shrink:0;position:absolute;right:14px;top:50%;transform:translateY(-50%)}
+        .menu-chevron i{display:none}
+        .menu-chevron::before{content:"";display:block;width:8px;height:8px;border-right:3px solid #ffffff;border-bottom:3px solid #ffffff;transform:rotate(45deg)}
+        .menu-dropdown.open .menu-chevron{transform:translateY(-50%) rotate(180deg)}
+        .menu-dropdown-list{list-style:none;margin:0;padding:0;max-height:0;overflow:hidden;transition:max-height 0.25s ease}
+        .menu-dropdown.open .menu-dropdown-list{max-height:420px}
+        .menu-item.menu-sub-item{padding:12px 20px 12px 44px}
+        .main-content{min-width:0}
+        .topbar{display:flex;justify-content:flex-start;margin-bottom:14px}
         .back{color:#0d6efd;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);background:#fff;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:all .2s}
         .back:hover{background:#f8fafc;border-color:var(--ring);box-shadow:0 0 0 3px rgba(96,165,250,.15)}
         /* Header styles (reuse registrar dashboard) */
-        .header{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000}
+        .header{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:var(--sidebar-width);right:0;height:var(--header-height);padding:0 24px;z-index:2000;transition:left .25s ease}
         .header-left{display:flex;align-items:center}
-        .header-title img{height:50px}
         .header-right{display:flex;align-items:center;gap:15px}
+        .profile-menu{position:relative}
+        .profile-dropdown{position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:2500;overflow:hidden;display:none}
+        .dropdown-meta{padding:12px 14px;border-bottom:1px solid #eef2f7}
+        .dropdown-meta-name{font-weight:800;color:#0f172a}
+        .dropdown-meta-role{font-size:.85rem;color:#64748b;margin-top:2px}
+        .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
+        .dropdown-item:hover{background:#f8fafc}
+        .dropdown-item.danger{color:#b91c1c}
         .card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 24px rgba(17,24,39,.06);margin-bottom:18px}
         .card h3{margin:0;padding:16px 18px;border-bottom:1px solid #eef2f7;color:var(--blue);font-size:1.05rem;display:flex;align-items:center;gap:10px}
         .card .body{padding:18px}
@@ -160,15 +179,10 @@
 </head>
 <body>
     <div class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
-    <!-- Header replicated to retain look from registrar dashboard -->
     <header class="header">
         <div class="header-left">
-            <button class="header-toggle" onclick="toggleMobileSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
-            </div>
+            <button class="header-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h2 id="page-title" style="margin:0 0 0 15px;font-size:1.25rem;color:var(--primary-blue);font-weight:700;">Training Management</h2>
         </div>
         <div class="header-right">
             <div class="notification-container" style="position: relative; margin-right: 20px;">
@@ -201,20 +215,79 @@
                     </div>
                 </div>
             </div>
+            <div class="profile-menu">
+                <div class="user-profile-header" onclick="toggleProfileMenu(event)" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-right:10px;">
+                    <div style="width:40px;height:40px;background-color:var(--primary-blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;">
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    </div>
+                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666;margin-left:6px"></i>
+                </div>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-meta">
+                        <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
+                        <div class="dropdown-meta-role">{{ ucfirst(Auth::user()->role) }}</div>
+                    </div>
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
+                        <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
+                    </a>
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
+                        <i class="fas fa-life-ring"></i> <span>Help & Support</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                        @csrf
+                        <button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </header>
     <div class="dashboard-container">
-        <aside class="sidebar">
-            <ul class="menu">
-                <li><a href="{{ route('dashboard') }}"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
-                <li><a href="{{ route('dashboard', ['tab' => 'user-management']) }}"><i class="fas fa-users"></i><span>User Management</span></a></li>
-                <li class="active"><a href="{{ route('dashboard', ['tab' => 'trainer-trainee-management']) }}"><i class="fas fa-chalkboard-teacher"></i><span>Training Management</span></a></li>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img class="sidebar-logo" id="sidebarLogo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-dropdown open" id="portal-dropdown-tm">
+                    <div class="menu-item menu-dropdown-toggle active" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Training Manager Portal</span>
+                        <span class="menu-chevron"></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm']) }}'">
+                            <div class="menu-icon"><i class="fas fa-home"></i></div>
+                            <span class="menu-text">Dashboard</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm', 'tab' => 'user-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-users"></i></div>
+                            <span class="menu-text">User Management</span>
+                        </li>
+                        <li class="menu-item menu-sub-item active" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm', 'tab' => 'trainer-trainee-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Training Management</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm', 'tab' => 'course-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm', 'tab' => 'certification-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
+                        </li>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm', 'tab' => 'activity-logs']) }}'">
+                            <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                            <span class="menu-text">Activity Logs</span>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </aside>
         <main class="main-content">
     <div class="container">
         <div class="topbar">
-            <a class="back" href="{{ route('dashboard', ['tab' => 'trainer-trainee-management']) }}"><i class="fas fa-arrow-left"></i> Back to Training Management</a>
+            <a class="back" href="{{ route('dashboard', ['portal' => 'tm', 'tab' => 'trainer-trainee-management']) }}"><i class="fas fa-arrow-left"></i> Back to Training Management</a>
         </div>
         <div class="card" style="margin-bottom:16px;">
             <h3>Course</h3>
@@ -601,11 +674,48 @@
         const dd=document.getElementById('notificationDropdown');
         dd.style.display = dd.style.display==='block' ? 'none' : 'block';
     }
+    function toggleProfileMenu(event){
+        if(event){ event.preventDefault(); event.stopPropagation(); }
+        const dd=document.getElementById('profileDropdown');
+        if(!dd) return;
+        dd.style.display = dd.style.display==='block' ? 'none' : 'block';
+    }
+    document.addEventListener('click', function(e){
+        const ndd=document.getElementById('notificationDropdown');
+        const pdd=document.getElementById('profileDropdown');
+        const inNotifications = e.target.closest && e.target.closest('.notification-container');
+        const inProfile = e.target.closest && e.target.closest('.profile-menu');
+        if(ndd && !inNotifications) ndd.style.display='none';
+        if(pdd && !inProfile) pdd.style.display='none';
+    });
     function toggleMobileSidebar() {
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
         sidebar.classList.toggle('open');
         overlay.classList.toggle('open');
+    }
+    function toggleSidebar(){
+        const isMobile = window.matchMedia('(max-width: 992px)').matches;
+        if(isMobile){
+            toggleMobileSidebar();
+            return;
+        }
+        document.body.classList.toggle('sidebar-collapsed');
+        const logo = document.getElementById('sidebarLogo');
+        if(logo){
+            const full = logo.getAttribute('data-full-src');
+            const collapsed = logo.getAttribute('data-collapsed-src');
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            if(full && collapsed){
+                logo.src = isCollapsed ? collapsed : full;
+            }
+        }
+    }
+    function togglePortalDropdown(event, portalId){
+        if(event){ event.preventDefault(); event.stopPropagation(); }
+        const portal = document.getElementById(portalId);
+        if(!portal) return;
+        portal.classList.toggle('open');
     }
     function markAsRead(id,link){
         fetch('/notifications/'+id+'/mark-as-read',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({})})

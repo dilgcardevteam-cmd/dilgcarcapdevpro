@@ -750,7 +750,7 @@
             background-color: var(--bg-color);
         }
 
-        .coach-course-filters{display:grid;grid-template-columns:minmax(180px,1fr) minmax(200px,1.2fr) minmax(180px,.9fr) minmax(140px,.7fr);gap:14px;align-items:end;margin:10px 0 18px;padding:12px 14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.04)}
+        .coach-course-filters{display:grid;grid-template-columns:minmax(200px,1.2fr) minmax(180px,.9fr) minmax(180px,1fr) minmax(140px,.7fr);gap:14px;align-items:end;margin:10px 0 18px;padding:12px 14px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.04)}
         .coach-course-filters input,.coach-course-filters select{box-sizing:border-box}
         @media(max-width:1100px){.coach-course-filters{grid-template-columns:1fr 1fr}.coach-course-filters__reset{grid-column:1 / -1}}
         @media(max-width:680px){.coach-course-filters{grid-template-columns:1fr}}
@@ -2241,16 +2241,6 @@
                 @endphp
                 <div class="coach-course-filters">
                     <div class="participant-course-filters__field">
-                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Academic Year</div>
-                        <select onchange="window.location.href='{{ route('dashboard') }}?academic_year_id=' + this.value" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;cursor:pointer;">
-                            @foreach($academicYears as $ay)
-                                <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
-                                    {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="participant-course-filters__field">
                         <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Search Name</div>
                         <div style="position:relative;">
                             <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
@@ -2264,6 +2254,16 @@
                             <option value="oldest">Oldest First</option>
                             <option value="az">A - Z</option>
                             <option value="za">Z - A</option>
+                        </select>
+                    </div>
+                    <div class="participant-course-filters__field">
+                        <div style="font-weight:800;color:#0f172a;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">Academic Year</div>
+                        <select onchange="window.location.href='{{ route('dashboard') }}?academic_year_id=' + this.value" style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:12px;outline:none;background:#fff;cursor:pointer;">
+                            @foreach($academicYears as $ay)
+                                <option value="{{ $ay->id }}" {{ $ay->id == $selectedYearId ? 'selected' : '' }}>
+                                    {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="participant-course-filters__reset">

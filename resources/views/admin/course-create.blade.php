@@ -2273,18 +2273,20 @@
                     const title = qb.querySelector('.q-title').value || 'Untitled Question';
                     const required = false;
                     const q = { type, title, required };
-                    if(isMultipleChoiceType(type) || type === 'true_false'){
+                    if(isMultipleChoiceType(type)){
                         const opts = Array.from(qb.querySelectorAll('.q-option')).map(i=>i.value).filter(v=>v && v.trim()!=='');
-                        q.options = opts.length ? opts : (type==='true_false' ? ['True','False'] : []);
+                        q.options = opts;
                         const rows = Array.from(qb.querySelectorAll('.q-option-row'));
                         const answerIndexes = rows.map((r, index) => (r.querySelector('.q-correct') && r.querySelector('.q-correct').checked) ? index : null).filter(index => index !== null);
-                        if(isMultipleChoiceType(type)){
-                            q.type = normalizeMcType(type);
-                            q.correct_answers = answerIndexes.map(choiceIndexToLetter);
-                            if(q.type === 'multiple_choice_single' && answerIndexes.length) q.answer_index = answerIndexes[0];
-                        }else if(answerIndexes.length){
-                            q.answer_index = answerIndexes[0];
-                        }
+                        q.type = normalizeMcType(type);
+                        q.correct_answers = answerIndexes.map(choiceIndexToLetter);
+                        if(q.type === 'multiple_choice_single' && answerIndexes.length) q.answer_index = answerIndexes[0];
+                    } else if(type === 'true_false'){
+                        q.options = ['True','False'];
+                        const tf = qb.querySelector('.q-tf-answer');
+                        const val = String(tf?.value || '').toLowerCase();
+                        if(val === 'true') q.answer = true;
+                        else if(val === 'false') q.answer = false;
                     } else if(type === 'identification'){
                         const ans = String(qb.querySelector('.q-id-answer')?.value || '').trim().toUpperCase();
                         const desc = String(qb.querySelector('.q-id-desc')?.value || '').trim();
@@ -2380,6 +2382,7 @@
                 g.textContent = text;
                 options.parentElement.insertBefore(g, options);
             }
+            const panel = options.closest('.fields-panel') || options.closest('.questions-panel');
             if(isMultipleChoiceType(type)){
                 addGuide(type === 'multiple_choice_multiple' ? 'Select all correct answers.' : 'Select one correct answer.');
                 addOptionRow(options, 'Choice A');
@@ -2388,9 +2391,28 @@
                 addOptionRow(options, 'Choice D');
                 ensureAddOptionLink(options);
             } else if(type === 'true_false'){
-                addGuide('Mark the circle for the correct answer.');
-                addOptionRow(options, 'True');
-                addOptionRow(options, 'False');
+                addGuide('Select the correct answer.');
+                const wrap = document.createElement('div');
+                wrap.className = 'q-tf';
+                wrap.style.cssText = 'display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;';
+                wrap.innerHTML = `
+                    <label style="display:block">
+                        <div style="font-weight:700;color:#111827;margin-bottom:6px">Correct Answer</div>
+                        <select class="q-tf-answer" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-weight:700;background:#fff;cursor:pointer;">
+                            <option value="" selected disabled>Select True or False</option>
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </label>
+                `;
+                const sel = wrap.querySelector('.q-tf-answer');
+                if(sel){
+                    sel.addEventListener('change', function(){
+                        if(panel && panel.classList.contains('fields-panel')) syncFieldsJSON(panel);
+                        else if(panel) syncQuestionsJSON(panel);
+                    });
+                }
+                options.appendChild(wrap);
             } else if(type === 'identification'){
                 addGuide('Note: Answer will be saved in UPPERCASE as the standard answer.');
                 const fieldsPanel = options.closest('.fields-panel');
@@ -2616,6 +2638,7 @@
             const block = btn.closest('.q-block');
             const clone = block.cloneNode(true);
             block.parentElement.insertBefore(clone, block.nextSibling);
+            const panel = clone.closest('.fields-panel') || clone.closest('.questions-panel');
             // Re-bind events
             clone.querySelectorAll('button').forEach(b=>{
                 if(b.textContent==='X'){ b.onclick = function(){ removeOptionRow(this); }; }
@@ -2624,10 +2647,22 @@
             });
             clone.querySelector('.q-type').addEventListener('change', function(){
                 setupDefaultOptions(clone);
-                syncQuestionsJSON(clone.closest('.questions-panel'));
+                if(panel && panel.classList.contains('fields-panel')) syncFieldsJSON(panel);
+                else if(panel) syncQuestionsJSON(panel);
             });
-            clone.addEventListener('input', ()=> syncQuestionsJSON(clone.closest('.questions-panel')));
-            syncQuestionsJSON(clone.closest('.questions-panel'));
+            const tf = clone.querySelector('.q-tf-answer');
+            if(tf){
+                tf.addEventListener('change', ()=> {
+                    if(panel && panel.classList.contains('fields-panel')) syncFieldsJSON(panel);
+                    else if(panel) syncQuestionsJSON(panel);
+                });
+            }
+            clone.addEventListener('input', ()=> {
+                if(panel && panel.classList.contains('fields-panel')) syncFieldsJSON(panel);
+                else if(panel) syncQuestionsJSON(panel);
+            });
+            if(panel && panel.classList.contains('fields-panel')) syncFieldsJSON(panel);
+            else if(panel) syncQuestionsJSON(panel);
         }
         function deleteQuestion(btn){
             const panel = btn.closest('.questions-panel');
@@ -2651,6 +2686,10 @@
                     if(q.type === 'multiple_choice_single' && correctIndexes.length) q.answer_index = correctIndexes[0];
                 } else if(type === 'true_false'){
                     q.options = ['True','False'];
+                    const tf = b.querySelector('.q-tf-answer');
+                    const val = String(tf?.value || '').toLowerCase();
+                    if(val === 'true') q.answer = true;
+                    else if(val === 'false') q.answer = false;
                 } else if(type === 'identification'){
                     const ans = String(b.querySelector('.q-id-answer')?.value || '').trim().toUpperCase();
                     const desc = String(b.querySelector('.q-id-desc')?.value || '').trim();
@@ -3357,13 +3396,12 @@
                                     });
                                     ensureAddOptionLink(optsDiv);
                                 } else if (f.question.type === 'true_false') {
-                                    const optsDiv = block.querySelector('.q-options');
-                                    if (optsDiv) {
-                                        optsDiv.querySelectorAll('input[type="radio"]').forEach((r, rIdx) => {
-                                            if ((f.question.answer === 'true' && rIdx === 0) || (f.question.answer === 'false' && rIdx === 1)) {
-                                                r.checked = true;
-                                            }
-                                        });
+                                    const tf = block.querySelector('.q-tf-answer');
+                                    if(tf){
+                                        const raw = f.question.answer;
+                                        const val = (raw === true || String(raw).toLowerCase() === 'true') ? 'true'
+                                            : ((raw === false || String(raw).toLowerCase() === 'false') ? 'false' : '');
+                                        tf.value = val;
                                     }
                                 } else if (f.question.type === 'identification') {
                                     const ansInput = block.querySelector('.q-id-answer');

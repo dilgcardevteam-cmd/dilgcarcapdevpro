@@ -3705,7 +3705,26 @@ class CourseController extends Controller
     public function getCourseDetailsAjax(\App\Models\Course $course)
     {
         $course->load(['certification', 'assessments', 'materials']);
-        $creator = \App\Models\User::find($course->created_by);
+        $creator = null;
+        if (!empty($course->created_by)) {
+            $creator = \App\Models\User::find($course->created_by);
+        }
+        if (!$creator && !empty($course->submitted_by_user_id)) {
+            $creator = \App\Models\User::find($course->submitted_by_user_id);
+        }
+        if (!$creator && !empty($course->trainer_id)) {
+            $creator = \App\Models\User::find($course->trainer_id);
+        }
+        if (!$creator) {
+            $creator = $course->users()
+                ->orderBy('course_user.created_at', 'asc')
+                ->first();
+        }
+        $participantRoles = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+        $participantsCount = $course->users()
+            ->whereIn('role', $participantRoles)
+            ->wherePivot('status', 'active')
+            ->count();
         
         $modules = is_array($course->modules) ? $course->modules : [];
         if (is_string($course->modules)) {
@@ -3772,10 +3791,17 @@ class CourseController extends Controller
                 'image_path' => $course->image_url,
                 'video_url' => $course->video_url,
                 'start_date' => $course->start_date ? $course->start_date->format('Y-m-d') : null,
+                'end_date' => $course->end_date ? $course->end_date->format('Y-m-d') : null,
                 'course_expiration_date' => $course->course_expiration_date ? \Carbon\Carbon::parse($course->course_expiration_date)->format('Y-m-d') : null,
+                'enrollment_start_date' => $course->enrollment_start_date ? $course->enrollment_start_date->format('Y-m-d') : null,
+                'enrollment_end_date' => $course->enrollment_end_date ? $course->enrollment_end_date->format('Y-m-d') : null,
                 'created_at' => optional($course->created_at)->format('M d, Y'),
-                'creator_name' => $creator ? $creator->name : 'N/A',
+                'updated_at' => optional($course->updated_at)->format('M d, Y'),
+                'creator_name' => $creator
+                    ? trim($creator->name . ($creator->role ? ' (' . $creator->role . ')' : ''))
+                    : '—',
                 'coach_display_name' => $course->coach_display_name,
+                'participants_count' => $participantsCount,
                 'certification' => $course->certification ? [
                     'id' => $course->certification->id,
                     'name' => $course->certification->name,

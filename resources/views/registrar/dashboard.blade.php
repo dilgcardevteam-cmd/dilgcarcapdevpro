@@ -309,6 +309,7 @@
             cursor:pointer;
             transition:transform .2s ease, box-shadow .2s ease;
         }
+        #course-management .course-stat-card.is-selected{border-color:#93c5fd;box-shadow:0 14px 24px rgba(15,23,42,.12);transform:translateY(-2px)}
         #course-management .course-stat-card:hover{transform:translateY(-4px);box-shadow:0 14px 24px rgba(15,23,42,.12)}
         #course-management .course-stat-label{margin:0;font-size:.9rem;font-weight:700;color:#334155}
         #course-management .course-stat-value{margin:4px 0 0;font-size:1.7rem;font-weight:800;color:#0f172a;line-height:1}
@@ -318,6 +319,71 @@
         #course-management .course-stat-card.draft .course-stat-icon{background:#7c3aed}
         #course-management .course-stat-card.archived .course-stat-icon{background:#475569}
         #course-management .course-stat-card.library .course-stat-icon{background:#10b981}
+        #course-management .course-stat-card.rejected .course-stat-icon{background:#dc2626}
+        #course-management .cm-shell{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 24px rgba(15,23,42,.06);overflow:hidden}
+        #course-management .cm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid #eef2f7}
+        #course-management .cm-title{font-size:1.25rem;font-weight:900;color:#0f172a;letter-spacing:-.02em}
+        #course-management .cm-subtitle{margin-top:4px;color:#64748b;font-weight:600;font-size:.92rem}
+        #course-management .cm-create{background:#0B2C74;color:#fff;border:none;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 16px rgba(11,44,116,.18)}
+        #course-management .cm-create:hover{background:#06235d}
+        #course-management .cm-tabs{display:flex;gap:10px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid #eef2f7;background:#fbfdff}
+        #course-management .cm-tab{display:inline-flex;align-items:center;gap:10px;border:1px solid #e5e7eb;background:#fff;color:#0f172a;padding:8px 12px;border-radius:12px;font-weight:800;cursor:pointer}
+        #course-management .cm-tab .cm-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 8px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:.82rem;font-weight:900}
+        #course-management .cm-tab.is-selected{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+        #course-management .cm-tab.is-selected .cm-count{background:#dbeafe;color:#1d4ed8}
+        #course-management .cm-panel{padding:14px 18px}
+        #course-management .cm-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+        #course-management .cm-table thead th{background:#f8fafc;color:#475569;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:12px 14px;border-bottom:1px solid #eef2f7}
+        #course-management .cm-table tbody td{padding:12px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+        #course-management .cm-table tbody tr:last-child td{border-bottom:none}
+        #course-management .cm-course{display:flex;align-items:center;gap:12px;min-width:0}
+        #course-management .cm-thumb{width:44px;height:44px;border-radius:10px;background:#eef4ff;background-size:cover;background-position:center;flex:0 0 44px;border:1px solid #e5e7eb}
+        #course-management .cm-course-name{font-weight:900;color:#0f172a;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+        #course-management .cm-course-desc{margin-top:2px;color:#64748b;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px}
+        #course-management .cm-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:.82rem;border:1px solid transparent}
+        #course-management .cm-pill.active{background:#e0f2fe;color:#0369a1;border-color:#bae6fd}
+        #course-management .cm-pill.pending{background:#fef3c7;color:#92400e;border-color:#fde68a}
+        #course-management .cm-pill.draft{background:#ede9fe;color:#5b21b6;border-color:#ddd6fe}
+        #course-management .cm-pill.archived{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+        #course-management .cm-pill.rejected{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+        #course-management .cm-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center}
+        #course-management .cm-btn{border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:#0f172a;text-decoration:none}
+        #course-management .cm-btn.primary{background:#0B2C74;border-color:#0B2C74;color:#fff}
+        #course-management .cm-btn.success{background:#10b981;border-color:#10b981;color:#fff}
+        #course-management .cm-btn.danger{background:#ef4444;border-color:#ef4444;color:#fff}
+        #course-management .cm-btn:disabled{opacity:.5;cursor:not-allowed}
+        #course-management .cm-empty{padding:18px;text-align:center;color:#64748b;font-weight:700}
+        #trainer-trainee-management .tm-shell{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 10px 24px rgba(15,23,42,.06);overflow:hidden}
+        #trainer-trainee-management .tm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid #eef2f7}
+        #trainer-trainee-management .tm-title{font-size:1.25rem;font-weight:900;color:#0f172a;letter-spacing:-.02em}
+        #trainer-trainee-management .tm-subtitle{margin-top:4px;color:#64748b;font-weight:600;font-size:.92rem}
+        #trainer-trainee-management .tm-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+        #trainer-trainee-management .tm-input,#trainer-trainee-management .tm-select{width:100%;padding:10px 12px 10px 36px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.9rem;font-weight:600;outline:none;background:#fff;appearance:none}
+        #trainer-trainee-management .tm-tabs{display:flex;gap:10px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid #eef2f7;background:#fbfdff}
+        #trainer-trainee-management .tm-tab{display:inline-flex;align-items:center;gap:10px;border:1px solid #e5e7eb;background:#fff;color:#0f172a;padding:8px 12px;border-radius:12px;font-weight:800;cursor:pointer}
+        #trainer-trainee-management .tm-tab .tm-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 8px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:.82rem;font-weight:900}
+        #trainer-trainee-management .tm-tab.is-selected{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+        #trainer-trainee-management .tm-tab.is-selected .tm-count{background:#dbeafe;color:#1d4ed8}
+        #trainer-trainee-management .tm-panel{padding:14px 18px}
+        #trainer-trainee-management .tm-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+        #trainer-trainee-management .tm-toolbar-left{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+        #trainer-trainee-management .tm-btn{border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:#0f172a;text-decoration:none}
+        #trainer-trainee-management .tm-btn.primary{background:#0B2C74;border-color:#0B2C74;color:#fff}
+        #trainer-trainee-management .tm-btn.ghost{background:#f8fafc;border-color:#e2e8f0;color:#0f172a}
+        #trainer-trainee-management .tm-btn:disabled{opacity:.5;cursor:not-allowed}
+        #trainer-trainee-management .tm-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff}
+        #trainer-trainee-management .tm-table thead th{background:#f8fafc;color:#475569;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:12px 14px;border-bottom:1px solid #eef2f7}
+        #trainer-trainee-management .tm-table tbody td{padding:12px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+        #trainer-trainee-management .tm-table tbody tr:last-child td{border-bottom:none}
+        #trainer-trainee-management .tm-course{display:flex;align-items:center;gap:12px;min-width:0}
+        #trainer-trainee-management .tm-thumb{width:44px;height:44px;border-radius:10px;background:#eef4ff;background-size:cover;background-position:center;flex:0 0 44px;border:1px solid #e5e7eb}
+        #trainer-trainee-management .tm-course-name{font-weight:900;color:#0f172a;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
+        #trainer-trainee-management .tm-course-sub{margin-top:2px;color:#64748b;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+        #trainer-trainee-management .tm-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:.82rem;border:1px solid transparent}
+        #trainer-trainee-management .tm-pill.published{background:#ecfdf5;color:#065f46;border-color:#bbf7d0}
+        #trainer-trainee-management .tm-pill.unpublished{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+        #trainer-trainee-management .tm-pill.archived{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+        #trainer-trainee-management .tm-empty{padding:18px;text-align:center;color:#64748b;font-weight:700}
         @media (max-width: 640px){ #course-management .course-stats-grid{grid-template-columns:1fr} }
         @media (min-width: 641px) and (max-width: 992px){ #course-management .course-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
@@ -2597,117 +2663,255 @@
 
             <!-- Training Management Section -->
             <section id="trainer-trainee-management" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h1 class="welcome-title" style="margin: 0;">Training <strong>Management</strong></h1>
-            <div style="position: relative; width: 220px;">
-                <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                <select id="academicYearFilterTM" onchange="filterByAcademicYearTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
-                    <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
-                    @foreach($academicYears as $ay)
-                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                            {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
-            </div>
-        </div>
-        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    @php
-                        $totalCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->count() : 0;
-                        $unpublishedCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> !(bool)($c->is_published ?? false))->count() : 0;
-                        $publishedCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses->filter(fn($c)=> (bool)($c->is_published ?? false))->count() : 0;
-                    @endphp
-                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#f8fafc">
-                            <div style="display:flex;align-items:center;gap:10px">
-                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eef2ff;color:#4f46e5"><i class="fas fa-layer-group"></i></div>
-                                <div style="font-weight:700;color:#0f172a">Courses</div>
-                            </div>
-                            <div style="font-weight:800;font-size:1.4rem;color:#0f172a">{{ $totalCourses }}</div>
+                @php
+                    $formatSubjectAreasTm = function ($raw) {
+                        if (is_array($raw)) {
+                            $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $raw), fn($v) => $v !== ''));
+                            return $vals ? implode(', ', $vals) : '—';
+                        }
+                        if ($raw === null) return '—';
+                        $str = trim((string) $raw);
+                        $str = trim($str, "\"");
+                        if ($str === '') return '—';
+                        if (\Illuminate\Support\Str::startsWith($str, '[')) {
+                            $decoded = json_decode($str, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $decoded), fn($v) => $v !== ''));
+                                return $vals ? implode(', ', $vals) : '—';
+                            }
+                        }
+                        return $str;
+                    };
+                    $splitSubjectAreasTm = function ($raw) use ($formatSubjectAreasTm) {
+                        if (is_array($raw)) return array_values(array_filter(array_map(fn($v) => trim((string) $v), $raw), fn($v) => $v !== ''));
+                        if ($raw === null) return [];
+                        $str = trim((string) $raw);
+                        if ($str === '') return [];
+                        if (\Illuminate\Support\Str::startsWith($str, '[')) {
+                            $decoded = json_decode($str, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                return array_values(array_filter(array_map(fn($v) => trim((string) $v), $decoded), fn($v) => $v !== ''));
+                            }
+                        }
+                        $formatted = $formatSubjectAreasTm($raw);
+                        return $formatted === '—' ? [] : [$formatted];
+                    };
+                    $allTmCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses : collect([]);
+                    $publishedTmCourses = $allTmCourses->filter(fn($c)=> (bool)($c->is_published ?? false))->values();
+                    $unpublishedTmCourses = $allTmCourses->filter(fn($c)=> !(bool)($c->is_published ?? false))->values();
+                    $tmSubjectAreaOptions = $allTmCourses
+                        ->flatMap(fn($c) => $splitSubjectAreasTm($c->subject_area ?? null))
+                        ->unique()
+                        ->sort()
+                        ->values();
+                    $coachRolesTm = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
+                    $tmCoaches = (isset($potentialParticipants) ? $potentialParticipants : collect())
+                        ->filter(fn($u) => in_array($u->role, $coachRolesTm, true))
+                        ->sortBy('name')
+                        ->values();
+                @endphp
+
+                <div class="tm-shell">
+                    <div class="tm-head">
+                        <div>
+                            <div class="tm-title">Training Management</div>
+                            <div class="tm-subtitle">View and manage published and unpublished courses.</div>
                         </div>
-                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff7ed">
-                            <div style="display:flex;align-items:center;gap:10px">
-                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#ffedd5;color:#9a3412"><i class="fas fa-eye-slash"></i></div>
-                                <div style="font-weight:700;color:#9a3412">Unpublished Courses</div>
+                        <div class="tm-controls">
+                            <div style="position:relative;width:240px;">
+                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;"></i>
+                                <input id="tmCourseSearch" class="tm-input" type="text" placeholder="Search courses...">
                             </div>
-                            <div style="font-weight:800;font-size:1.4rem;color:#9a3412">{{ $unpublishedCount }}</div>
-                        </div>
-                        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#ecfdf5">
-                            <div style="display:flex;align-items:center;gap:10px">
-                                <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#d1fae5;color:#065f46"><i class="fas fa-bullhorn"></i></div>
-                                <div style="font-weight:700;color:#065f46">Published Courses</div>
+                            <div style="position:relative;width:220px;">
+                                <i class="fas fa-calendar-alt" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;"></i>
+                                <select id="academicYearFilterTM" class="tm-select" onchange="filterByAcademicYearTM(this.value)">
+                                    <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                    @foreach($academicYears as $ay)
+                                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                            {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <i class="fas fa-chevron-down" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.8rem;pointer-events:none;"></i>
                             </div>
-                            <div style="font-weight:800;font-size:1.4rem;color:#065f46">{{ $publishedCount }}</div>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <i class="fas fa-chalkboard-teacher" style="color:#002C76;"></i>
-                            <h3 style="margin:0;color:#002C76;">Unpublished Courses</h3>
-                        </div>
-                        @php 
-                            $draftCourses = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) 
-                                ? $courses->filter(fn($c)=> !(bool)($c->is_published ?? false))->values()
-                                : collect();
-                        @endphp
-                        <span style="color:#6b7280;">Total: {{ $draftCourses->count() }}</span>
+
+                    <div class="tm-tabs">
+                        <button type="button" class="tm-tab js-tm-tab" data-tm-tab="published" onclick="switchTrainingManagementTabTM('published')">
+                            <span><i class="fas fa-bullhorn" style="color:#0f3b8f"></i> Published Courses</span>
+                            <span class="tm-count">{{ $publishedTmCourses->count() }}</span>
+                        </button>
+                        <button type="button" class="tm-tab js-tm-tab" data-tm-tab="unpublished" onclick="switchTrainingManagementTabTM('unpublished')">
+                            <span><i class="fas fa-eye-slash" style="color:#9a3412"></i> Unpublished Courses</span>
+                            <span class="tm-count">{{ $unpublishedTmCourses->count() }}</span>
+                        </button>
+                        <button type="button" class="tm-tab js-tm-tab" data-tm-tab="all" onclick="switchTrainingManagementTabTM('all')">
+                            <span><i class="fas fa-layer-group" style="color:#334155"></i> All Courses</span>
+                            <span class="tm-count">{{ $allTmCourses->count() }}</span>
+                        </button>
                     </div>
-                    <a id="courses-section"></a>
-                    @if(!isset($draftCourses) || $draftCourses->isEmpty())
-                        <div style="padding:20px;border:1px dashed #e5e7eb;border-radius:8px;text-align:center;color:#6b7280;">
-                            There are no courses found.
-                        </div>
-                    @else
-                        <div class="course-grid">
-                            @foreach($draftCourses as $course)
-                                @php
-                                    $coachRolesAll = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-                                    $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
-                                    $trainerCount = $course->users
-                                        ? $course->users->filter(fn($u)=>in_array($u->role, $coachRolesAll) && (optional($u->pivot)->status ?? 'active') === 'active')->count()
-                                        : 0;
-                                    $traineeCount = $course->users
-                                        ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll) && optional($u->pivot)->status === 'active')->count()
-                                        : 0;
-                                @endphp
-                                <div class="course-card" style="cursor:pointer;position:relative" onclick="if(!event.target.closest('button') && !event.target.closest('form')) window.location='{{ route('registrar.courses.participants', $course) }}'">
+
+                    <div class="tm-panel" data-tm-panel="published">
+                        <table class="tm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Subject Area</th>
+                                    <th>Coach</th>
+                                    <th>Enrollment Date</th>
+                                    <th>Participants</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($publishedTmCourses->sortByDesc('created_at') as $course)
                                     @php
+                                        $coachRolesAll = $coachRolesTm;
+                                        $participantRolesAll = ['participant','trainee','central_office_participants','regional_office_participants','provincial_office_participants'];
+                                        $coachUser = $course->users ? $course->users->first(fn($u)=>in_array($u->role, $coachRolesAll, true) && (optional($u->pivot)->status ?? 'active') === 'active') : null;
+                                        $traineeCount = $course->users ? $course->users->filter(fn($u)=>in_array($u->role, $participantRolesAll, true) && optional($u->pivot)->status === 'active')->count() : 0;
                                         $img = $course->image_url;
+                                        $s = optional($course->enrollment_start_date)->format('M d, Y');
+                                        $e = optional($course->enrollment_end_date)->format('M d, Y');
+                                        $enrollText = ($s || $e) ? (($s ?: '—').' — '.($e ?: '—')) : '—';
+                                        $subjectText = $formatSubjectAreasTm($course->subject_area ?? null);
                                     @endphp
-                                    <div class="course-image">
-                                        <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                    </div>
-                                    <div class="course-content">
-                                        <div class="course-title">{{ $course->name }}</div>
-                                        <div class="course-sub">{{ $course->subject_area ?? 'Uncategorized' }}</div>
-                                        <div class="course-footer" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-                                        <div class="course-counts">
-                                                <span title="Coaches"><i class="fas fa-user blue"></i> {{ $trainerCount }} <span class="count-label">{{ $trainerCount == 1 ? 'Coach' : 'Coaches' }}</span></span>
-                                                <span title="Participants"><i class="fas fa-users green"></i> {{ $traineeCount }} <span class="count-label">{{ $traineeCount == 1 ? 'Participant' : 'Participants' }}</span></span>
-                                        </div>
-                                            <div style="display:flex;align-items:center;gap:8px">
-                                                <span class="status-chip" style="padding:4px 10px;border-radius:999px;font-weight:700;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">
-                                                    Unpublished
-                                                </span>
+                                    <tr class="js-tm-row" data-name="{{ strtolower($course->name) }}" data-subject="{{ strtolower($subjectText) }}" data-coach="{{ strtolower($coachUser?->name ?? '') }}">
+                                        <td>
+                                            <div class="tm-course">
+                                                <div class="tm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="tm-course-name">{{ $course->name }}</div>
+                                                    <div class="tm-course-sub">{{ Str::limit($course->description, 80) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ $subjectText }}</td>
+                                        <td>{{ $coachUser?->name ?? '—' }}</td>
+                                        <td>{{ $enrollText }}</td>
+                                        <td>{{ $traineeCount }}</td>
+                                        <td style="text-align:right;">
+                                            <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+                                                <a class="tm-btn primary" href="{{ route('registrar.courses.participants', $course, false) }}">View</a>
                                                 @if(Auth::user()->canManageTraining())
-                                                @php
-                                                    $trainerId = $course->trainer_id
-                                                        ?: optional($course->users->first(fn($u) => in_array($u->role, ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'])))->id
-                                                        ?: '';
-                                                @endphp
-                                                <button type="button" class="btn-view" style="background:#0f3b8f;border-color:transparent"
-                                                    onclick="event.stopPropagation(); openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}', '{{ $trainerId }}')">
-                                                    <i class="fas fa-bullhorn"></i> Publish Course
-                                                </button>
+                                                    <form method="POST" action="{{ route('courses.publish', $course, false) }}" style="margin:0;display:inline" data-confirm-message="Unpublish this course? Participants will no longer be able to enroll." data-confirm-title="Unpublish Course">
+                                                        @csrf
+                                                        <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                        <input type="hidden" name="published" value="0">
+                                                        <button type="submit" class="tm-btn ghost">Unpublish</button>
+                                                    </form>
                                                 @endif
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="tm-empty">No published courses yet.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tm-panel" data-tm-panel="unpublished" style="display:none">
+                        <table class="tm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Subject Area</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($unpublishedTmCourses->sortByDesc('created_at') as $course)
+                                    @php
+                                        $img = $course->image_url;
+                                        $subjectText = $formatSubjectAreasTm($course->subject_area ?? null);
+                                        $trainerId = $course->trainer_id
+                                            ?: optional($course->users->first(fn($u) => in_array($u->role, $coachRolesTm, true)))->id
+                                            ?: '';
+                                    @endphp
+                                    <tr class="js-tm-row" data-name="{{ strtolower($course->name) }}" data-subject="{{ strtolower($subjectText) }}" data-coach="">
+                                        <td>
+                                            <div class="tm-course">
+                                                <div class="tm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="tm-course-name">{{ $course->name }}</div>
+                                                    <div class="tm-course-sub">{{ Str::limit($course->description, 80) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ $subjectText }}</td>
+                                        <td style="text-align:right;">
+                                            @if(Auth::user()->canManageTraining())
+                                                <button type="button" class="tm-btn primary" onclick="openPublishModal('{{ route('courses.publish', $course, false) }}','{{ addslashes($course->name) }}','{{ $trainerId }}')">
+                                                    <i class="fas fa-bullhorn"></i>
+                                                    <span>Publish</span>
+                                                </button>
+                                            @else
+                                                <button type="button" class="tm-btn primary" disabled><i class="fas fa-bullhorn"></i> Publish</button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="tm-empty">No unpublished courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tm-panel" data-tm-panel="all" style="display:none">
+                        <table class="tm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Subject Area</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($allTmCourses->sortByDesc('created_at') as $course)
+                                    @php
+                                        $img = $course->image_url;
+                                        $subjectText = $formatSubjectAreasTm($course->subject_area ?? null);
+                                        $isPublished = (bool) ($course->is_published ?? false);
+                                    @endphp
+                                    <tr class="js-tm-row" data-name="{{ strtolower($course->name) }}" data-subject="{{ strtolower($subjectText) }}" data-coach="">
+                                        <td>
+                                            <div class="tm-course">
+                                                <div class="tm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="tm-course-name">{{ $course->name }}</div>
+                                                    <div class="tm-course-sub">{{ Str::limit($course->description, 80) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ $subjectText }}</td>
+                                        <td>
+                                            <span class="tm-pill {{ $isPublished ? 'published' : 'unpublished' }}">
+                                                {{ $isPublished ? 'Published' : 'Unpublished' }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+                                                <a class="tm-btn primary" href="{{ route('registrar.courses.participants', $course, false) }}">View</a>
+                                                @if($isPublished && Auth::user()->canManageTraining())
+                                                    <form method="POST" action="{{ route('courses.publish', $course, false) }}" style="margin:0;display:inline" data-confirm-message="Unpublish this course? Participants will no longer be able to enroll." data-confirm-title="Unpublish Course">
+                                                        @csrf
+                                                        <input type="hidden" name="return_tab" value="trainer-trainee-management">
+                                                        <input type="hidden" name="published" value="0">
+                                                        <button type="submit" class="tm-btn ghost">Unpublish</button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="tm-empty">No courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
             <!-- Publish Modal -->
@@ -2786,7 +2990,7 @@
                                         <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment Start
                                     </label>
                                     <div style="position:relative;">
-                                        <input id="enrollStart" name="enrollment_start_date" type="date" style="width:100%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                        <input id="enrollStart" name="enrollment_start_date" type="date" style="width:70%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                                         <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:#94a3b8;">
                                             <i class="fas fa-calendar-day" style="font-size:0.9rem;"></i>
                                         </div>
@@ -2797,7 +3001,7 @@
                                         <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment End
                                     </label>
                                     <div style="position:relative;">
-                                        <input id="enrollEnd" name="enrollment_end_date" type="date" style="width:100%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                        <input id="enrollEnd" name="enrollment_end_date" type="date" style="width:70%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                                         <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:#94a3b8;">
                                             <i class="fas fa-calendar-xmark" style="font-size:0.9rem;"></i>
                                         </div>
@@ -2869,7 +3073,7 @@
                     }
                 })();
             </script>
-            <section id="published-courses" class="content-section {{ request('tab') == 'trainer-trainee-management' ? 'active' : '' }}">
+            <section id="published-courses" class="content-section" style="display:none">
                 <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top:16px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -2965,134 +3169,417 @@
             </script>
 
             @if(Auth::user()->hasPermission('view_training'))
-            <section id="course-management" class="content-section {{ request('tab') == 'course-management' ? 'active' : '' }}">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1 class="welcome-title" style="margin: 0;"> <strong>Course Management</strong></h1>
-                    <div style="display: flex; gap: 55px; align-items: center;">
-                        <div style="position: relative; width: 250px;">
-                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                            <input type="text" id="courseSearchInputTM" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; transition: border-color 0.2s ease;">
-                        </div>
-                        <div style="position: relative; width: 220px;">
-                            <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                            <select id="academicYearFilterManagementTM" onchange="filterByAcademicYearCourseManagementTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; outline: none; appearance: none; background: #fff; cursor: pointer;">
-                                <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
-                                @foreach($academicYears as $ay)
-                                    <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
-                                        {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
-                        </div>
-                    </div>
-                </div>
+            <section id="course-management" class="content-section {{ in_array(request('tab'), ['course-management','pending-courses','archived-courses','course-library'], true) ? 'active' : '' }}">
 
                 @php
-                    $activeCoursesCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection)
-                        ? $courses->filter(fn($c) => (bool) ($c->is_published ?? false))->count()
-                        : 0;
+                    $allCoursesLocal = (isset($courses) && $courses instanceof \Illuminate\Support\Collection) ? $courses : collect([]);
+                    $activeCoursesLocal = $allCoursesLocal->filter(fn($c) => (bool) ($c->is_published ?? false))->values();
+                    $draftCoursesLocal = $allCoursesLocal->filter(fn($c) => !(bool) ($c->is_published ?? false))->values();
+                    $activeCoursesCount = $activeCoursesLocal->count();
                     $pendingCoursesCountLocal = (isset($pendingCourses) && $pendingCourses instanceof \Illuminate\Support\Collection)
                         ? $pendingCourses->count()
                         : (int) ($pendingCoursesCount ?? 0);
-                    $draftCoursesCount = (isset($courses) && $courses instanceof \Illuminate\Support\Collection)
-                        ? $courses->filter(fn($c) => !(bool) ($c->is_published ?? false))->count()
-                        : 0;
-                    $archivedCoursesCount = (isset($archivedCourses) && $archivedCourses instanceof \Illuminate\Support\Collection)
-                        ? $archivedCourses->count()
-                        : 0;
+                    $draftCoursesCount = $draftCoursesLocal->count();
+                    $archivedCoursesLocal = (isset($archivedCourses) && $archivedCourses instanceof \Illuminate\Support\Collection)
+                        ? $archivedCourses->filter(fn($c) => (bool) ($c->is_published ?? false))->values()
+                        : collect([]);
+                    $archivedCoursesCount = $archivedCoursesLocal->count();
+                    $rejectedCoursesLocal = collect([]);
+                    $rejectedCoursesCountLocal = $rejectedCoursesLocal->count();
+                    $libraryCoursesLocal = isset($publishedCourses) ? $publishedCourses : collect([]);
                 @endphp
-
-                <div class="course-stats-grid">
-                    <div class="course-stat-card active" role="button" tabindex="0"
-                         onclick="showContent('course-management', null)"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
+                <div class="cm-shell">
+                    <div class="cm-head">
                         <div>
-                            <p class="course-stat-label">Active Courses</p>
-                            <p class="course-stat-value">{{ $activeCoursesCount }}</p>
+                            <div class="cm-title">Course Management</div>
+                            <div class="cm-subtitle">Manage and review all course submissions.</div>
                         </div>
-                        <span class="course-stat-icon"><i class="fas fa-graduation-cap"></i></span>
-                    </div>
-                    <div class="course-stat-card pending" role="button" tabindex="0"
-                         onclick="showContent('pending-courses', null)"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Pending Courses</p>
-                            <p class="course-stat-value">{{ $pendingCoursesCountLocal }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-hourglass-half"></i></span>
-                    </div>
-                    <div class="course-stat-card draft" role="button" tabindex="0"
-                         onclick="openDraftCoursesModal()"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Draft Courses</p>
-                            <p class="course-stat-value">{{ $draftCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-file-pen"></i></span>
-                    </div>
-                    <div class="course-stat-card archived" role="button" tabindex="0"
-                         onclick="showContent('archived-courses', null)"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Archived Courses</p>
-                            <p class="course-stat-value">{{ $archivedCoursesCount }}</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-box-archive"></i></span>
-                    </div>
-                    <div class="course-stat-card library" role="button" tabindex="0"
-                         onclick="showContent('course-library', null)"
-                         onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); this.click(); }">
-                        <div>
-                            <p class="course-stat-label">Course Library</p>
-                            <p class="course-stat-value">View</p>
-                        </div>
-                        <span class="course-stat-icon"><i class="fas fa-layer-group"></i></span>
-                    </div>
-                </div>
-
-                @if(session('success_course'))
-                    <div class="alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                        {{ session('success_course') }}
-                    </div>
-                @endif
-
-                <div id="courseGridTM" class="course-grid">
-                    @if(Auth::user()->hasPermission('create_courses'))
-                        <a class="course-card add-course-card" href="javascript:void(0)" onclick="openAddCourseModalTM()" aria-label="Add Course" style="border:0;">
-                            <span class="add-course-plus"><i class="fas fa-plus"></i></span>
-                            <p class="add-course-title">Add Course</p>
-                        </a>
-                    @endif
-                    @foreach(($courses ?? collect())->sortByDesc('created_at') as $course)
-                        @php
-                            $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
-                            $img = !empty($course->image_path) ? $course->image_url : null;
-                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
-                                $img = $course->image_path;
-                            }
-                            $startText = $course->start_date ? $course->start_date->format('M d, Y') : 'Not set';
-                        @endphp
-                        <div class="course-card js-course-card-tm" role="button" tabindex="0" data-course-name="{{ strtolower($course->name) }}"
-                             onclick="window.location.href='{{ route('admin.courses.show', $course) }}'"
-                             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='{{ route('admin.courses.show', $course) }}';}"
-                             style="background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; height: 280px; display: flex; flex-direction: column;">
-                            @if($img)
-                                <img src="{{ $img }}" alt="{{ $course->name }}" style="width: 100%; height: 160px; object-fit: cover;">
-                            @else
-                                <div style="width: 100%; height: 160px; background:#eef4ff;"></div>
-                            @endif
-                            <div style="padding: 15px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                                <h3 style="margin: 0; color: var(--primary-blue); font-size: 1.05rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->name }}</h3>
-                                <p style="color: var(--light-text); margin: 0; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $course->description }}</p>
-                                <div style="margin-top:auto;display:flex;justify-content:flex-end;">
-                                    <button type="button" onclick="event.stopPropagation(); window.location.href='{{ route('admin.courses.show', $course) }}'" style="background:#002C76;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;">
-                                        View
-                                    </button>
-                                </div>
+                        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                            <div style="position: relative; width: 240px;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                <input type="text" id="courseSearchInputTM" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
                             </div>
+                            <div style="position: relative; width: 220px;">
+                                <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                                <select id="academicYearFilterManagementTM" onchange="filterByAcademicYearCourseManagementTM(this.value)" style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; appearance: none; background: #fff; cursor: pointer;">
+                                    <option value="all" {{ $selectedYearId === 'all' ? 'selected' : '' }}>All Academic Years</option>
+                                    @foreach($academicYears as $ay)
+                                        <option value="{{ $ay->id }}" {{ $selectedYearId == $ay->id ? 'selected' : '' }}>
+                                            {{ $ay->year_start }} {{ $ay->is_active ? '(Active)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.8rem; pointer-events: none;"></i>
+                            </div>
+                            @if(Auth::user()->hasPermission('create_courses'))
+                                <button type="button" class="cm-create" onclick="openAddCourseModalTM()">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Create New Course</span>
+                                </button>
+                            @endif
                         </div>
-                    @endforeach
+                    </div>
+
+                    <div class="cm-tabs">
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="active" onclick="switchCourseManagementTabTM('active')">
+                            <span><i class="fas fa-circle-check" style="color:#1d4ed8"></i> Active Courses</span>
+                            <span class="cm-count">{{ $activeCoursesCount }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="pending" onclick="switchCourseManagementTabTM('pending')">
+                            <span><i class="fas fa-hourglass-half" style="color:#d97706"></i> Pending Courses</span>
+                            <span class="cm-count">{{ $pendingCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="rejected" onclick="switchCourseManagementTabTM('rejected')">
+                            <span><i class="fas fa-circle-xmark" style="color:#dc2626"></i> Rejected Courses</span>
+                            <span class="cm-count">{{ $rejectedCoursesCountLocal }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="draft" onclick="switchCourseManagementTabTM('draft')">
+                            <span><i class="fas fa-file-pen" style="color:#7c3aed"></i> Draft Courses</span>
+                            <span class="cm-count">{{ $draftCoursesCount }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="archived" onclick="switchCourseManagementTabTM('archived')">
+                            <span><i class="fas fa-box-archive" style="color:#475569"></i> Archived Courses</span>
+                            <span class="cm-count">{{ $archivedCoursesCount }}</span>
+                        </button>
+                        <button type="button" class="cm-tab js-cm-tab-tm" data-cm-tab="library" onclick="switchCourseManagementTabTM('library')">
+                            <span><i class="fas fa-layer-group" style="color:#10b981"></i> Courses Library</span>
+                            <span class="cm-count">{{ $libraryCoursesLocal->count() }}</span>
+                        </button>
+                    </div>
+
+                    @if(session('success_course'))
+                        <div style="padding:14px 18px;color:#155724;background:#f0fff6;border-top:1px solid #e7f7ee;border-bottom:1px solid #e7f7ee;font-weight:700;">
+                            {{ session('success_course') }}
+                        </div>
+                    @endif
+
+                    @php
+                        $formatSubjectAreas = function ($raw) {
+                            if (is_array($raw)) {
+                                $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $raw), fn($v) => $v !== ''));
+                                return $vals ? implode(', ', $vals) : '—';
+                            }
+                            if ($raw === null) return '—';
+                            $str = trim((string) $raw);
+                            $str = trim($str, "\"");
+                            if ($str === '') return '—';
+                            if (\Illuminate\Support\Str::startsWith($str, '[')) {
+                                $decoded = json_decode($str, true);
+                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                    $vals = array_values(array_filter(array_map(fn($v) => trim((string) $v), $decoded), fn($v) => $v !== ''));
+                                    return $vals ? implode(', ', $vals) : '—';
+                                }
+                            }
+                            return $str;
+                        };
+                    @endphp
+
+                    <div class="cm-panel" data-cm-panel="active">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Published On</th>
+                                    <th>Last Updated</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($activeCoursesLocal->sortByDesc('created_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $publishedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $publishedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $updatedOn = $course->updated_at ? $course->updated_at->format('M d, Y') : '—';
+                                        $updatedTime = $course->updated_at ? $course->updated_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill active">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $publishedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $publishedTime }}</div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $updatedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $updatedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn primary" href="{{ route('admin.courses.show', $course) }}">View</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="cm-empty">No active courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="pending" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Submitted On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse(($pendingCourses ?? collect()) as $course)
+                                    @php
+                                        $submitter = $course->users->first(function ($u) {
+                                            return in_array(strtolower((string) $u->role), [
+                                                'coach',
+                                                'trainer',
+                                                'central_office_coach',
+                                                'regional_office_coach',
+                                                'provincial_office_coach',
+                                            ], true);
+                                        });
+                                        $img = $course->image_url;
+                                        $submittedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $submittedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $submitter?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $submitter?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill pending">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $submittedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $submittedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn" href="{{ route('admin.courses.show', $course) }}">View</a>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Approve this course? It will be published." data-confirm-title="Approve Course" style="margin:0;display:inline">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="pending-courses">
+                                                    <button type="submit" class="cm-btn success"><i class="fas fa-check"></i> Approve</button>
+                                                </form>
+                                                <button type="button" class="cm-btn danger" disabled><i class="fas fa-xmark"></i> Reject</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No pending courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="rejected" style="display:none">
+                        <div class="cm-empty">No rejected courses found.</div>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="draft" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Last Updated</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($draftCoursesLocal->sortByDesc('updated_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $updatedOn = $course->updated_at ? $course->updated_at->format('M d, Y') : '—';
+                                        $updatedTime = $course->updated_at ? $course->updated_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill draft">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $updatedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $updatedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn primary" href="{{ route('admin.courses.show', $course) }}">Edit</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No draft courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="archived" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Archived On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($archivedCoursesLocal->sortByDesc('deleted_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $archivedOn = $course->deleted_at ? $course->deleted_at->format('M d, Y') : '—';
+                                        $archivedTime = $course->deleted_at ? $course->deleted_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill archived">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $archivedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $archivedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn" href="{{ route('admin.courses.show', $course) }}">View</a>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" style="margin:0;display:inline">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="archived-courses">
+                                                    <button type="submit" class="cm-btn success">Unarchive</button>
+                                                </form>
+                                                <form action="{{ route('courses.force-delete', $course->id) }}" method="POST" style="margin:0;display:inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="cm-btn danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No archived courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cm-panel" data-cm-panel="library" style="display:none">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Published On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($libraryCoursesLocal->sortByDesc('created_at') as $course)
+                                    @php
+                                        $creator = $course->users()->orderBy('course_user.created_at', 'asc')->first();
+                                        $img = !empty($course->image_path) ? $course->image_url : null;
+                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
+                                            $img = $course->image_path;
+                                        }
+                                        $publishedOn = $course->created_at ? $course->created_at->format('M d, Y') : '—';
+                                        $publishedTime = $course->created_at ? $course->created_at->format('h:i A') : '';
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $creator?->name ?? '—' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $creator?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill active">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $publishedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $publishedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn primary" href="{{ route('admin.courses.show', $course) }}">View</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No courses found in the library.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -3104,7 +3591,7 @@
                         <button type="button" onclick="openImportCourseLibraryInCreateTM()" style="background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight:600;">
                             Import from Course Library
                         </button>
-                        <button type="button" onclick="showContent('course-management', document.querySelector(\".menu-item[onclick*='course-management']\"))" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="showContent('course-management', document.querySelector(&quot;.menu-item[onclick*='course-management']&quot;))" style="background-color: #002C76; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fas fa-arrow-left"></i> Back to Course Management
                         </button>
                     </div>
@@ -3114,7 +3601,7 @@
                 </div>
             </section>
 
-            <section id="course-library" class="content-section {{ request('tab') == 'course-library' ? 'active' : '' }}">
+            <section id="course-library" class="content-section">
                 <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;">
                     <div style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #fff;">
                         <div style="display: flex; align-items: center; gap: 16px;">
@@ -3187,7 +3674,7 @@
                 </div>
             </section>
 
-            <section id="pending-courses" class="content-section {{ request('tab') == 'pending-courses' ? 'active' : '' }}">
+            <section id="pending-courses" class="content-section">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin: 0;">Pending <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
@@ -3246,7 +3733,7 @@
                 @endif
             </section>
 
-            <section id="archived-courses" class="content-section {{ request('tab') == 'archived-courses' ? 'active' : '' }}">
+            <section id="archived-courses" class="content-section">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                     <h1 class="welcome-title" style="margin: 0;">Archived <strong>Courses</strong></h1>
                     <div style="display:flex; gap:10px;">
@@ -4155,33 +4642,168 @@
         const url = new URL(window.location.href);
         url.searchParams.set('academic_year_id', yearId);
         url.searchParams.set('tab', 'trainer-trainee-management');
+        const currentTm = url.searchParams.get('tm') || (window.__tmTrainingTab || '');
+        if (currentTm) {
+            url.searchParams.set('tm', currentTm);
+        }
         window.location.href = url.toString();
     }
+
+    function switchTrainingManagementTabTM(tab, opts){
+        const t = String(tab || '').toLowerCase();
+        const allowed = new Set(['published','unpublished','all']);
+        window.__tmTrainingTab = allowed.has(t) ? t : 'published';
+        const panels = document.querySelectorAll('#trainer-trainee-management [data-tm-panel]');
+        panels.forEach(p => {
+            const isActive = String(p.getAttribute('data-tm-panel')) === window.__tmTrainingTab;
+            p.style.display = isActive ? '' : 'none';
+        });
+        document.querySelectorAll('#trainer-trainee-management .js-tm-tab').forEach(el => {
+            el.classList.toggle('is-selected', String(el.getAttribute('data-tm-tab')) === window.__tmTrainingTab);
+        });
+        applyTrainingFiltersTM({ skipResetSearch: true });
+        const skipUrl = !!(opts && opts.skipUrl);
+        if (!skipUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'trainer-trainee-management');
+            url.searchParams.set('tm', window.__tmTrainingTab);
+            window.history.pushState({}, '', url.toString());
+        }
+    }
+
+    function applyTrainingFiltersTM(options){
+        const opts = options || {};
+        const section = document.getElementById('trainer-trainee-management');
+        if(!section) return;
+        const tab = window.__tmTrainingTab || 'published';
+        const panel = section.querySelector(`[data-tm-panel="${tab}"]`);
+        if(!panel) return;
+        const search = String(document.getElementById('tmCourseSearch')?.value || '').toLowerCase().trim();
+        const subj = String(document.getElementById('tmFilterSubject')?.value || '').toLowerCase().trim();
+        const coach = String(document.getElementById('tmFilterCoach')?.value || '').toLowerCase().trim();
+        panel.querySelectorAll('.js-tm-row').forEach(row => {
+            const name = String(row.getAttribute('data-name') || '');
+            const subject = String(row.getAttribute('data-subject') || '');
+            const coachName = String(row.getAttribute('data-coach') || '');
+            const okName = !search || name.includes(search);
+            const okSubject = !subj || subject.includes(subj);
+            const okCoach = !coach || coachName.includes(coach);
+            row.style.display = (okName && okSubject && okCoach) ? '' : 'none';
+        });
+    }
+
+    function exportTrainingManagementTM(){
+        const section = document.getElementById('trainer-trainee-management');
+        if(!section) return;
+        const tab = window.__tmTrainingTab || 'published';
+        const panel = section.querySelector(`[data-tm-panel="${tab}"]`);
+        const table = panel ? panel.querySelector('table') : null;
+        if(!table) return;
+        const rows = Array.from(table.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+        if(!rows.length) return;
+        const csv = rows.map(row => {
+            const cells = Array.from(row.querySelectorAll('th,td')).map(c => {
+                const text = String(c.textContent || '').replace(/\s+/g, ' ').trim();
+                return `"${text.replace(/"/g, '""')}"`;
+            });
+            return cells.join(',');
+        }).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `training-management-${tab}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    (function(){
+        function initTrainingManagementFromUrl(){
+            const section = document.getElementById('trainer-trainee-management');
+            if(!section) return;
+            const url = new URL(window.location.href);
+            const tab = (url.searchParams.get('tab') || '').toLowerCase();
+            const tm = (url.searchParams.get('tm') || '').toLowerCase();
+            if(tab === 'trainer-trainee-management'){
+                switchTrainingManagementTabTM(tm || 'published', { skipUrl: true });
+            }
+        }
+        function bindTrainingManagementFilters(){
+            const search = document.getElementById('tmCourseSearch');
+            const subj = document.getElementById('tmFilterSubject');
+            const coach = document.getElementById('tmFilterCoach');
+            if(search) search.addEventListener('input', ()=> applyTrainingFiltersTM());
+            if(subj) subj.addEventListener('change', ()=> applyTrainingFiltersTM());
+            if(coach) coach.addEventListener('change', ()=> applyTrainingFiltersTM());
+        }
+        if(document.readyState === 'loading'){
+            document.addEventListener('DOMContentLoaded', function(){
+                initTrainingManagementFromUrl();
+                bindTrainingManagementFilters();
+            });
+        }else{
+            initTrainingManagementFromUrl();
+            bindTrainingManagementFilters();
+        }
+    })();
 
     function filterByAcademicYearCourseManagementTM(yearId) {
         const url = new URL(window.location.href);
         url.searchParams.set('academic_year_id', yearId);
         url.searchParams.set('tab', 'course-management');
+        const currentCm = url.searchParams.get('cm') || (window.__tmCourseMgmtTab || '');
+        if (currentCm) {
+            url.searchParams.set('cm', currentCm);
+        }
         window.location.href = url.toString();
     }
 
     function filterByAcademicYearCourseLibraryTM(yearId) {
         const url = new URL(window.location.href);
         url.searchParams.set('academic_year_id', yearId);
-        url.searchParams.set('tab', 'course-library');
+        url.searchParams.set('tab', 'course-management');
+        url.searchParams.set('cm', 'library');
         window.location.href = url.toString();
+    }
+
+    function switchCourseManagementTabTM(tab, opts){
+        const t = String(tab || '').toLowerCase();
+        window.__tmCourseMgmtTab = t || 'active';
+        const panels = document.querySelectorAll('#course-management [data-cm-panel]');
+        panels.forEach(p => {
+            const isActive = String(p.getAttribute('data-cm-panel')) === window.__tmCourseMgmtTab;
+            p.style.display = isActive ? '' : 'none';
+        });
+        document.querySelectorAll('#course-management .js-cm-tab-tm').forEach(el => {
+            el.classList.toggle('is-selected', String(el.getAttribute('data-cm-tab')) === window.__tmCourseMgmtTab);
+        });
+        const skipUrl = !!(opts && opts.skipUrl);
+        if (!skipUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'course-management');
+            url.searchParams.set('cm', window.__tmCourseMgmtTab);
+            window.history.pushState({}, '', url.toString());
+        }
     }
 
     (function(){
         function bindCourseSearch(){
             const input = document.getElementById('courseSearchInputTM');
-            const grid = document.getElementById('courseGridTM');
-            if(!input || !grid) return;
+            if(!input) return;
             input.addEventListener('input', function(){
                 const q = String(input.value || '').toLowerCase().trim();
-                const cards = grid.querySelectorAll('.js-course-card-tm');
+                const tab = window.__tmCourseMgmtTab || 'active';
+                const panel = document.querySelector(`#course-management [data-cm-panel="${tab}"]`) || document.getElementById('courseGridTM');
+                if(!panel) return;
+                const cards = panel.querySelectorAll('.js-course-card-tm');
                 cards.forEach(card => {
                     const name = String(card.getAttribute('data-course-name') || '');
+                    if(!name){
+                        card.style.display = '';
+                        return;
+                    }
                     card.style.display = q ? (name.includes(q) ? '' : 'none') : '';
                 });
             });
@@ -4190,6 +4812,25 @@
             document.addEventListener('DOMContentLoaded', bindCourseSearch);
         }else{
             bindCourseSearch();
+        }
+    })();
+
+    (function(){
+        function initCourseManagementTabFromUrl(){
+            const cmSection = document.getElementById('course-management');
+            if(!cmSection) return;
+            const url = new URL(window.location.href);
+            const tab = (url.searchParams.get('tab') || '').toLowerCase();
+            const mapped = { 'pending-courses': 'pending', 'archived-courses': 'archived', 'course-library': 'library' };
+            const cm = mapped[tab] || url.searchParams.get('cm') || 'active';
+            if(tab === 'course-management' || mapped[tab]) {
+                switchCourseManagementTabTM(cm, { skipUrl: true });
+            }
+        }
+        if(document.readyState === 'loading'){
+            document.addEventListener('DOMContentLoaded', initCourseManagementTabFromUrl);
+        }else{
+            initCourseManagementTabFromUrl();
         }
     })();
 
@@ -4320,6 +4961,15 @@
     }
 
     function showContent(sectionId, menuItem) {
+        const courseMap = {
+            'pending-courses': 'pending',
+            'archived-courses': 'archived',
+            'course-library': 'library'
+        };
+        const normalizedSection = courseMap[sectionId] ? 'course-management' : sectionId;
+        const cmFromSection = courseMap[sectionId] || null;
+        sectionId = normalizedSection;
+
         const sections = document.querySelectorAll('.content-section');
         sections.forEach(section => {
             section.classList.remove('active');
@@ -4329,10 +4979,11 @@
         if (selectedSection) {
             selectedSection.classList.add('active');
         }
-        if (sectionId === 'trainer-trainee-management') {
-            const published = document.getElementById('published-courses');
-            if (published) {
-                published.classList.add('active');
+        if (sectionId === 'course-management') {
+            const url = new URL(window.location.href);
+            const cm = cmFromSection || url.searchParams.get('cm') || 'active';
+            if (typeof switchCourseManagementTabTM === 'function') {
+                switchCourseManagementTabTM(cm, { skipUrl: true });
             }
         }
 
@@ -4353,9 +5004,6 @@
             'trainer-trainee-management': 'Training Management',
             'course-management': 'Course Management',
             'course-create': 'Add Course',
-            'pending-courses': 'Pending Courses',
-            'archived-courses': 'Archived Courses',
-            'course-library': 'Course Library',
             'certification-management': 'Certifications'
         };
         const titleElement = document.getElementById('page-title');
@@ -4369,6 +5017,12 @@
             url.searchParams.delete('tab');
         } else {
             url.searchParams.set('tab', sectionId);
+        }
+        if (sectionId === 'course-management') {
+            const cm = cmFromSection || url.searchParams.get('cm') || (window.__tmCourseMgmtTab || 'active');
+            url.searchParams.set('cm', cm);
+        } else {
+            url.searchParams.delete('cm');
         }
         window.history.pushState({}, '', url.toString());
 
