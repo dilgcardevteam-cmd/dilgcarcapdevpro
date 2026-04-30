@@ -2182,6 +2182,7 @@
         .select-all-box.disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            pointer-events: none;
         }
 
         .permission-option-circle {
@@ -4286,10 +4287,12 @@
                         <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
+                        @if(Auth::user()->hasPermission('view_monitoring'))
                         <li class="menu-item menu-sub-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
+                        @endif
                         @if(Auth::user()->hasPermission('view_users'))
                         <li class="menu-item menu-sub-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
@@ -7567,8 +7570,14 @@
                                 'title' => 'Admin System',
                                 'badge' => 'Admin',
                                 'class' => 'group-admin',
-                                'desc' => 'Manage user accounts, courses, and overall system security.',
+                                'desc' => 'Dashboard, user management, course management, and certification management.',
                                 'groups' => [
+                                    'Dashboard' => [
+                                        'desc' => 'View admin dashboard and monitoring overview',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_monitoring', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
                                     'User Management' => [
                                         'desc' => 'Manage users, approvals, roles, activation, and blocking',
                                         'actions' => [
@@ -7579,7 +7588,7 @@
                                         ]
                                     ],
                                     'Course Management' => [
-                                        'desc' => 'Manage course creation, editing, archiving, and trainer assignment',
+                                        'desc' => 'Manage course creation, editing, archiving, and coach assignment',
                                         'actions' => [
                                             'view' => ['perm' => 'view_courses', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'create_courses', 'allowed' => true, 'chosen' => false],
@@ -7596,17 +7605,17 @@
                                             'delete' => ['perm' => 'delete_certifications', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'System Monitoring' => [
-                                        'desc' => 'Monitor dashboards, active users, and system activity',
-                                        'actions' => [
-                                            'view' => ['perm' => 'view_monitoring', 'allowed' => true, 'chosen' => false]
-                                        ]
-                                    ],
-                                    'Access Control' => [
+                                    'Access Control (Super Admin)' => [
                                         'desc' => 'Manage permissions and role access control',
                                         'actions' => [
                                             'view' => ['perm' => 'view_access_control', 'allowed' => true, 'chosen' => false],
                                             'update' => ['perm' => 'edit_access_control', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'System Control (Super Admin)' => [
+                                        'desc' => 'Manage system settings and master data',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_system_settings', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                 ]
@@ -7616,8 +7625,14 @@
                                 'title' => 'Training Manager System',
                                 'badge' => 'Training Manager',
                                 'class' => 'group-tm',
-                                'desc' => 'Oversee training enrollments, course status, and activity reports.',
+                                'desc' => 'Dashboard, user management, training management, course management, certifications, and activity logs.',
                                 'groups' => [
+                                    'Dashboard' => [
+                                        'desc' => 'View training manager dashboard',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
                                     'User Management' => [
                                         'desc' => 'Approve, reject, and review users',
                                         'actions' => [
@@ -7626,7 +7641,7 @@
                                         ]
                                     ],
                                     'Training Management' => [
-                                        'desc' => 'Enroll participants, remove participants, and assign users to courses',
+                                        'desc' => 'Manage training assignments, enrollments, and approvals',
                                         'actions' => [
                                             'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'add_training', 'allowed' => true, 'chosen' => false],
@@ -7634,13 +7649,19 @@
                                             'delete' => ['perm' => 'delete_training', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Course Monitoring' => [
-                                        'desc' => 'View course status and readiness tracking',
+                                    'Course Management' => [
+                                        'desc' => 'View course status and manage course readiness',
                                         'actions' => [
                                             'view' => ['perm' => 'view_course_monitoring', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Reports & Logs' => [
+                                    'Certification Management' => [
+                                        'desc' => 'Manage certifications and issuance',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'Activity Logs' => [
                                         'desc' => 'View activity logs and monitor user actions',
                                         'actions' => [
                                             'view' => ['perm' => 'view_reports', 'allowed' => true, 'chosen' => false]
@@ -7653,39 +7674,43 @@
                                 'title' => 'Coach System',
                                 'badge' => 'Coach',
                                 'class' => 'group-coach',
-                                'desc' => 'Manage assigned courses, upload materials, and track student progress.',
+                                'desc' => 'Dashboard, my courses, course utilities, certifications, calendar, and announcements.',
                                 'groups' => [
-                                    'Course Management' => [
-                                        'desc' => 'Create courses, edit assigned courses, and upload materials',
+                                    'Dashboard' => [
+                                        'desc' => 'View coach dashboard',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'My Courses' => [
+                                        'desc' => 'View assigned courses and course list',
+                                        'actions' => [
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false]
+                                        ]
+                                    ],
+                                    'Course Utilities' => [
+                                        'desc' => 'Create and update courses and related utilities',
+                                        'actions' => [
                                             'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => false],
                                             'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Class Management' => [
-                                        'desc' => 'Manage schedules and handle sessions',
+                                    'Certification Management' => [
+                                        'desc' => 'Manage certifications for courses',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_classes', 'allowed' => true, 'chosen' => false],
-                                            'add' => ['perm' => 'add_classes', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'update_classes', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_classes', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Student Monitoring' => [
-                                        'desc' => 'Track student progress and view enrolled students',
+                                    'Calendar' => [
+                                        'desc' => 'View calendar and schedules',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_students', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'update_students', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_classes', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Communication' => [
-                                        'desc' => 'Post announcements and notify students',
+                                    'Announcements' => [
+                                        'desc' => 'View announcements and communication',
                                         'actions' => [
                                             'view' => ['perm' => 'view_communication', 'allowed' => true, 'chosen' => false],
-                                            'add' => ['perm' => 'add_communication', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'update_communication', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_communication', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ]
                                 ]
@@ -7695,34 +7720,30 @@
                                 'title' => 'Participant System',
                                 'badge' => 'Participant',
                                 'class' => 'group-participant',
-                                'desc' => 'Access training modules, complete assessments, and track learning progress.',
+                                'desc' => 'Dashboard, classroom, calendar, and announcements.',
                                 'groups' => [
-                                    'Module Access' => [
-                                        'desc' => 'Access training modules and complete exercises',
+                                    'Dashboard' => [
+                                        'desc' => 'View participant dashboard',
                                         'actions' => [
                                             'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Assessments' => [
-                                        'desc' => 'Take assessments and view results',
+                                    'Classroom' => [
+                                        'desc' => 'Access classroom and enrolled courses',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_assessments', 'allowed' => true, 'chosen' => false],
-                                            'add' => ['perm' => 'add_assessments', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Learning Progress' => [
-                                        'desc' => 'Track personal achievements and course status',
+                                    'Calendar' => [
+                                        'desc' => 'View calendar and schedules',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_progress', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Engagement' => [
-                                        'desc' => 'Engage with coaches/peers and post discussions',
+                                    'Announcements' => [
+                                        'desc' => 'View announcements',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_engagement', 'allowed' => true, 'chosen' => false],
-                                            'add' => ['perm' => 'add_engagement', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'update_engagement', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_engagement', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ]
                                 ]
@@ -9922,6 +9943,85 @@
 
         let currentViewingUser = null;
 
+        function getRolePermIdsForUserRole(roleName) {
+            const role = String(roleName || '').toLowerCase();
+            const roleObj = ALL_ROLES.find(r => String(r.name || '').toLowerCase() === role);
+            return roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
+        }
+
+        function applyPermissionCheckboxesFromRolePermIds(rolePermIds) {
+            const permCheckboxes = document.querySelectorAll('.permission-option-input');
+            permCheckboxes.forEach(cb => cb.checked = false);
+
+            permCheckboxes.forEach(cb => {
+                const val = cb.value;
+                const isNumeric = !isNaN(val) && !isNaN(parseFloat(val));
+
+                if (isNumeric) {
+                    const permId = parseInt(val);
+                    if (rolePermIds.includes(permId)) {
+                        cb.checked = true;
+                    }
+                } else {
+                    const resolvedId = Object.keys(PERM_LOOKUP).find(id => PERM_LOOKUP[id] === val);
+                    if (resolvedId && rolePermIds.includes(parseInt(resolvedId))) {
+                        cb.checked = true;
+                    }
+                }
+            });
+        }
+
+        function applyOfficeLevelGuessForUser(user) {
+            const lvl = document.getElementById('view_office_level');
+            let guess = null;
+            if (user && user.region) {
+                if (user.region === 'DILG Central Office') guess = 'DILG Central Office';
+                else if (user.region === 'DILG Regional Office') guess = 'DILG Regional Office';
+                else if (user.region === 'DILG Provincial Office') guess = 'DILG Provincial Office';
+            }
+            if (!guess) {
+                const role = user.role || '';
+                const central = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
+                const regional = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
+                const provincial = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
+                if (central.includes(role)) guess = 'DILG Central Office';
+                else if (regional.includes(role)) guess = 'DILG Regional Office';
+                else if (provincial.includes(role)) guess = 'DILG Provincial Office';
+            }
+            if (lvl && guess) {
+                lvl.value = guess;
+                window.FORCED_OFFICE_GROUP = guess === 'DILG Central Office' ? 'central' : (guess === 'DILG Regional Office' ? 'regional' : (guess === 'DILG Provincial Office' ? 'provincial' : null));
+            } else {
+                window.FORCED_OFFICE_GROUP = null;
+            }
+        }
+
+        function resetUserDetailsToCurrentViewingUser() {
+            const user = currentViewingUser;
+            if (!user) return;
+
+            document.getElementById('view_name').value = user.name || '';
+            document.getElementById('view_email').value = user.email || '';
+            document.getElementById('view_role').value = normalizeAccessRole(user.role);
+            document.getElementById('view_status').value = user.status || '';
+            document.getElementById('view_field_of_work').value = user.field_of_work || '';
+            document.getElementById('view_password').value = '';
+            applyAccessRole(user.role || '');
+
+            applyOfficeLevelGuessForUser(user);
+            initViewLocationDropdowns(
+                user.region || '',
+                user.province || '',
+                user.city || '',
+                user.barangay || ''
+            );
+
+            const rolePermIds = getRolePermIdsForUserRole(user.role);
+            applyPermissionCheckboxesFromRolePermIds(rolePermIds);
+            document.querySelectorAll('.unsaved-badge').forEach(badge => badge.style.display = 'none');
+            updateAllSystemSelectStates();
+        }
+
         function openViewModal(user) {
             currentViewingUser = user;
             // Persist for refresh
@@ -9996,8 +10096,7 @@
             }
 
             // 2. Check permissions based on the database source of truth
-        const roleObj = ALL_ROLES.find(r => r.name.toLowerCase() === user.role.toLowerCase());
-        const rolePermIds = roleObj ? (ALL_ROLE_PERMISSIONS[roleObj.id] || []) : [];
+        const rolePermIds = getRolePermIdsForUserRole(user.role);
             
             permCheckboxes.forEach(cb => {
                 const val = cb.value;
@@ -10022,28 +10121,7 @@
             updateAllSystemSelectStates();
 
             (function setInitialOfficeLevel(){
-                const lvl = document.getElementById('view_office_level');
-                let guess = null;
-                if (user && user.region) {
-                    if (user.region === 'DILG Central Office') guess = 'DILG Central Office';
-                    else if (user.region === 'DILG Regional Office') guess = 'DILG Regional Office';
-                    else if (user.region === 'DILG Provincial Office') guess = 'DILG Provincial Office';
-                }
-                if (!guess) {
-                    const role = user.role || '';
-                    const central = ['central_office_admin','central_office_training_manager','central_office_coach','central_office_participants'];
-                    const regional = ['regional_office_admin','regional_office_training_manager','regional_office_coach','regional_office_participants'];
-                    const provincial = ['provincial_office_admin','provincial_office_training_manager','provincial_office_coach','provincial_office_participants'];
-                    if (central.includes(role)) guess = 'DILG Central Office';
-                    else if (regional.includes(role)) guess = 'DILG Regional Office';
-                    else if (provincial.includes(role)) guess = 'DILG Provincial Office';
-                }
-                if (lvl && guess) {
-                    lvl.value = guess;
-                    window.FORCED_OFFICE_GROUP = guess === 'DILG Central Office' ? 'central' : (guess === 'DILG Regional Office' ? 'regional' : (guess === 'DILG Provincial Office' ? 'provincial' : null));
-                } else {
-                    window.FORCED_OFFICE_GROUP = null;
-                }
+                applyOfficeLevelGuessForUser(user);
             })();
             initViewLocationDropdowns(
                 user.region || '',
@@ -10126,6 +10204,7 @@
         }
 
         function disableEditMode() {
+            resetUserDetailsToCurrentViewingUser();
             document.getElementById('modalTitle').innerText = currentViewingUser ? currentViewingUser.name : 'User Details';
             document.getElementById('modalSubtitle').innerText = 'Switch to edit mode to update account information and access settings.';
             
@@ -10192,13 +10271,18 @@
         function toggleSystemPermissions(systemBlockId) {
             const block = document.getElementById(systemBlockId);
             if (!block) return;
+            const selectAllBox = block.querySelector('.select-all-box');
+            if (selectAllBox && selectAllBox.classList.contains('disabled')) return;
             const inputs = block.querySelectorAll('.permission-option-input');
             if (inputs.length === 0) return;
+
+            const enabledInputs = Array.from(inputs).filter(i => !i.disabled);
+            if (enabledInputs.length === 0) return;
             
             // Check if ANY are unchecked
-            const anyUnchecked = Array.from(inputs).some(i => !i.checked);
+            const anyUnchecked = enabledInputs.some(i => !i.checked);
             // If any are unchecked, we check them all. Otherwise, we uncheck them all.
-            inputs.forEach(i => i.checked = anyUnchecked);
+            enabledInputs.forEach(i => i.checked = anyUnchecked);
             
             updateSystemSelectState(systemBlockId);
             

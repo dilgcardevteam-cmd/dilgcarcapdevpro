@@ -27,9 +27,12 @@ class RolesSeeder extends Seeder
             ['name' => 'central_office_coach', 'display_name' => 'Central Office Coach'],
             ['name' => 'regional_office_coach', 'display_name' => 'Regional Office Coach'],
             ['name' => 'provincial_office_coach', 'display_name' => 'Provincial Office Coach'],
-            ['name' => 'central_office_participants', 'display_name' => 'Central Office Participants'],
-            ['name' => 'regional_office_participants', 'display_name' => 'Regional Office Participants'],
-            ['name' => 'provincial_office_participants', 'display_name' => 'Provincial Office Participants'],
+            ['name' => 'central_office_participants', 'display_name' => 'Central Office Participant'],
+            ['name' => 'regional_office_participants', 'display_name' => 'Regional Office Participant'],
+            ['name' => 'provincial_office_participants', 'display_name' => 'Provincial Office Participant'],
+            ['name' => 'central_office_participant', 'display_name' => 'Central Office Participant'],
+            ['name' => 'regional_office_participant', 'display_name' => 'Regional Office Participant'],
+            ['name' => 'provincial_office_participant', 'display_name' => 'Provincial Office Participant'],
         ];
 
         foreach ($roles as $r) {

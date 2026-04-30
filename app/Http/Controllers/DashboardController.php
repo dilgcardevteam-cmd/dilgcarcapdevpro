@@ -64,6 +64,11 @@ class DashboardController extends Controller
         $canTmPortal = !$isSuperAdmin && ($user->hasPermission('view_training')
             || $user->hasPermission('view_users_tm')
             || $user->hasPermission('update_users_tm'));
+
+        if (!$isSuperAdmin) {
+            $canCoachPortal = $canCoachPortal || $user->hasPermission('add_courses_coach');
+            $canTmPortal = $canTmPortal || $user->hasPermission('view_reports') || $user->hasPermission('view_course_monitoring');
+        }
         $roleForView = $user->role;
         if ($portal === 'admin' && $canAdminPortal) {
             $roleForView = 'admin';
@@ -99,6 +104,26 @@ class DashboardController extends Controller
 
         switch (true) {
             case in_array($roleForView, $adminRoles, true):
+                $canAdminDashboard = $user->hasPermission('view_monitoring');
+                $hasAnyAdminAccess = $canAdminDashboard
+                    || $user->hasPermission('view_users')
+                    || $user->hasPermission('create_users')
+                    || $user->hasPermission('edit_users')
+                    || $user->hasPermission('delete_users')
+                    || $user->hasPermission('view_courses')
+                    || $user->hasPermission('view_certifications');
+                if (!$hasAnyAdminAccess) {
+                    abort(403);
+                }
+                if (!$canAdminDashboard && !$request->filled('tab') && !$request->hasAny(['search', 'roles', 'statuses', 'page'])) {
+                    $fallbackTab = null;
+                    if ($user->hasPermission('view_users')) $fallbackTab = 'user-management';
+                    elseif ($user->hasPermission('view_courses')) $fallbackTab = 'course-management';
+                    elseif ($user->hasPermission('view_certifications')) $fallbackTab = 'certification-management';
+                    if ($fallbackTab) {
+                        return redirect()->route('dashboard', ['portal' => 'admin', 'tab' => $fallbackTab]);
+                    }
+                }
                 $managedRoles = [];
                 if ($user->role === 'central_office_admin') {
                     $managedRoles = ['central_office_admin', 'central_office_training_manager','central_office_coach','central_office_participants'];
@@ -556,6 +581,17 @@ class DashboardController extends Controller
 
                 return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
             case in_array($roleForView, $tmRoles, true):
+                if (!$user->hasPermission('view_training') && !$user->hasPermission('view_users_tm') && !$user->hasPermission('update_users_tm') && !$user->hasPermission('view_reports') && !$user->hasPermission('view_course_monitoring')) {
+                    abort(403);
+                }
+                if (!$user->hasPermission('view_training') && !$request->filled('tab')) {
+                    $fallbackTab = null;
+                    if ($user->canManageUsers()) $fallbackTab = 'user-management';
+                    elseif ($user->canViewReports()) $fallbackTab = 'activity-logs';
+                    if ($fallbackTab) {
+                        return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => $fallbackTab]);
+                    }
+                }
                 $managedRoles = [];
                 $pendingApplicantScope = null;
                 if ($user->role === 'central_office_training_manager') {
@@ -819,6 +855,9 @@ class DashboardController extends Controller
                     'fieldOfWorks'
                 ));
             case in_array($roleForView, $participantRoles, true):
+                if (!$user->hasPermission('view_modules')) {
+                    abort(403);
+                }
                 // Get enrolled courses (active status)
                 // Eager load relationships for dashboard display
                 $visibleJoinedStatuses = ['active', 'in_progress', 'ready_for_exam', 'completed', 'failed', 'attempts_exhausted'];

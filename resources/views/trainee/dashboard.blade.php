@@ -1236,6 +1236,7 @@
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
             <ul class="nav-menu">
+                @if(Auth::user()->hasPermission('view_modules'))
                 @php $portalActive = !request('tab') || in_array(request('tab'), ['dashboard-home','classroom','calendar','announcements'], true); @endphp
                 <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-participant">
                     <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
@@ -1250,14 +1251,12 @@
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
-                        @if(Auth::user()->hasPermission('view_modules'))
                         <li class="nav-item">
                             <a href="#" class="nav-link" onclick="showContent('classroom', this)">
                                 <i class="fas fa-chalkboard-teacher nav-icon"></i>
                                 <span class="nav-text">Classroom</span>
                             </a>
                         </li>
-                        @endif
                         <li class="nav-item">
                             <a href="#" class="nav-link" onclick="showContent('calendar', this)">
                                 <i class="fas fa-calendar-alt nav-icon"></i>
@@ -1272,6 +1271,7 @@
                         </li>
                     </ul>
                 </li>
+                @endif
                 @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication')))
                 <li class="nav-portal" id="portal-dropdown-coach">
                     <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">

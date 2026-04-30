@@ -2014,12 +2014,14 @@
                         <span class="nav-chevron"></span>
                     </a>
                     <ul class="nav-portal-list" id="portal-dropdown-list-coach">
+                        @if(Auth::user()->hasPermission('view_courses_coach'))
                         <li class="nav-item">
                             <a href="{{ route('dashboard') }}" class="nav-link {{ (!request('tab') && ! $coachCreateCourseActive) || request('tab') === 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                                 <i class="fas fa-tachometer-alt nav-icon"></i>
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
+                        @endif
                         @if(Auth::user()->hasPermission('view_courses_coach'))
                         <li class="nav-item">
                             <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link {{ request('tab') === 'my-courses' ? 'active' : '' }}" onclick="showContent('my-courses', this)">

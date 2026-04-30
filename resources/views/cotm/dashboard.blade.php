@@ -868,10 +868,12 @@
                         <span class="menu-chevron"></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
+                        @if(Auth::user()->hasPermission('view_training'))
                         <li class="menu-item menu-sub-item {{ !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
+                        @endif
                         @if(Auth::user()->hasPermission('view_users_tm'))
                         <li class="menu-item menu-sub-item {{ request('tab') == 'user-management' ? 'active' : '' }}" onclick="showContent('user-management', this)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
