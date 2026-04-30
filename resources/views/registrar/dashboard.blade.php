@@ -2768,18 +2768,41 @@
                             @endif
                         </div>
 
-                        <div style="display:flex; gap:50px; margin-bottom:32px;">
-                            <div style="flex:1;">
-                                <label for="enrollStart" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
-                                    <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Start Date
-                                </label>
-                                <input id="enrollStart" name="enrollment_start_date" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                        <div style="padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; margin-bottom:24px;">
+                            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:36px; height:36px; border-radius:12px; background:#eff6ff; color:#0f3b8f; display:flex; align-items:center; justify-content:center; border:1px solid #dbeafe;">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:900; color:#0f172a; letter-spacing:-0.01em;">Enrollment Window</div>
+                                        <div style="font-size:0.78rem; color:#64748b; font-weight:700; margin-top:2px;">Participants can enroll only within this date range.</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="flex:1;">
-                                <label for="enrollEnd" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:700;">
-                                    <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> End Date
-                                </label>
-                                <input id="enrollEnd" name="enrollment_end_date" type="date" style="width:84%; padding:14px; border:2px solid #f1f5f9; border-radius:14px; font-size:0.95rem; background:#f8fafc; outline:none; transition:all 0.2s; color:#1e293b; font-weight:500;" onfocus="this.style.borderColor='#0f3b8f'; this.style.background='#fff';" onblur="this.style.borderColor='#f1f5f9'; this.style.background='#f8fafc';">
+                            <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px;">
+                                <div>
+                                    <label for="enrollStart" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:800;">
+                                        <i class="fas fa-calendar-alt" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment Start
+                                    </label>
+                                    <div style="position:relative;">
+                                        <input id="enrollStart" name="enrollment_start_date" type="date" style="width:100%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                        <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:#94a3b8;">
+                                            <i class="fas fa-calendar-day" style="font-size:0.9rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="enrollEnd" style="display:block; margin-bottom:10px; font-size:0.9rem; color:#475569; font-weight:800;">
+                                        <i class="fas fa-flag-checkered" style="color:#0f3b8f; margin-right:6px;"></i> Enrollment End
+                                    </label>
+                                    <div style="position:relative;">
+                                        <input id="enrollEnd" name="enrollment_end_date" type="date" style="width:100%; padding:14px 44px 14px 16px; border:2px solid #e2e8f0; border-radius:14px; font-size:0.95rem; background:#fff; outline:none; transition:all 0.2s; color:#0f172a; font-weight:700;" onfocus="this.style.borderColor='#0f3b8f'; this.style.boxShadow='0 0 0 4px rgba(15,59,143,0.12)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                                        <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:#94a3b8;">
+                                            <i class="fas fa-calendar-xmark" style="font-size:0.9rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

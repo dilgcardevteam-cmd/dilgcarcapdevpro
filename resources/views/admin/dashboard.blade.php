@@ -7582,9 +7582,7 @@
                                         'desc' => 'Manage users, approvals, roles, activation, and blocking',
                                         'actions' => [
                                             'view' => ['perm' => 'view_users', 'allowed' => true, 'chosen' => false],
-                                            'add' => ['perm' => 'create_users', 'allowed' => true, 'chosen' => false],
                                             'update' => ['perm' => 'edit_users', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_users', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Course Management' => [
@@ -7601,7 +7599,6 @@
                                         'actions' => [
                                             'view' => ['perm' => 'view_certifications', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'create_certifications', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'edit_certifications', 'allowed' => true, 'chosen' => false],
                                             'delete' => ['perm' => 'delete_certifications', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
@@ -7646,13 +7643,15 @@
                                             'view' => ['perm' => 'view_training', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'add_training', 'allowed' => true, 'chosen' => false],
                                             'update' => ['perm' => 'update_training', 'allowed' => true, 'chosen' => false],
-                                            'delete' => ['perm' => 'delete_training', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Course Management' => [
                                         'desc' => 'View course status and manage course readiness',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_course_monitoring', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_courses', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'create_courses', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'edit_courses', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_courses', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Certification Management' => [
@@ -7685,14 +7684,19 @@
                                     'My Courses' => [
                                         'desc' => 'View assigned courses and course list',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_courses_coach', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
-                                    'Course Utilities' => [
+                                    'Course Management' => [
                                         'desc' => 'Create and update courses and related utilities',
                                         'actions' => [
+                                            'view' => ['perm' => 'view_courses_coach', 'allowed' => true, 'chosen' => false],
                                             'add' => ['perm' => 'add_courses_coach', 'allowed' => true, 'chosen' => false],
-                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => false]
+                                            'update' => ['perm' => 'update_courses_coach', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_courses_coach', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Certification Management' => [
@@ -7731,7 +7735,10 @@
                                     'Classroom' => [
                                         'desc' => 'Access classroom and enrolled courses',
                                         'actions' => [
-                                            'view' => ['perm' => 'view_modules', 'allowed' => true, 'chosen' => false]
+                                            'view' => ['perm' => 'view_engagement', 'allowed' => true, 'chosen' => false],
+                                            'add' => ['perm' => 'add_engagement', 'allowed' => true, 'chosen' => false],
+                                            'update' => ['perm' => 'update_engagement', 'allowed' => true, 'chosen' => false],
+                                            'delete' => ['perm' => 'delete_engagement', 'allowed' => true, 'chosen' => false]
                                         ]
                                     ],
                                     'Calendar' => [

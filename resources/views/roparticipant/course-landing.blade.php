@@ -26,6 +26,9 @@
         .sidebar-toggle:hover{background:#f8fbff;border-color:#b8cae6;box-shadow:0 12px 22px rgba(15,23,42,.07);transform:translateY(-1px)}
         .header-right{display:flex;align-items:center;gap:15px}
         .header-section-title{margin-left:12px;font-size:1.08rem;color:var(--primary-blue);font-weight:700;letter-spacing:-.01em}
+        .back-to-courses-btn{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #d9e3f2;border-radius:14px;padding:10px 14px;color:var(--primary-blue);text-decoration:none;font-weight:800;box-shadow:0 8px 18px rgba(15,23,42,.04);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background-color .16s ease}
+        .back-to-courses-btn:hover{background:#f8fbff;border-color:#b8cae6;box-shadow:0 12px 22px rgba(15,23,42,.07);transform:translateY(-1px)}
+        .back-to-courses-row{display:flex;align-items:center;justify-content:flex-start;margin:0 0 16px}
         .profile-menu{position:relative}
         .user-profile{display:flex;align-items:center;gap:10px;color:var(--dark-text)}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
@@ -201,7 +204,7 @@
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
             try{
-                var LOGO_MAIN = "{{ asset('images/ddd-removebg-preview.png') }}";
+                var LOGO_MAIN = isTrainer ? "{{ asset('images/capdev_pro_w-removebg-preview.png') }}" : "{{ asset('images/ddd-removebg-preview.png') }}";
                 var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
                 var sl = document.getElementById('sidebarLogo');
                 var collapsed = document.body.classList.contains('sidebar-collapsed');
@@ -774,25 +777,25 @@
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link">
+                    <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
                         <i class="fas fa-tachometer-alt nav-icon"></i>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link">
+                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link">
                         <i class="fas fa-chalkboard-teacher nav-icon"></i>
                         <span class="nav-text">Classroom</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link">
+                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
                         <i class="fas fa-calendar-alt nav-icon"></i>
                         <span class="nav-text">Calendar</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('dashboard') }}" class="nav-link">
+                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
                         <i class="fas fa-bullhorn nav-icon"></i>
                         <span class="nav-text">Announcements</span>
                     </a>
@@ -800,6 +803,12 @@
             </ul>
         </div>
         <div class="main-content">
+            <div class="back-to-courses-row">
+                <a class="back-to-courses-btn" href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to My Course
+                </a>
+            </div>
             @if (session('success'))
                 <div id="flashSuccess" class="card" role="status" style="margin-bottom:12px;color:#0b7a33;border-color:#c1e7d2;background:#f0fff6;display:flex;justify-content:space-between;align-items:center">
                     <span>{{ session('success') }}</span>

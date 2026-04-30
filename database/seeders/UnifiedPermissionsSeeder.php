@@ -12,28 +12,32 @@ class UnifiedPermissionsSeeder extends Seeder
     {
         $adminCore = [
             'view_monitoring',
-            'view_users', 'create_users', 'edit_users', 'delete_users',
+            'view_users', 'edit_users',
             'view_courses', 'create_courses', 'edit_courses', 'delete_courses',
-            'view_certifications', 'create_certifications', 'edit_certifications', 'delete_certifications',
+            'view_certifications', 'create_certifications', 'delete_certifications',
         ];
 
         $trainingManagerCore = [
             'view_training',
             'view_users_tm', 'update_users_tm',
-            'add_training', 'update_training', 'delete_training',
+            'add_training', 'update_training',
             'view_course_monitoring',
             'view_reports',
+            'view_courses', 'create_courses', 'edit_courses', 'delete_courses',
         ];
 
         $coachCore = [
             'view_courses_coach',
-            'add_courses_coach', 'update_courses_coach',
+            'add_courses_coach', 'update_courses_coach', 'delete_courses_coach',
             'view_classes',
             'view_communication',
         ];
 
         $participantCore = [
             'view_modules',
+            'view_assessments', 'add_assessments',
+            'view_progress',
+            'view_engagement', 'add_engagement', 'update_engagement', 'delete_engagement',
         ];
 
         $superAdminOnly = [
