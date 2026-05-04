@@ -1985,7 +1985,7 @@
                 @php
                     $portalQuery = strtolower((string) request()->query('portal', ''));
                     $tmPortalActive = ($portalQuery === '' || in_array($portalQuery, ['tm', 'training_manager'], true))
-                        && (!request('tab') || in_array(request('tab'), ['user-management','trainer-trainee-management','activity-logs'], true));
+                        && (!request('tab') || in_array(request('tab'), ['user-management','trainer-trainee-management','course-management','certification-management'], true));
                     $coachPortalActive = ($portalQuery === 'coach');
                     $participantPortalActive = ($portalQuery === 'participant');
                     $adminPortalActive = ($portalQuery === 'admin');
@@ -2034,12 +2034,6 @@
                         <li class="menu-item menu-sub-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)" style="padding-left: 44px;">
                             <div class="menu-icon" style="opacity:.95"><i class="fas fa-certificate"></i></div>
                             <span class="menu-text">Certifications</span>
-                        </li>
-                        @endif
-                        @if(Auth::user()->canViewReports())
-                        <li class="menu-item menu-sub-item {{ request('tab') == 'activity-logs' ? 'active' : '' }}" onclick="showContent('activity-logs', this)">
-                            <div class="menu-icon"><i class="fas fa-clock-rotate-left"></i></div>
-                            <span class="menu-text">Activity Logs</span>
                         </li>
                         @endif
                     </ul>

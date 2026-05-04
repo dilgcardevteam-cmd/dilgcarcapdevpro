@@ -2115,6 +2115,11 @@ class CourseController extends Controller
             }
             $course->load('users');
         }
+        $tmRoles = ['training_manager','registrar','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (auth()->check() && in_array(auth()->user()->role ?? null, $tmRoles, true)) {
+            $course->loadMissing(['users', 'certification', 'assessments']);
+            return view('registrar.course-show', compact('course'));
+        }
         return view('admin.course-show', compact('course'));
     }
 
