@@ -6343,7 +6343,7 @@
                             <div class="cm-title">Course Management</div>
                             <div class="cm-subtitle">Manage and review all course submissions.</div>
                         </div>
-                        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
                             <div style="position: relative; width: 240px;">
                                 <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
                                 <input type="text" id="courseSearchInputAdmin" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">

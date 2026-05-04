@@ -533,10 +533,10 @@
         
         .modal-container {
             background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-            padding: 34px 32px 28px;
+            padding: 25px 25px 20px;
             border-radius: 28px;
             width: 90%;
-            max-width: 520px;
+            max-width: 500px;
             text-align: center;
             border: 1px solid #dbe6fb;
             box-shadow: 0 28px 60px rgba(15, 23, 42, 0.2);
@@ -1576,10 +1576,7 @@
                                 
                                 <div style="display: flex; gap: 10px; margin-top: auto;">
                                     @if($course->can_enroll)
-                                        <form action="{{ route('courses.join', $course) }}" method="POST" style="flex: 1;">
-                                            @csrf
-                                            <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll Now</button>
-                                        </form>
+                                        <button type="button" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%; border:none; cursor:pointer;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Enroll Now</button>
                                     @else
                                         <button class="btn-gradient" style="background: #94a3b8; color: #ffffff; border: none; cursor: not-allowed; opacity: 0.8; flex: 1;" disabled title="{{ $course->enrollment_status }}">Enrollment Unavailable</button>
                                     @endif
@@ -1712,10 +1709,7 @@
                                 
                                 <div style="display: flex; gap: 10px; margin-top: auto;">
                                     @if($course->can_enroll)
-                                        <form action="{{ route('courses.join', $course) }}" method="POST" style="flex: 1;">
-                                            @csrf
-                                            <button type="submit" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%;">Enroll Now</button>
-                                        </form>
+                                        <button type="button" class="btn-gradient" style="background: #10b981; box-shadow: 0 10px 18px rgba(16,185,129,0.24); width: 100%; border:none; cursor:pointer;" onclick="event.stopPropagation(); openEnrollModal({{ $course->id }}, '{{ addslashes($course->name) }}')">Enroll Now</button>
                                     @else
                                         <button class="btn-gradient" style="background: #94a3b8; color: #ffffff; border: none; cursor: not-allowed; opacity: 0.8; flex: 1;" disabled title="{{ $course->enrollment_status }}">Enrollment Unavailable</button>
                                     @endif

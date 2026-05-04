@@ -2711,7 +2711,7 @@
                             <div class="tm-title">Training Management</div>
                             <div class="tm-subtitle">View and manage published and unpublished courses.</div>
                         </div>
-                        <div class="tm-controls">
+                        <div class="tm-controls" style="gap:60px;">
                             <div style="position:relative;width:240px;">
                                 <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;"></i>
                                 <input id="tmCourseSearch" class="tm-input" type="text" placeholder="Search courses...">
@@ -3191,7 +3191,7 @@
                         <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
                             <div style="position: relative; width: 240px;">
                                 <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                                <input type="text" id="courseSearchInputTM" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
+                                <input type="text" id="courseSearchInputTM" placeholder="Search courses..." style="width: 80%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
                             </div>
                             <div style="position: relative; width: 220px;">
                                 <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>

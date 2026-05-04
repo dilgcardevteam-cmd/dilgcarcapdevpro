@@ -1459,7 +1459,7 @@
                             <div class="tm-title">Training Management</div>
                             <div class="tm-subtitle">View and manage published and unpublished courses.</div>
                         </div>
-                        <div class="tm-controls">
+                        <div class="tm-controls" style="gap:16px;">
                             <div style="position:relative;width:240px;">
                                 <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;"></i>
                                 <input id="tmCourseSearch" class="tm-input" type="text" placeholder="Search courses...">

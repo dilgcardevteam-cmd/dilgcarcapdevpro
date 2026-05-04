@@ -94,12 +94,12 @@
         .setting-card.danger .setting-copy{color:#dc2626}
         .setting-date-pill{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border-radius:8px;background:#f1f5f9;color:#0f172a;padding:0 14px;font-weight:900;margin-bottom:16px}
         .setting-label{display:block;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-size:.78rem;font-weight:900;margin-bottom:8px}
-        .setting-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0;align-items:stretch}
+        .setting-form{display:flex;flex-direction:column;gap:16px;align-items:stretch}
         .setting-input-wrap{position:relative}
-        .setting-input{width:100%;height:54px;border:1px solid #dbe4f0;border-radius:10px 0 0 10px;padding:0 48px 0 16px;font-weight:900;font-size:.98rem;color:#0f172a;outline:none}
+        .setting-input{width:20%;height:54px;border:1px solid #dbe4f0;border-radius:10px;padding:0 20px 0 16px;font-weight:900;font-size:.98rem;color:#0f172a;outline:none}
         .setting-input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
         .setting-calendar{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#0f172a;pointer-events:none}
-        .setting-action{height:54px;border:0;border-radius:0 10px 10px 0;background:#0b3a82;color:#fff;padding:0 24px;font-weight:900;font-size:.95rem;cursor:pointer}
+        .setting-action{height:54px;border:0;border-radius:10px;background:#0b3a82;color:#fff;padding:0 24px;font-weight:900;font-size:.95rem;cursor:pointer;align-self:flex-end}
         .status-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:#e8f8ee;color:#10b981;font-weight:900;text-transform:uppercase;padding:10px 16px}
         .setting-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:44px;border-radius:10px;padding:0 22px;font-weight:900;cursor:pointer;border:1px solid #dbe4f0;background:#f8fafc;color:#64748b;text-decoration:none}
         .setting-btn.delete{border:0;background:#ef4444;color:#fff;box-shadow:0 10px 18px rgba(239,68,68,.18)}
@@ -110,7 +110,7 @@
         body.sidebar-collapsed .menu-text,body.sidebar-collapsed .portal-row .fa-chevron-up{display:none}
         body.sidebar-collapsed .sidebar-logo{content:url("{{ asset('images/logo1.png') }}");width:44px;height:44px}
         @media (max-width:1100px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.course-title{font-size:1.9rem}}
-        @media (max-width:760px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.header,.page{left:0;margin-left:0}.course-hero{padding:20px 18px 0}.content{padding:20px 16px 32px}.hero-top{flex-direction:column}.stats{grid-template-columns:1fr}.kv-row{grid-template-columns:1fr}.kv-value{text-align:left}.certificate-shell,.settings-shell{padding:24px 16px}.certificate-stage{padding:28px 16px}.certificate-name{font-size:1.35rem}.setting-card{grid-template-columns:1fr;padding:20px}.setting-form{grid-template-columns:1fr}.setting-input{border-radius:10px}.setting-action{border-radius:10px;margin-top:10px}}
+        @media (max-width:760px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.header,.page{left:0;margin-left:0}.course-hero{padding:20px 18px 0}.content{padding:20px 16px 32px}.hero-top{flex-direction:column}.stats{grid-template-columns:1fr}.kv-row{grid-template-columns:1fr}.kv-value{text-align:left}.certificate-shell,.settings-shell{padding:24px 16px}.certificate-stage{padding:28px 16px}.certificate-name{font-size:1.35rem}.setting-card{grid-template-columns:1fr;padding:20px}.setting-form{flex-direction:column}.setting-input{border-radius:10px}.setting-action{border-radius:10px;margin-top:0}}
     </style>
 </head>
 <body>
@@ -264,24 +264,26 @@
             <section class="settings-shell">
                 <h3 class="settings-title">Advanced Settings</h3>
 
-                <div class="setting-card">
-                    <div>
-                        <h4 class="setting-heading">Course Expiration Date</h4>
-                        <p class="setting-copy">Set the date when the course content becomes inaccessible to participants.</p>
-                        <form class="setting-form" method="POST" action="{{ route('admin.courses.expiration', $course) }}" style="margin-top:24px">
-                            @csrf
-                            @method('PUT')
-                            <div>
-                                <label class="setting-label" for="course_expiration_date">Select Date</label>
-                                <div class="setting-input-wrap">
-                                    <input class="setting-input" id="course_expiration_date" type="date" name="course_expiration_date" value="{{ $expirationValue }}" required>
-                                    <i class="fas fa-calendar-day setting-calendar"></i>
-                                </div>
-                            </div>
-                            <button type="submit" class="setting-action">Update Expiration</button>
-                        </form>
+                <div class="setting-card" style="display: block;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+                        <div>
+                            <h4 class="setting-heading">Course Expiration Date</h4>
+                            <p class="setting-copy">Set the date when the course content becomes inaccessible to participants.</p>
+                        </div>
+                        <div class="setting-date-pill" style="margin-bottom: 0; flex-shrink: 0;">{{ $expirationDisplay }}</div>
                     </div>
-                    <div class="setting-date-pill">{{ $expirationDisplay }}</div>
+
+                    <form class="setting-form" method="POST" action="{{ route('admin.courses.expiration', $course) }}" style="margin-top:24px">
+                        @csrf
+                        @method('PUT')
+                        <div>
+                            <label class="setting-label" for="course_expiration_date">Select Date</label>
+                            <div class="setting-input-wrap">
+                                <input class="setting-input" id="course_expiration_date" type="date" name="course_expiration_date" value="{{ $expirationValue }}" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="setting-action">Update Expiration</button>
+                    </form>
                 </div>
 
                 <div class="setting-card">
