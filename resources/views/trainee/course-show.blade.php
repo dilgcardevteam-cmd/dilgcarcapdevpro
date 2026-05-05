@@ -107,6 +107,14 @@
         .mc-actions [data-act="feedback"]{background:#fff;color:#0f3b8f;border:1px solid #c7d2fe}
         .mc-actions [data-act="reset"]{background:#0f3b8f;color:#fff}
         .mc-feedback{margin-top:8px;font-weight:700;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+        .quiz-preface{
+            margin:12px 0;
+            padding:18px;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            background:linear-gradient(180deg,#f8fbff 0%, #f5f7fb 100%);
+            box-shadow:0 10px 22px rgba(15,23,42,.06);
+        }
         .btn-blue{
             background:linear-gradient(90deg,#002C76 0%, #0f3b8f 100%);
             color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;
@@ -643,6 +651,16 @@
             return !!finalExamUnlocked;
         }
 
+        function canAccessModuleQuizEntry(mi){
+            return true;
+        }
+
+        function canAccessModuleExamEntry(mi){
+            recalculateClientAccessState();
+            if(!IS_TRAINEE_USER){ return true; }
+            return isClientModuleCompleted(mi);
+        }
+
         async function syncServerAccessState(){
             try{
                 const res = await fetch("{{ route('courses.access-state', $course) }}", {credentials:'same-origin'});
@@ -830,12 +848,13 @@
                 // Skip when this is an exam-only module to avoid duplication
                 if (!isExamOnly && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) {
                     const modEx = document.createElement('div');
+                    const examLocked = !canAccessModuleExamEntry(mi);
                     modEx.className = 'module';
-                    const exTitle = m.exam.title ? `Module Quiz: ${m.exam.title}` : 'Module Quiz';
+                    const exTitle = m.exam.title ? `Module Exam: ${m.exam.title}` : 'Module Exam';
                     modEx.innerHTML = `
                         <div class="module-header" data-mi="${mi}">
                             <div class="module-left">
-                                <div class="module-title"><span>${isLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${exTitle}</span></div>
+                                <div class="module-title"><span>${examLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${exTitle}</span></div>
                                 <div class="progress-mini"><span id="bar_ex_${mi}"></span></div>
                             </div>
                             <div class="mod-badges">
@@ -852,18 +871,23 @@
                     tEl.className='topic';
                     tEl.setAttribute('data-mi',mi);
                     tEl.setAttribute('data-ti','exam');
-                    const num = `${mi+1}.Q`;
+                    const num = `${mi+1}.E`;
                     const qCount = m.exam.questions.length;
                     const badge = `<span class="count" style="display:inline-block">${qCount}</span>`;
                     tEl.innerHTML = `<div class="topic-head">
                         <i class="fas fa-circle" style="font-size:.6rem;color:#9ca3af"></i>
-                        <span class="title">${num}. ${m.exam.title ? ('Module Quiz: '+m.exam.title) : 'Module Quiz'}</span>
+                        <span class="title">${examLocked ? '<i class="fas fa-lock lock-ico"></i> ' : ''}${num}. ${m.exam.title ? ('Module Exam: '+m.exam.title) : 'Module Exam'}</span>
                         ${badge}
                     </div>`;
                     const head = tEl.querySelector('.topic-head');
                     head.addEventListener('click', (e)=>{
                         document.querySelectorAll('.topic').forEach(n=>n.classList.remove('active'));
                         tEl.classList.add('active');
+                        if(examLocked){
+                            redirectToAllowedModule('Complete this module first before taking the module exam.');
+                            e.stopPropagation();
+                            return;
+                        }
                         openExam(mi);
                         e.stopPropagation();
                     });
@@ -1248,25 +1272,28 @@
         }
         async function openExam(mi){
             console.log('openExam initiated for module index:', mi);
-            if(!canAccessFinalExam(mi)){
+            const m = (course.modules||[])[mi]||{};
+            const ex = m.exam||{};
+            const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
+            if(!isExamOnly && !canAccessModuleExamEntry(mi)){
+                redirectToAllowedModule('Complete this module first before taking the module exam.');
+                return;
+            }
+            if(isExamOnly && !canAccessFinalExam(mi)){
                 await syncServerAccessState();
                 if(!canAccessFinalExam(mi)){
                     redirectToAllowedModule('Complete all modules before taking the final exam.');
                     return;
                 }
             }
-            const m = (course.modules||[])[mi]||{};
-            const ex = m.exam||{};
             const timerMode = ex.timer_mode || (ex.timer_minutes > 0 ? 'timed' : 'untimed');
             const timerMins = timerMode === 'timed' ? (parseInt(ex.timer_minutes||0,10) || 0) : 0;
             const qs = Array.isArray(ex.questions)? ex.questions : [];
             const titleEl = document.getElementById('contentTitle');
             const bodyEl = document.getElementById('contentBody');
             
-            // Distinguish between Quiz and Exam title based on whether module has topics
-            const isExamOnly = (m && m.exam && Array.isArray(m.exam.questions) && m.exam.questions.length) && (!Array.isArray(m.topics) || m.topics.length===0);
-            const labelPrefix = isExamOnly ? 'Module Exam' : 'Module Quiz';
-            const labelShort = isExamOnly ? 'E' : 'Q';
+            const labelPrefix = 'Module Exam';
+            const labelShort = 'E';
             
             if(titleEl) titleEl.textContent = `${mi+1}.${labelShort} ${labelPrefix}`;
             if(!qs.length){
@@ -2806,7 +2833,8 @@
                 container.innerHTML = `<div class="field" style="background:#f8fafc;">No fields added.</div>`;
                 return;
             }
-            container.innerHTML = fields.map((f,i)=>{
+            const isSubtopicQuiz = !viewOnly && si !== null && si !== undefined && Array.isArray(fields) && fields.some(f => f && f.type === 'question' && f.question);
+            const renderedFieldsHtml = fields.map((f,i)=>{
                 if(f.type==='text'){
                     const safe = sanitizeContent(f.html||'');
                     return `<div class="field">${safe}</div>`;
@@ -2948,6 +2976,28 @@
                     return `<div class="field">${JSON.stringify(f)}</div>`;
                 }
             }).join('');
+            container.innerHTML = isSubtopicQuiz
+                ? `
+                    <div class="quiz-preface" data-quiz-preface>
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:36px;height:36px;border-radius:10px;background:#eef2ff;display:flex;align-items:center;justify-content:center;border:1px solid #dbeafe"><i class="fas fa-circle-info" style="color:#0f3b8f"></i></div>
+                                <div style="font-weight:900;color:#0f172a;letter-spacing:-.01em">Quiz Instructions</div>
+                            </div>
+                        </div>
+                        <div style="color:#334155;margin:0 0 12px 0">
+                            <ul style="margin:0 0 0 18px;line-height:1.6">
+                                <li>Answer all questions to the best of your knowledge.</li>
+                                <li>The quiz will appear after you press Start Quiz.</li>
+                            </ul>
+                        </div>
+                        <div style="display:flex;justify-content:center">
+                            <button type="button" class="btn-blue" data-act="start-subtopic-quiz" style="padding:12px 28px;border-radius:16px;box-shadow:0 10px 24px rgba(37,99,235,.22)">Start Quiz</button>
+                        </div>
+                    </div>
+                    <div data-quiz-body style="display:none">${renderedFieldsHtml}</div>
+                `
+                : renderedFieldsHtml;
             // Ensure a reflection block only for TOPIC-level content (no subtopics)
             if(!viewOnly && (typeof si==='undefined' || si===null)){
                 const hasRef = Array.isArray(fields) && fields.some(f => f && f.type === 'reflection');
@@ -3049,6 +3099,15 @@
             }
             // Initialize MC interactions
             if(!viewOnly){
+                const startQuizBtn = container.querySelector('[data-act="start-subtopic-quiz"]');
+                if(startQuizBtn){
+                    startQuizBtn.onclick = ()=>{
+                        const preface = container.querySelector('[data-quiz-preface]');
+                        const quizBody = container.querySelector('[data-quiz-body]');
+                        if(preface){ preface.style.display = 'none'; }
+                        if(quizBody){ quizBody.style.display = ''; }
+                    };
+                }
                 container.querySelectorAll('.field.question[data-kind="mc"]').forEach(initMultipleChoice);
                 container.querySelectorAll('.field.question[data-kind="id"]').forEach(initIdentification);
                 container.querySelectorAll('.field.question[data-kind="essay"]').forEach(initEssay);

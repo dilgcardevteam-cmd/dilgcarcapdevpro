@@ -33,6 +33,19 @@ class DashboardController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
+    protected function applyParticipantActiveCourseVisibilityFilter($query, User $user)
+    {
+        return $query->where(function ($courseQuery) use ($user) {
+            $courseQuery->where('course_user.status', '!=', 'completed')
+                ->orWhereNotExists(function ($certificateQuery) use ($user) {
+                    $certificateQuery->select(DB::raw(1))
+                        ->from('certification_user')
+                        ->whereColumn('certification_user.course_id', 'courses.id')
+                        ->where('certification_user.user_id', $user->id);
+                });
+        });
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -873,7 +886,8 @@ class DashboardController extends Controller
                 }
 
                 if ($showCourses) {
-                    $myCourses = $user->courses()
+                    $myCourses = $this->applyParticipantActiveCourseVisibilityFilter(
+                        $user->courses()
                         ->wherePivotIn('status', $visibleJoinedStatuses)
                         ->where('courses.is_published', true)
                         ->where('courses.academic_year_id', $selectedYearId)
@@ -882,8 +896,9 @@ class DashboardController extends Controller
                             $q->whereIn('role', $myCoachRoles);
                         }, 'materials', 'assessments.grades' => function($q) use ($user) {
                             $q->where('user_id', $user->id);
-                        }])
-                        ->get();
+                        }]),
+                        $user
+                    )->get();
 
                     // Get pending courses for display if needed
                     $pendingCourses = $user->courses()
@@ -1022,7 +1037,8 @@ class DashboardController extends Controller
         // We can treat them as a generic participant/trainee for the preview
         $myCoachRoles = ['coach', 'trainer', 'central_office_coach', 'regional_office_coach', 'provincial_office_coach'];
         
-        $myCourses = $user->courses()
+        $myCourses = $this->applyParticipantActiveCourseVisibilityFilter(
+            $user->courses()
             ->wherePivotIn('status', $visibleJoinedStatuses)
             ->where('courses.is_published', true)
             ->orderBy('courses.created_at', 'desc')
@@ -1030,8 +1046,9 @@ class DashboardController extends Controller
                 $q->whereIn('role', $myCoachRoles);
             }, 'materials', 'assessments.grades' => function($q) use ($user) {
                 $q->where('user_id', $user->id);
-            }])
-            ->get();
+            }]),
+            $user
+        )->get();
 
         $pendingCourses = $user->courses()
             ->wherePivot('status', 'pending')
