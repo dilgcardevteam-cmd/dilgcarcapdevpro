@@ -16,20 +16,6 @@ class EnsureProfileCompleted
 
         $user = Auth::user();
 
-        if ($user && !$user->profile_completed) {
-            // Allow specific accounts to proceed without forcing profile setup
-            if (isset($user->email)) {
-                $bypassEmails = ['co_participant@gmail.com', 'co_tm@gmail.com', 'ro_participant@gmail.com'];
-                if (in_array(strtolower($user->email), $bypassEmails, true)) {
-                    return $next($request);
-                }
-            }
-            if ($request->routeIs('profile.setup') || $request->routeIs('profile.setup.store') || $request->routeIs('logout')) {
-                return $next($request);
-            }
-            return redirect()->route('create-account')->with('profile_required', true);
-        }
-
         if ($user && $user->status === 'pending') {
             if ($request->routeIs('pending.approval') || $request->routeIs('logout')) {
                 return $next($request);

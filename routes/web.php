@@ -35,9 +35,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 
-    Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])->name('auth.google.redirect');
-    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
-
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
     
@@ -59,9 +56,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware(['auth'])->group(function () {
     Route::post('/session/keep-alive', [AuthController::class, 'keepAlive'])->name('session.keep-alive');
 
-    Route::get('/create-account', [DashboardController::class, 'setupProfile'])->name('create-account');
-    Route::get('/profile/setup', [DashboardController::class, 'setupProfile'])->name('profile.setup');
-    Route::post('/profile/setup', [DashboardController::class, 'storeProfileSetup'])->name('profile.setup.store');
     Route::get('/pending-approval', [DashboardController::class, 'pendingApproval'])->name('pending.approval');
     Route::get('/users/{user}', [DashboardController::class, 'publicProfile'])->name('users.profile');
 });

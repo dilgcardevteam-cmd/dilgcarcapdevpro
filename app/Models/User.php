@@ -28,7 +28,6 @@ class User extends Authenticatable
         'mobile_number',
         'gender',
         'agency',
-        'google_id',
         'password',
         'region',
         'province',
@@ -345,27 +344,6 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function hasCompletedOnboardingProfile(): bool
-    {
-        if (!$this->name || !$this->email || !$this->mobile_number || !$this->gender || !$this->agency || !$this->region || !$this->province) {
-            return false;
-        }
-
-        if ($this->agency === 'LGU') {
-            return !empty($this->city) && !empty($this->barangay);
-        }
-
-        if ($this->agency === 'DILG') {
-            if ($this->region === 'DILG Central Office') {
-                return !empty($this->city);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     public static function notifyRegistrarsAboutNewUser(User $user): void
     {
         $targetRole = 'registrar'; // Default
@@ -402,21 +380,7 @@ class User extends Authenticatable
         }
 
         if (filter_var($pic, FILTER_VALIDATE_URL)) {
-            $host = strtolower((string) parse_url($pic, PHP_URL_HOST));
-            $blockedHosts = [
-                'googleusercontent.com',
-                'lh3.googleusercontent.com',
-                'lh4.googleusercontent.com',
-                'lh5.googleusercontent.com',
-                'lh6.googleusercontent.com',
-            ];
-            foreach ($blockedHosts as $blockedHost) {
-                if ($host === $blockedHost || str_ends_with($host, '.' . $blockedHost)) {
-                    return asset('images/user.png');
-                }
-            }
-
-            return $pic;
+            return asset('images/user.png');
         }
 
         if (str_starts_with($pic, 'storage/')) {

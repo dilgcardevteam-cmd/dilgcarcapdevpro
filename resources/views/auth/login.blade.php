@@ -1114,11 +1114,6 @@
             @endif
             
             <button type="submit" class="register-submit login-submit-compact">Log In</button>
-            <p class="or-separator-login">or</p>
-            <a href="{{ route('auth.google.redirect') }}" class="google-btn google-btn-compact">
-                <img src="{{ asset('images/google-logo-icon-.png') }}" alt="Google">
-                Log in with Google
-            </a>
 
              <!-- Mobile Toggle -->
              <p class="mobile-toggle" style="display:none; margin-top: 10px;">
@@ -1428,12 +1423,6 @@
             </div>
 
             <button type="submit" class="register-submit">Sign Up</button>
-            <p class="or-separator">or</p>
-
-            <a href="{{ route('auth.google.redirect') }}" class="google-btn google-btn-compact">
-                <img src="{{ asset('images/google-logo-icon-.png') }}" alt="Google">
-                Sign up with Google
-            </a>
             
             <!-- Mobile Toggle -->
             <p class="mobile-toggle mobile-toggle-clickable" id="mobile-signin-text" style="display:none; margin-top: 10px;">

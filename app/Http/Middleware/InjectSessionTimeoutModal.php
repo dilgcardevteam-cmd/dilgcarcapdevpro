@@ -53,7 +53,7 @@ class InjectSessionTimeoutModal
             return false;
         }
 
-        if ($request->routeIs('login', 'register', 'password.*', 'auth.google.*', 'logout', 'session.keep-alive')) {
+        if ($request->routeIs('login', 'register', 'password.*', 'logout', 'session.keep-alive')) {
             return false;
         }
 

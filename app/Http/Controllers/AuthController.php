@@ -20,220 +20,6 @@ use App\Mail\NewUserRegistered;
 
 class AuthController extends Controller
 {
-    protected function googleRedirectUri(): string
-    {
-        $configured = trim((string) config('services.google.redirect', ''));
-        if ($configured !== '') {
-            return $configured;
-        }
-
-        return rtrim((string) config('app.url', url('/')), '/') . '/auth/google/callback';
-    }
-
-    /**
-     * Redirect to Google OAuth consent page.
-     */
-    public function redirectToGoogle(Request $request)
-    {
-        $clientId = (string) config('services.google.client_id');
-        $redirectUri = $this->googleRedirectUri();
-
-        if ($clientId === '' || $redirectUri === '') {
-            Log::warning('Google sign-in requested without complete configuration.', [
-                'client_id_present' => $clientId !== '',
-                'redirect_uri' => $redirectUri,
-                'app_url' => config('app.url'),
-            ]);
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'Google sign-in is not configured yet. Please contact the administrator.',
-            ]);
-        }
-
-        $state = Str::random(40);
-        $request->session()->put('google_oauth_state', $state);
-
-        $query = http_build_query([
-            'client_id' => $clientId,
-            'redirect_uri' => $redirectUri,
-            'response_type' => 'code',
-            'scope' => 'openid email profile',
-            'state' => $state,
-            'access_type' => 'online',
-            'prompt' => 'select_account',
-        ]);
-
-        return redirect('https://accounts.google.com/o/oauth2/v2/auth?' . $query);
-    }
-
-    /**
-     * Handle Google OAuth callback.
-     */
-    public function handleGoogleCallback(Request $request)
-    {
-        $expectedState = (string) $request->session()->pull('google_oauth_state');
-        $receivedState = (string) $request->input('state', '');
-        $redirectUri = $this->googleRedirectUri();
-
-        if ($expectedState === '' || !hash_equals($expectedState, $receivedState)) {
-            Log::warning('Google OAuth state validation failed.', [
-                'session_id' => $request->session()->getId(),
-                'expected_state_present' => $expectedState !== '',
-                'received_state_present' => $receivedState !== '',
-                'app_url' => config('app.url'),
-                'redirect_uri' => $redirectUri,
-                'ip' => $request->ip(),
-            ]);
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'Invalid Google sign-in state. Please try again.',
-            ]);
-        }
-
-        if ($request->filled('error')) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Google sign-in was cancelled or denied.',
-            ]);
-        }
-
-        $code = (string) $request->input('code', '');
-        if ($code === '') {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Google sign-in failed. Missing authorization code.',
-            ]);
-        }
-
-        $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
-            'code' => $code,
-            'client_id' => (string) config('services.google.client_id'),
-            'client_secret' => (string) config('services.google.client_secret'),
-            'redirect_uri' => $redirectUri,
-            'grant_type' => 'authorization_code',
-        ]);
-
-        if (!$tokenResponse->ok()) {
-            Log::warning('Google token exchange failed.', [
-                'status' => $tokenResponse->status(),
-                'body' => $tokenResponse->body(),
-                'redirect_uri' => $redirectUri,
-            ]);
-            return redirect()->route('login')->withErrors([
-                'email' => 'Unable to authenticate with Google right now. Please try again.',
-            ]);
-        }
-
-        $accessToken = (string) $tokenResponse->json('access_token', '');
-        if ($accessToken === '') {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Google authentication did not return an access token.',
-            ]);
-        }
-
-        $googleUserResponse = Http::withToken($accessToken)->get('https://www.googleapis.com/oauth2/v3/userinfo');
-        if (!$googleUserResponse->ok()) {
-            Log::warning('Google userinfo request failed.', [
-                'status' => $googleUserResponse->status(),
-                'body' => $googleUserResponse->body(),
-            ]);
-            return redirect()->route('login')->withErrors([
-                'email' => 'Unable to fetch your Google profile. Please try again.',
-            ]);
-        }
-
-        $googleUser = $googleUserResponse->json();
-        $googleId = trim((string) ($googleUser['sub'] ?? ''));
-        $email = strtolower(trim((string) ($googleUser['email'] ?? '')));
-        $name = trim((string) ($googleUser['name'] ?? 'Google User'));
-        $emailVerified = (bool) ($googleUser['email_verified'] ?? false);
-
-        if ($googleId === '' || $email === '') {
-            Log::warning('Google profile missing required fields.', [
-                'google_id_present' => $googleId !== '',
-                'email_present' => $email !== '',
-            ]);
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'Google account is missing required profile details.',
-            ]);
-        }
-
-        $user = User::where('google_id', $googleId)
-            ->orWhere('email', $email)
-            ->first();
-
-        $isNewUser = false;
-
-        if (!$user) {
-            $user = User::create([
-                'name' => $name !== '' ? $name : 'Google User',
-                'email' => $email,
-                'password' => Hash::make(Str::random(40)),
-                'google_id' => $googleId,
-                'role' => null,
-                'status' => 'pending',
-                'profile_completed' => false,
-            ]);
-
-            if ($emailVerified) {
-                $user->email_verified_at = now();
-                $user->save();
-            }
-
-            // Moved notification to storeProfileSetup so it happens after user fills details
-            $this->sendWelcomeEmail($user);
-            $isNewUser = true;
-        } else {
-            $shouldSave = false;
-
-            if (!$user->google_id) {
-                $user->google_id = $googleId;
-                $shouldSave = true;
-            }
-
-            if ($emailVerified && !$user->email_verified_at) {
-                $user->email_verified_at = now();
-                $shouldSave = true;
-            }
-
-            if ($shouldSave) {
-                $user->save();
-            }
-        }
-
-        Auth::login($user, true);
-        $request->session()->regenerate();
-
-        if ($user->status === 'pending' && !$user->hasCompletedOnboardingProfile()) {
-            if ($user->profile_completed) {
-                $user->profile_completed = false;
-                $user->profile_completed_at = null;
-                $user->save();
-            }
-
-            return redirect()->route('create-account');
-        }
-
-        if (!$user->profile_completed) {
-            return redirect()->route('create-account');
-        }
-
-        if ($user->status === 'pending') {
-            return redirect()->route('pending.approval');
-        }
-
-        if ($user->status !== 'active') {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'Your account cannot access the system right now. Please contact the administrator.',
-            ]);
-        }
-
-        return redirect()->intended(route('dashboard'));
-    }
-
     /**
      * Show the login form.
      */
@@ -390,7 +176,6 @@ class AuthController extends Controller
                     $u->profile_completed_at = now();
                     $u->save();
                 } elseif (
-                    empty($u->google_id) &&
                     $u->name && $u->email &&
                     $u->region && $u->province && $u->city && $u->barangay
                 ) {
@@ -400,16 +185,13 @@ class AuthController extends Controller
                 }
             }
 
-            if ($u && $u->status === 'pending' && !$u->hasCompletedOnboardingProfile()) {
-                if ($u->profile_completed) {
-                    $u->profile_completed = false;
-                    $u->profile_completed_at = null;
-                    $u->save();
-                }
-            }
-
             if (!$u->profile_completed) {
-                return redirect()->route('create-account');
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'Please complete your profile registration first.',
+                ])->onlyInput('email');
             }
 
             if ($u->status === 'pending') {

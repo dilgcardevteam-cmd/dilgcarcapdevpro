@@ -1536,156 +1536,9 @@ class DashboardController extends Controller
         return redirect()->route('dashboard', ['tab' => 'profile-section'])->with('success_profile', 'Profile updated successfully.');
     }
 
-    public function setupProfile(Request $request)
-    {
-        $user = Auth::user();
-        $hasCompletedOnboardingProfile = $user->hasCompletedOnboardingProfile();
-
-        if ($user->status === 'pending' && !$hasCompletedOnboardingProfile && $user->profile_completed) {
-            $user->profile_completed = false;
-            $user->profile_completed_at = null;
-            $user->save();
-        }
-
-        $fullNameParsed = trim($user->name ?? '');
-        $tokens = $fullNameParsed !== '' ? preg_split('/\s+/', $fullNameParsed) : [];
-        $firstParsed = $tokens[0] ?? '';
-        $lastParsed = count($tokens) > 1 ? $tokens[count($tokens) - 1] : '';
-        $middleParsed = count($tokens) > 2 ? implode(' ', array_slice($tokens, 1, -1)) : '';
-
-        if (!$user->profile_completed || !$hasCompletedOnboardingProfile) {
-            $isReviewMode = false;
-            return view('auth.create-account', compact('user', 'firstParsed', 'middleParsed', 'lastParsed', 'isReviewMode'));
-        }
-
-        if ($user->status === 'pending') {
-            $isReviewMode = true;
-            return view('auth.create-account', compact('user', 'firstParsed', 'middleParsed', 'lastParsed', 'isReviewMode'));
-        }
-
-        if ($request->routeIs('create-account')) {
-            if ($user->status === 'active') {
-                return redirect()->route('dashboard', ['tab' => 'profile-section']);
-            }
-
-            if ($user->status === 'pending') {
-                return redirect()->route('pending.approval');
-            }
-        }
-
-        $notifications = Notification::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->take(20)
-            ->get();
-
-        return view('profile.setup', compact('notifications'));
-    }
-
     public function publicProfile(User $user)
     {
         return view('profile.public', compact('user'));
-    }
-
-    public function storeProfileSetup(Request $request)
-    {
-        $user = Auth::user();
-        $wasProfileCompleted = (bool) $user->profile_completed;
-        $isOnboarding = !$wasProfileCompleted;
-        $agency = $request->input('agency');
-        $section = $request->input('section', 'info');
-        if ($section === 'password') {
-            if ($isOnboarding) {
-                return redirect()->route('create-account');
-            }
-            $validated = $request->validate([
-                'current_password' => 'required|string',
-                'password' => 'required|confirmed|min:8',
-            ]);
-            if (!Hash::check($validated['current_password'], $user->password)) {
-                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
-            }
-            $user->password = Hash::make($validated['password']);
-            $user->save();
-            return redirect()->back()->with('success_profile', 'Password updated successfully.');
-        }
-
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:100',
-            'middle_name' => 'nullable|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'mobile_number' => 'required|string|max:20',
-            'gender' => $isOnboarding ? 'required|string|in:Male,Female,Prefer not to say' : 'nullable|string|in:Male,Female,Prefer not to say',
-            'region' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
-            'city' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
-            'barangay' => ($isOnboarding && $agency === 'LGU') ? 'required|string|max:255' : 'nullable|string|max:255',
-            'agency' => $isOnboarding ? 'required|string|in:DILG,LGU' : 'nullable|string|in:DILG,LGU',
-            'field_of_work' => 'required|string|max:255',
-            'profile_picture' => 'nullable|image|mimes:jpeg,jpg,png|max:5120',
-            'profile_picture_cropped' => 'nullable|string',
-        ]);
-
-        if ($request->input('agency') === 'LGU' && (!$request->filled('city') || !$request->filled('barangay'))) {
-            return back()->withErrors(['city' => 'City and Barangay are required for LGU accounts.'])->withInput();
-        }
-
-        if ($request->input('agency') === 'DILG') {
-            $validated['barangay'] = null;
-        }
-
-        if ($request->filled('profile_picture_cropped')) {
-            $data = $request->input('profile_picture_cropped');
-            if ($user->profile_picture) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
-            }
-            if (preg_match('/^data:image\\/(png|jpeg);base64,/', $data, $m)) {
-                $data = substr($data, strpos($data, ',') + 1);
-                $bin = base64_decode($data);
-                $ext = $m[1] === 'jpeg' ? 'jpg' : 'png';
-                $path = 'profile_pictures/' . Str::uuid() . '.' . $ext;
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $bin);
-                $user->profile_picture = $path;
-            }
-        } elseif ($request->hasFile('profile_picture')) {
-            if ($user->profile_picture) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
-            }
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $user->profile_picture = $path;
-        }
-
-        // Build full name from parts
-        $fullName = trim(implode(' ', array_filter([
-            $validated['first_name'],
-            $validated['middle_name'] ?? null,
-            $validated['last_name'],
-        ])));
-        $validated['name'] = $fullName;
-        unset($validated['first_name'], $validated['middle_name'], $validated['last_name']);
-
-        $user->fill($validated);
-        if ($isOnboarding) {
-            $user->role = null;
-            $user->status = 'pending';
-        }
-        if (!$user->profile_completed) {
-            $user->profile_completed = true;
-            $user->profile_completed_at = now();
-        }
-        $user->save();
-
-        if ($user->status === 'pending') {
-            User::notifyRegistrarsAboutNewUser($user);
-            return redirect()->route('pending.approval')->with('success_pending_approval', 'Profile setup complete! Your account is now pending approval.');
-        }
-
-        if (!$wasProfileCompleted) {
-            $request->session()->flash('success_profile', 'Profile completed successfully.');
-            return redirect()->route('dashboard', ['tab' => 'profile-section']);
-        }
-
-        return redirect()->route('dashboard', ['tab' => 'profile-section'])->with('success_profile', 'Profile updated successfully.');
     }
 
     public function pendingApproval()
@@ -1694,10 +1547,6 @@ class DashboardController extends Controller
 
         if (!$user) {
             return redirect()->route('login');
-        }
-
-        if (!$user->profile_completed || !$user->hasCompletedOnboardingProfile()) {
-            return redirect()->route('create-account')->with('profile_required', true);
         }
 
         if ($user->status === 'active') {
