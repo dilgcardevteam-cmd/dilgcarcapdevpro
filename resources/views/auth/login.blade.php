@@ -3,7 +3,6 @@
 @section('content')
 <style>
     /* Sliding Form CSS - Inverted Logic to match design preference */
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap');
 
     * {
         box-sizing: border-box;

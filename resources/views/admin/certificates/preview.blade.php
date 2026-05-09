@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
     <meta charset="utf-8">
     <title>Certificate Preview</title>
     <style>

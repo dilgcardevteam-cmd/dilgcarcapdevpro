@@ -1,11 +1,11 @@
     <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Participants - {{ $course->name }}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
         :root{--blue:#002C76;--primary-blue:#002C76;--green:#00a859;--bg:#f4f6f9;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--ring:#60a5fa;--sidebar-width:280px;--sidebar-collapsed:88px;--header-height:72px}
         body{font-family:'DM Sans', sans-serif;margin:0;background:var(--bg);color:var(--text)}

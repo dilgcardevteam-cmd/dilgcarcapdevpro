@@ -23,3 +23,40 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Security Headers (Apache)
+<IfModule mod_headers.c>
+    # Remove X-Powered-By header
+    Header always unset X-Powered-By
+    Header always unset X-CF-Powered-By
+    Header always unset X-Powered-By-Plesk
+    Header always unset Server
+    
+    # Prevent MIME sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # XSS protection (for older browsers)
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Disable directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^\.(env|git|svn|htaccess|htpasswd|json|lock|log)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "(composer|package)\.(json|lock)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "artisan$">
+    Require all denied
+</FilesMatch>
+
+# Protect storage directories (just in case)
+<IfModule mod_alias.c>
+    RedirectMatch 403 ^/storage/(?!app/public).*$
+</IfModule>

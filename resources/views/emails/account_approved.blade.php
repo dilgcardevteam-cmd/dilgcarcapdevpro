@@ -3,7 +3,7 @@
 <head>
     <title>Account Approved</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
     <style type="text/css">
         body {
             font-family: 'DM Sans', Arial, sans-serif;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $course->name }} - Training Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
         :root{--blue:#0b3a82;--blue-dark:#083272;--accent:#2563eb;--bg:#f4f7fb;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--sidebar:250px;--sidebar-collapsed:76px;--header:72px}
         *{box-sizing:border-box}
