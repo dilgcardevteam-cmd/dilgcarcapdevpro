@@ -74,6 +74,9 @@ class Course extends Model
         'modules',
         'video_path',
         'is_published',
+        'approval_status',
+        'rejected_at',
+        'rejected_by_user_id',
         'enrollment_start_date',
         'enrollment_end_date',
         'course_expiration_date',
@@ -103,6 +106,7 @@ class Course extends Model
     protected $casts = [
         'modules' => 'array',
         'is_published' => 'boolean',
+        'rejected_at' => 'datetime',
         'enrollment_start_date' => 'date',
         'enrollment_end_date' => 'date',
         'course_expiration_date' => 'date',

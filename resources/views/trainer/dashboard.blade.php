@@ -2495,10 +2495,12 @@
                 @php
                     $approved = ($activeCoachCourses ?? collect());
                     $pending = ($pendingCoachCourses ?? collect());
+                    $rejected = ($rejectedCoachCourses ?? collect());
                     $archived = ($archivedCoachCourses ?? collect());
                     $coursesByStatus = collect([])
                         ->concat($approved->map(fn($c) => ['course' => $c, 'status' => 'approved']))
                         ->concat($pending->map(fn($c) => ['course' => $c, 'status' => 'pending']))
+                        ->concat($rejected->map(fn($c) => ['course' => $c, 'status' => 'rejected']))
                         ->concat($archived->map(fn($c) => ['course' => $c, 'status' => 'archived']));
                 @endphp
 
@@ -2570,8 +2572,9 @@
                                     if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) {
                                         $img = $course->image_path;
                                     }
-                                    $statusLabel = $status === 'pending' ? 'Pending Approval' : ($status === 'approved' ? 'Approved' : 'Archived');
-                                    $statusClass = $status === 'pending' ? 'status-pending' : ($status === 'approved' ? 'status-approved' : 'status-archived');
+                                    $statusLabel = $status === 'pending' ? 'Pending Approval' : ($status === 'approved' ? 'Approved' : ($status === 'rejected' ? 'Rejected' : 'Archived'));
+                                    $statusClass = $status === 'pending' ? 'status-pending' : ($status === 'approved' ? 'status-approved' : ($status === 'rejected' ? 'status-rejected' : 'status-archived'));
+                                    $statusIcon = $status === 'pending' ? 'fa-hourglass-half' : ($status === 'approved' ? 'fa-circle-check' : ($status === 'rejected' ? 'fa-circle-xmark' : 'fa-box-archive'));
                                 @endphp
                                 <tr class="coach-submission-row" data-status="{{ $status }}" data-title="{{ strtolower($course->name) }}">
                                     <td>
@@ -2588,7 +2591,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-pill {{ $statusClass }}"><i class="fas {{ $status === 'pending' ? 'fa-hourglass-half' : ($status === 'approved' ? 'fa-circle-check' : 'fa-box-archive') }}"></i> {{ $statusLabel }}</span>
+                                        <span class="status-pill {{ $statusClass }}"><i class="fas {{ $statusIcon }}"></i> {{ $statusLabel }}</span>
                                     </td>
                                     <td>
                                         {{ optional($course->created_at)->format('M d, Y') }}<br>

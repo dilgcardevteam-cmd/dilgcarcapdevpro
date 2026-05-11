@@ -257,6 +257,7 @@ class DashboardController extends Controller
                     'courseCount',
                     'archivedCourses',
                     'pendingCourses',
+                    'rejectedCourses',
                     'certifications',
                     'forceProfile',
                     'pendingCoursesCount',
@@ -494,10 +495,28 @@ class DashboardController extends Controller
                     $pendingCoachCoursesQuery = Course::onlyTrashed()
                         ->where($submissionField, $user->id)
                         ->where('is_published', false);
+                    if (Schema::hasColumn('courses', 'approval_status')) {
+                        $pendingCoachCoursesQuery->where(function ($query) {
+                            $query->where('approval_status', 'pending')
+                                ->orWhereNull('approval_status');
+                        });
+                    }
                     if ($selectedYearId !== 'all') {
                         $pendingCoachCoursesQuery->where('academic_year_id', $selectedYearId);
                     }
                     $pendingCoachCourses = $pendingCoachCoursesQuery->with('users')->orderByDesc('created_at')->get();
+
+                    $rejectedCoachCoursesQuery = Course::withTrashed()
+                        ->where($submissionField, $user->id);
+                    if (Schema::hasColumn('courses', 'approval_status')) {
+                        $rejectedCoachCoursesQuery->where('approval_status', 'rejected');
+                    } else {
+                        $rejectedCoachCoursesQuery->whereRaw('1 = 0');
+                    }
+                    if ($selectedYearId !== 'all') {
+                        $rejectedCoachCoursesQuery->where('academic_year_id', $selectedYearId);
+                    }
+                    $rejectedCoachCourses = $rejectedCoachCoursesQuery->with('users')->orderByDesc('rejected_at')->orderByDesc('updated_at')->get();
 
                     $archivedCoachCoursesQuery = Course::onlyTrashed()
                         ->where($submissionField, $user->id)
@@ -509,6 +528,7 @@ class DashboardController extends Controller
                 } else {
                     $activeCoachCourses = collect([]);
                     $pendingCoachCourses = collect([]);
+                    $rejectedCoachCourses = collect([]);
                     $archivedCoachCourses = collect([]);
                 }
                 
@@ -592,7 +612,7 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
+                return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'rejectedCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
             case in_array($roleForView, $tmRoles, true):
                 if (!$user->hasPermission('view_training') && !$user->hasPermission('view_users_tm') && !$user->hasPermission('update_users_tm') && !$user->hasPermission('view_reports') && !$user->hasPermission('view_course_monitoring')) {
                     abort(403);
@@ -691,15 +711,37 @@ class DashboardController extends Controller
                     })->values();
                 }
                 $pendingCoursesQuery = Course::withTrashed()
-                    ->where('is_published', false)
                     ->whereHas('users', function($q) use ($managedCoachRoles) {
                         $q->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $managedCoachRoles));
                     });
+                if (Schema::hasColumn('courses', 'approval_status')) {
+                    $pendingCoursesQuery->where(function ($query) {
+                        $query->where('approval_status', 'pending')
+                            ->orWhere(function ($legacy) {
+                                $legacy->whereNull('approval_status')->where('is_published', false);
+                            });
+                    });
+                } else {
+                    $pendingCoursesQuery->where('is_published', false);
+                }
                 if ($selectedYearId !== 'all') {
                     $pendingCoursesQuery->where('academic_year_id', $selectedYearId);
                 }
                 $pendingCourses = (clone $pendingCoursesQuery)->with('users')->orderByDesc('created_at')->get();
                 $pendingCoursesCount = (clone $pendingCoursesQuery)->count();
+                $rejectedCoursesQuery = Course::withTrashed()
+                    ->whereHas('users', function($q) use ($managedCoachRoles) {
+                        $q->whereIn(DB::raw('LOWER(role)'), array_map('strtolower', $managedCoachRoles));
+                    });
+                if (Schema::hasColumn('courses', 'approval_status')) {
+                    $rejectedCoursesQuery->where('approval_status', 'rejected');
+                } else {
+                    $rejectedCoursesQuery->whereRaw('1 = 0');
+                }
+                if ($selectedYearId !== 'all') {
+                    $rejectedCoursesQuery->where('academic_year_id', $selectedYearId);
+                }
+                $rejectedCourses = (clone $rejectedCoursesQuery)->with('users')->orderByDesc('rejected_at')->orderByDesc('updated_at')->get();
                 $archivedCoursesQuery = Course::onlyTrashed()
                     ->whereHas('users', function($q) use ($levelRoles) {
                         $q->whereIn('role', $levelRoles);
@@ -850,6 +892,7 @@ class DashboardController extends Controller
                     'publishedCourses',
                     'pendingCourses',
                     'pendingCoursesCount',
+                    'rejectedCourses',
                     'archivedCourses',
                     'potentialParticipants',
                     'notifications',

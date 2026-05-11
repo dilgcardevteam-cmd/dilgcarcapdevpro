@@ -104,6 +104,7 @@ Route::post('/admin/courses/clone', [CourseController::class, 'clone'])->middlew
 Route::get('/trainer/courses/create', [CourseController::class, 'trainerCreate'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.create');
 Route::post('/trainer/courses', [CourseController::class, 'trainerStore'])->middleware(['auth', \App\Http\Middleware\EnsureProfileCompleted::class])->name('trainer.courses.store');
 Route::post('/courses/{id}/restore', [CourseController::class, 'restore'])->middleware(['auth'])->name('courses.restore');
+Route::post('/courses/{id}/reject', [CourseController::class, 'reject'])->middleware(['auth'])->name('courses.reject');
 Route::delete('/courses/{id}/force', [CourseController::class, 'forceDelete'])->middleware(['auth'])->name('courses.force-delete');
 // Registrar participants management
 Route::get('/registrar/courses/{course}/participants', [CourseController::class, 'participants'])->middleware(['auth'])->name('registrar.courses.participants');

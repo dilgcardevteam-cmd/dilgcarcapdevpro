@@ -25,6 +25,7 @@
         .actions { display:flex; gap:8px; }
         .btn-view { background:#17a2b8; }
         .btn-approve { background:#28a745; }
+        .btn-reject { background:#dc3545; }
         .empty { color:#6b7280; font-style:italic; }
     </style>
 </head>
@@ -69,6 +70,11 @@
                                 <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Approve this course? It will be moved to Active." data-confirm-title="Approve Course">
                                     @csrf
                                     <button type="submit" class="btn btn-approve">Approve</button>
+                                </form>
+                                <form action="{{ route('courses.reject', $course->id) }}" method="POST" data-confirm-message="Reject this course? It will be moved to Rejected Courses." data-confirm-title="Reject Course">
+                                    @csrf
+                                    <input type="hidden" name="return_tab" value="course-management">
+                                    <button type="submit" class="btn btn-reject">Reject</button>
                                 </form>
                             </div>
                         </div>

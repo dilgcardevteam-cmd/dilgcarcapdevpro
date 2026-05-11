@@ -2050,6 +2050,10 @@ class CourseController extends Controller
                 $this->storeUploadedMaterials($request, $course);
 
                 // Soft-archive until training manager approval
+                if (Schema::hasColumn('courses', 'approval_status')) {
+                    $course->approval_status = 'pending';
+                    $course->save();
+                }
                 $course->delete();
 
                 return $course;
@@ -4077,6 +4081,11 @@ class CourseController extends Controller
 
         $wasPendingApproval = !$course->is_published;
         $course->is_published = $wasPendingApproval ? false : true;
+        if (Schema::hasColumn('courses', 'approval_status')) {
+            $course->approval_status = 'approved';
+            $course->rejected_at = null;
+            $course->rejected_by_user_id = null;
+        }
         $course->save();
 
         // Activate coach/trainer pivot so they can enter class after admin approval
@@ -4134,6 +4143,71 @@ class CourseController extends Controller
             return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => $returnTab])
                 ->with('success_course', $message);
         }
+        return redirect()->route('dashboard', ['tab' => $returnTab])
+            ->with('success_course', $message);
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $actorRole = strtolower((string) (auth()->user()->role ?? ''));
+        $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        if (!in_array($actorRole, array_merge($adminRoles, $tmRoles), true)) {
+            abort(403);
+        }
+
+        $course = Course::withTrashed()->with(['users', 'submittedBy', 'trainer'])->findOrFail($id);
+        $course->is_published = false;
+        if (Schema::hasColumn('courses', 'approval_status')) {
+            $course->approval_status = 'rejected';
+            $course->rejected_at = now();
+            $course->rejected_by_user_id = auth()->id();
+            $course->save();
+        } else {
+            $course->save();
+        }
+
+        if (!$course->trashed()) {
+            $course->delete();
+        }
+
+        $submitter = $course->submittedBy ?: $course->trainer;
+        if (!$submitter) {
+            $submitter = $course->users->first(function ($user) {
+                return in_array(strtolower((string) $user->role), [
+                    'coach',
+                    'trainer',
+                    'central_office_coach',
+                    'regional_office_coach',
+                    'provincial_office_coach',
+                ], true);
+            });
+        }
+
+        if ($submitter) {
+            Notification::create([
+                'user_id' => $submitter->id,
+                'title' => 'Course Rejected',
+                'message' => "Your submitted course {$course->name} was rejected.",
+                'type' => 'course_rejected',
+                'related_id' => $course->id,
+                'link' => route('dashboard', ['portal' => 'coach', 'tab' => 'course-utilities', 'submission_tab' => 'rejected']),
+            ]);
+        }
+
+        \Log::info('Course rejected.', [
+            'course_id' => $course->id,
+            'rejected_by' => auth()->id(),
+        ]);
+
+        $returnTab = (string) $request->input('return_tab', 'course-management');
+        $message = 'Course rejected successfully.';
+
+        if (in_array($actorRole, $tmRoles, true)) {
+            return redirect()->route('dashboard', ['portal' => 'tm', 'tab' => $returnTab])
+                ->with('success_course', $message);
+        }
+
         return redirect()->route('dashboard', ['tab' => $returnTab])
             ->with('success_course', $message);
     }

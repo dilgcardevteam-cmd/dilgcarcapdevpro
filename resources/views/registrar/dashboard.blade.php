@@ -3174,11 +3174,12 @@
                         ? $pendingCourses->count()
                         : (int) ($pendingCoursesCount ?? 0);
                     $draftCoursesCount = $draftCoursesLocal->count();
+                    $rejectedCoursesLocal = (isset($rejectedCourses) && $rejectedCourses instanceof \Illuminate\Support\Collection) ? $rejectedCourses : collect([]);
+                    $rejectedIdsLocal = $rejectedCoursesLocal->pluck('id')->map(fn($v) => (int) $v)->all();
                     $archivedCoursesLocal = (isset($archivedCourses) && $archivedCourses instanceof \Illuminate\Support\Collection)
-                        ? $archivedCourses->filter(fn($c) => (bool) ($c->is_published ?? false))->values()
+                        ? $archivedCourses->filter(fn($c) => (bool) ($c->is_published ?? false) && !in_array((int) ($c->id ?? 0), $rejectedIdsLocal, true))->values()
                         : collect([]);
                     $archivedCoursesCount = $archivedCoursesLocal->count();
-                    $rejectedCoursesLocal = collect([]);
                     $rejectedCoursesCountLocal = $rejectedCoursesLocal->count();
                     $libraryCoursesLocal = isset($publishedCourses) ? $publishedCourses : collect([]);
                 @endphp
@@ -3385,7 +3386,11 @@
                                                     <input type="hidden" name="return_tab" value="pending-courses">
                                                     <button type="submit" class="cm-btn success"><i class="fas fa-check"></i> Approve</button>
                                                 </form>
-                                                <button type="button" class="cm-btn danger" disabled><i class="fas fa-xmark"></i> Reject</button>
+                                                <form action="{{ route('courses.reject', $course->id) }}" method="POST" data-confirm-message="Reject this course? It will be moved to Rejected Courses." data-confirm-title="Reject Course" style="margin:0;display:inline">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="pending-courses">
+                                                    <button type="submit" class="cm-btn danger"><i class="fas fa-xmark"></i> Reject</button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -3397,7 +3402,68 @@
                     </div>
 
                     <div class="cm-panel" data-cm-panel="rejected" style="display:none">
-                        <div class="cm-empty">No rejected courses found.</div>
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Subject Areas</th>
+                                    <th>Rejected On</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($rejectedCoursesLocal as $course)
+                                    @php
+                                        $submitter = $course->users->first(function ($u) {
+                                            return in_array(strtolower((string) $u->role), [
+                                                'coach',
+                                                'trainer',
+                                                'central_office_coach',
+                                                'regional_office_coach',
+                                                'provincial_office_coach',
+                                            ], true);
+                                        });
+                                        $img = $course->image_url;
+                                        $rejectedOn = $course->rejected_at ? $course->rejected_at->format('M d, Y') : ($course->updated_at ? $course->updated_at->format('M d, Y') : '---');
+                                        $rejectedTime = $course->rejected_at ? $course->rejected_at->format('h:i A') : ($course->updated_at ? $course->updated_at->format('h:i A') : '');
+                                        $subjectAreas = $formatSubjectAreas($course->subject_area ?? null);
+                                    @endphp
+                                    <tr class="js-course-card-tm" data-course-name="{{ strtolower($course->name) }}">
+                                        <td>
+                                            <div class="cm-course">
+                                                <div class="cm-thumb" style="{{ $img ? "background-image:url('{$img}')" : '' }}"></div>
+                                                <div style="min-width:0">
+                                                    <div class="cm-course-name">{{ $course->name }}</div>
+                                                    <div class="cm-course-desc">{{ Str::limit($course->description, 90) }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:800;color:#0f172a">{{ $submitter?->name ?? '---' }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $submitter?->email ?? '' }}</div>
+                                        </td>
+                                        <td><span class="cm-pill rejected">{{ $subjectAreas }}</span></td>
+                                        <td>
+                                            <div style="font-weight:800">{{ $rejectedOn }}</div>
+                                            <div style="color:#64748b;font-size:.86rem">{{ $rejectedTime }}</div>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <div class="cm-actions">
+                                                <a class="cm-btn" href="{{ route('admin.courses.show', $course) }}">View</a>
+                                                <form action="{{ route('courses.restore', $course->id) }}" method="POST" data-confirm-message="Approve this rejected course? It will be published." data-confirm-title="Approve Course" style="margin:0;display:inline">
+                                                    @csrf
+                                                    <input type="hidden" name="return_tab" value="pending-courses">
+                                                    <button type="submit" class="cm-btn success"><i class="fas fa-check"></i> Approve</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="cm-empty">No rejected courses found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
 
                     <div class="cm-panel" data-cm-panel="draft" style="display:none">
