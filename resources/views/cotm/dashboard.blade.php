@@ -85,6 +85,10 @@
             box-shadow: 0 0 0 4px rgba(0, 44, 118, 0.1);
         }
 
+        .fow-dropdown-container.open {
+            z-index: 3000 !important;
+        }
+
         .fow-dropdown-options {
             position: absolute;
             top: calc(100% + 8px);
@@ -997,6 +1001,10 @@
                     </ul>
                 </li>
                 @endif
+                <li class="menu-item" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
+                </li>
             </ul>
         </aside>
         <main class="main-content">
@@ -1267,6 +1275,11 @@
                         })();
                     </script>
                 </div>
+            </section>
+
+            <!-- Manual Section -->
+            <section id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
             </section>
             <section id="user-management" class="content-section {{ request('tab') == 'user-management' ? 'active' : '' }}">
                 <div class="user-management-shell">
@@ -2357,7 +2370,7 @@
         if (menuItem) {menuItem.classList.add('active');}
         const portal = menuItem ? menuItem.closest('.menu-dropdown') : null;
         if (portal && !(document.getElementById('sidebar')?.classList.contains('collapsed'))) portal.classList.add('open');
-        const titles = {'dashboard-home': 'Dashboard','user-management': 'User Management','trainer-trainee-management': 'Training Management'};
+        const titles = {'dashboard-home': 'Dashboard','user-management': 'User Management','trainer-trainee-management': 'Training Management','manual': 'System Manual'};
         const titleElement = document.getElementById('page-title');
         if (titleElement) {titleElement.textContent = titles[sectionId] || 'Dashboard';}
         const url = new URL(window.location.href);

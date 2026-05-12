@@ -1387,6 +1387,12 @@
                     </ul>
                 </li>
                 @endif
+                <li class="nav-item">
+                    <a href="#" class="nav-link {{ request('tab') == 'manual' ? 'active' : '' }}" onclick="showContent('manual', this)">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span class="nav-text">Manual</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -2228,6 +2234,11 @@
                 </form>
             </div>
 
+            <!-- Manual Section -->
+            <div id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
+            </div>
+
             <!-- Course Details View -->
             <div id="course-details-view" class="content-section">
                 <a onclick="showContent('dashboard-home', document.querySelector('a[onclick*=\'dashboard-home\']'))" class="back-link">
@@ -2660,7 +2671,7 @@
             }
             var portal = element ? element.closest('.nav-portal') : null;
             if (portal) portal.classList.add('open');
-            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile','certificates':'Certificates'};
+            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile','certificates':'Certificates','manual':'System Manual'};
             var titleEl=document.getElementById('headerSectionTitle');
             if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
 

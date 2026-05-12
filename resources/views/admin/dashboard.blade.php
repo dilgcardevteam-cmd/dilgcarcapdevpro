@@ -4491,6 +4491,10 @@
                     <span class="menu-text">System Settings</span>
                 </li>
                 @endif
+                <li class="menu-item" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
+                </li>
             </ul>
         </aside>
 
@@ -5257,6 +5261,11 @@
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <!-- Manual Section -->
+            <section id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
             </section>
 
             <!-- Roles Management Section -->
@@ -10366,7 +10375,8 @@
                 'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
                 'system-settings': 'System Settings',
-                'access-management': 'Access Control'
+                'access-management': 'Access Control',
+                'manual': 'System Manual'
             };
             const sidebarTitleEl = document.getElementById('sidebar-section-title');
             if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
@@ -10386,7 +10396,8 @@
                     'course-library': 'Course Library',
                     'roles-management': 'Roles Management',
                     'certification-management': 'Certifications',
-                    'access-management': 'Access Control'
+                    'access-management': 'Access Control',
+                    'manual': 'System Manual'
                 };
                 const headerTitleEl = document.getElementById('header-section-title');
                 if(headerTitleEl){ headerTitleEl.textContent = titles[id] || 'Dashboard'; }

@@ -128,6 +128,10 @@
             box-shadow: 0 0 0 4px rgba(0, 44, 118, 0.1);
         }
 
+        .fow-dropdown-container.open {
+            z-index: 3000 !important;
+        }
+
         .fow-dropdown-options {
             position: absolute;
             top: calc(100% + 8px);
@@ -2113,6 +2117,10 @@
                     </ul>
                 </li>
                 @endif
+                <li class="menu-item" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
+                </li>
             </ul>
         </aside>
 
@@ -2573,6 +2581,11 @@
                         </script>
                     </div></div>
                 </div>
+            </section>
+
+            <!-- Manual Section -->
+            <section id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
             </section>
 
             <!-- User Management Section -->
@@ -5064,7 +5077,8 @@
             'trainer-trainee-management': 'Training Management',
             'course-management': 'Course Management',
             'course-create': 'Add Course',
-            'certification-management': 'Certifications'
+            'certification-management': 'Certifications',
+            'manual': 'System Manual'
         };
         const titleElement = document.getElementById('page-title');
         if (titleElement) {
@@ -5546,7 +5560,8 @@
             'archived-courses': 'Archived Courses',
             'course-library': 'Course Library',
             'certification-management': 'Certifications',
-            'activity-logs': 'Activity Logs'
+            'activity-logs': 'Activity Logs',
+            'manual': 'System Manual'
         };
         const titleElement = document.getElementById('page-title');
         if (titleElement) {

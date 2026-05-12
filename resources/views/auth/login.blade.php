@@ -302,6 +302,10 @@
         box-shadow: 0 0 0 3px rgba(0, 44, 118, 0.12);
     }
 
+    .fow-dropdown-container.open {
+        z-index: 50 !important;
+    }
+
     .fow-dropdown-options {
         position: absolute;
         top: calc(100% + 5px);
@@ -348,7 +352,7 @@
         border-radius: 12px;
         box-shadow: 0 10px 25px rgba(0, 44, 118, 0.2);
         display: none;
-        z-index: 1001;
+        z-index: 2000;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.2s ease;

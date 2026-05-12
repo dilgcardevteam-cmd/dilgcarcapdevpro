@@ -149,6 +149,7 @@
         <li><a class="menu-item" href="{{ route('dashboard', ['portal' => 'tm', 'tab' => 'user-management']) }}"><span class="menu-icon"><i class="fas fa-users"></i></span><span class="menu-text">User Management</span></a></li>
         <li><a class="menu-item active" href="{{ route('dashboard', ['portal' => 'tm', 'tab' => 'course-management']) }}"><span class="menu-icon"><i class="fas fa-book"></i></span><span class="menu-text">Course Management</span></a></li>
         <li><a class="menu-item" href="{{ route('dashboard', ['portal' => 'tm', 'tab' => 'certification-management']) }}"><span class="menu-icon"><i class="fas fa-certificate"></i></span><span class="menu-text">Certifications</span></a></li>
+        <li><a class="menu-item" href="{{ route('dashboard', ['tab' => 'manual']) }}"><span class="menu-icon"><i class="fas fa-book"></i></span><span class="menu-text">Manual</span></a></li>
     </ul>
 </aside>
 <header class="header">

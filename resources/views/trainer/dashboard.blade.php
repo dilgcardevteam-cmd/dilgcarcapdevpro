@@ -2116,6 +2116,12 @@
                     </ul>
                 </li>
                 @endif
+                <li class="nav-item">
+                    <a href="#" class="nav-link {{ request('tab') == 'manual' ? 'active' : '' }}" onclick="showContent('manual', this)">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span class="nav-text">Manual</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -2879,6 +2885,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Manual Section -->
+            <div id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
             </div>
 
             <!-- Calendar Section -->
