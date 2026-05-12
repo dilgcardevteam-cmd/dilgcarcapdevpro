@@ -41,13 +41,13 @@
 
     .manual-search {
         position: relative;
-        width: 100%;
-        margin-bottom: 20px;
+        width: calc(100% - 40px);
+        margin: 0 20px 20px 20px;
     }
 
     .manual-search input {
         width: 100%;
-        padding: 10px 40px 10px 15px;
+        padding: 10px 1px 10px 12px;
         border: 1px solid #e2e8f0;
         border-radius: 10px;
         font-size: 14px;
@@ -366,12 +366,12 @@
             </div>
 
             <div class="manual-accordion-list">
-                <!-- 1. Getting Started (Always Visible) -->
+                <!-- Getting Started (Always Visible) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon"><i class="fas fa-play"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">1. Getting Started</h3>
+                            <h3 class="manual-accordion-title">Getting Started</h3>
                             <p class="manual-accordion-desc">Learn the basics of the system and get started quickly.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -379,7 +379,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>1.1 System Overview</h4>
+                                <h4>System Overview</h4>
                                 <p>A comprehensive overview of the CAPDEV PRO platform and its core functionalities.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -389,7 +389,7 @@
                         </div>
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>1.2 Logging In</h4>
+                                <h4>Logging In</h4>
                                 <p>Step-by-step instructions on how to access your account securely.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -401,12 +401,12 @@
                 </div>
 
                 @if($isAdmin || $isTM)
-                <!-- 2. User Management -->
+                <!-- User Management -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #ecfdf5; color: #10b981;"><i class="fas fa-users-cog"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">2. User Management</h3>
+                            <h3 class="manual-accordion-title">User Management</h3>
                             <p class="manual-accordion-desc">Manage system users, define roles, and configure permissions.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -414,7 +414,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>2.1 Adding New Users</h4>
+                                <h4>Adding New Users</h4>
                                 <p>Learn how to create user profiles and assign appropriate system roles.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -427,12 +427,12 @@
                 @endif
 
                 @if($isTM)
-                <!-- 3. Training Management (TM only) -->
+                <!-- Training Management (TM only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #fdf2f2; color: #ef4444;"><i class="fas fa-tasks"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">3. Training Management</h3>
+                            <h3 class="manual-accordion-title">Training Management</h3>
                             <p class="manual-accordion-desc">Oversee training programs, track participants, and manage schedules.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -440,7 +440,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>3.1 Program Scheduling</h4>
+                                <h4>Program Scheduling</h4>
                                 <p>Instructions for setting up and managing training timelines and events.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -453,12 +453,12 @@
                 @endif
 
                 @if($isAdmin || $isTM)
-                <!-- 4. Course Management -->
+                <!-- Course Management -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #fefce8; color: #eab308;"><i class="fas fa-book-open"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">4. Course Management</h3>
+                            <h3 class="manual-accordion-title">Course Management</h3>
                             <p class="manual-accordion-desc">Develop learning paths, organize content, and manage course categories.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -466,7 +466,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>4.1 Creating a Course</h4>
+                                <h4>Creating a Course</h4>
                                 <p>Detailed guide on building and publishing new courses within the system.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -479,12 +479,12 @@
                 @endif
 
                 @if($isAdmin || $isTM || $isCoach)
-                <!-- 5. Certifications -->
+                <!-- Certifications -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #fff7ed; color: #f97316;"><i class="fas fa-certificate"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">5. Certifications</h3>
+                            <h3 class="manual-accordion-title">Certifications</h3>
                             <p class="manual-accordion-desc">Design templates, manage issuance, and verify learner certificates.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -492,7 +492,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>5.1 Template Designer</h4>
+                                <h4>Template Designer</h4>
                                 <p>How to utilize the visual builder for creating custom certificate designs.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -505,12 +505,12 @@
                 @endif
 
                 @if($isCoach)
-                <!-- 6. My Courses (Coach only) -->
+                <!-- My Courses (Coach only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #f5f3ff; color: #8b5cf6;"><i class="fas fa-chalkboard-teacher"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">6. My Courses</h3>
+                            <h3 class="manual-accordion-title">My Courses</h3>
                             <p class="manual-accordion-desc">Access and manage your assigned training cohorts and sessions.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -518,7 +518,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>6.1 Course Dashboard</h4>
+                                <h4>Course Dashboard</h4>
                                 <p>Guide to using the specialized dashboard for course instructors.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -528,12 +528,12 @@
                         </div>
                     </div>
                 </div>
-                <!-- 7. Course Utilities (Coach only) -->
+                <!-- Course Utilities (Coach only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #f0f9ff; color: #0ea5e9;"><i class="fas fa-tools"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">7. Course Utilities</h3>
+                            <h3 class="manual-accordion-title">Course Utilities</h3>
                             <p class="manual-accordion-desc">Utilize tools for grading, assessment, and learner interaction.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -541,7 +541,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>7.1 Material Upload</h4>
+                                <h4>Material Upload</h4>
                                 <p>Procedures for uploading and organizing instructional resources.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -551,12 +551,12 @@
                         </div>
                     </div>
                 </div>
-                <!-- 8. Announcements (Coach only) -->
+                <!-- Announcements (Coach only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #fdf2f2; color: #ef4444;"><i class="fas fa-bullhorn"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">8. Announcements</h3>
+                            <h3 class="manual-accordion-title">Announcements</h3>
                             <p class="manual-accordion-desc">Communicate important updates and alerts to your trainees.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -564,7 +564,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>8.1 Creating Announcements</h4>
+                                <h4>Creating Announcements</h4>
                                 <p>How to draft and broadcast notifications to specific course groups.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
@@ -577,12 +577,12 @@
                 @endif
 
                 @if($isParticipant)
-                <!-- 9. Classroom (Participant only) -->
+                <!-- Classroom (Participant only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #ecfdf5; color: #10b981;"><i class="fas fa-laptop-code"></i></div>
                         <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">9. Classroom</h3>
+                            <h3 class="manual-accordion-title">Classroom</h3>
                             <p class="manual-accordion-desc">Engage with course content, complete assignments, and track your learning progress.</p>
                         </div>
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
@@ -590,7 +590,7 @@
                     <div class="manual-accordion-content">
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>9.1 Navigating Lessons</h4>
+                                <h4>Navigating Lessons</h4>
                                 <p>Instructions for accessing modules and interacting with classroom resources.</p>
                             </div>
                             <div style="display: flex; align-items: center;">

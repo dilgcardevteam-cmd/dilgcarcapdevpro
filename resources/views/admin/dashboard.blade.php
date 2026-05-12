@@ -4491,10 +4491,6 @@
                     <span class="menu-text">System Settings</span>
                 </li>
                 @endif
-                <li class="menu-item" onclick="showContent('manual', this)">
-                    <div class="menu-icon"><i class="fas fa-book"></i></div>
-                    <span class="menu-text">Manual</span>
-                </li>
             </ul>
         </aside>
 
@@ -5261,11 +5257,6 @@
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Manual Section -->
-            <section id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
-                @include('partials.manual-content')
             </section>
 
             <!-- Roles Management Section -->
@@ -6359,7 +6350,7 @@
                         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
                             <div style="position: relative; width: 240px;">
                                 <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
-                                <input type="text" id="courseSearchInputAdmin" placeholder="Search courses..." style="width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
+                                <input type="text" id="courseSearchInputAdmin" placeholder="Search courses..." style="width: 80%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 0.9rem; font-weight: 600; outline: none; background:#fff;">
                             </div>
                             <div style="position: relative; width: 220px;">
                                 <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
@@ -10375,8 +10366,7 @@
                 'roles-management': 'Roles Management',
                 'certification-management': 'Certifications',
                 'system-settings': 'System Settings',
-                'access-management': 'Access Control',
-                'manual': 'System Manual'
+                'access-management': 'Access Control'
             };
             const sidebarTitleEl = document.getElementById('sidebar-section-title');
             if(sidebarTitleEl){ sidebarTitleEl.textContent = titles[sectionId] || 'Dashboard'; }
@@ -10396,8 +10386,7 @@
                     'course-library': 'Course Library',
                     'roles-management': 'Roles Management',
                     'certification-management': 'Certifications',
-                    'access-management': 'Access Control',
-                    'manual': 'System Manual'
+                    'access-management': 'Access Control'
                 };
                 const headerTitleEl = document.getElementById('header-section-title');
                 if(headerTitleEl){ headerTitleEl.textContent = titles[id] || 'Dashboard'; }
