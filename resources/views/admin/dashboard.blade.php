@@ -4353,7 +4353,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="header-title">
-                <img id="sidebarLogo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 @php
@@ -10285,8 +10285,8 @@
 
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sidebar-collapsed');
-            const LOGO_MAIN = "{{ asset('images/capdev_pro_w-removebg-preview.png') }}";
-            const LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+            const LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+            const LOGO_SMALL = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
             const sidebarLogo = document.getElementById('sidebarLogo');
             const collapsed = document.body.classList.contains('sidebar-collapsed');
             if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
@@ -12478,3 +12478,6 @@
     </div>
 </body>
 </html>
+
+
+

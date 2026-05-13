@@ -6,8 +6,8 @@
     <title>{{ $course->name }} · Class</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
-    <link rel="preload" as="image" href="{{ asset('images/ddd-removebg-preview.png') }}">
-    <link rel="preload" as="image" href="{{ asset('images/logo1.png') }}">
+    <link rel="preload" as="image" href="{{ asset('images/CAPDEV PRO WHITE.png') }}">
+    <link rel="preload" as="image" href="{{ asset('images/CAPDEV PRO WHITE.png') }}">
     <style>
         :root{
             --brand:#0d6efd;
@@ -445,8 +445,8 @@
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
             try{
-                var LOGO_MAIN = isTrainer ? "{{ asset('images/capdev_pro_w-removebg-preview.png') }}" : "{{ asset('images/ddd-removebg-preview.png') }}";
-                var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+                var LOGO_MAIN = isTrainer ? "{{ asset('images/CAPDEV PRO WHITE.png') }}" : "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+                var LOGO_SMALL = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
                 var sl = document.getElementById('sidebarLogo');
                 var collapsed = document.body.classList.contains('sidebar-collapsed');
                 if(sl){ sl.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
@@ -1088,7 +1088,7 @@
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
             <div class="header-title" style="padding:12px 20px;display:flex;align-items:center;justify-content:center">
-                <img id="sidebarLogo" src="{{ !empty($asTrainer) ? asset('images/capdev_pro_w-removebg-preview.png') : asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
+                <img id="sidebarLogo" src="{{ !empty($asTrainer) ? asset('images/CAPDEV PRO WHITE.png') : asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro" style="height:60px">
             </div>
             <div style="padding:8px 20px;display:flex;align-items:center;gap:12px;">
             </div>
@@ -2619,3 +2619,6 @@ document.getElementById('notifyIncompleteBtn').addEventListener('click', async f
 </body>
 </html>
  
+
+
+

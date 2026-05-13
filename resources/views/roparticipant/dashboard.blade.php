@@ -441,7 +441,7 @@
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
             <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:75px">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
@@ -1479,8 +1479,8 @@
             var s = document.getElementById('sidebar');
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
-            var LOGO_MAIN = "{{ asset('images/ddd-removebg-preview.png') }}";
-            var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+            var LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+            var LOGO_SMALL = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
             var sidebarLogo = document.getElementById('sidebarLogo');
             var collapsed = document.body.classList.contains('sidebar-collapsed');
             if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
@@ -2270,3 +2270,6 @@
     </script>
 </body>
 </html>
+
+
+

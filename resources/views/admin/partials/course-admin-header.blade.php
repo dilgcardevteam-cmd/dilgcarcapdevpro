@@ -4,7 +4,7 @@
 <header class="header" style="background:#fff; height:80px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow:0 2px 4px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
     <div class="header-left" style="display:flex; align-items:center; gap:12px;">
         <div class="header-title">
-            <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height:40px; display:block;">
+            <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro" style="height:40px; display:block;">
         </div>
     </div>
     <div class="header-right" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
@@ -35,3 +35,5 @@
         @endforeach
     </div>
 </header>
+
+

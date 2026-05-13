@@ -779,7 +779,7 @@
 
     <header class="header">
         <div class="header-left">
-            <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CAPDEV PRO" class="header-logo" onerror="this.style.display='none'">
+            <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO" class="header-logo" onerror="this.style.display='none'">
         </div>
         <div class="nav-menu">
             <a href="#home" class="nav-item">Home</a>
@@ -814,7 +814,7 @@
         <!-- Welcome Section -->
         <section class="welcome-section" id="home">
             <div class="welcome-content">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="WELCOME TO CAPDEV PRO" class="welcome-image">
+                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="WELCOME TO CAPDEV PRO" class="welcome-image">
             </div>
             <div class="scroll-indicator">
             </div>
@@ -898,7 +898,7 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-provider">
-                                        <img src="{{ asset('images/LGRRC_logo.png') }}" alt="LGRRC">
+                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
                                         <span>DILG-CAR</span>
                                     </div>
                                     <h3 class="course-title-text">BASIC RESEARCH</h3>
@@ -919,7 +919,7 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-provider">
-                                        <img src="{{ asset('images/LGRRC_logo.png') }}" alt="LGRRC">
+                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
                                         <span>DILG-CAR</span>
                                     </div>
                                     <h3 class="course-title-text">BASIC SERVICES AND FACILITIES</h3>
@@ -940,7 +940,7 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-provider">
-                                        <img src="{{ asset('images/LGRRC_logo.png') }}" alt="LGRRC">
+                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
                                         <span>DILG-CAR</span>
                                     </div>
                                     <h3 class="course-title-text">NATURE AND TYPES OF LOCAL GOVERNMENTS</h3>
@@ -961,7 +961,7 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-provider">
-                                        <img src="{{ asset('images/LGRRC_logo.png') }}" alt="LGRRC">
+                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
                                         <span>DILG-CAR</span>
                                     </div>
                                     <h3 class="course-title-text">CREATION, CONVERSION, DIVISION, MERGER, AND ABOLITION OF LGUs</h3>
@@ -982,7 +982,7 @@
                                 </div>
                                 <div class="course-content">
                                     <div class="course-provider">
-                                        <img src="{{ asset('images/LGRRC_logo.png') }}" alt="LGRRC">
+                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
                                         <span>DILG-CAR</span>
                                     </div>
                                     <h3 class="course-title-text">LOCAL AUTONOMY AND SYSTEM OF DECENTRALIZATION</h3>
@@ -1229,3 +1229,5 @@
     </script>
 </body>
 </html>
+
+

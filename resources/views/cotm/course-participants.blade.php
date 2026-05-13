@@ -155,7 +155,7 @@
                 <i class="fas fa-bars"></i>
             </button>
             <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+                <img src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
         </div>
         <div class="header-right">
@@ -715,3 +715,6 @@
 </script>
 </body>
 </html>
+
+
+

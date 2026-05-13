@@ -86,7 +86,7 @@
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
             <div class="header-title">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item"><a href="{{ route('dashboard') }}" class="nav-link"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-text">Dashboard</span></a></li>
@@ -268,3 +268,6 @@
     </script>
 </body>
 </html>
+
+
+

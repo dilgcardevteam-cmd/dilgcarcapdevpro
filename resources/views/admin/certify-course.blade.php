@@ -98,7 +98,7 @@
     <header class="header">
         <div class="header-left">
             <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro">
             </div>
         </div>
         <div class="header-right">
@@ -458,3 +458,5 @@
     </script>
 </body>
 </html>
+
+

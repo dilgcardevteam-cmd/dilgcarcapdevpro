@@ -136,7 +136,7 @@
             content:'';
             display:block;
             height:72px;
-            background:url('{{ asset('images/CAPDEV-PRO-LOGO.png') }}') no-repeat center;
+            background:url('{{ asset('images/CAPDEV PRO.png') }}') no-repeat center;
             background-size:160px auto;
             border-bottom:1px solid rgba(255,255,255,.12);
         }
@@ -220,7 +220,7 @@
 <body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }}">
     <header class="app-header">
         <div class="app-header-left">
-            <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+            <img class="app-header-logo" src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
             <a href="{{ route('dashboard', ['tab' => 'manual']) }}" style="color:#0f3b8f"><i class="fas fa-book"></i> Manual</a>
@@ -952,3 +952,5 @@
     </script>
 </body>
 </html>
+
+

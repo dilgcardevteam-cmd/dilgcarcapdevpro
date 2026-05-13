@@ -108,7 +108,7 @@
         body.sidebar-collapsed .header{left:var(--sidebar-collapsed)}
         body.sidebar-collapsed .page{margin-left:var(--sidebar-collapsed)}
         body.sidebar-collapsed .menu-text,body.sidebar-collapsed .portal-row .fa-chevron-up{display:none}
-        body.sidebar-collapsed .sidebar-logo{content:url("{{ asset('images/logo1.png') }}");width:44px;height:44px}
+        body.sidebar-collapsed .sidebar-logo{content:url("{{ asset('images/CAPDEV PRO WHITE.png') }}");width:44px;height:44px}
         @media (max-width:1100px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.course-title{font-size:1.9rem}}
         @media (max-width:760px){.sidebar{transform:translateX(-100%);width:250px}.sidebar.open{transform:translateX(0)}.header,.page{left:0;margin-left:0}.course-hero{padding:20px 18px 0}.content{padding:20px 16px 32px}.hero-top{flex-direction:column}.stats{grid-template-columns:1fr}.kv-row{grid-template-columns:1fr}.kv-value{text-align:left}.certificate-shell,.settings-shell{padding:24px 16px}.certificate-stage{padding:28px 16px}.certificate-name{font-size:1.35rem}.setting-card{grid-template-columns:1fr;padding:20px}.setting-form{flex-direction:column}.setting-input{border-radius:10px}.setting-action{border-radius:10px;margin-top:0}}
     </style>
@@ -138,7 +138,7 @@
 @endphp
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" alt="CAPDEV PRO">
+        <img class="sidebar-logo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CAPDEV PRO">
     </div>
     <ul class="sidebar-menu">
         <li class="menu-item portal-row active">
@@ -352,3 +352,6 @@
 </script>
 </body>
 </html>
+
+
+

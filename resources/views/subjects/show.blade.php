@@ -274,7 +274,7 @@
         <div class="header-left">
             
             <div class="nav-menu">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro" style="height: 70px;">
+                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro" style="height: 70px;">
             </div>
         </div>
         <div class="header-right">
@@ -313,7 +313,7 @@
                         src="{{ asset($subject['image']) }}"
                         alt="{{ $subject['title'] }}"
                         class="subject-detail-image"
-                        onerror="this.onerror=null;this.src='{{ asset('images/CAPDEV-PRO-LOGO.png') }}';"
+                        onerror="this.onerror=null;this.src='{{ asset('images/CAPDEV PRO.png') }}';"
                     >
                 </div>
             </div>
@@ -326,5 +326,7 @@
     </footer>
 </body>
 </html>
+
+
 
 

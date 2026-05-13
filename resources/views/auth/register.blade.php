@@ -216,7 +216,9 @@
     </div>
 
     <div class="split-left">
-        <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CAPDEV PRO">
+        <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO">
     </div>
 </div>
 @endsection
+
+
