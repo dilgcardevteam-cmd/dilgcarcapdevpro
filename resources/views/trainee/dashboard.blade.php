@@ -3,7 +3,7 @@
  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trainee Dashboard - CAPDEV PRO</title>
+    <title>Trainee Dashboard - CAPDEVPRO</title>
     
     <!-- Fonts -->
     <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">

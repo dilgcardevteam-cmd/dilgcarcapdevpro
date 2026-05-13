@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $subject['title'] }} - CAPDEV PRO</title>
+    <title>{{ $subject['title'] }} - CAPDEVPRO</title>
     
     <!-- Fonts -->
     <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
@@ -322,7 +322,7 @@
 
     <footer class="footer">
         <p class="footer-logo-text">DILG CAR - Universidad De Dagupan IT Students</p>
-        <p>&copy; 2026 CAPDEV PRO. All rights reserved.</p>
+        <p>&copy; 2026 CAPDEVPRO. All rights reserved.</p>
     </footer>
 </body>
 </html>

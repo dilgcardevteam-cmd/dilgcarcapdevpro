@@ -14,13 +14,69 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
 .header-toggle:hover,.sidebar-toggle:hover{background:#f8fbff;border-color:#b8cae6;box-shadow:0 12px 22px rgba(15,23,42,.07);transform:translateY(-1px)}
 .header-section-title{margin-left:12px;font-weight:700;color:var(--primary-blue);font-size:1.2rem;letter-spacing:-.01em}
 .profile-menu{position:relative}
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 16px 5px 5px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.user-profile-header:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background-color: #f8fafc;
+}
+.user-profile-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.user-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.user-profile-initial {
+    font-weight: 800;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+.user-profile-header .fa-chevron-down {
+    font-size: 0.8rem;
+    color: #64748b;
+    transition: transform 0.2s ease;
+}
+.user-profile-header:hover .fa-chevron-down {
+    color: #1e293b;
+}
 .profile-dropdown{position:absolute;top:50px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
-.profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
-.profile-dropdown .dropdown-item:hover{background:#f8fafc}
-.profile-dropdown .danger{color:#b91c1c}
-.profile-trigger{display:flex;align-items:center;gap:8px;cursor:pointer}
-.profile-caret{font-size:.9rem;color:#666}
-.profile-trigger.open .profile-caret{transform:rotate(180deg);transition:transform .2s}
+.profile-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    color: #111827;
+    text-decoration: none;
+    cursor: pointer;
+}
+.profile-dropdown .dropdown-item:hover {
+    background: #f8fafc;
+}
+.profile-dropdown .danger {
+    color: #b91c1c;
+}
 .dashboard-container{display:flex;flex:1;overflow:hidden;margin-top:var(--header-height);margin-left:var(--sidebar-width);height:calc(100vh - var(--header-height))}
 .sidebar{width:var(--sidebar-width);background-color:var(--primary-blue);color:#fff;transition:width .3s ease;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
 .sidebar-brand{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
@@ -50,14 +106,20 @@ body{margin:0;background:var(--bg);color:#0f172a;font-family:'DM Sans', sans-ser
     <div id="header-section-title" class="header-section-title">Edit Material</div>
   </div>
   <div class="profile-menu">
-    @if(Auth::user()->profile_picture)
-      <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width:35px;height:35px;border-radius:50%;object-fit:cover" onclick="toggleProfileMenu()">
-    @else
-      <div class="user-avatar" style="width:35px;height:35px;background-color:#002C76;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer" onclick="toggleProfileMenu()">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,1)) }}</div>
-    @endif
-    <i class="fas fa-chevron-down profile-caret" style="margin-left:8px"></i>
+    <div class="user-profile-header" onclick="toggleProfileMenu(event)">
+        <div class="user-profile-avatar">
+            @if(Auth::user()->profile_picture)
+                <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+                <span id="header_profile_initial" class="user-profile-initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+            @else
+                <img id="header_profile_image" src="" alt="Profile" style="display: none;">
+                <span id="header_profile_initial" class="user-profile-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+            @endif
+        </div>
+        <i class="fas fa-chevron-down"></i>
+    </div>
     <div id="profileDropdown" class="profile-dropdown">
-      <a class="dropdown-item" href="{{ route('profile.setup') }}"><i class="fas fa-user-cog"></i> <span>Profile</span></a>
+      <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}"><i class="fas fa-user-cog"></i> <span>Profile Settings</span></a>
       <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}"><i class="fas fa-life-ring"></i> <span>Help & Support</span></a>
       <form method="POST" action="{{ route('logout') }}" style="margin:0">@csrf<button type="submit" class="dropdown-item danger" style="width:100%;background:none;border:none;text-align:left;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button></form>
     </div>

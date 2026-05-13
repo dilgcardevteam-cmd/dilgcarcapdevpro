@@ -357,7 +357,7 @@
             <div class="manual-main-header">
                 <div class="manual-title-area">
                     <h1>System Manual</h1>
-                    <p>Comprehensive guides and documentation for all CAPDEV PRO users.</p>
+                    <p>Comprehensive guides and documentation for all CAPDEVPRO users.</p>
                 </div>
             </div>
 
@@ -380,7 +380,7 @@
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
                                 <h4>System Overview</h4>
-                                <p>A comprehensive overview of the CAPDEV PRO platform and its core functionalities.</p>
+                                <p>A comprehensive overview of the CAPDEVPRO platform and its core functionalities.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>

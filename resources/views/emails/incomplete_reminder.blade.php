@@ -169,8 +169,8 @@
             </div>
         </div>
         <div class="footer">
-            <p>This is an automated message from <strong>CapDev Pro</strong>.</p>
-            <p>&copy; {{ date('Y') }} DILG CapDev Pro. All rights reserved.</p>
+            <p>This is an automated message from <strong>CapDevPro</strong>.</p>
+            <p>&copy; {{ date('Y') }} DILG CapDevPro. All rights reserved.</p>
         </div>
     </div>
 </body>

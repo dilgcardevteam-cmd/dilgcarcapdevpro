@@ -103,7 +103,7 @@
                 <span class="status-badge">APPROVED & ACTIVE</span>
             </div>
 
-            <p>You can now log in to the CapDev Pro system and access your dashboard to start your learning journey.</p>
+            <p>You can now log in to the CapDevPro system and access your dashboard to start your learning journey.</p>
             
             <div style="text-align: center;">
                 <a href="{{ route('login') }}" class="btn-login" style="color: #ffffff !important; text-decoration: none !important;">Log In to Dashboard</a>
@@ -116,7 +116,7 @@
             
             <p style="margin-top: 30px;">
                 Welcome to the team!<br>
-                <strong>The CapDev Pro Team</strong>
+                <strong>The CapDevPro Team</strong>
             </p>
         </div>
 

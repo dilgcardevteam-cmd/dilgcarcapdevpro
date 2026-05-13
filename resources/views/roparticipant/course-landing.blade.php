@@ -30,7 +30,53 @@
         .back-to-courses-btn:hover{background:#f8fbff;border-color:#b8cae6;box-shadow:0 12px 22px rgba(15,23,42,.07);transform:translateY(-1px)}
         .back-to-courses-row{display:flex;align-items:center;justify-content:flex-start;margin:0 0 16px}
         .profile-menu{position:relative}
-        .user-profile{display:flex;align-items:center;gap:10px;color:var(--dark-text)}
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 16px 5px 5px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .user-profile-header:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: #f8fafc;
+        }
+        .user-profile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-profile-initial {
+            font-weight: 800;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .user-profile-header .fa-chevron-down {
+            font-size: 0.8rem;
+            color: #64748b;
+            transition: transform 0.2s ease;
+        }
+        .user-profile-header:hover .fa-chevron-down {
+            color: #1e293b;
+        }
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
@@ -747,12 +793,20 @@
         </div>
         <div class="header-right">
             <div class="profile-menu">
-                <div class="user-profile" onclick="toggleProfileMenu(event)" style="cursor: pointer;">
-                    <img src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
-                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666"></i>
+                <div class="user-profile-header" onclick="toggleProfileMenu(event)">
+                    <div class="user-profile-avatar">
+                        @if(Auth::user()->profile_picture)
+                            <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+                            <span id="header_profile_initial" class="user-profile-initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @else
+                            <img id="header_profile_image" src="" alt="Profile" style="display: none;">
+                            <span id="header_profile_initial" class="user-profile-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @endif
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
-                    <a class="dropdown-item" href="{{ route('profile.setup') }}">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
                     <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">

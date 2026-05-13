@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAPDEV PRO</title>
+    <title>CAPDEVPRO</title>
     
     <!-- Fonts -->
     <link rel="stylesheet" href="{{ asset('css/dm-sans.css') }}">
@@ -823,11 +823,11 @@
         <section class="hero">
             <div class="hero-content">
                 <h1>
-                    Strengthening Local Governance in the Cordillera through
+                    Strengthening Local Governance through
                     <strong>Competence and Innovation</strong>
                 </h1>
                 <p class="hero-text">
-                    The <strong>CAPDEVPRO CLGRRC E-Learning Portal</strong> serves as the central digital platform for the Department of the Interior and Local Government – Cordillera Administrative Region (DILG-CAR) Capacity Development Program. It is designed to institutionalize knowledge management and enhance the skills and competencies of local government personnel across the region.
+                    The <strong>CAPDEVPRO DILG E-Learning Portal</strong> serves as the central digital platform for the Department of the Interior and Local Government – Cordillera Administrative Region (DILG-CAR) Capacity Development Program. It is designed to institutionalize knowledge management and enhance the skills and competencies of local government personnel across the region.
                     <br><br>
                     Through a comprehensive suite of competency-based modules tailored to CAR’s governance needs, the portal provides accessible and specialized training in public administration, technical proficiency, and service delivery. By leveraging digital technology, this initiative ensures continuous professional development, fosters excellence in local governance, promotes transparency, and strengthens public accountability throughout the Cordillera Administrative Region.
                 </p>
@@ -1059,7 +1059,7 @@
 
     <footer class="footer">
         <p class="footer-logo-text">DILG CAR - Universidad De Dagupan IT Students</p>
-        <p>&copy; 2026 CAPDEV PRO. All rights reserved.</p>
+        <p>&copy; 2026 CAPDEVPRO. All rights reserved.</p>
     </footer>
 
     <script>

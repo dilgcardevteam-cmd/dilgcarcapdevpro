@@ -224,6 +224,9 @@ Route::put('/users/{user}', [DashboardController::class, 'updateUser'])->middlew
 Route::put('/users/{user}/display-details', [DashboardController::class, 'updateDisplayDetails'])->middleware(['auth'])->name('users.update-display-details');
 Route::delete('/users/{user}', [DashboardController::class, 'deleteUser'])->middleware(['auth'])->name('users.delete');
 Route::put('/profile', [DashboardController::class, 'updateProfile'])->middleware(['auth'])->name('profile.update');
+Route::get('/profile/setup', function() {
+    return redirect()->route('dashboard', ['tab' => 'profile-section']);
+})->name('profile.setup');
 Route::post('/notifications/{notification}/mark-as-read', [DashboardController::class, 'markNotificationAsRead'])->middleware(['auth'])->name('notifications.mark-as-read');
 
 // Certification Routes

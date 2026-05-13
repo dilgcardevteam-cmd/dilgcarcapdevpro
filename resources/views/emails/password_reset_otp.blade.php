@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAPDEV PRO OTP</title>
+    <title>CAPDEVPRO OTP</title>
 </head>
 <body style="margin:0;background:#f6f7fb;font-family:Arial, Helvetica, sans-serif;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
@@ -21,7 +21,7 @@
                             <p style="margin:0;color:#475569;font-size:13px;">Code expires in {{ $minutes }} minutes.</p>
                             <div style="height:1px;background:#e5e7eb;margin:18px 0;"></div>
                             <p style="margin:0 0 12px 0;color:#475569;font-size:13px;">If you did not request this, you can ignore this email.</p>
-                            <a href="{{ url('/') }}" style="display:inline-block;padding:10px 16px;border-radius:999px;background:#0b57d0;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;">Visit CAPDEV PRO</a>
+                            <a href="{{ url('/') }}" style="display:inline-block;padding:10px 16px;border-radius:999px;background:#0b57d0;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;">Visit CAPDEVPRO</a>
                         </td>
                     </tr>
                 </table>

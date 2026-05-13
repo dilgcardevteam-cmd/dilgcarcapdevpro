@@ -522,12 +522,12 @@
             <div class="about-icon"><i class="far fa-info-circle"></i></div>
             <h2 id="dataPrivacyTitle" class="about-title" style="color:#dc2626">DATA PRIVACY NOTICE</h2>
             <p class="about-copy">
-                CAPDEV PRO collects and processes personal data that users provide during account registration and system use, such as name, email, office assignment, role, PSGC location details, and course participation records.
+                CAPDEVPRO collects and processes personal data that users provide during account registration and system use, such as name, email, office assignment, role, PSGC location details, and course participation records.
                 This information is used only for legitimate platform functions including account management, training delivery, certification tracking, analytics, system security, and official reporting.
             </p>
             <p class="about-copy" style="margin-top:10px">
                 Data is stored in secured systems with controlled access and audit monitoring, and is retained only for the period required by operational needs and applicable government records rules.
-                You may request access, correction, or lawful deletion of your personal data by contacting the CAPDEV PRO administrator or the designated DILG-CAR Data Protection Officer.
+                You may request access, correction, or lawful deletion of your personal data by contacting the CAPDEVPRO administrator or the designated DILG-CAR Data Protection Officer.
             </p>
         </div>
     </div>
@@ -539,7 +539,7 @@
             <div class="about-icon"><i class="far fa-info-circle"></i></div>
             <h2 id="aboutSiteTitle" class="about-title">ABOUT THIS SITE</h2>
             <p class="about-sub">Isa ka bang <strong>MATINO, MAHUSAY</strong>, at <strong>MAAASAHAN</strong> na manggagawang Pilipino?</p>
-            <p class="about-copy">CAPDEV PRO streamlines capability development and training management for DILG-CAR users through a seamless platform for enrollment, course progress monitoring, certifications, analytics, and support services.</p>
+            <p class="about-copy">CAPDEVPRO streamlines capability development and training management for DILG-CAR users through a seamless platform for enrollment, course progress monitoring, certifications, analytics, and support services.</p>
 
             <div class="about-team">
                 <h4>DEVELOPMENT TEAM</h4>
@@ -564,12 +564,12 @@
             <div class="about-icon"><i class="far fa-lock"></i></div>
             <h2 id="privacyPolicyTitle" class="about-title" style="color:#dc2626">PRIVACY POLICY</h2>
             <p class="about-copy">
-                CAPDEV PRO protects personal data in accordance with the Data Privacy Act of 2012 and applicable government data management standards.
+                CAPDEVPRO protects personal data in accordance with the Data Privacy Act of 2012 and applicable government data management standards.
                 Personal information collected through the platform is processed only for legitimate purposes such as user authentication, training administration, certification records, platform analytics, and service improvement.
             </p>
             <p class="about-copy" style="margin-top:10px">
                 Access to personal data is limited to authorized personnel on a need-to-know basis, with technical and organizational safeguards in place to prevent unauthorized use, disclosure, or alteration.
-                Users may request access, correction, or valid deletion of their records through the CAPDEV PRO administrator or designated DILG-CAR Data Protection Officer.
+                Users may request access, correction, or valid deletion of their records through the CAPDEVPRO administrator or designated DILG-CAR Data Protection Officer.
             </p>
         </div>
     </div>

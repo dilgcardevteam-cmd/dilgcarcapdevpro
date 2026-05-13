@@ -45,6 +45,53 @@
         .profile-dropdown .dropdown-item:hover { background:#f8fafc; }
         .profile-dropdown .dropdown-item.danger { color:#b91c1c; }
         .muted { color:#6b7280; }
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 16px 5px 5px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .user-profile-header:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: #f8fafc;
+        }
+        .user-profile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-profile-initial {
+            font-weight: 800;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .user-profile-header .fa-chevron-down {
+            font-size: 0.8rem;
+            color: #64748b;
+            transition: transform 0.2s ease;
+        }
+        .user-profile-header:hover .fa-chevron-down {
+            color: #1e293b;
+        }
     </style>
 </head>
 <body style="font-family: 'DM Sans', sans-serif; background:#f3f4f6; color:#111827;">
@@ -56,18 +103,20 @@
         </div>
         <div class="header-right">
             <div class="profile-menu">
-                <div class="user-profile-header" onclick="toggleProfileMenu(event)" style="cursor: pointer; display: flex; align-items: center; gap: 10px; margin-right: 10px;">
-                    <div style="width: 40px; height: 40px; background-color: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                        {{ substr(Auth::user()->name, 0, 1) }}
+                <div class="user-profile-header" onclick="toggleProfileMenu(event)">
+                    <div class="user-profile-avatar">
+                        @if(Auth::user()->profile_picture)
+                            <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+                            <span id="header_profile_initial" class="user-profile-initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @else
+                            <img id="header_profile_image" src="" alt="Profile" style="display: none;">
+                            <span id="header_profile_initial" class="user-profile-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @endif
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: bold; color: var(--dark-text); font-size: 0.9rem;">{{ Auth::user()->name }}</div>
-                        <div style="font-size: 0.8rem; color: var(--light-text);">{{ ucfirst(Auth::user()->role) }}</div>
-                    </div>
-                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666;margin-left:6px"></i>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
-                    <a class="dropdown-item" href="{{ route('profile.setup') }}">
+                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
                     <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
@@ -281,7 +330,7 @@
             document.addEventListener('click', hideProfileMenu, { once:true });
         }
         function hideProfileMenu(){ var dd=document.getElementById('profileDropdown'); if(dd){ dd.style.display='none'; } }
-        function showProfile(){ window.location.href='{{ route('profile.setup') }}'; }
+        function showProfile(){ window.location.href='{{ route('dashboard', ['tab' => 'profile-section']) }}'; }
         function toggleAll(cb){
             document.querySelectorAll('#traineeTbody input[type="checkbox"][name="user_ids[]"]').forEach(function(x){
                 if(!x.disabled){ x.checked = cb.checked; }

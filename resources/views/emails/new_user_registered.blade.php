@@ -94,10 +94,10 @@
 
         <!-- Main Content -->
         <div class="content">
-            <h2>Welcome to CapDev Pro!</h2>
+            <h2>Welcome to CapDevPro!</h2>
             <p>Dear {{ $user->name }},</p>
             
-            <p>Thank you for registering with the CapDev Pro Learning Management System. We have successfully received your registration details.</p>
+            <p>Thank you for registering with the CapDevPro Learning Management System. We have successfully received your registration details.</p>
             
             <div style="text-align: center; margin: 25px 0;">
                 <p>Your account status is currently:</p>
@@ -150,7 +150,7 @@
             
             <p style="margin-top: 30px;">
                 Best regards,<br>
-                <strong>The CapDev Pro Team</strong>
+                <strong>The CapDevPro Team</strong>
             </p>
         </div>
 
