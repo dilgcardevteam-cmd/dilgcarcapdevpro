@@ -4524,7 +4524,7 @@
                     <div class="lms-home-hero">
                         <div class="lms-home-headline">
                             <div>
-                                <h1 class="welcome-title lms-welcome">Welcome, Malakas na <strong>{{ Auth::user()->name }}</strong></h1>
+                                <h1 class="welcome-title lms-welcome">Welcome, <strong>{{ Auth::user()->name }}</strong></h1>
                                 <p class="lms-home-subtitle">
                                     Monitor learner onboarding, course readiness, and certification output in one view.
                                     Use this board to quickly spot bottlenecks and move training delivery forward.

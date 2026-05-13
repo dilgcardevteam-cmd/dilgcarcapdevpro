@@ -1403,7 +1403,7 @@
             <div id="dashboard-home" class="content-section {{ in_array(request('tab'), ['classroom','calendar','announcements','certificates','profile-section','help-support','help_support']) ? '' : 'active' }}">
                 <div class="home-hero-banner">
                     <div class="home-hero-head">
-                        <h1 class="home-hero-title" style="margin-bottom:0;">Welcome back, {{ Auth::user()->name }}!</h1>
+                        <h1 class="home-hero-title" style="margin-bottom:0;">Welcome, {{ Auth::user()->name }}!</h1>
                     </div>
                     <p class="home-hero-subtitle">Monitor your learning progress and quickly access your classes.</p>
                     
