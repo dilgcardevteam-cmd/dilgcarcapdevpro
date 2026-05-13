@@ -6112,8 +6112,8 @@
                                 <i class="fas fa-user-shield"></i>
                                 Account Workspace
                             </div>
-                            <h2 class="user-details-headline">Review identity, access, and security in one focused admin workspace.</h2>
-                            <div class="user-details-note">Manage the selected account directly in the main workspace with a cleaner profile flow for updates, role assignment, permissions, and security review.</div>
+                            <h2 class="user-details-headline">Review identity and access in one focused admin workspace.</h2>
+                            <div class="user-details-note">Manage the selected account directly in the main workspace with a cleaner profile flow for updates, role assignment, and permissions.</div>
                         </div>
                     </div>
                     <div id="userDetailsMount"></div>
@@ -7972,7 +7972,6 @@
                     <button type="button" class="modal-tab active" data-target="section-roles" aria-selected="true" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid var(--primary-blue);color:var(--primary-blue);font-weight:700;border-radius:8px 8px 0 0;">Roles</button>
                     <button type="button" class="modal-tab" data-target="section-permissions" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Permissions</button>
                     <button type="button" class="modal-tab" data-target="section-location" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Location Details</button>
-                    <button type="button" class="modal-tab" data-target="section-security" aria-selected="false" style="border:none;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:#64748b;font-weight:700;border-radius:8px 8px 0 0;">Security</button>
                 </div>
 
                 <div id="section-core" class="profile-section" style="display:none;">
@@ -8447,39 +8446,6 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div id="section-security" class="profile-section" style="display:none;">
-                    <p class="profile-section-title">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        Security
-                    </p>
-                    <div class="form-group profile-password-wrap">
-                        <label>Password</label>
-                        <div class="field-with-icon">
-                            <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                            <input type="password" id="view_password" name="password" placeholder="********" disabled>
-                        </div>
-                        <button type="button" id="togglePassword" class="password-toggle" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">
-                            <svg id="eyeIcon" class="password-eye" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                            <svg id="eyeOffIcon" class="password-eye" viewBox="0 0 24 24" aria-hidden="true" style="display:none;">
-                                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.31 21.31 0 0 1 5.06-5.94"></path>
-                                <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.84 21.84 0 0 1-2.16 3.19"></path>
-                                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
-                                <line x1="1" y1="1" x2="23" y2="23"></line>
-                            </svg>
-                        </button>
-                        <small class="password-help">Leave blank to keep current password</small>
                     </div>
                 </div>
 
@@ -10666,7 +10632,6 @@
             document.getElementById('view_role').value = normalizeAccessRole(user.role);
             document.getElementById('view_status').value = user.status || '';
             document.getElementById('view_field_of_work').value = user.field_of_work || '';
-            document.getElementById('view_password').value = '';
             applyAccessRole(user.role || '');
 
             applyOfficeLevelGuessForUser(user);
@@ -10706,7 +10671,6 @@
             document.getElementById('view_role').value = normalizeAccessRole(user.role);
             document.getElementById('view_status').value = user.status;
             document.getElementById('view_field_of_work').value = user.field_of_work || '';
-            document.getElementById('view_password').value = ''; // Reset password field
             applyAccessRole(user.role || '');
 
             const initial = document.getElementById('modalUserInitial');
@@ -10885,34 +10849,11 @@
                 box.classList.add('disabled');
             });
 
-            const passwordInput = document.getElementById('view_password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            const eyeOffIcon = document.getElementById('eyeOffIcon');
-            if (passwordInput) passwordInput.type = 'password';
-            if (eyeIcon) eyeIcon.style.display = 'block';
-            if (eyeOffIcon) eyeOffIcon.style.display = 'none';
-             
             // Buttons
             document.getElementById('btnEdit').style.display = 'inline-flex';
             document.getElementById('btnCancel').style.display = 'none';
             document.getElementById('btnUpdate').style.display = 'none';
             syncViewLocationSelectState();
-        }
-
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('view_password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            const eyeOffIcon = document.getElementById('eyeOffIcon');
-            if (!passwordInput || !eyeIcon || !eyeOffIcon) return;
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.style.display = 'none';
-                eyeOffIcon.style.display = 'block';
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.style.display = 'block';
-                eyeOffIcon.style.display = 'none';
-            }
         }
 
         function toggleAccordion(id) {
@@ -11159,7 +11100,7 @@
             }
 
             const tabs = document.querySelectorAll('.modal-tab');
-            const sections = ['section-core','section-roles','section-permissions','section-location','section-security'];
+            const sections = ['section-core','section-roles','section-permissions','section-location'];
             tabs.forEach(btn => {
                 btn.addEventListener('click', function(){
                     const target = this.getAttribute('data-target');
