@@ -21,7 +21,12 @@ Route::get('/', function () {
     $displayUsers = \App\Models\User::where('display_type', 'our_team')->get();
     $certifications = \App\Models\Certification::where('display_on_landing_page', true)->get();
     $pastTrainees = \App\Models\User::where('display_type', 'past_trainees')->get();
-    return view('landing', compact('displayUsers', 'certifications', 'pastTrainees'));
+    $availableCourses = \App\Models\Course::query()
+        ->latest()
+        ->take(12)
+        ->get();
+
+    return view('landing', compact('displayUsers', 'certifications', 'pastTrainees', 'availableCourses'));
 });
 
 Route::get('/media/{path}', [MediaController::class, 'public'])

@@ -576,6 +576,378 @@
             gap: 6px;
         }
 
+        .course-card {
+            cursor: pointer;
+        }
+
+        .course-card:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.28);
+            outline-offset: 2px;
+        }
+
+        .course-modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(2, 6, 23, 0.54);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .25s ease, visibility .25s ease;
+            z-index: 5000;
+        }
+
+        .course-modal-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .course-modal-dialog {
+            width: min(920px, 100%);
+            max-height: min(92vh, 920px);
+            overflow: auto;
+            border-radius: 28px;
+            background: #ffffff;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.26);
+            transform: scale(.96) translateY(18px);
+            opacity: 0;
+            transition: transform .28s ease, opacity .28s ease;
+        }
+
+        .course-modal-overlay.is-open .course-modal-dialog {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .course-modal-card {
+            padding: 24px;
+        }
+
+        .course-modal-hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #072B74 0%, #0D47A1 52%, #2563EB 100%);
+            min-height: 240px;
+            margin-bottom: 24px;
+        }
+
+        .course-modal-hero img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .course-modal-topbar {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .course-modal-badge,
+        .course-modal-status,
+        .course-meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        .course-modal-badge {
+            background: rgba(255,255,255,.88);
+            color: #072B74;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+        }
+
+        .course-modal-badge img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
+
+        .course-modal-status {
+            background: rgba(255,255,255,.16);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,.18);
+            backdrop-filter: blur(10px);
+        }
+
+        .course-modal-status.is-available {
+            background: rgba(16, 185, 129, .18);
+        }
+
+        .course-modal-status.is-upcoming {
+            background: rgba(245, 158, 11, .18);
+        }
+
+        .course-modal-status.is-ongoing {
+            background: rgba(37, 99, 235, .22);
+        }
+
+        .course-modal-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(255,255,255,.9);
+            color: #0f172a;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .course-modal-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .course-modal-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+
+        .course-modal-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: clamp(1.65rem, 3vw, 2.4rem);
+            line-height: 1.08;
+            letter-spacing: -.04em;
+        }
+
+        .course-modal-subtitle {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: .98rem;
+            line-height: 1.7;
+        }
+
+        .course-modal-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+            gap: 22px;
+            margin-top: 20px;
+        }
+
+        .course-modal-panel {
+            border: 1px solid #E2E8F0;
+            border-radius: 20px;
+            background: #F8FAFC;
+            padding: 20px;
+        }
+
+        .course-modal-panel h4 {
+            margin: 0;
+            color: #072B74;
+            font-size: .92rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .course-modal-panel-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .course-modal-panel-toggle i {
+            color: #0D47A1;
+            transition: transform .22s ease;
+        }
+
+        .course-modal-panel.is-collapsed .course-modal-panel-toggle i {
+            transform: rotate(-180deg);
+        }
+
+        .course-modal-panel-body {
+            margin-top: 14px;
+        }
+
+        .course-modal-panel.is-collapsed .course-modal-panel-body {
+            display: none;
+        }
+
+        .course-modal-description {
+            margin: 0;
+            color: #334155;
+            font-size: 1rem;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .course-meta-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .course-meta-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #334155;
+            font-size: .96rem;
+            line-height: 1.6;
+        }
+
+        .course-meta-row i {
+            color: #0D47A1;
+            width: 18px;
+            margin-top: 4px;
+        }
+
+        .course-meta-row strong {
+            display: block;
+            color: #0f172a;
+            font-size: .9rem;
+            margin-bottom: 2px;
+        }
+
+        .course-module-preview {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 10px;
+        }
+
+        .course-module-preview li {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid #E2E8F0;
+            color: #334155;
+            font-size: .94rem;
+            line-height: 1.5;
+        }
+
+        .course-modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .course-modal-btn {
+            min-height: 50px;
+            padding: 0 20px;
+            border-radius: 14px;
+            border: none;
+            font-size: .95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .course-modal-btn.primary {
+            background: linear-gradient(135deg, #072B74 0%, #0D47A1 55%, #2563EB 100%);
+            color: #ffffff;
+            box-shadow: 0 16px 28px rgba(37, 99, 235, 0.2);
+        }
+
+        .course-modal-btn.secondary,
+        .course-modal-btn.ghost {
+            background: #ffffff;
+            color: #072B74;
+            border: 1px solid #CBD5E1;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        .course-modal-btn.disabled,
+        .course-modal-btn:disabled {
+            background: #cbd5e1;
+            color: #ffffff;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .course-auth-card {
+            display: none;
+            padding: 30px 26px;
+            text-align: center;
+        }
+
+        .course-modal-dialog.auth-required .course-modal-card {
+            display: none;
+        }
+
+        .course-modal-dialog.auth-required .course-auth-card {
+            display: block;
+        }
+
+        .course-auth-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(7,43,116,.12), rgba(37,99,235,.16));
+            color: #072B74;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+
+        .course-auth-card h3 {
+            margin: 0 0 8px;
+            color: #0f172a;
+            font-size: 1.6rem;
+            letter-spacing: -.03em;
+        }
+
+        .course-auth-card p {
+            margin: 0 auto;
+            max-width: 520px;
+            color: #64748b;
+            line-height: 1.75;
+        }
+
+        .course-auth-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
         /* Carousel Styles */
         .carousel-wrapper {
             position: relative;
@@ -761,6 +1133,32 @@
                 padding-right: 14px;
             }
 
+            .course-modal-overlay {
+                padding: 12px;
+            }
+
+            .course-modal-dialog {
+                border-radius: 22px;
+            }
+
+            .course-modal-card,
+            .course-auth-card {
+                padding: 18px;
+            }
+
+            .course-modal-hero img {
+                height: 190px;
+            }
+
+            .course-modal-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .course-modal-actions,
+            .course-auth-actions {
+                flex-direction: column;
+            }
+
             #about-us > div {
                 padding-left: 0 !important;
                 padding-right: 0 !important;
@@ -773,6 +1171,68 @@
     </style>
 </head>
 <body>
+    @php
+        $coursePreviewData = ($availableCourses ?? collect())->map(function ($course) {
+            $modules = is_array($course->modules) ? $course->modules : [];
+            $moduleTitles = collect($modules)
+                ->map(fn ($module) => trim((string) ($module['title'] ?? '')))
+                ->filter()
+                ->take(4)
+                ->values()
+                ->all();
+
+            $description = trim(strip_tags((string) ($course->description ?? '')));
+            $author = trim((string) ($course->coach_display_name ?? '')) ?: 'Trainer not assigned';
+            $moduleCount = count($modules);
+            $duration = trim((string) ($course->getAttribute('duration') ?? ''));
+
+            if ($duration === '') {
+                if ($course->start_date && $course->end_date) {
+                    $days = $course->start_date->diffInDays($course->end_date) + 1;
+                    $duration = $days . ' day' . ($days !== 1 ? 's' : '');
+                } else {
+                    $duration = 'Duration not set';
+                }
+            }
+
+            $statusLabel = 'Available';
+            $statusClass = 'is-available';
+            if ($course->course_active_status === 'Active') {
+                $statusLabel = 'Ongoing';
+                $statusClass = 'is-ongoing';
+            } elseif ($course->enrollment_status === 'Upcoming' || $course->course_active_status === 'Not Yet Started') {
+                $statusLabel = 'Upcoming';
+                $statusClass = 'is-upcoming';
+            }
+
+            $scheduleText = ($course->start_date && $course->end_date)
+                ? $course->start_date->format('F j, Y') . ' - ' . $course->end_date->format('F j, Y')
+                : 'Schedule not set';
+            $startDateText = $course->start_date ? $course->start_date->format('F j, Y') : 'Schedule not set';
+            $endDateText = $course->end_date ? $course->end_date->format('F j, Y') : 'Schedule not set';
+
+            return [
+                'id' => $course->id,
+                'title' => (string) $course->name,
+                'image' => (string) $course->image_url,
+                'description' => $description !== '' ? $description : 'No description available.',
+                'author' => $author,
+                'statusLabel' => $statusLabel,
+                'statusClass' => $statusClass,
+                'scheduleText' => $scheduleText,
+                'startDateText' => $startDateText,
+                'endDateText' => $endDateText,
+                'durationText' => $duration,
+                'moduleCount' => $moduleCount,
+                'moduleTitles' => $moduleTitles,
+                'enrollmentStatus' => (string) $course->enrollment_status,
+                'enrollmentOpen' => (bool) $course->can_enroll,
+                'subjectArea' => $course->subjectAreaText() ?: 'Subject area not set',
+                'enrollUrl' => route('courses.join', $course),
+            ];
+        })->values();
+    @endphp
+
     <video class="site-bg-video" autoplay muted loop playsinline>
         <source src="{{ asset('bckgrnd.mp4') }}" type="video/mp4">
     </video>
@@ -885,119 +1345,172 @@
         <!-- Available Courses Section -->
         <section class="subject-section" id="available-courses">
             <h2 class="subject-title">AVAILABLE COURSES</h2>
-            <div class="carousel-wrapper">
-                <button class="carousel-btn prev" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-container">
-                    <div class="carousel-track" id="courseTrack">
-                        <!-- Course 1 -->
-                        <div class="carousel-slide">
-                            <a href="{{ route('subject.show', 'basic-research') }}" class="course-card">
-                                <div class="course-image-container">
-                                    <img src="{{ asset('images/Basic Research.png') }}" class="course-image" alt="Basic Research">
-                                    <!-- Badge removed -->
+            @if(($availableCourses ?? collect())->isNotEmpty())
+                <div class="carousel-wrapper">
+                    <button class="carousel-btn prev" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+                    <div class="carousel-container">
+                        <div class="carousel-track" id="courseTrack">
+                            @foreach($availableCourses as $course)
+                                <div class="carousel-slide">
+                                    <article
+                                        class="course-card js-course-card"
+                                        data-course-id="{{ $course->id }}"
+                                        role="button"
+                                        tabindex="0"
+                                        aria-label="View course details for {{ $course->name }}"
+                                    >
+                                        <div class="course-image-container">
+                                            <img src="{{ $course->image_url }}" class="course-image" alt="{{ $course->name }}">
+                                        </div>
+                                        <div class="course-content">
+                                            <div class="course-provider">
+                                                <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="DILG-CAR">
+                                                <span>DILG-CAR</span>
+                                            </div>
+                                            <h3 class="course-title-text">{{ strtoupper($course->name) }}</h3>
+                                            <p class="course-description">
+                                                {{ \Illuminate\Support\Str::limit(trim((string) $course->description), 160, '...') ?: 'No description available.' }}
+                                            </p>
+                                        </div>
+                                    </article>
                                 </div>
-                                <div class="course-content">
-                                    <div class="course-provider">
-                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
-                                        <span>DILG-CAR</span>
-                                    </div>
-                                    <h3 class="course-title-text">BASIC RESEARCH</h3>
-                                    <p class="course-description">
-                                        Learn the fundamentals of research methodology, data collection, and analysis tailored for local governance applications.
-                                    </p>
-                                    <!-- Footer removed -->
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Course 2 -->
-                        <div class="carousel-slide">
-                            <a href="{{ route('subject.show', 'basic-services-facilities') }}" class="course-card">
-                                <div class="course-image-container">
-                                    <img src="{{ asset('images/Basic Services.png') }}" class="course-image" alt="Basic Services">
-                                    <!-- Badge removed -->
-                                </div>
-                                <div class="course-content">
-                                    <div class="course-provider">
-                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
-                                        <span>DILG-CAR</span>
-                                    </div>
-                                    <h3 class="course-title-text">BASIC SERVICES AND FACILITIES</h3>
-                                    <p class="course-description">
-                                        Understand the essential services and facilities that Local Government Units are mandated to provide to their constituents.
-                                    </p>
-                                    <!-- Footer removed -->
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Course 3 -->
-                        <div class="carousel-slide">
-                            <a href="{{ route('subject.show', 'nature-types-local-governments') }}" class="course-card">
-                                <div class="course-image-container">
-                                    <img src="{{ asset('images/Nature and Types.png') }}" class="course-image" alt="Nature and Types">
-                                    <!-- Badge removed -->
-                                </div>
-                                <div class="course-content">
-                                    <div class="course-provider">
-                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
-                                        <span>DILG-CAR</span>
-                                    </div>
-                                    <h3 class="course-title-text">NATURE AND TYPES OF LOCAL GOVERNMENTS</h3>
-                                    <p class="course-description">
-                                        Explore the different types of LGUs in the Philippines, their distinct roles, powers, and functions in the political structure.
-                                    </p>
-                                    <!-- Footer removed -->
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Course 4 -->
-                        <div class="carousel-slide">
-                            <a href="{{ route('subject.show', 'creation-lgu') }}" class="course-card">
-                                <div class="course-image-container">
-                                    <img src="{{ asset('images/Creation.png') }}" class="course-image" alt="Creation of LGUs">
-                                    <!-- Badge removed -->
-                                </div>
-                                <div class="course-content">
-                                    <div class="course-provider">
-                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
-                                        <span>DILG-CAR</span>
-                                    </div>
-                                    <h3 class="course-title-text">CREATION, CONVERSION, DIVISION, MERGER, AND ABOLITION OF LGUs</h3>
-                                    <p class="course-description">
-                                        A comprehensive guide on the legal processes and requirements for creating, modifying, or dissolving Local Government Units.
-                                    </p>
-                                    <!-- Footer removed -->
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Course 5 -->
-                        <div class="carousel-slide">
-                            <a href="{{ route('subject.show', 'local-autonomy-decentralization') }}" class="course-card">
-                                <div class="course-image-container">
-                                    <img src="{{ asset('images/Local Autonomy.png') }}" class="course-image" alt="Local Autonomy">
-                                    <!-- Badge removed -->
-                                </div>
-                                <div class="course-content">
-                                    <div class="course-provider">
-                                        <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="LGRRC">
-                                        <span>DILG-CAR</span>
-                                    </div>
-                                    <h3 class="course-title-text">LOCAL AUTONOMY AND SYSTEM OF DECENTRALIZATION</h3>
-                                    <p class="course-description">
-                                        Deep dive into the principles of local autonomy and decentralization as enshrined in the Constitution and the Local Government Code.
-                                    </p>
-                                    <!-- Footer removed -->
-                                </div>
-                            </a>
+                            @endforeach
                         </div>
                     </div>
+                    <button class="carousel-btn next" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
                 </div>
-                <button class="carousel-btn next" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
-            </div>
+            @else
+                <div style="max-width: 720px; margin: 24px auto 0; padding: 28px 24px; text-align: center; background: rgba(255,255,255,.82); border: 1px solid rgba(226,232,240,.9); border-radius: 18px; box-shadow: 0 14px 32px rgba(15,23,42,.06); color: #475569; font-size: 1.05rem; font-weight: 600;">
+                    No course available.
+                </div>
+            @endif
         </section>
+
+        <div class="course-modal-overlay" id="courseModalOverlay" aria-hidden="true">
+            <div class="course-modal-dialog" id="courseModalDialog" role="dialog" aria-modal="true" aria-labelledby="courseModalTitle">
+                <div class="course-modal-card" id="courseDetailCard">
+                    <div class="course-modal-hero">
+                        <img id="courseModalImage" src="" alt="Course preview image">
+                        <div class="course-modal-topbar">
+                            <span class="course-modal-badge">
+                                <img src="{{ asset('images/Department of Interior Local Government PNG.png') }}" alt="DILG-CAR">
+                                DILG-CAR
+                            </span>
+                            <span class="course-modal-status" id="courseModalStatus">Available</span>
+                        </div>
+                        <button type="button" class="course-modal-close" id="courseModalClose" aria-label="Close course details">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="course-modal-head">
+                        <div>
+                            <h3 class="course-modal-title" id="courseModalTitle"></h3>
+                            <p class="course-modal-subtitle" id="courseModalSubjectArea"></p>
+                        </div>
+                        <span class="course-meta-pill" id="courseModalEnrollChip" style="background:#eff6ff;border:1px solid #bfdbfe;color:#0d47a1;"></span>
+                    </div>
+
+                    <div class="course-modal-grid">
+                        <div class="course-modal-panel js-course-panel is-collapsed">
+                            <button type="button" class="course-modal-panel-toggle js-course-panel-toggle" aria-expanded="false">
+                                <h4>Course Overview</h4>
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <div class="course-modal-panel-body">
+                                <p class="course-modal-description" id="courseModalDescription"></p>
+                            </div>
+                        </div>
+
+                        <div class="course-modal-panel js-course-panel is-collapsed">
+                            <button type="button" class="course-modal-panel-toggle js-course-panel-toggle" aria-expanded="false">
+                                <h4>Course Details</h4>
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <div class="course-modal-panel-body">
+                                <div class="course-meta-list">
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-user-tie"></i>
+                                        <div>
+                                            <strong>Trainer / Author</strong>
+                                            <span id="courseModalAuthor"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-calendar-days"></i>
+                                        <div>
+                                            <strong>Course Schedule</strong>
+                                            <span id="courseModalSchedule"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <div>
+                                            <strong>Start Date</strong>
+                                            <span id="courseModalStartDate"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-calendar-xmark"></i>
+                                        <div>
+                                            <strong>End Date</strong>
+                                            <span id="courseModalEndDate"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        <div>
+                                            <strong>Estimated Duration</strong>
+                                            <span id="courseModalDuration"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-layer-group"></i>
+                                        <div>
+                                            <strong>Number of Modules</strong>
+                                            <span id="courseModalModules"></span>
+                                        </div>
+                                    </div>
+                                    <div class="course-meta-row">
+                                        <i class="fas fa-circle-check"></i>
+                                        <div>
+                                            <strong>Enrollment Availability</strong>
+                                            <span id="courseModalEnrollment"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-modal-panel" style="margin-top:22px;">
+                        <h4>Module Preview</h4>
+                        <ul class="course-module-preview" id="courseModalModuleList"></ul>
+                    </div>
+
+                    <div class="course-modal-actions">
+                        <button type="button" class="course-modal-btn primary" id="courseModalEnrollBtn">
+                            <i class="fas fa-user-plus"></i>
+                            Enroll Now
+                        </button>
+                        <button type="button" class="course-modal-btn secondary" id="courseModalCloseBtn">Close</button>
+                    </div>
+                </div>
+
+                <div class="course-auth-card" id="courseAuthCard">
+                    <div class="course-auth-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Please log in first to enroll in this course.</h3>
+                    <p>Authentication is required before accessing course enrollment.</p>
+                    <div class="course-auth-actions">
+                        <a href="{{ route('login') }}" class="course-modal-btn primary">Login</a>
+                        <a href="{{ route('register') }}" class="course-modal-btn ghost">Register</a>
+                        <button type="button" class="course-modal-btn secondary" id="courseAuthCancelBtn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- About Us Section -->
         <section class="subject-section" id="about-us" style="background-color: transparent;">
@@ -1062,8 +1575,183 @@
         <p>&copy; 2026 CAPDEVPRO. All rights reserved.</p>
     </footer>
 
+    <form id="courseEnrollForm" method="POST" style="display:none;">
+        @csrf
+    </form>
+
+    <script id="coursePreviewPayload" type="application/json">
+        @json($coursePreviewData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const coursePreviewPayloadEl = document.getElementById('coursePreviewPayload');
+            const coursePreviewData = coursePreviewPayloadEl ? JSON.parse(coursePreviewPayloadEl.textContent) : [];
+            const coursePreviewMap = new Map(coursePreviewData.map((course) => [String(course.id), course]));
+            const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+            const loginUrl = "{{ route('login') }}";
+            const modalOverlay = document.getElementById('courseModalOverlay');
+            const modalDialog = document.getElementById('courseModalDialog');
+            const enrollForm = document.getElementById('courseEnrollForm');
+            let activeCourse = null;
+
+            const modalRefs = {
+                image: document.getElementById('courseModalImage'),
+                status: document.getElementById('courseModalStatus'),
+                title: document.getElementById('courseModalTitle'),
+                subjectArea: document.getElementById('courseModalSubjectArea'),
+                enrollChip: document.getElementById('courseModalEnrollChip'),
+                description: document.getElementById('courseModalDescription'),
+                author: document.getElementById('courseModalAuthor'),
+                schedule: document.getElementById('courseModalSchedule'),
+                startDate: document.getElementById('courseModalStartDate'),
+                endDate: document.getElementById('courseModalEndDate'),
+                duration: document.getElementById('courseModalDuration'),
+                modules: document.getElementById('courseModalModules'),
+                enrollment: document.getElementById('courseModalEnrollment'),
+                moduleList: document.getElementById('courseModalModuleList'),
+                enrollBtn: document.getElementById('courseModalEnrollBtn'),
+            };
+            const collapsiblePanels = document.querySelectorAll('.js-course-panel');
+
+            function setPanelExpanded(panel, expanded) {
+                panel.classList.toggle('is-collapsed', !expanded);
+                const toggle = panel.querySelector('.js-course-panel-toggle');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                }
+            }
+
+            function lockBodyScroll(locked) {
+                document.body.classList.toggle('modal-open', locked);
+            }
+
+            function showCourseDetail() {
+                if (!modalDialog) return;
+                modalDialog.classList.remove('auth-required');
+            }
+
+            function showAuthPrompt() {
+                if (!modalDialog) return;
+                modalDialog.classList.add('auth-required');
+            }
+
+            function closeCourseModal() {
+                if (!modalOverlay) return;
+                modalOverlay.classList.remove('is-open');
+                modalOverlay.setAttribute('aria-hidden', 'true');
+                modalDialog.classList.remove('auth-required');
+                activeCourse = null;
+                lockBodyScroll(false);
+            }
+
+            function renderModulePreview(moduleTitles) {
+                modalRefs.moduleList.innerHTML = '';
+                if (!moduleTitles || moduleTitles.length === 0) {
+                    const item = document.createElement('li');
+                    item.textContent = 'No module preview available.';
+                    modalRefs.moduleList.appendChild(item);
+                    return;
+                }
+
+                moduleTitles.forEach((title, index) => {
+                    const item = document.createElement('li');
+                    item.innerHTML = '<strong style=\"color:#072B74;display:block;margin-bottom:4px;\">Module ' + (index + 1) + '</strong>' + title;
+                    modalRefs.moduleList.appendChild(item);
+                });
+            }
+
+            function openCourseModal(courseId) {
+                const course = coursePreviewMap.get(String(courseId));
+                if (!course || !modalOverlay) return;
+
+                activeCourse = course;
+                modalRefs.image.src = course.image;
+                modalRefs.image.alt = course.title;
+                modalRefs.status.textContent = course.statusLabel;
+                modalRefs.status.className = 'course-modal-status ' + course.statusClass;
+                modalRefs.title.textContent = course.title;
+                modalRefs.subjectArea.textContent = course.subjectArea;
+                modalRefs.enrollChip.textContent = course.enrollmentStatus || 'Enrollment status unavailable';
+                modalRefs.description.textContent = course.description || 'No description available.';
+                modalRefs.author.textContent = course.author || 'Trainer not assigned';
+                modalRefs.schedule.textContent = course.scheduleText || 'Schedule not set';
+                modalRefs.startDate.textContent = course.startDateText || 'Schedule not set';
+                modalRefs.endDate.textContent = course.endDateText || 'Schedule not set';
+                modalRefs.duration.textContent = course.durationText || 'Duration not set';
+                modalRefs.modules.textContent = course.moduleCount ? course.moduleCount + ' module' + (course.moduleCount > 1 ? 's' : '') : 'No modules yet';
+                modalRefs.enrollment.textContent = course.enrollmentStatus || 'Enrollment status unavailable';
+                renderModulePreview(course.moduleTitles || []);
+
+                if (course.enrollmentOpen) {
+                    modalRefs.enrollBtn.disabled = false;
+                    modalRefs.enrollBtn.classList.remove('disabled');
+                    modalRefs.enrollBtn.innerHTML = '<i class=\"fas fa-user-plus\"></i>Enroll Now';
+                } else {
+                    modalRefs.enrollBtn.disabled = true;
+                    modalRefs.enrollBtn.classList.add('disabled');
+                    modalRefs.enrollBtn.innerHTML = '<i class=\"fas fa-ban\"></i>Enrollment Closed';
+                }
+
+                showCourseDetail();
+                modalOverlay.classList.add('is-open');
+                modalOverlay.setAttribute('aria-hidden', 'false');
+                lockBodyScroll(true);
+            }
+
+            document.querySelectorAll('.js-course-card').forEach((card) => {
+                card.addEventListener('click', function () {
+                    openCourseModal(this.dataset.courseId);
+                });
+
+                card.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openCourseModal(this.dataset.courseId);
+                    }
+                });
+            });
+
+            collapsiblePanels.forEach((panel) => {
+                const toggle = panel.querySelector('.js-course-panel-toggle');
+                toggle?.addEventListener('click', function () {
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    setPanelExpanded(panel, !expanded);
+                });
+            });
+
+            modalRefs.enrollBtn?.addEventListener('click', function () {
+                if (!activeCourse || !activeCourse.enrollmentOpen) {
+                    return;
+                }
+
+                if (!isAuthenticated) {
+                    window.location.href = loginUrl;
+                    return;
+                }
+
+                if (enrollForm) {
+                    enrollForm.setAttribute('action', activeCourse.enrollUrl);
+                    enrollForm.submit();
+                }
+            });
+
+            document.getElementById('courseModalClose')?.addEventListener('click', closeCourseModal);
+            document.getElementById('courseModalCloseBtn')?.addEventListener('click', closeCourseModal);
+            document.getElementById('courseAuthCancelBtn')?.addEventListener('click', showCourseDetail);
+
+            modalOverlay?.addEventListener('click', function (event) {
+                if (event.target === modalOverlay) {
+                    closeCourseModal();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('is-open')) {
+                    closeCourseModal();
+                }
+            });
+
             // Custom Smooth Scroll Function with Easing
             function smoothScroll(targetId, duration) {
                 const target = document.querySelector(targetId);
@@ -1229,5 +1917,3 @@
     </script>
 </body>
 </html>
-
-
