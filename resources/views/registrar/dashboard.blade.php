@@ -108,7 +108,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 12px 0px;
             background: #fff;
             border: 1px solid #dee2e6;
             border-radius: 10px;
@@ -120,7 +120,7 @@
         }
 
         .fow-dropdown-trigger:hover {
-            border-color: #cbd5e1;
+            border-color: #070707ff;
         }
 
         .fow-dropdown-container.open .fow-dropdown-trigger {
@@ -4642,11 +4642,11 @@
                 </div>
 
                 <div class="form-group" style="display:flex; flex-direction:column; gap:8px;">
-                    <label style="font-weight:600; color:#495057;">Field of Work</label>
+                    <label style="font-weight:100; color:#495057;">Field of Work</label>
                     <div class="fow-dropdown-container" id="edit-fow-dropdown">
                         <div class="fow-dropdown-trigger">
                             <span id="edit-fow-selected-text">Select Field of Work</span>
-                            <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                            <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #0d0d0eff;"></i>
                         </div>
                         <div class="fow-dropdown-options">
                             @foreach($fieldOfWorks as $field)

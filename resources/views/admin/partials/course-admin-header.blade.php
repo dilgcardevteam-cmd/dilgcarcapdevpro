@@ -8,6 +8,10 @@
         </div>
     </div>
     <div class="header-right" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <a href="{{ route('dashboard', ['tab' => 'manual']) }}" class="back-link" style="margin:0; background-color: #f8fafc; color: #002C76; border: 1px solid #002C76; padding: 8px 16px; border-radius: 5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            <i class="fas fa-book"></i>
+            <span>Manual</span>
+        </a>
         @foreach($headerLinks as $link)
             @if(($link['visible'] ?? true) && !empty($link['href']) && !empty($link['label']))
                 @php

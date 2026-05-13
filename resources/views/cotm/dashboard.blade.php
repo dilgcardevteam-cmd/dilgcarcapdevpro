@@ -65,7 +65,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 12px 0px;
             background: #fff;
             border: 1px solid #dee2e6;
             border-radius: 10px;

@@ -138,6 +138,7 @@
                         </div>
                     </div>
                     <div class="head-actions">
+                        <a class="btn ghost" href="{{ route('dashboard', ['tab' => 'manual']) }}"><i class="fas fa-book"></i> Manual</a>
                         <a class="btn ghost" href="{{ url()->previous() }}"><i class="fas fa-arrow-left"></i> Back</a>
                         <a class="btn primary" href="{{ $previewUrl }}" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i> Preview Course</a>
                     </div>

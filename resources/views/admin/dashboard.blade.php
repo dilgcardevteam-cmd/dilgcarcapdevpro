@@ -4491,11 +4491,20 @@
                     <span class="menu-text">System Settings</span>
                 </li>
                 @endif
+                <li class="menu-item {{ request('tab') == 'manual' ? 'active' : '' }}" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
+                </li>
             </ul>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Manual Section -->
+            <section id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
+                @include('partials.manual-content')
+            </section>
+
             <!-- Dashboard Home Section -->
             <section id="dashboard-home" class="content-section {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}">
                 @php

@@ -1334,49 +1334,6 @@ class DashboardController extends Controller
 
         $user->update($validated);
 
-        // Update User Role Permissions
-        $actor = Auth::user();
-        if ($actor && in_array($actor->role, ['super_admin', 'admin'], true)) {
-            $roleModel = \App\Models\Role::whereRaw('LOWER(name) = ?', [strtolower($user->role)])->first();
-            if ($roleModel) {
-                if ($request->has('permissions_data')) {
-                    $checkedIds = json_decode($request->input('permissions_data'), true);
-                    $allUiIds = json_decode($request->input('all_ui_permissions', '[]'), true);
-                    
-                    if (is_array($checkedIds) && is_array($allUiIds)) {
-                        // Helper to resolve string names to IDs and filter valid IDs
-                        $resolveToValidIds = function($ids) {
-                            $numeric = array_filter($ids, 'is_numeric');
-                            $strings = array_filter($ids, function($v) { return !is_numeric($v); });
-                            $found = [];
-                            if (!empty($strings)) {
-                                $found = \App\Models\Permission::whereIn('name', $strings)->pluck('id')->toArray();
-                            }
-                            return array_unique(array_merge(array_map('intval', $numeric), $found));
-                        };
-
-                        $checkedIds = $resolveToValidIds($checkedIds);
-                        $allUiIds = $resolveToValidIds($allUiIds);
-
-                        // 1. Remove permissions that are in the UI list but NOT checked
-                        $toRemove = array_diff($allUiIds, $checkedIds);
-                        if (!empty($toRemove)) {
-                            $roleModel->permissions()->detach($toRemove);
-                        }
-                        
-                        // 2. Add permissions that are checked
-                        if (!empty($checkedIds)) {
-                            $roleModel->permissions()->syncWithoutDetaching($checkedIds);
-                        }
-                    }
-                } else if ($request->has('permissions')) {
-                    // Fallback to traditional multi-checkbox submit
-                    $permIds = (array) $request->input('permissions', []);
-                    $roleModel->permissions()->sync($permIds);
-                }
-            }
-        }
-
         // Send approval email if activated
         if ($wasNotActive && $becomingActive) {
             try {

@@ -223,6 +223,7 @@
             <img class="app-header-logo" src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
+            <a href="{{ route('dashboard', ['tab' => 'manual']) }}" style="color:#0f3b8f"><i class="fas fa-book"></i> Manual</a>
             @php
                 $role = auth()->user()->role ?? null;
                 $isCoach = in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
