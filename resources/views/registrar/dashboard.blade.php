@@ -236,6 +236,60 @@
         .logout-btn:hover {
             background-color: #c9302c;
         }
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 16px 5px 5px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .user-profile-header:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: #f8fafc;
+        }
+
+        .user-profile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-profile-initial {
+            font-weight: 800;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .user-profile-header .fa-chevron-down {
+            font-size: 0.8rem;
+            color: #64748b;
+            transition: transform 0.2s ease;
+        }
+
+        .user-profile-header:hover .fa-chevron-down {
+            color: #1e293b;
+        }
+
         .profile-menu{position:relative}
         .profile-dropdown{position:absolute;top:44px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);min-width:220px;z-index:1200;overflow:hidden;display:none}
         .profile-dropdown .dropdown-meta{padding:10px 14px;border-bottom:1px solid #e5e7eb}
@@ -1951,11 +2005,17 @@
             </div>
 
             <div class="profile-menu">
-                <div class="user-profile-header" onclick="toggleProfileMenu(event)" style="cursor: pointer; display: flex; align-items: center; gap: 10px; margin-right: 10px;">
-                    <div style="width: 40px; height: 40px; background-color: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                        {{ substr(Auth::user()->name, 0, 1) }}
+                <div class="user-profile-header" onclick="toggleProfileMenu(event)">
+                    <div class="user-profile-avatar">
+                        @if(Auth::user()->profile_picture)
+                            <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+                            <span id="header_profile_initial" class="user-profile-initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @else
+                            <img id="header_profile_image" src="" alt="Profile" style="display: none;">
+                            <span id="header_profile_initial" class="user-profile-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @endif
                     </div>
-                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666;margin-left:6px"></i>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
                     <div class="dropdown-meta">

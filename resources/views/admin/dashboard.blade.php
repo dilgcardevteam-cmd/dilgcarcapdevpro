@@ -148,26 +148,52 @@
         .profile-dropdown .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#111827;text-decoration:none;cursor:pointer}
         .profile-dropdown .dropdown-item:hover{background:#f8fafc}
         .profile-dropdown .danger{color:#b91c1c}
-        .user-profile-header{
-            padding:6px 8px;
-            border-radius:999px;
-            transition:transform .18s ease,box-shadow .22s ease,background-color .22s ease;
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 16px 5px 5px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-        .user-profile-header:hover{
-            transform:translateY(-2px);
-            box-shadow:0 10px 18px rgba(15,23,42,.16);
-            background-color:#ffffff;
+        .user-profile-header:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: #f8fafc;
         }
-        .user-profile-header:active{
-            transform:translateY(-1px);
-            box-shadow:0 5px 10px rgba(15,23,42,.14);
+        .user-profile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
         }
-        .user-profile-header .fa-chevron-down{
-            transition:transform .18s ease,color .18s ease;
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .user-profile-header:hover .fa-chevron-down{
-            transform:translateY(-1px);
-            color:#4b5563 !important;
+        .user-profile-initial {
+            font-weight: 800;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .user-profile-header .fa-chevron-down {
+            font-size: 0.8rem;
+            color: #64748b;
+            transition: transform 0.2s ease;
+        }
+        .user-profile-header:hover .fa-chevron-down {
+            color: #1e293b;
         }
 
         /* Dashboard Container */
@@ -4289,17 +4315,17 @@
         </div>
         <div class="header-right">
             <div class="profile-menu">
-                <div class="user-profile-header" onclick="toggleProfileMenu(event)" style="cursor: pointer; display: flex; align-items: center; gap: 10px; margin-right: 10px;">
-                    <div style="width: 40px; height: 40px; background-color: #ffffff; color: #9ca3af; border: 1px solid #9ca3af; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; overflow: hidden;">
+                <div class="user-profile-header" onclick="toggleProfileMenu(event)">
+                    <div class="user-profile-avatar">
                         @if(Auth::user()->profile_picture)
-                            <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
-                            <span id="header_profile_initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                            <img id="header_profile_image" src="{{ Auth::user()->avatar_url }}" alt="Profile" onerror="this.onerror=null;this.src='{{ asset('images/user.png') }}'">
+                            <span id="header_profile_initial" class="user-profile-initial" style="display: none;">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                         @else
-                            <img id="header_profile_image" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                            <span id="header_profile_initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                            <img id="header_profile_image" src="" alt="Profile" style="display: none;">
+                            <span id="header_profile_initial" class="user-profile-initial">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                         @endif
                     </div>
-                    <i class="fas fa-chevron-down" style="font-size:.85rem;color:#666;margin-left:6px"></i>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div id="profileDropdown" class="profile-dropdown">
                     <div class="dropdown-meta">
