@@ -88,7 +88,7 @@
         <!-- Header with Logos -->
         <div class="header">
             <!-- Note: In production, use absolute URLs for images in emails -->
-            <img src="{{ $message->embed(public_path('images/CAPDEV PRO.png')) }}" alt="CAPDEV PRO Logo" class="logo">
+            <img src="{{ $message->embed(public_path('images/Capdev pro.png')) }}" alt="CAPDEV PRO Logo" class="logo">
         </div>
 
         <!-- Main Content -->

@@ -12,7 +12,7 @@
                 <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="width:560px;max-width:92vw;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;box-shadow:0 8px 20px rgba(15,23,42,.08);">
                     <tr>
                         <td style="padding:24px 22px;text-align:center;">
-                            <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO" style="height:52px;margin-bottom:10px;">
+                            <img src="{{ $message->embed(public_path('images/Capdev pro.png')) }}" alt="CAPDEV PRO" style="height:52px;margin-bottom:10px;">
                             <h1 style="margin:10px 0 4px 0;font-size:22px;line-height:1.2;color:#0b57d0;">Password Reset Verification</h1>
                             <p style="margin:4px 0 12px 0;color:#334155;font-size:14px;">Use the code below to continue resetting your password.</p>
                             <div style="display:inline-block;padding:12px 18px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;margin:6px 0 14px 0;">

@@ -1439,11 +1439,11 @@
     <div class="overlay-container">
         <div class="overlay">
             <div class="overlay-panel overlay-left">
-                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO">
+                <img src="{{ asset('images/Capdev pro.png') }}" alt="CAPDEV PRO">
                 <button class="ghost" id="signIn">Sign Up</button> 
             </div>
             <div class="overlay-panel overlay-right">
-                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO">
+                <img src="{{ asset('images/Capdev pro.png') }}" alt="CAPDEV PRO">
                 <button class="ghost" id="signUp">Log In</button>
             </div>
         </div>
@@ -2170,5 +2170,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
-
-

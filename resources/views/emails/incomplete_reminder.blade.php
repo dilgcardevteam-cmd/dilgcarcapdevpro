@@ -137,7 +137,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ $message->embed(public_path('images/CAPDEV PRO.png')) }}" alt="CapDev Pro Logo">
+            <img src="{{ $message->embed(public_path('images/Capdev pro.png')) }}" alt="CapDev Pro Logo">
             <h1>Course Progress Reminder</h1>
         </div>
         <div class="content">

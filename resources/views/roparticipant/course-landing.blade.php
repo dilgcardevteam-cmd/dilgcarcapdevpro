@@ -250,8 +250,8 @@
             if(s){ s.classList.toggle('collapsed'); }
             document.body.classList.toggle('sidebar-collapsed');
             try{
-                var LOGO_MAIN = isTrainer ? "{{ asset('images/CAPDEV PRO WHITE.png') }}" : "{{ asset('images/CAPDEV PRO WHITE.png') }}";
-                var LOGO_SMALL = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+                var LOGO_MAIN = isTrainer ? "{{ asset('images/capdev_pro_w-removebg-preview.png') }}" : "{{ asset('images/ddd-removebg-preview.png') }}";
+                var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
                 var sl = document.getElementById('sidebarLogo');
                 var collapsed = document.body.classList.contains('sidebar-collapsed');
                 if(sl){ sl.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
@@ -825,7 +825,7 @@
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
             <div class="header-title" style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">
-                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro" style="height:60px">
+                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
             </div>
             <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
             </div>
@@ -1322,6 +1322,3 @@
     </script>
     </body>
     </html>
-
-
-

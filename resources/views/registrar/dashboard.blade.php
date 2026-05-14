@@ -2043,7 +2043,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <img class="sidebar-logo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
+                <img class="sidebar-logo" src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-full-src="{{ asset('images/capdev_pro_w-removebg-preview.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 @php
@@ -6113,6 +6113,3 @@
 </script>
 </body>
 </html>
-
-
-
