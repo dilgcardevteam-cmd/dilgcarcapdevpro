@@ -1393,19 +1393,6 @@
             font-weight: 800;
             border: 1px solid rgba(11, 44, 116, 0.08);
         }
-        .users-trend-data-note {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.18);
-            color: #9a3412;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
         .users-trend-chart {
             position: relative;
             z-index: 1;
@@ -2625,10 +2612,10 @@
                           var cPublished={{ $publishedCoursesCount }};
                           var cUnpublished={{ $unpublishedCoursesCount }};
                           var cTotal = cActive;
-                          var eCompleted = 0;
-                          var eInProgress = cPublished;
-                          var eNotStarted = cUnpublished;
-                          var eTotal = cTotal;
+                          var eCompleted={{ (int) ($enrollCompletedCount ?? 0) }};
+                          var eInProgress={{ (int) ($enrollInProgressCount ?? 0) }};
+                          var eNotStarted={{ (int) ($enrollNotStartedCount ?? 0) }};
+                          var eTotal = eCompleted + eInProgress + eNotStarted;
                           function drawCourseDistribution(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
                             var sLegend=document.getElementById('tm-legend-course-summary');
@@ -2643,7 +2630,7 @@
                             document.getElementById('tm-enroll-legend-inprogress').innerText = eInProgress+' · '+pct(eInProgress,eTotal)+'%';
                             document.getElementById('tm-enroll-legend-notstarted').innerText = eNotStarted+' · '+pct(eNotStarted,eTotal)+'%';
                             var t=document.getElementById('tm-total-courses'); if(t){ t.innerText = eTotal; }
-                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Courses'; }
+                            var tl=document.getElementById('tm-course-total-label'); if(tl){ tl.innerText = 'Total Enrollments'; }
                           }
                           function drawCourseSummary(){
                             var dLegend=document.getElementById('tm-legend-course-distribution');
@@ -2773,18 +2760,6 @@
                         $peakNewUsersMetric = !empty($monthCounts) ? max($monthCounts) : 0;
                         $peakNewUsersIndex = !empty($monthCounts) ? array_search($peakNewUsersMetric, $monthCounts, true) : 0;
                         $peakNewUsersMonth = $monthLabels[$peakNewUsersIndex] ?? now()->format("M 'y");
-                        $nonZeroMonths = count(array_filter($monthCounts, fn ($count) => (int) $count > 0));
-                        $useSparseTrendMode = $nonZeroMonths <= 2;
-                        $chartTitle = $useSparseTrendMode ? 'Monthly New User Registrations' : 'Total User Growth Trend';
-                        $chartCaption = $useSparseTrendMode
-                            ? 'Monthly registration activity across the CAPDEVPRO LMS network'
-                            : 'Cumulative registered users across the CAPDEVPRO LMS network';
-                        $chartBadgeText = $useSparseTrendMode
-                            ? 'Highest intake ' . $peakNewUsersMetric . ' in ' . $peakNewUsersMonth
-                            : 'Peak ' . $peakUsersMetric . ' in ' . $peakUsersMonth;
-                        $insightLead = $useSparseTrendMode
-                            ? 'Registration activity was concentrated in ' . $peakNewUsersMonth
-                            : 'Total users reached ' . $peakUsersMetric . ' in ' . $peakUsersMonth;
                     @endphp
                     <div class="insight-panel users-trend-panel">
                         <div class="users-trend-shell">
@@ -2798,18 +2773,12 @@
                             <div class="users-trend-chart-card">
                                 <div class="users-trend-chart-head">
                                     <div>
-                                        <div class="users-trend-chart-label">{{ $chartTitle }}</div>
-                                        <div class="users-trend-chart-caption">{{ $chartCaption }}</div>
-                                        @if($useSparseTrendMode)
-                                            <div class="users-trend-data-note">
-                                                <i class="fas fa-circle-info"></i>
-                                                <span>Limited monthly spread detected, so this view highlights actual monthly intake.</span>
-                                            </div>
-                                        @endif
+                                        <div class="users-trend-chart-label">Total User Growth Trend</div>
+                                        <div class="users-trend-chart-caption">Cumulative registered users across the CAPDEVPRO LMS network</div>
                                     </div>
                                     <div class="users-trend-badge">
                                         <i class="fas fa-wave-square"></i>
-                                        <span>{{ $chartBadgeText }}</span>
+                                        <span>Peak {{ $peakUsersMetric }} in {{ $peakUsersMonth }}</span>
                                     </div>
                                 </div>
                                 <div id="tm-line-users" class="users-trend-chart"></div>
@@ -2820,16 +2789,14 @@
                                     <i class="fas fa-arrow-trend-up"></i>
                                 </div>
                                 <div class="users-trend-insight-copy">
-                                    <strong>{{ $insightLead }}</strong>. The highest monthly intake was {{ $peakNewUsersMetric }} new users in {{ $peakNewUsersMonth }}, so sustain momentum through continuous training activities and timely course touchpoints.
+                                    <strong>Total users reached {{ $peakUsersMetric }} in {{ $peakUsersMonth }}</strong>. The highest monthly intake was {{ $peakNewUsersMetric }} new users in {{ $peakNewUsersMonth }}, so sustain momentum through continuous training activities and timely course touchpoints.
                                 </div>
                             </div>
                         </div>
                         <script>
                             (function(){
                                 var labels = @json($monthLabels);
-                                var lineData = @json($cumulativeMonthCounts);
-                                var barData = @json($monthCounts);
-                                var useSparseTrendMode = @json($useSparseTrendMode);
+                                var data = @json($cumulativeMonthCounts);
                                 var elId = 'tm-line-users';
                                 var el = document.getElementById(elId);
                                 if(!el || !window.d3){ return; }
@@ -2847,7 +2814,7 @@
                                             index: i,
                                             label: label,
                                             shortLabel: label.replace(" '", "'"),
-                                            value: Number((useSparseTrendMode ? barData : lineData) && (useSparseTrendMode ? barData[i] : lineData[i]) || 0)
+                                            value: Number((data && data[i]) || 0)
                                         };
                                     });
                                     var maxY = d3.max(series, function(d){ return d.value; }) || 0;
@@ -2940,54 +2907,6 @@
                                         .style('font-weight', '700')
                                         .attr('dx', '-0.4em');
                                     yAxis.select('.domain').remove();
-
-                                    if (useSparseTrendMode) {
-                                        var barWidth = Math.max(16, Math.min(34, innerW / Math.max(series.length * 1.8, 1)));
-                                        var bars = g.selectAll('.users-trend-bar')
-                                            .data(series)
-                                            .enter()
-                                            .append('rect')
-                                            .attr('class', 'users-trend-bar')
-                                            .attr('x', function(d){ return x(d.index) - (barWidth / 2); })
-                                            .attr('y', innerH)
-                                            .attr('width', barWidth)
-                                            .attr('height', 0)
-                                            .attr('rx', Math.min(10, barWidth / 2))
-                                            .attr('fill', function(d){
-                                                return d.value > 0 ? '#2563eb' : 'rgba(148, 163, 184, 0.18)';
-                                            });
-
-                                        bars.transition()
-                                            .duration(750)
-                                            .ease(d3.easeCubicOut)
-                                            .attr('y', function(d){ return y(d.value); })
-                                            .attr('height', function(d){ return innerH - y(d.value); });
-
-                                        var tooltip = d3.select(el)
-                                            .append('div')
-                                            .attr('class', 'users-trend-chart-tooltip');
-
-                                        bars
-                                            .style('cursor', 'pointer')
-                                            .on('mouseenter', function(event, d){
-                                                d3.select(this).transition().duration(120).attr('fill', d.value > 0 ? '#0B2C74' : 'rgba(148, 163, 184, 0.28)');
-                                                tooltip.style('display', 'block').html('<strong>' + d.label + '</strong><span>' + d.value + ' new users</span>');
-                                            })
-                                            .on('mousemove', function(event){
-                                                var rect = el.getBoundingClientRect();
-                                                var left = event.clientX - rect.left + 12;
-                                                var top = event.clientY - rect.top - 50;
-                                                var maxLeft = Math.max(12, rect.width - 146);
-                                                tooltip
-                                                    .style('left', Math.min(left, maxLeft) + 'px')
-                                                    .style('top', Math.max(8, top) + 'px');
-                                            })
-                                            .on('mouseleave', function(event, d){
-                                                d3.select(this).transition().duration(120).attr('fill', d.value > 0 ? '#2563eb' : 'rgba(148, 163, 184, 0.18)');
-                                                tooltip.style('display', 'none');
-                                            });
-                                        return;
-                                    }
 
                                     var area = d3.area()
                                         .x(function(d){ return x(d.index); })
