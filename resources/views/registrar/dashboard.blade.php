@@ -1283,6 +1283,214 @@
             gap: 20px;
         }
 
+        .users-trend-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(210, 223, 241, 0.9);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(248,251,255,0.96) 100%);
+            box-shadow:
+                0 18px 44px rgba(15, 23, 42, 0.08),
+                inset 0 1px 0 rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
+        }
+        .users-trend-panel::before {
+            content: "";
+            position: absolute;
+            top: -120px;
+            right: -120px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, rgba(245, 158, 11, 0) 72%);
+            pointer-events: none;
+        }
+        .users-trend-panel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(11, 44, 116, 0.035), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .users-trend-shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 18px;
+        }
+        .users-trend-header {
+            display: block;
+            margin-bottom: 2px;
+        }
+        .users-trend-heading {
+            min-width: 0;
+        }
+        .users-trend-title {
+            margin: 0;
+            color: #0B2C74;
+            font-size: 1.22rem;
+            font-weight: 900;
+            letter-spacing: -.02em;
+        }
+        .users-trend-subtitle {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            font-weight: 600;
+            max-width: 430px;
+        }
+        .users-trend-chart-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(220, 230, 242, 0.95);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(244,248,255,0.9) 100%);
+            padding: 18px 18px 14px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+        .users-trend-chart-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top right, rgba(245, 158, 11, 0.09), transparent 34%),
+                linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .users-trend-chart-head {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        .users-trend-chart-label {
+            color: #0f172a;
+            font-size: 0.92rem;
+            font-weight: 800;
+        }
+        .users-trend-chart-caption {
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .users-trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(11, 44, 116, 0.08);
+            color: #0B2C74;
+            font-size: 0.8rem;
+            font-weight: 800;
+            border: 1px solid rgba(11, 44, 116, 0.08);
+        }
+        .users-trend-data-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.18);
+            color: #9a3412;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .users-trend-chart {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 320px;
+            min-height: 320px;
+        }
+        .users-trend-chart-tooltip {
+            position: absolute;
+            display: none;
+            min-width: 120px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(210, 223, 241, 0.95);
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+            color: #0f172a;
+            pointer-events: none;
+            backdrop-filter: blur(12px);
+        }
+        .users-trend-chart-tooltip strong {
+            display: block;
+            color: #0B2C74;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .users-trend-chart-tooltip span {
+            display: block;
+            margin-top: 4px;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+        .users-trend-insight {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(224, 231, 255, 0.9);
+            background: linear-gradient(135deg, rgba(239,246,255,0.78), rgba(255,255,255,0.96));
+            padding: 16px 18px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+        }
+        .users-trend-insight-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            color: #0B2C74;
+            background: linear-gradient(135deg, rgba(59,130,246,0.16), rgba(245,158,11,0.18));
+        }
+        .users-trend-insight-copy {
+            color: #334155;
+            font-size: 0.92rem;
+            line-height: 1.65;
+            font-weight: 600;
+        }
+        .users-trend-insight-copy strong {
+            color: #0B2C74;
+        }
+
+        @media (max-width: 1200px) {
+            .users-trend-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 767px) {
+            .users-trend-panel {
+                padding: 18px;
+                border-radius: 20px;
+            }
+            .users-trend-chart-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .users-trend-chart {
+                height: 280px;
+                min-height: 280px;
+            }
+        }
+
         .btn-action-manage { background: #e8eefb; color: #1e40af; }
 
         .table-empty {
@@ -2541,101 +2749,353 @@
     }
                     </script>
                     </div>
-                    <div class="insight-panel">
-                        <div class="insight-panel-header">
-                            <h2>Users Trend</h2>
-                            <span>Last 12 Months</span>
+                    @php
+                        $monthLabels = [];
+                        $monthCounts = [];
+                        $cumulativeMonthCounts = [];
+                        $windowStart = \Carbon\Carbon::now()->subMonths(11)->startOfMonth();
+                        $baseUsersBeforeWindow = \App\Models\User::where('created_at', '<', $windowStart)->count();
+                        $runningTotalUsers = $baseUsersBeforeWindow;
+                        for($i=11; $i>=0; $i--){
+                            $m = \Carbon\Carbon::now()->subMonths($i);
+                            $monthLabels[] = $m->format("M 'y");
+                            $start = $m->copy()->startOfMonth();
+                            $end = $m->copy()->endOfMonth();
+                            $monthlyUsers = \App\Models\User::whereBetween('created_at', [$start, $end])->count();
+                            $monthCounts[] = $monthlyUsers;
+                            $runningTotalUsers += $monthlyUsers;
+                            $cumulativeMonthCounts[] = $runningTotalUsers;
+                        }
+
+                        $peakUsersMetric = !empty($cumulativeMonthCounts) ? max($cumulativeMonthCounts) : 0;
+                        $peakUsersIndex = !empty($cumulativeMonthCounts) ? array_search($peakUsersMetric, $cumulativeMonthCounts, true) : 0;
+                        $peakUsersMonth = $monthLabels[$peakUsersIndex] ?? now()->format("M 'y");
+                        $peakNewUsersMetric = !empty($monthCounts) ? max($monthCounts) : 0;
+                        $peakNewUsersIndex = !empty($monthCounts) ? array_search($peakNewUsersMetric, $monthCounts, true) : 0;
+                        $peakNewUsersMonth = $monthLabels[$peakNewUsersIndex] ?? now()->format("M 'y");
+                        $nonZeroMonths = count(array_filter($monthCounts, fn ($count) => (int) $count > 0));
+                        $useSparseTrendMode = $nonZeroMonths <= 2;
+                        $chartTitle = $useSparseTrendMode ? 'Monthly New User Registrations' : 'Total User Growth Trend';
+                        $chartCaption = $useSparseTrendMode
+                            ? 'Monthly registration activity across the CAPDEVPRO LMS network'
+                            : 'Cumulative registered users across the CAPDEVPRO LMS network';
+                        $chartBadgeText = $useSparseTrendMode
+                            ? 'Highest intake ' . $peakNewUsersMetric . ' in ' . $peakNewUsersMonth
+                            : 'Peak ' . $peakUsersMetric . ' in ' . $peakUsersMonth;
+                        $insightLead = $useSparseTrendMode
+                            ? 'Registration activity was concentrated in ' . $peakNewUsersMonth
+                            : 'Total users reached ' . $peakUsersMetric . ' in ' . $peakUsersMonth;
+                    @endphp
+                    <div class="insight-panel users-trend-panel">
+                        <div class="users-trend-shell">
+                            <div class="users-trend-header">
+                                <div class="users-trend-heading">
+                                    <h2 class="users-trend-title">Users Trend</h2>
+                                    <p class="users-trend-subtitle">User growth and engagement over the last 12 months</p>
+                                </div>
+                            </div>
+
+                            <div class="users-trend-chart-card">
+                                <div class="users-trend-chart-head">
+                                    <div>
+                                        <div class="users-trend-chart-label">{{ $chartTitle }}</div>
+                                        <div class="users-trend-chart-caption">{{ $chartCaption }}</div>
+                                        @if($useSparseTrendMode)
+                                            <div class="users-trend-data-note">
+                                                <i class="fas fa-circle-info"></i>
+                                                <span>Limited monthly spread detected, so this view highlights actual monthly intake.</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="users-trend-badge">
+                                        <i class="fas fa-wave-square"></i>
+                                        <span>{{ $chartBadgeText }}</span>
+                                    </div>
+                                </div>
+                                <div id="tm-line-users" class="users-trend-chart"></div>
+                            </div>
+
+                            <div class="users-trend-insight">
+                                <div class="users-trend-insight-icon">
+                                    <i class="fas fa-arrow-trend-up"></i>
+                                </div>
+                                <div class="users-trend-insight-copy">
+                                    <strong>{{ $insightLead }}</strong>. The highest monthly intake was {{ $peakNewUsersMetric }} new users in {{ $peakNewUsersMonth }}, so sustain momentum through continuous training activities and timely course touchpoints.
+                                </div>
+                            </div>
                         </div>
-                        @php
-                            $monthLabels = [];
-                            $monthCounts = [];
-                            for($i=11; $i>=0; $i--){
-                                $m = \Carbon\Carbon::now()->subMonths($i);
-                                $monthLabels[] = $m->format("M 'y");
-                                $start = $m->copy()->startOfMonth();
-                                $end = $m->copy()->endOfMonth();
-                                $monthCounts[] = \App\Models\User::whereBetween('created_at', [$start, $end])->count();
-                            }
-                        @endphp
-                        <div id="tm-line-users" style="width:100%;height:280px;position:relative"></div>
                         <script>
                             (function(){
                                 var labels = @json($monthLabels);
-                                var data = @json($monthCounts);
+                                var lineData = @json($cumulativeMonthCounts);
+                                var barData = @json($monthCounts);
+                                var useSparseTrendMode = @json($useSparseTrendMode);
                                 var elId = 'tm-line-users';
                                 var el = document.getElementById(elId);
-                                if(!el){ return; }
-                                var panel = el.closest('.insight-panel');
-                                var width = Math.max(480, (panel ? panel.clientWidth - 40 : (el.clientWidth || 640)));
-                                var height = 280, margin = {top:18,right:28,bottom:32,left:40};
-                                var svg = d3.select('#'+elId).append('svg').attr('width', '100%').attr('height', height).attr('viewBox','0 0 '+width+' '+height).attr('preserveAspectRatio','xMidYMid meet');
-                                var innerW = width - margin.left - margin.right;
-                                var innerH = height - margin.top - margin.bottom;
-                                var g = svg.append('g').attr('transform','translate('+margin.left+','+margin.top+')');
-                                var series = labels.map(function(label, i){ return { label: label, value: Number((data && data[i]) || 0) }; });
-                                var maxY = d3.max(series, function(d){ return d.value; }) || 0;
-                                var x = d3.scalePoint().domain(labels).range([0, innerW]).padding(0.55);
-                                var y = d3.scaleLinear().domain([0, Math.max(5, maxY)]).nice().range([innerH, 0]);
+                                if(!el || !window.d3){ return; }
 
-                                var grid = g.append('g').attr('stroke','#e5e7eb').attr('stroke-width',1).attr('opacity',0.7);
-                                grid.selectAll('line').data(y.ticks(5)).enter().append('line').attr('x1',0).attr('x2',innerW).attr('y1',function(d){return y(d);}).attr('y2',function(d){return y(d);});
+                                function renderUsersTrendChart() {
+                                    el.innerHTML = '';
+                                    var width = Math.max(320, el.clientWidth || 640);
+                                    var isCompact = width < 560;
+                                    var height = isCompact ? 280 : 320;
+                                    var margin = { top: 18, right: 18, bottom: isCompact ? 54 : 42, left: 44 };
+                                    var innerW = width - margin.left - margin.right;
+                                    var innerH = height - margin.top - margin.bottom;
+                                    var series = labels.map(function(label, i){
+                                        return {
+                                            index: i,
+                                            label: label,
+                                            shortLabel: label.replace(" '", "'"),
+                                            value: Number((useSparseTrendMode ? barData : lineData) && (useSparseTrendMode ? barData[i] : lineData[i]) || 0)
+                                        };
+                                    });
+                                    var maxY = d3.max(series, function(d){ return d.value; }) || 0;
+                                    var visibleTickIndexes = series
+                                        .filter(function(d, i){
+                                            if (!isCompact) {
+                                                return true;
+                                            }
+                                            return i === 0 || i === series.length - 1 || i % 2 === 0;
+                                        })
+                                        .map(function(d){ return d.index; });
 
-                                var xAxis = g.append('g').attr('transform','translate(0,'+innerH+')').call(d3.axisBottom(x).tickSizeOuter(0));
-                                xAxis.selectAll('text').style('fill','#334155').style('font-weight','700').style('font-size','12px');
-                                xAxis.selectAll('path.domain').attr('stroke','#e5e7eb');
-                                xAxis.selectAll('line').attr('stroke','#e5e7eb');
+                                    var svg = d3.select(el)
+                                        .append('svg')
+                                        .attr('width', '100%')
+                                        .attr('height', height)
+                                        .attr('viewBox', '0 0 ' + width + ' ' + height)
+                                        .attr('preserveAspectRatio', 'xMidYMid meet');
 
-                                var yAxis = g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('d')).tickSizeOuter(0));
-                                yAxis.selectAll('text').style('fill','#334155').style('font-weight','700').style('font-size','12px');
-                                yAxis.selectAll('path.domain').attr('stroke','#e5e7eb');
-                                yAxis.selectAll('line').attr('stroke','#e5e7eb');
+                                    var defs = svg.append('defs');
+                                    var areaGradient = defs.append('linearGradient')
+                                        .attr('id', 'trendGradUsersArea')
+                                        .attr('x1', '0')
+                                        .attr('y1', '0')
+                                        .attr('x2', '0')
+                                        .attr('y2', '1');
+                                    areaGradient.append('stop').attr('offset', '0%').attr('stop-color', '#2563eb').attr('stop-opacity', 0.32);
+                                    areaGradient.append('stop').attr('offset', '55%').attr('stop-color', '#0B2C74').attr('stop-opacity', 0.16);
+                                    areaGradient.append('stop').attr('offset', '100%').attr('stop-color', '#0B2C74').attr('stop-opacity', 0.02);
 
-                                var defs = svg.append('defs');
-                                var grad = defs.append('linearGradient').attr('id','trendGradUsers').attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1');
-                                grad.append('stop').attr('offset','0%').attr('stop-color','#0B2C74').attr('stop-opacity',0.22);
-                                grad.append('stop').attr('offset','100%').attr('stop-color','#0B2C74').attr('stop-opacity',0);
+                                    var lineGradient = defs.append('linearGradient')
+                                        .attr('id', 'trendGradUsersLine')
+                                        .attr('x1', '0')
+                                        .attr('y1', '0')
+                                        .attr('x2', '1')
+                                        .attr('y2', '0');
+                                    lineGradient.append('stop').attr('offset', '0%').attr('stop-color', '#0B2C74');
+                                    lineGradient.append('stop').attr('offset', '100%').attr('stop-color', '#3b82f6');
 
-                                var line = d3.line().x(function(d){ return x(d.label); }).y(function(d){ return y(d.value); }).curve(d3.curveMonotoneX);
-                                var area = d3.area().x(function(d){ return x(d.label); }).y0(innerH).y1(function(d){ return y(d.value); }).curve(d3.curveMonotoneX);
-                                g.append('path').datum(series).attr('fill','url(#trendGradUsers)').attr('d', area);
-                                var path = g.append('path').datum(series).attr('fill','none').attr('stroke','#0B2C74').attr('stroke-width',3).attr('stroke-linecap','round').attr('stroke-linejoin','round').attr('d', line);
-                                var totalLen = path.node().getTotalLength();
-                                path.attr('stroke-dasharray', totalLen+' '+totalLen).attr('stroke-dashoffset', totalLen)
-                                    .transition().duration(900).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0);
-                                var circles = g.selectAll('circle').data(series).enter().append('circle')
-                                    .attr('cx', function(d){ return x(d.label); })
-                                    .attr('cy', function(d){ return y(d.value); })
-                                    .attr('r', 4)
-                                    .attr('fill', '#0B2C74')
-                                    .attr('stroke', '#ffffff')
-                                    .attr('stroke-width', 2)
-                                    .style('opacity', 0);
-                                circles.transition().delay(900).duration(250).style('opacity', 1);
+                                    var glow = defs.append('filter').attr('id', 'usersTrendGlow');
+                                    glow.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+                                    glow.append('feMerge').selectAll('feMergeNode')
+                                        .data(['blur', 'SourceGraphic'])
+                                        .enter()
+                                        .append('feMergeNode')
+                                        .attr('in', function(d){ return d; });
 
-                                var tip = d3.select(el).append('div')
-                                    .style('position','absolute')
-                                    .style('display','none')
-                                    .style('background','#fff')
-                                    .style('border','1px solid #e5e7eb')
-                                    .style('border-radius','10px')
-                                    .style('padding','8px 10px')
-                                    .style('box-shadow','0 12px 26px rgba(17,24,39,.14)')
-                                    .style('color','#0B2C74')
-                                    .style('font-weight','800')
-                                    .style('font-size','.85rem')
-                                    .style('pointer-events','none');
+                                    var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                                    var x = d3.scaleLinear().domain([0, Math.max(series.length - 1, 1)]).range([0, innerW]);
+                                    var y = d3.scaleLinear().domain([0, Math.max(6, maxY + 2)]).nice().range([innerH, 0]);
 
-                                circles.on('mouseenter', function(event, d){
-                                    d3.select(this).transition().duration(120).attr('r', 6);
-                                    tip.style('display','block').html(d.label+': '+d.value);
-                                }).on('mousemove', function(event){
-                                    var rect = el.getBoundingClientRect();
-                                    var bx = event.clientX - rect.left;
-                                    var by = event.clientY - rect.top;
-                                    tip.style('left', (bx+12)+'px').style('top', (by-34)+'px');
-                                }).on('mouseleave', function(){
-                                    d3.select(this).transition().duration(120).attr('r', 4);
-                                    tip.style('display','none');
+                                    g.append('g')
+                                        .attr('stroke', '#dbe5f1')
+                                        .attr('stroke-width', 1)
+                                        .attr('stroke-dasharray', '3 7')
+                                        .attr('opacity', 0.95)
+                                        .selectAll('line')
+                                        .data(y.ticks(5))
+                                        .enter()
+                                        .append('line')
+                                        .attr('x1', 0)
+                                        .attr('x2', innerW)
+                                        .attr('y1', function(d){ return y(d); })
+                                        .attr('y2', function(d){ return y(d); });
+
+                                    var xAxis = g.append('g')
+                                        .attr('transform', 'translate(0,' + innerH + ')')
+                                        .call(
+                                            d3.axisBottom(x)
+                                                .tickValues(visibleTickIndexes)
+                                                .tickFormat(function(i){
+                                                    var item = series[i];
+                                                    return item ? item.shortLabel : '';
+                                                })
+                                                .tickSize(0)
+                                        );
+                                    xAxis.selectAll('text')
+                                        .style('fill', '#64748b')
+                                        .style('font-size', '11px')
+                                        .style('font-weight', '700')
+                                        .style('text-anchor', 'middle')
+                                        .attr('dy', '1.35em');
+                                    xAxis.select('.domain').attr('stroke', '#dbe5f1');
+
+                                    var yAxis = g.append('g')
+                                        .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('d')).tickSize(0));
+                                    yAxis.selectAll('text')
+                                        .style('fill', '#64748b')
+                                        .style('font-size', '11px')
+                                        .style('font-weight', '700')
+                                        .attr('dx', '-0.4em');
+                                    yAxis.select('.domain').remove();
+
+                                    if (useSparseTrendMode) {
+                                        var barWidth = Math.max(16, Math.min(34, innerW / Math.max(series.length * 1.8, 1)));
+                                        var bars = g.selectAll('.users-trend-bar')
+                                            .data(series)
+                                            .enter()
+                                            .append('rect')
+                                            .attr('class', 'users-trend-bar')
+                                            .attr('x', function(d){ return x(d.index) - (barWidth / 2); })
+                                            .attr('y', innerH)
+                                            .attr('width', barWidth)
+                                            .attr('height', 0)
+                                            .attr('rx', Math.min(10, barWidth / 2))
+                                            .attr('fill', function(d){
+                                                return d.value > 0 ? '#2563eb' : 'rgba(148, 163, 184, 0.18)';
+                                            });
+
+                                        bars.transition()
+                                            .duration(750)
+                                            .ease(d3.easeCubicOut)
+                                            .attr('y', function(d){ return y(d.value); })
+                                            .attr('height', function(d){ return innerH - y(d.value); });
+
+                                        var tooltip = d3.select(el)
+                                            .append('div')
+                                            .attr('class', 'users-trend-chart-tooltip');
+
+                                        bars
+                                            .style('cursor', 'pointer')
+                                            .on('mouseenter', function(event, d){
+                                                d3.select(this).transition().duration(120).attr('fill', d.value > 0 ? '#0B2C74' : 'rgba(148, 163, 184, 0.28)');
+                                                tooltip.style('display', 'block').html('<strong>' + d.label + '</strong><span>' + d.value + ' new users</span>');
+                                            })
+                                            .on('mousemove', function(event){
+                                                var rect = el.getBoundingClientRect();
+                                                var left = event.clientX - rect.left + 12;
+                                                var top = event.clientY - rect.top - 50;
+                                                var maxLeft = Math.max(12, rect.width - 146);
+                                                tooltip
+                                                    .style('left', Math.min(left, maxLeft) + 'px')
+                                                    .style('top', Math.max(8, top) + 'px');
+                                            })
+                                            .on('mouseleave', function(event, d){
+                                                d3.select(this).transition().duration(120).attr('fill', d.value > 0 ? '#2563eb' : 'rgba(148, 163, 184, 0.18)');
+                                                tooltip.style('display', 'none');
+                                            });
+                                        return;
+                                    }
+
+                                    var area = d3.area()
+                                        .x(function(d){ return x(d.index); })
+                                        .y0(innerH)
+                                        .y1(function(d){ return y(d.value); })
+                                        .curve(d3.curveMonotoneX);
+
+                                    var line = d3.line()
+                                        .x(function(d){ return x(d.index); })
+                                        .y(function(d){ return y(d.value); })
+                                        .curve(d3.curveMonotoneX);
+
+                                    g.append('path')
+                                        .datum(series)
+                                        .attr('fill', 'url(#trendGradUsersArea)')
+                                        .attr('d', area);
+
+                                    g.append('path')
+                                        .datum(series)
+                                        .attr('fill', 'none')
+                                        .attr('stroke', 'rgba(59,130,246,0.18)')
+                                        .attr('stroke-width', 10)
+                                        .attr('stroke-linecap', 'round')
+                                        .attr('stroke-linejoin', 'round')
+                                        .attr('filter', 'url(#usersTrendGlow)')
+                                        .attr('d', line);
+
+                                    var path = g.append('path')
+                                        .datum(series)
+                                        .attr('fill', 'none')
+                                        .attr('stroke', 'url(#trendGradUsersLine)')
+                                        .attr('stroke-width', 3.5)
+                                        .attr('stroke-linecap', 'round')
+                                        .attr('stroke-linejoin', 'round')
+                                        .attr('d', line);
+
+                                    var totalLen = path.node().getTotalLength();
+                                    path.attr('stroke-dasharray', totalLen + ' ' + totalLen)
+                                        .attr('stroke-dashoffset', totalLen)
+                                        .transition()
+                                        .duration(1000)
+                                        .ease(d3.easeCubicOut)
+                                        .attr('stroke-dashoffset', 0);
+
+                                    var tooltip = d3.select(el)
+                                        .append('div')
+                                        .attr('class', 'users-trend-chart-tooltip');
+
+                                    var focusLine = g.append('line')
+                                        .attr('stroke', '#94a3b8')
+                                        .attr('stroke-width', 1)
+                                        .attr('stroke-dasharray', '4 6')
+                                        .attr('y1', 0)
+                                        .attr('y2', innerH)
+                                        .style('opacity', 0);
+
+                                    var pointGroups = g.selectAll('.users-trend-point')
+                                        .data(series)
+                                        .enter()
+                                        .append('g')
+                                        .attr('class', 'users-trend-point')
+                                        .attr('transform', function(d){ return 'translate(' + x(d.index) + ',' + y(d.value) + ')'; })
+                                        .style('cursor', 'pointer');
+
+                                    pointGroups.append('circle')
+                                        .attr('r', 10)
+                                        .attr('fill', 'rgba(37,99,235,0.14)');
+
+                                    pointGroups.append('circle')
+                                        .attr('r', 4.5)
+                                        .attr('fill', '#ffffff')
+                                        .attr('stroke', '#2563eb')
+                                        .attr('stroke-width', 3);
+
+                                    pointGroups.append('circle')
+                                        .attr('r', 2.5)
+                                        .attr('fill', '#0B2C74');
+
+                                    pointGroups
+                                        .on('mouseenter', function(event, d){
+                                            focusLine
+                                                .attr('x1', x(d.index))
+                                                .attr('x2', x(d.index))
+                                                .style('opacity', 1);
+                                            d3.select(this).select('circle:nth-child(2)').transition().duration(120).attr('r', 6.5);
+                                            tooltip.style('display', 'block').html('<strong>' + d.label + '</strong><span>' + d.value + ' users</span>');
+                                        })
+                                        .on('mousemove', function(event){
+                                            var rect = el.getBoundingClientRect();
+                                            var left = event.clientX - rect.left + 12;
+                                            var top = event.clientY - rect.top - 50;
+                                            var maxLeft = Math.max(12, rect.width - 136);
+                                            tooltip
+                                                .style('left', Math.min(left, maxLeft) + 'px')
+                                                .style('top', Math.max(8, top) + 'px');
+                                        })
+                                        .on('mouseleave', function(){
+                                            focusLine.style('opacity', 0);
+                                            d3.select(this).select('circle:nth-child(2)').transition().duration(120).attr('r', 4.5);
+                                            tooltip.style('display', 'none');
+                                        });
+                                }
+
+                                renderUsersTrendChart();
+                                var resizeTimer;
+                                window.addEventListener('resize', function(){
+                                    clearTimeout(resizeTimer);
+                                    resizeTimer = setTimeout(renderUsersTrendChart, 120);
                                 });
                             })();
                         </script>
