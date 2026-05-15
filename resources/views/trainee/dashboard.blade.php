@@ -1290,7 +1290,7 @@
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:75px">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
