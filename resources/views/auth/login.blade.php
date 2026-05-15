@@ -1173,48 +1173,6 @@
                             <input id="mobile_number" type="tel" name="mobile_number" value="{{ old('mobile_number') }}" placeholder="Mobile Number" inputmode="numeric" pattern="[0-9]*" maxlength="11" />
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="field-with-icon">
-                            <span class="field-icon">
-                                <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                                </svg>
-                            </span>
-                            <div class="fow-dropdown-container" id="fow-dropdown">
-                                <div class="fow-dropdown-trigger">
-                                    <span id="fow-selected-text" class="{{ old('field_of_work') ? '' : 'fow-placeholder' }}">{{ old('field_of_work') ?: 'Select Field of Work' }}</span>
-                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
-                                </div>
-                                <div class="fow-dropdown-options">
-                                    @php
-                                        $fields = \App\Models\FieldOfWork::orderBy('name', 'asc')->get();
-                                    @endphp
-                                    @foreach($fields as $field)
-                                        <div class="fow-option" data-value="{{ $field->name }}" data-fow-id="{{ $field->id }}">
-                                            {{ $field->name }}
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @foreach($fields as $field)
-                                    @if($field->tooltip_content)
-                                        <div class="fow-tooltip" id="tooltip-{{ $field->id }}">
-                                            <div class="fow-tooltip-title">Types of Work:</div>
-                                            <ul class="fow-tooltip-list">
-                                                @foreach(explode("\n", str_replace("- ", "", $field->tooltip_content)) as $item)
-                                                    @if(trim($item))
-                                                        <li>{{ trim($item) }}</li>
-                                                    @endif
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endif
-                                @endforeach
-                                <input type="hidden" name="field_of_work" id="field_of_work" value="{{ old('field_of_work') }}" required>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
@@ -1261,20 +1219,49 @@
                         <div class="field-with-icon">
                             <span class="field-icon">
                                 <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M3 7h18M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
                                 </svg>
                             </span>
-                            <select id="agency" name="agency">
-                                <option value="" disabled {{ old('agency') ? '' : 'selected' }}>Select Agency/LGU</option>
-                                <option value="DILG" {{ old('agency') === 'DILG' ? 'selected' : '' }}>DILG</option>
-                                <option value="LGU" {{ old('agency') === 'LGU' ? 'selected' : '' }}>LGU</option>
-                            </select>
+                            <div class="fow-dropdown-container" id="fow-dropdown">
+                                <div class="fow-dropdown-trigger">
+                                    <span id="fow-selected-text" class="{{ old('field_of_work') ? '' : 'fow-placeholder' }}">{{ old('field_of_work') ?: 'Select Field of Work' }}</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                                </div>
+                                <div class="fow-dropdown-options">
+                                    @php
+                                        $fields = \App\Models\FieldOfWork::orderBy('name', 'asc')->get();
+                                    @endphp
+                                    @foreach($fields as $field)
+                                        <div class="fow-option" data-value="{{ $field->name }}" data-fow-id="{{ $field->id }}">
+                                            {{ $field->name }}
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @foreach($fields as $field)
+                                    @if($field->tooltip_content)
+                                        <div class="fow-tooltip" id="tooltip-{{ $field->id }}">
+                                            <div class="fow-tooltip-title">Specific Types of Work:</div>
+                                            <ul class="fow-tooltip-list">
+                                                @foreach(explode("\n", str_replace("- ", "", $field->tooltip_content)) as $item)
+                                                    @if(trim($item))
+                                                        <li>{{ trim($item) }}</li>
+                                                    @endif
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                @endforeach
+                                <input type="hidden" name="field_of_work" id="field_of_work" value="{{ old('field_of_work') }}" required>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <input id="name" type="hidden" name="name" value="{{ old('name') }}" />
+            <input type="hidden" name="agency" id="agency" value="DILG">
 
             <div class="section-title" style="margin-top: 15px;">Address Information</div>
             <div class="row">
@@ -1288,13 +1275,16 @@
                                 </svg>
                             </span>
                             <select id="region" name="region" required>
-                                <option value="" disabled selected>Select Region</option>
+                                <option value="" disabled selected>Select Level</option>
+                                <option value="DILG Central Office">DILG Central Office</option>
+                                <option value="DILG Regional Office">DILG Regional Office</option>
+                                <option value="DILG Provincial Office">DILG Provincial Office</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="form-group">
+                    <div class="form-group" id="province-container" style="display: none;">
                         <div class="field-with-icon">
                             <span class="field-icon">
                                 <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -1302,8 +1292,8 @@
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
                             </span>
-                            <select id="province" name="province" required disabled>
-                                <option value="" disabled selected>Select Province</option>
+                            <select id="province" name="province">
+                                <option value="" disabled selected>Select Office</option>
                             </select>
                         </div>
                     </div>
@@ -1312,7 +1302,7 @@
 
             <div class="row">
                 <div class="col">
-                    <div class="form-group">
+                    <div class="form-group" id="city-container" style="display: none;">
                         <div class="field-with-icon">
                             <span class="field-icon">
                                 <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -1320,14 +1310,14 @@
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
                             </span>
-                            <select id="city" name="city" required disabled>
-                                <option value="" disabled selected>Select City/Municipality</option>
+                            <select id="city" name="city">
+                                <option value="" disabled selected>Select Bureaus/Services</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="form-group">
+                    <div class="form-group" id="barangay-container" style="display: none;">
                         <div class="field-with-icon">
                             <span class="field-icon">
                                 <svg class="feather-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -1335,7 +1325,7 @@
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
                             </span>
-                            <select id="barangay" name="barangay" required disabled>
+                            <select id="barangay" name="barangay">
                                 <option value="" disabled selected>Select Barangay</option>
                             </select>
                         </div>
@@ -1670,28 +1660,9 @@
             });
         }
         const agencySelect = document.getElementById('agency');
-        const provinceContainer = provinceSelect ? provinceSelect.closest('.form-group') : null;
-        const cityContainer = citySelect ? citySelect.closest('.form-group') : null;
-        const barangayContainer = barangaySelect ? barangaySelect.closest('.form-group') : null;
-        const oldRegion = @json(old('region'));
-        const oldProvince = @json(old('province'));
-        const oldCity = @json(old('city'));
-        const oldBarangay = @json(old('barangay'));
-        const BUREAUS = [
-            'Bureau of Local Government Development (BLGD)',
-            'Bureau of Local Government Supervision (BLGS)',
-            'Office of Project Development Services (OPDS)',
-            'National Barangay Operations Office (NBOO)',
-        ];
-        const SERVICES = [
-            'Administrative Service',
-            'Information Systems and Technology Management Service',
-            'Financial and Management Service',
-            'Internal Audit Service',
-            'Legal and Legislative Liaison Service',
-            'Planning Service',
-            'Public Affairs and Communication Service',
-        ];
+        const provinceContainer = document.getElementById('province-container');
+        const cityContainer = document.getElementById('city-container');
+        const barangayContainer = document.getElementById('barangay-container');
 
         function composeFullName() {
             const parts = [
@@ -1729,93 +1700,35 @@
             registerForm.addEventListener('submit', composeFullName);
         }
 
-        function applyAgencyMode() {
-            var mode = agencySelect ? agencySelect.value : 'LGU';
-            var levelLabel = (regionSelect && regionSelect.options[regionSelect.selectedIndex]) ? regionSelect.options[regionSelect.selectedIndex].value : '';
-            if (mode === 'DILG') {
-                if (provinceContainer) {
-                    provinceContainer.style.display = levelLabel ? '' : 'none';
-                }
-                if (cityContainer) {
-                    cityContainer.style.display = (levelLabel === 'DILG Central Office') ? '' : 'none';
-                }
-                if (barangayContainer) {
-                    barangayContainer.style.display = 'none';
-                }
-                // Do not force-disable selects here; population functions manage disabled states
-            } else {
-                if (provinceContainer) provinceContainer.style.display = '';
-                if (cityContainer) cityContainer.style.display = '';
-                if (barangayContainer) barangayContainer.style.display = '';
-            }
-        }
-
-        function populateRegionOrLevelOptions(preserveSelection = false) {
-            var mode = agencySelect ? agencySelect.value : 'LGU';
-            regionSelect.innerHTML = '';
-            if (mode === 'DILG') {
-                var ph = document.createElement('option');
-                ph.value = '';
-                ph.disabled = true;
-                ph.selected = true;
-                ph.textContent = 'Select Level';
-                regionSelect.appendChild(ph);
-                ['DILG Central Office','DILG Regional Office','DILG Provincial Office'].forEach(function(label){
-                    var opt = document.createElement('option');
-                    opt.value = label;
-                    opt.textContent = label;
-                    if (preserveSelection && oldRegion && oldRegion === label) {
-                        opt.selected = true;
-                        ph.selected = false;
-                    }
-                    regionSelect.appendChild(opt);
-                });
-                if (provinceContainer) provinceContainer.style.display = 'none';
-                if (cityContainer) cityContainer.style.display = 'none';
-                if (barangayContainer) barangayContainer.style.display = 'none';
-                return;
-            }
-            var ph2 = document.createElement('option');
-            ph2.value = '';
-            ph2.disabled = true;
-            ph2.selected = true;
-            ph2.textContent = 'Select Region';
-            regionSelect.appendChild(ph2);
-            fetch('{{ route('psgc.regions') }}')
-                .then(function(response){ return response.json(); })
-                .then(function(data){
-                    data.sort(function(a,b){ return a.name.localeCompare(b.name); });
-                    data.forEach(function(region){
-                        var option = document.createElement('option');
-                        option.value = region.name;
-                        option.dataset.code = region.code;
-                        option.textContent = region.name;
-                        if (oldRegion && oldRegion === region.name) {
-                            option.selected = true;
-                            ph2.selected = false;
-                        }
-                        regionSelect.appendChild(option);
-                    });
-                    if (oldRegion) {
-                        var selectedRegionOption = regionSelect.options[regionSelect.selectedIndex];
-                        var selectedRegionCode = selectedRegionOption && selectedRegionOption.dataset ? selectedRegionOption.dataset.code : '';
-                        if (selectedRegionCode) {
-                            loadProvincesByRegion(selectedRegionCode, oldProvince || null, oldCity || null, oldBarangay || null);
-                        }
-                    }
-                })
-                .catch(function(error){ console.error('Error fetching regions:', error); });
-        }
+        const BUREAUS = [
+            'Bureau of Local Government Development (BLGD)',
+            'Bureau of Local Government Supervision (BLGS)',
+            'Office of Project Development Services (OPDS)',
+            'National Barangay Operations Office (NBOO)',
+        ];
+        const SERVICES = [
+            'Administrative Service',
+            'Information Systems and Technology Management Service',
+            'Financial and Management Service',
+            'Internal Audit Service',
+            'Legal and Legislative Liaison Service',
+            'Planning Service',
+            'Public Affairs and Communication Service',
+        ];
 
         function populateOfficeByLevel(levelLabel) {
             provinceSelect.innerHTML = '<option value="" disabled selected>Select Office</option>';
             provinceSelect.disabled = true;
-            // Default: hide extra selects
-            if (cityContainer) cityContainer.style.display = 'none';
-            if (barangayContainer) barangayContainer.style.display = 'none';
-            if (!levelLabel) { applyAgencyMode(); return; }
+            citySelect.innerHTML = '<option value="" disabled selected>Select Bureaus/Services</option>';
+            citySelect.disabled = true;
+            
+            provinceContainer.style.display = levelLabel ? '' : 'none';
+            cityContainer.style.display = 'none';
+            barangayContainer.style.display = 'none';
+
+            if (!levelLabel) return;
+
             if (levelLabel === 'DILG Central Office') {
-                // Step 1: Select Office -> Bureaus or Services
                 ['Bureaus','Services'].forEach(function(label){
                     var opt = document.createElement('option');
                     opt.value = label;
@@ -1823,24 +1736,17 @@
                     provinceSelect.appendChild(opt);
                 });
                 provinceSelect.disabled = false;
-                // Prepare secondary dropdown
-                if (citySelect) {
-                    citySelect.innerHTML = '<option value="" disabled selected>Select Bureaus/Services</option>';
-                    citySelect.disabled = true;
-                }
-                if (provinceContainer) provinceContainer.style.display = '';
-                if (cityContainer) cityContainer.style.display = '';
-                if (barangayContainer) barangayContainer.style.display = 'none';
+                cityContainer.style.display = '';
                 return;
             }
-            if (levelLabel === 'DILG Regional Office') {
-                // Show "Select Region" instead of office
+
+            if (levelLabel === 'DILG Regional Office' || levelLabel === 'DILG Provincial Office') {
                 provinceSelect.innerHTML = '<option value="" disabled selected>Select Region</option>';
                 fetch('{{ route('psgc.regions') }}')
-                    .then(function(response){ return response.json(); })
-                    .then(function(data){
-                        data.sort(function(a,b){ return a.name.localeCompare(b.name); });
-                        data.forEach(function(region){
+                    .then(response => response.json())
+                    .then(data => {
+                        data.sort((a,b) => a.name.localeCompare(b.name));
+                        data.forEach(region => {
                             var opt = document.createElement('option');
                             opt.value = region.name;
                             opt.dataset.code = region.code;
@@ -1848,239 +1754,54 @@
                             provinceSelect.appendChild(opt);
                         });
                         provinceSelect.disabled = false;
-                        // Keep extra selects hidden
-                        if (provinceContainer) provinceContainer.style.display = '';
-                        if (cityContainer) cityContainer.style.display = 'none';
-                        if (barangayContainer) barangayContainer.style.display = 'none';
-                    })
-                    .catch(function(error){ console.error('Error fetching regions:', error); });
+                        if (levelLabel === 'DILG Provincial Office') {
+                            cityContainer.style.display = '';
+                            citySelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+                        }
+                    });
                 return;
             }
-            if (levelLabel === 'DILG Provincial Office') {
-                // Only Select Office -> provincial offices
-                fetch('{{ route('psgc.regions') }}')
-                    .then(function(response){ return response.json(); })
-                    .then(function(data){
-                        data.sort(function(a,b){ return a.name.localeCompare(b.name); });
-                        data.forEach(function(region){
-                            var opt = document.createElement('option');
-                            opt.value = region.name + ' Office';
-                            opt.dataset.code = region.code;
-                            opt.textContent = 'DILG ' + region.name + ' Office';
-                            provinceSelect.appendChild(opt);
-                        });
-                        provinceSelect.disabled = false;
-                        if (provinceContainer) provinceContainer.style.display = '';
-                        if (cityContainer) cityContainer.style.display = 'none';
-                        if (barangayContainer) barangayContainer.style.display = 'none';
-                    })
-                    .catch(function(error){ console.error('Error fetching provinces for offices:', error); });
-                return;
-            }
-        }
-        function loadProvincesByRegion(regionCode, selectedProvince = null, selectedCity = null, selectedBarangay = null) {
-            var isDILGMode = agencySelect && agencySelect.value === 'DILG';
-            provinceSelect.innerHTML = '<option value="" disabled selected>' + (isDILGMode ? 'Select Office' : 'Select Province') + '</option>';
-            provinceSelect.disabled = true;
-            citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-            citySelect.disabled = true;
-            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-            barangaySelect.disabled = true;
-
-            if (!regionCode) return;
-
-            fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
-                .then(response => response.json())
-                .then(data => {
-                    data.sort((a, b) => a.name.localeCompare(b.name));
-
-                    var isDILG = isDILGMode;
-                    if (data.length === 0 && regionCode === '130000000') {
-                        const opt = document.createElement('option');
-                        opt.value = isDILG ? (regionSelect.value + ' Office') : regionSelect.value;
-                        opt.dataset.code = regionCode;
-                        opt.dataset.isRegion = 'true';
-                        opt.textContent = isDILG ? (regionSelect.value + ' Office') : regionSelect.value;
-                        opt.selected = true;
-                        provinceSelect.appendChild(opt);
-                        provinceSelect.disabled = false;
-                        if (!isDILG) {
-                            fetchCities(regionCode, true, selectedCity, selectedBarangay);
-                        }
-                        return;
-                    }
-
-                    data.forEach(province => {
-                        const opt = document.createElement('option');
-                        opt.value = isDILG ? (province.name + ' Office') : province.name;
-                        opt.dataset.code = province.code;
-                        opt.textContent = isDILG ? (province.name + ' Office') : province.name;
-                        if (selectedProvince && (selectedProvince === province.name || selectedProvince === (province.name + ' Office'))) {
-                            opt.selected = true;
-                        }
-                        provinceSelect.appendChild(opt);
-                    });
-                    provinceSelect.disabled = false;
-
-                    if (!isDILG) {
-                        if (selectedProvince && selectedCity) {
-                            const selectedProvinceOption = provinceSelect.options[provinceSelect.selectedIndex];
-                            const selectedProvinceCode = selectedProvinceOption?.dataset?.code || '';
-                            if (selectedProvinceCode) {
-                                fetchCities(selectedProvinceCode, false, selectedCity, selectedBarangay);
-                            }
-                        }
-                    }
-                })
-                .catch(error => console.error('Error fetching provinces:', error));
-        }
-
-        function loadBarangays(cityCode, selectedBarangay = null) {
-            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-            barangaySelect.disabled = true;
-
-            if (!cityCode) return;
-
-            fetch(`{{ url('/psgc/cities') }}/${cityCode}/barangays`)
-                .then(response => response.json())
-                .then(data => {
-                    data.sort((a, b) => a.name.localeCompare(b.name));
-                    data.forEach(barangay => {
-                        const option = document.createElement('option');
-                        option.value = barangay.name;
-                        option.textContent = barangay.name;
-                        if (selectedBarangay && selectedBarangay === barangay.name) {
-                            option.selected = true;
-                        }
-                        barangaySelect.appendChild(option);
-                    });
-                    barangaySelect.disabled = false;
-                })
-                .catch(error => console.error('Error fetching barangays:', error));
-        }
-
-        applyAgencyMode();
-        populateRegionOrLevelOptions(true);
-        if (agencySelect) {
-            agencySelect.addEventListener('change', function(){
-                applyAgencyMode();
-                populateRegionOrLevelOptions(false);
-            });
         }
 
         regionSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const isDILGMode = agencySelect && agencySelect.value === 'DILG';
-            if (isDILGMode) {
-                const levelLabel = selectedOption ? selectedOption.value : '';
-                populateOfficeByLevel(levelLabel);
-                return;
-            }
-            const regionCode = selectedOption?.dataset?.code || '';
-            applyAgencyMode();
-            loadProvincesByRegion(regionCode);
+            populateOfficeByLevel(this.value);
         });
 
-        // LGU-only region population handled via populateRegionOrLevelOptions
-
-        // Province Change
         provinceSelect.addEventListener('change', function() {
-            // DILG: custom behavior
-            if (agencySelect && agencySelect.value === 'DILG') {
-                var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
-                if (levelLabel === 'DILG Central Office') {
-                    var category = this.value; // Bureaus or Services
-                    if (citySelect) {
-                        citySelect.innerHTML = '<option value="" disabled selected>' + (category === 'Bureaus' ? 'Select Bureaus' : 'Select Services') + '</option>';
-                        var list = category === 'Bureaus' ? BUREAUS : SERVICES;
-                        list.forEach(function(item){
-                            var o = document.createElement('option');
-                            o.value = item;
-                            o.textContent = item;
-                            citySelect.appendChild(o);
+            const levelLabel = regionSelect.value;
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (levelLabel === 'DILG Central Office') {
+                const category = this.value;
+                citySelect.innerHTML = '<option value="" disabled selected>' + (category === 'Bureaus' ? 'Select Bureaus' : 'Select Services') + '</option>';
+                const list = category === 'Bureaus' ? BUREAUS : SERVICES;
+                list.forEach(item => {
+                    const o = document.createElement('option');
+                    o.value = item;
+                    o.textContent = item;
+                    citySelect.appendChild(o);
+                });
+                citySelect.disabled = false;
+            } else if (levelLabel === 'DILG Provincial Office') {
+                const regionCode = selectedOption.dataset.code;
+                citySelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+                citySelect.disabled = true;
+                if (regionCode) {
+                    fetch(`{{ url('/psgc/regions') }}/${regionCode}/provinces`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.sort((a,b) => a.name.localeCompare(b.name));
+                            data.forEach(province => {
+                                const opt = document.createElement('option');
+                                opt.value = province.name + ' Office';
+                                opt.textContent = province.name + ' Office';
+                                citySelect.appendChild(opt);
+                            });
+                            citySelect.disabled = false;
                         });
-                        citySelect.disabled = false;
-                        if (cityContainer) cityContainer.style.display = '';
-                    }
-                    if (barangayContainer) barangayContainer.style.display = 'none';
-                    return;
-                }
-                // For Regional Office and Provincial Office, keep city/barangay hidden
-                if (citySelect) { citySelect.disabled = true; citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>'; }
-                if (barangaySelect) { barangaySelect.disabled = true; barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>'; }
-                if (cityContainer) cityContainer.style.display = 'none';
-                if (barangayContainer) barangayContainer.style.display = 'none';
-                return;
-            }
-            const selectedOption = this.options[this.selectedIndex];
-            const provinceCode = selectedOption.dataset.code;
-            const isRegion = selectedOption.dataset.isRegion === 'true';
-
-            // Reset City and Barangay
-            citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-            citySelect.disabled = true;
-            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-            barangaySelect.disabled = true;
-
-            if (provinceCode) {
-                fetchCities(provinceCode, isRegion);
-            }
-        });
-
-        // City Change
-        citySelect.addEventListener('change', function() {
-            // DILG Central Office: treat citySelect as Bureaus/Services selector and set Office (provinceSelect) to final pick
-            if (agencySelect && agencySelect.value === 'DILG') {
-                var levelLabel = regionSelect && regionSelect.options[regionSelect.selectedIndex] ? regionSelect.options[regionSelect.selectedIndex].value : '';
-                if (levelLabel === 'DILG Central Office') {
-                    var finalOffice = this.value || '';
-                    if (finalOffice) {
-                        provinceSelect.disabled = false;
-                    }
-                    return;
                 }
             }
-            const selectedOption = this.options[this.selectedIndex];
-            const cityCode = selectedOption.dataset.code;
-            if (cityCode) {
-                loadBarangays(cityCode);
-            }
         });
-
-        function fetchCities(code, isRegion, selectedCity = null, selectedBarangay = null) {
-            let url = isRegion 
-                ? `{{ url('/psgc/regions') }}/${code}/cities`
-                : `{{ url('/psgc/provinces') }}/${code}/cities`;
-
-            citySelect.innerHTML = '<option value="" disabled selected>Select City/Municipality</option>';
-            citySelect.disabled = true;
-            barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
-            barangaySelect.disabled = true;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    data.sort((a, b) => a.name.localeCompare(b.name));
-                    let selectedCityCode = '';
-                    data.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city.name;
-                        option.dataset.code = city.code;
-                        option.textContent = city.name;
-                        if (selectedCity && selectedCity === city.name) {
-                            option.selected = true;
-                            selectedCityCode = city.code;
-                        }
-                        citySelect.appendChild(option);
-                    });
-                    citySelect.disabled = false;
-
-                    if (selectedCityCode) {
-                        loadBarangays(selectedCityCode, selectedBarangay);
-                    }
-                })
-                .catch(error => console.error('Error fetching cities:', error));
-        }
 
         // Custom Dropdown JS
         const fowDropdown = document.getElementById('fow-dropdown');
