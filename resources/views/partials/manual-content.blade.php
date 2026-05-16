@@ -688,7 +688,6 @@
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
                     </div>
                     <div class="manual-accordion-content">
-                        <div id="viewer-user-adding" class="manual-viewer-box" style="display: none;"></div>
 
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
@@ -697,10 +696,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual" data-manual="user-editing"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="{{ $isTM ? 'tm-user-editing' : 'user-editing' }}"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
-                        <div id="viewer-user-editing" class="manual-viewer-box" style="display: none;"></div>
+                        <div id="viewer-{{ $isTM ? 'tm-user-editing' : 'user-editing' }}" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -724,9 +723,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="tm-training-management"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-tm-training-management" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -750,10 +750,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual" data-manual="course-management"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="{{ $isTM ? 'tm-course-management' : 'course-management' }}"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
-                        <div id="viewer-course-management" class="manual-viewer-box" style="display: none;"></div>
+                        <div id="viewer-{{ $isTM ? 'tm-course-management' : 'course-management' }}" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -777,10 +777,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual" data-manual="certifications"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="{{ $isTM ? 'tm-certifications' : 'certifications' }}"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
-                        <div id="viewer-certifications" class="manual-viewer-box" style="display: none;"></div>
+                        <div id="viewer-{{ $isTM ? 'tm-certifications' : 'certifications' }}" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -991,6 +991,56 @@
             '/Manual/Admin Manual/Certifications/40.png',
             '/Manual/Admin Manual/Certifications/41.png',
             '/Manual/Admin Manual/Certifications/42.png'
+        ],
+        'tm-user-management': [
+            '/Manual/TM Manual/User Management/44.png',
+            '/Manual/TM Manual/User Management/45.png',
+            '/Manual/TM Manual/User Management/46.png',
+            '/Manual/TM Manual/User Management/47.png'
+        ],
+        'tm-user-editing': [
+            '/Manual/TM Manual/User Management/44.png',
+            '/Manual/TM Manual/User Management/45.png',
+            '/Manual/TM Manual/User Management/46.png',
+            '/Manual/TM Manual/User Management/47.png'
+        ],
+        'tm-training-management': [
+            '/Manual/TM Manual/Training Management/48.png',
+            '/Manual/TM Manual/Training Management/49.png',
+            '/Manual/TM Manual/Training Management/50.png',
+            '/Manual/TM Manual/Training Management/51.png',
+            '/Manual/TM Manual/Training Management/52.png',
+            '/Manual/TM Manual/Training Management/53.png'
+        ],
+        'tm-course-management': [
+            '/Manual/TM Manual/Course Management/54.png',
+            '/Manual/TM Manual/Course Management/55.png',
+            '/Manual/TM Manual/Course Management/56.png',
+            '/Manual/TM Manual/Course Management/57.png',
+            '/Manual/TM Manual/Course Management/58.png',
+            '/Manual/TM Manual/Course Management/59.png',
+            '/Manual/TM Manual/Course Management/60.png',
+            '/Manual/TM Manual/Course Management/61.png',
+            '/Manual/TM Manual/Course Management/62.png',
+            '/Manual/TM Manual/Course Management/63.png',
+            '/Manual/TM Manual/Course Management/64.png',
+            '/Manual/TM Manual/Course Management/65.png',
+            '/Manual/TM Manual/Course Management/66.png',
+            '/Manual/TM Manual/Course Management/67.png',
+            '/Manual/TM Manual/Course Management/68.png',
+            '/Manual/TM Manual/Course Management/69.png',
+            '/Manual/TM Manual/Course Management/70.png',
+            '/Manual/TM Manual/Course Management/71.png',
+            '/Manual/TM Manual/Course Management/72.png',
+            '/Manual/TM Manual/Course Management/73.png',
+            '/Manual/TM Manual/Course Management/74.png'
+        ],
+        'tm-certifications': [
+            '/Manual/TM Manual/Certifications/75.png',
+            '/Manual/TM Manual/Certifications/76.png',
+            '/Manual/TM Manual/Certifications/77.png',
+            '/Manual/TM Manual/Certifications/78.png',
+            '/Manual/TM Manual/Certifications/79.png'
         ]
     };
 
