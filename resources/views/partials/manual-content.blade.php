@@ -759,6 +759,11 @@
                 @endif
 
                 @if($isAdmin || $isTM || $isCoach)
+                @php
+                    $certManualId = 'certifications';
+                    if ($isTM) $certManualId = 'tm-certifications';
+                    elseif ($isCoach) $certManualId = 'coach-certifications';
+                @endphp
                 <!-- Certifications -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
@@ -777,10 +782,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual" data-manual="{{ $isTM ? 'tm-certifications' : 'certifications' }}"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="{{ $certManualId }}"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
-                        <div id="viewer-{{ $isTM ? 'tm-certifications' : 'certifications' }}" class="manual-viewer-box" style="display: none;"></div>
+                        <div id="viewer-{{ $certManualId }}" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -827,9 +832,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="coach-course-utilities"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-coach-course-utilities" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 <!-- Announcements (Coach only) -->
@@ -1041,6 +1047,36 @@
             '/Manual/TM Manual/Certifications/77.png',
             '/Manual/TM Manual/Certifications/78.png',
             '/Manual/TM Manual/Certifications/79.png'
+        ],
+        'coach-course-utilities': [
+            '/Manual/Coach Manual/Course Utilities/81.png',
+            '/Manual/Coach Manual/Course Utilities/82.png',
+            '/Manual/Coach Manual/Course Utilities/83.png',
+            '/Manual/Coach Manual/Course Utilities/84.png',
+            '/Manual/Coach Manual/Course Utilities/85.png',
+            '/Manual/Coach Manual/Course Utilities/86.png',
+            '/Manual/Coach Manual/Course Utilities/87.png',
+            '/Manual/Coach Manual/Course Utilities/88.png',
+            '/Manual/Coach Manual/Course Utilities/89.png',
+            '/Manual/Coach Manual/Course Utilities/90.png',
+            '/Manual/Coach Manual/Course Utilities/91.png',
+            '/Manual/Coach Manual/Course Utilities/92.png',
+            '/Manual/Coach Manual/Course Utilities/93.png',
+            '/Manual/Coach Manual/Course Utilities/94.png',
+            '/Manual/Coach Manual/Course Utilities/95.png',
+            '/Manual/Coach Manual/Course Utilities/96.png',
+            '/Manual/Coach Manual/Course Utilities/97.png',
+            '/Manual/Coach Manual/Course Utilities/98.png',
+            '/Manual/Coach Manual/Course Utilities/99.png',
+            '/Manual/Coach Manual/Course Utilities/100.png',
+            '/Manual/Coach Manual/Course Utilities/101.png'
+        ],
+        'coach-certifications': [
+            '/Manual/Coach Manual/Certifications/102.png',
+            '/Manual/Coach Manual/Certifications/103.png',
+            '/Manual/Coach Manual/Certifications/104.png',
+            '/Manual/Coach Manual/Certifications/105.png',
+            '/Manual/Coach Manual/Certifications/106.png'
         ]
     };
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - CAPDEVPRO</title>
+    <title>{{ (request('portal') === 'coach' || (Auth::user()->role !== 'super_admin' && !Auth::user()->hasPermission('view_monitoring'))) ? 'Coach' : 'Admin' }} Dashboard - CAPDEVPRO</title>
     
     <!-- Fonts -->
     <link href="{{ asset('css/dm-sans.css') }}" rel="stylesheet">
@@ -4389,30 +4389,30 @@
                 <li class="menu-dropdown {{ $adminPortalActive ? 'open' : '' }}" id="portal-dropdown-admin">
                     <div class="menu-item menu-dropdown-toggle {{ $adminPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
-                        <span class="menu-text">Admin Portal</span>
+                        <span class="menu-text">{{ Auth::user()->role === 'super_admin' ? 'Admin Portal' : 'Coach Portal' }}</span>
                         <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
                         @if(Auth::user()->hasPermission('view_monitoring'))
-                        <li class="menu-item menu-sub-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
+                        <li class="menu-item menu-sub-item {{ !request()->hasAny(['search', 'roles', 'statuses', 'page']) && !request('tab') ? 'active' : '' }}" onclick="showContent('dashboard-home', this, event)">
                             <div class="menu-icon"><i class="fas fa-home"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_users'))
-                        <li class="menu-item menu-sub-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this)">
+                        <li class="menu-item menu-sub-item {{ request()->hasAny(['search', 'roles', 'statuses', 'page']) || in_array(request('tab'), ['user-management', 'user-details-section']) ? 'active' : '' }}" onclick="showContent('user-management', this, event)">
                             <div class="menu-icon"><i class="fas fa-users"></i></div>
                             <span class="menu-text">User Management</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_courses'))
-                        <li class="menu-item menu-sub-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this)">
+                        <li class="menu-item menu-sub-item {{ in_array(request('tab'), ['course-management', 'pending-courses', 'course-create', 'course-library']) ? 'active' : '' }}" onclick="showContent('course-management', this, event)">
                             <div class="menu-icon"><i class="fas fa-book"></i></div>
                             <span class="menu-text">Course Management</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_certifications'))
-                        <li class="menu-item menu-sub-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this)">
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this, event)">
                             <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                             <span class="menu-text">Certifications</span>
                         </li>
@@ -4460,7 +4460,7 @@
                         </li>
                         @endif
                         @if($canCoachCertifications)
-                        <li class="menu-item menu-sub-item {{ request('tab') === 'certification-management' ? 'active' : '' }}" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}'">
+                        <li class="menu-item menu-sub-item {{ request('tab') === 'certification-management' ? 'active' : '' }}" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'certification-management']) }}'">
                             <div class="menu-icon"><i class="fas fa-certificate"></i></div>
                             <span class="menu-text">Certifications</span>
                         </li>
@@ -10139,6 +10139,17 @@
             // Initial render of active filters
             renderActiveFilters();
             initProfileLocationDropdowns();
+
+            // Handle tab persistence from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            if (activeTab) {
+                const targetLink = document.querySelector(`.menu-item[onclick*="'${activeTab}'"]`);
+                if (targetLink) {
+                    showContent(activeTab, targetLink);
+                }
+            }
+
             // Check for validation errors and reopen modals if necessary
             @if($errors->create_course->any())
                 openAddCourseModal();
@@ -10305,7 +10316,10 @@
             dd.classList.toggle('open');
         }
 
-        function showContent(sectionId, element) {
+        function showContent(sectionId, element, event) {
+            if (event) {
+                event.preventDefault();
+            }
             // Hide all sections
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => {
@@ -10313,7 +10327,10 @@
             });
 
             // Show selected section
-            document.getElementById(sectionId).classList.add('active');
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
 
             // Update active menu item
             if (element) {

@@ -1932,6 +1932,52 @@
             }
         }
 
+        @media (max-width: 1024px){
+            .cert-layout{grid-template-columns:1fr}
+            .sticky-preview{position:static}
+        }
+
+        .cert-shell{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,.06)}
+        .cert-tabs{display:flex;gap:8px;padding:10px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+        .cert-tabs .tab-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0b3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}
+        .cert-tabs .tab-btn.active{background:#0b3b8f;color:#fff;border-color:#0b3b8f}
+        .cert-layout{display:grid;grid-template-columns:1.2fr .9fr;gap:18px}
+        .cert-panel{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:16px}
+        #certification-management .pro-input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;transition:border-color .18s ease, box-shadow .18s ease;box-sizing:border-box;min-width:0;}
+        #certification-management .pro-input:focus{outline:none;border-color:#90b4f8;box-shadow:0 0 0 3px rgba(144,180,248,.35)}
+        #certification-management label{display:block;margin-bottom:6px;color:#0f3b8f;font-weight:800}
+        .dz{border:2px dashed #cfe0ff;border-radius:14px;background:#f8fbff;padding:18px;text-align:center}
+        .dz:hover{border-color:#90b4f8;background:#f0f6ff}
+        .cert-preview-head{font-weight:800;color:#0f3b8f;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+        .cert-preview-box{position:relative;width:100%;aspect-ratio:1400/990;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc}
+        .btn-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff;color:#111827;font-weight:800;cursor:pointer}
+        .btn-blue{background:#0f3b8f;color:#fff;border-color:#0f3b8f}
+        .btn-green{background:#28a745;color:#fff;border-color:#28a745}
+        .btn-red{background:#dc3545;color:#fff;border-color:#dc3545}
+        .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+        .cert-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden}
+        .cert-card-head{padding:10px 12px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+        .cert-title{font-weight:800;color:#002C76}
+        .cert-chip{display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 10px;font-weight:800;font-size:.8rem}
+        .cert-actions{padding:12px 16px;display:flex;gap:8px}
+        .cert-meta{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eef2f7}
+        .cert-empty{display:flex;align-items:center;justify-content:center;min-height:160px;color:#64748b;gap:10px}
+        .kebab{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:800;color:#0f3b8f}
+        .kebab:hover{background:#f3f6ff}
+        .menu{position:absolute;right:12px;top:42px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 24px rgba(2,6,23,.12);display:none;min-width:180px;z-index:5}
+        .menu.open{display:block}
+        .menu a,.menu form button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;padding:10px 12px;color:#111827;text-decoration:none;font-weight:700}
+        .menu a:hover,.menu form button:hover{background:#f8fafc}
+        .flash-alert{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px;border-radius:10px;padding:10px 12px;font-weight:700}
+        .flash-success{border:1px solid #bbf7d0;background:#ecfdf3;color:#166534}
+        .flash-error{border:1px solid #f5c2c7;background:#fff5f5;color:#842029}
+        .flash-close{border:none;background:transparent;font-size:1.2rem;line-height:1;cursor:pointer;color:inherit;padding:4px 8px;border-radius:6px}
+        .flash-close:hover{background:rgba(0,0,0,.06)}
+        .flash-hide{opacity:0;transition:opacity .25s ease}
+        .sticky-preview{position:sticky;top:80px}
+        .cert-img-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:1200}
+        .cert-img-modal .box{max-width:92vw;max-height:90vh;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 22px 48px rgba(2,6,23,.35)}
+        .cert-img-modal img{display:block;max-width:92vw;max-height:90vh}
     </style>
 </head>
 <body>
@@ -2072,7 +2118,7 @@
                     <ul class="nav-portal-list" id="portal-dropdown-list-coach">
                         @if(Auth::user()->hasPermission('view_courses_coach'))
                         <li class="nav-item">
-                            <a href="{{ route('dashboard') }}" class="nav-link {{ (!request('tab') && ! $coachCreateCourseActive) || request('tab') === 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
+                            <a href="{{ route('dashboard') }}" class="nav-link {{ (!request('tab') && ! $coachCreateCourseActive) || request('tab') === 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this, event)">
                                 <i class="fas fa-tachometer-alt nav-icon"></i>
                                 <span class="nav-text">Dashboard</span>
                             </a>
@@ -2080,7 +2126,7 @@
                         @endif
                         @if(Auth::user()->hasPermission('view_courses_coach'))
                         <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link {{ request('tab') === 'my-courses' ? 'active' : '' }}" onclick="showContent('my-courses', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link {{ request('tab') === 'my-courses' ? 'active' : '' }}" onclick="showContent('my-courses', this, event)">
                                 <i class="fas fa-chalkboard-teacher nav-icon"></i>
                                 <span class="nav-text">My Courses</span>
                             </a>
@@ -2088,7 +2134,7 @@
                         @endif
                         @if($coachCreateCourseVisible)
                         <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'course-utilities']) }}" class="nav-link {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="showContent('course-utilities', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'course-utilities']) }}" class="nav-link {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="showContent('course-utilities', this, event)">
                                 <i class="fas fa-screwdriver-wrench nav-icon"></i>
                                 <span class="nav-text">Course Utilities</span>
                             </a>
@@ -2096,7 +2142,7 @@
                         @endif
                         @if($coachCertificationVisible)
                         <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link {{ request('tab') === 'certification-management' ? 'active' : '' }}">
+                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'certification-management']) }}" class="nav-link {{ request('tab') === 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this, event)">
                                 <i class="fas fa-certificate nav-icon"></i>
                                 <span class="nav-text">Certifications</span>
                             </a>
@@ -2104,7 +2150,7 @@
                         @endif
                         @if(Auth::user()->hasPermission('view_classes'))
                         <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'calendar']) }}" class="nav-link {{ request('tab') === 'calendar' ? 'active' : '' }}" onclick="showContent('calendar', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'calendar']) }}" class="nav-link {{ request('tab') === 'calendar' ? 'active' : '' }}" onclick="showContent('calendar', this, event)">
                                 <i class="fas fa-calendar-alt nav-icon"></i>
                                 <span class="nav-text">Calendar</span>
                             </a>
@@ -2112,7 +2158,7 @@
                         @endif
                         @if(Auth::user()->hasPermission('view_communication'))
                         <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'announcements']) }}" class="nav-link {{ request('tab') === 'announcements' ? 'active' : '' }}" onclick="showContent('announcements', this)">
+                            <a href="{{ route('dashboard', ['tab' => 'announcements']) }}" class="nav-link {{ request('tab') === 'announcements' ? 'active' : '' }}" onclick="showContent('announcements', this, event)">
                                 <i class="fas fa-bullhorn nav-icon"></i>
                                 <span class="nav-text">Announcements</span>
                             </a>
@@ -2944,6 +2990,204 @@
             </div>
 
             <!-- Manual Section -->
+            <div id="certification-management" class="content-section {{ request('tab') == 'certification-management' ? 'active' : '' }}">
+                <div class="cert-shell">
+                    <div class="cert-tabs">
+                        <button id="certTabCreate" class="tab-btn active" onclick="switchCertTab('create')" aria-controls="certPaneCreate" aria-selected="true"><i class="fas fa-plus-circle"></i> Create Certificate</button>
+                        <button id="certTabView" class="tab-btn" onclick="switchCertTab('view')" aria-controls="certPaneView" aria-selected="false"><i class="fas fa-list"></i> View Certificates</button>
+                        <button id="certTabCertify" class="tab-btn" onclick="switchCertTab('certify')" aria-controls="certPaneCertify" aria-selected="false"><i class="fas fa-award"></i> Certify</button>
+                    </div>
+                    @if(session('success_certification'))
+                        <div class="flash-alert flash-success" data-auto-dismiss="true">
+                            <span>{{ session('success_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    @endif
+                    @if(session('error_certification'))
+                        <div class="flash-alert flash-error" data-auto-dismiss="true">
+                            <span>{{ session('error_certification') }}</span>
+                            <button type="button" class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    @endif
+                    <div id="certPaneCreate" style="display:block;padding:16px">
+                        <form action="{{ route('certifications.store') }}" method="POST" enctype="multipart/form-data" id="certCreateForm">
+                            @csrf
+                            <div class="cert-layout">
+                                <div class="cert-panel" style="padding:16px;display:grid;gap:12px">
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Name</label>
+                                        <input type="text" name="name" placeholder="Certificate Name" class="pro-input" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Certificate Type</label>
+                                        <select name="category" class="pro-input" required>
+                                            <option value="">Select type</option>
+                                            @foreach(\App\Models\Course::subjectAreaOptions() as $opt)
+                                                <option value="{{ $opt }}">{{ $opt }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Template Mode</label>
+                                        <div style="display:flex;gap:12px;flex-wrap:wrap">
+                                            <label style="display:inline-flex;align-items:center;gap:8px">
+                                                <input type="radio" name="certMode" id="certModeStandard" value="standard" checked> Use Standard Certificate
+                                            </label>
+                                            <label style="display:inline-flex;align-items:center;gap:8px">
+                                                <input type="radio" name="certMode" id="certModeCustom" value="custom"> Create a New One
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="font-weight:700;color:#0f3b8f">Upload Certificate</label>
+                                        <div class="dz" id="certUploadZone">
+                                            <div style="margin-bottom:8px;color:#6b7280">Drag & drop PDF/PNG/JPG/DOCX or click to browse</div>
+                                            <input id="certTemplateInput" type="file" name="file" accept=".pdf,.docx,image/png,image/jpeg,image/jpg" style="width:100%">
+                                            <div style="margin-top:8px;color:#6b7280;font-size:.85rem">Max 10MB</div>
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Recipient Name</label>
+                                            <input id="certName" type="text" class="pro-input" placeholder="FULLNAME SAMPLE" value="FULLNAME SAMPLE">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Course / Training</label>
+                                            <input id="certCourse" type="text" class="pro-input" placeholder="COURSE NAME SAMPLE" value="COURSE NAME SAMPLE">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Completion Date</label>
+                                            <input id="certDate" type="date" class="pro-input" value="">
+                                        </div>
+                                        <div>
+                                            <label style="font-weight:700;color:#0f3b8f">Certificate Number</label>
+                                            <input id="certNumber" type="text" class="pro-input" placeholder="CERT-0000" value="CERT-0000">
+                                        </div>
+                                    </div>
+                                    <div id="certControlsBox" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+                                        <div><label>Name X</label><input id="posNameX" class="pro-input" type="number" value="320"></div>
+                                        <div><label>Name Y</label><input id="posNameY" class="pro-input" type="number" value="285"></div>
+                                        <div><label>Name Size</label><input id="fontName" class="pro-input" type="number" value="80"></div>
+                                        <div></div>
+                                        <div><label>Course X</label><input id="posCourseX" class="pro-input" type="number" value="365"></div>
+                                        <div><label>Course Y</label><input id="posCourseY" class="pro-input" type="number" value="465"></div>
+                                        <div><label>Course Size</label><input id="fontCourse" class="pro-input" type="number" value="60"></div>
+                                        <div></div>
+                                        <div><label>No. X</label><input id="posNumberX" class="pro-input" type="number" value="1120"></div>
+                                        <div><label>No. Y</label><input id="posNumberY" class="pro-input" type="number" value="812"></div>
+                                        <div><label>No. Size</label><input id="fontNumber" class="pro-input" type="number" value="25"></div>
+                                        <div></div>
+                                        <div><label>Date X</label><input id="posDateX" class="pro-input" type="number" value="1120"></div>
+                                        <div><label>Date Y</label><input id="posDateY" class="pro-input" type="number" value="840"></div>
+                                        <div><label>Date Size</label><input id="fontDate" class="pro-input" type="number" value="25"></div>
+                                        <div></div>
+                                    </div>
+                                    <div style="display:flex;justify-content:flex-end;gap:8px">
+                                        <button type="reset" class="btn-pill">Cancel</button>
+                                        <button type="submit" class="btn-pill btn-blue">Create Certificate</button>
+                                    </div>
+                                </div>
+                                <div class="cert-panel sticky-preview">
+                                    <div class="cert-preview-head">
+                                        <span>Live Preview</span>
+                                        <a id="btnDownloadFinal" href="#" class="btn-pill btn-blue">Download Final</a>
+                                    </div>
+                                    <div id="certPreviewBox" class="cert-preview-box">
+                                        <img id="certBg" alt="Template" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none">
+                                        <canvas id="certCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas>
+                                        <div id="ovName" style="position:absolute;left:30%;top:23%;transform:translateX(-0%);font-weight:800;font-size:2.2vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovCourse" style="position:absolute;left:30%;top:33%;transform:translateX(-0%);font-weight:700;font-size:1.8vw;color:#0b1e3a;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
+                                        <div id="ovNumber" style="position:absolute;left:79%;top:55%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                        <div id="ovDate" style="position:absolute;left:79%;top:59%;font-weight:700;font-size:1.1vw;color:#0b1e3a;white-space:nowrap"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="certPaneView" style="display:none;padding:16px">
+                        @if($certifications->isEmpty())
+                            <div class="cert-empty"><i class="fas fa-certificate" style="font-size:2rem"></i><span>No Certifications Added Yet</span></div>
+                        @else
+                            <div id="certListWrapper">
+                            <div class="cert-grid">
+                                @foreach($certifications as $cert)
+                                <div class="cert-card" style="position:relative">
+                                    <div class="cert-card-head">
+                                        <button class="kebab" type="button" onclick="toggleCertMenu({{ $cert->id }})"><i class="fas fa-ellipsis-v"></i></button>
+                                        <div id="menu-{{ $cert->id }}" class="menu">
+                                            <a href="{{ route('certifications.download', $cert->id) }}"><i class="fas fa-download"></i> Download</a>
+                                            <form action="{{ route('certifications.destroy', $cert->id) }}" method="POST" data-confirm-message="Delete this certificate?" data-confirm-title="Delete Certificate">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"><i class="fas fa-trash"></i> Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    @php
+                                        $ext = strtolower(pathinfo($cert->file_path ?? '', PATHINFO_EXTENSION));
+                                    @endphp
+                                    <div style="padding:14px 16px;border-top:1px solid #eef2f7">
+                                        @if(in_array($ext, ['png','jpg','jpeg']))
+                                            <img src="{{ route('media.public', ['path' => $cert->file_path]) }}" alt="Certificate Template" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer" onclick="openCertImagePreview('{{ route('media.public', ['path' => $cert->file_path]) }}')">
+                                        @else
+                                            <div class="cert-empty" style="gap:12px;flex-direction:column">
+                                                <i class="fas fa-file-pdf" style="font-size:2rem;color:#0f3b8f"></i>
+                                                <div style="color:#64748b">Template: {{ strtoupper($ext ?: 'FILE') }}</div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="cert-meta">
+                                        <div class="cert-title" style="font-size:1rem">{{ $cert->name }}</div>
+                                        <span class="cert-chip">{{ $cert->category ?? '—' }}</span>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            </div>
+                        @endif
+                        <div id="certInlinePreview" style="display:none">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                                <button type="button" class="btn-pill" onclick="closeCertImagePreview()"><i class="fas fa-arrow-left"></i> Back</button>
+                                <div style="font-weight:800;color:#0f3b8f">Preview</div>
+                                <div style="width:120px"></div>
+                            </div>
+                            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:12px">
+                                <img id="certInlineImg" alt="Certificate Preview" style="display:block;width:100%;height:auto;border-radius:8px">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="certPaneCertify" style="display:none;padding:16px">
+                        <div id="certifyCourseContent">
+                            <div class="cert-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">
+                                @foreach($courses as $course)
+                                <a href="javascript:void(0)" onclick="loadCertifyCourse({{ $course->id }})" style="text-decoration:none;color:inherit">
+                                    <div class="cert-card">
+                                        @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
+                                        @php
+                                            $img = !empty($course->image_path) ? $course->image_url : null;
+                                            if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
+                                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
+                                            $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
+                                        @endphp
+                                        <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
+                                        <div class="cert-card-head" style="border:none">
+                                            <div class="cert-title">{{ $course->name }}</div>
+                                            <span class="cert-chip">{{ $course->subject_area ?? 'Uncategorized' }}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="certImgModal" class="cert-img-modal" onclick="closeCertImagePreview()">
+                    <div class="box">
+                        <img id="certImgModalImg" alt="Certificate Preview">
+                    </div>
+                </div>
+            </div>
+
             <div id="manual" class="content-section {{ request('tab') == 'manual' ? 'active' : '' }}">
                 @include('partials.manual-content')
             </div>
@@ -4114,13 +4358,30 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             initProfileLocationDropdowns();
+            
+            // Handle tab persistence from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            if (activeTab) {
+                const targetLink = document.querySelector(`.nav-link[onclick*="'${activeTab}'"]`);
+                showContent(activeTab, targetLink);
+            }
         });
 
-        function showContent(id, element) {
+        function showContent(id, element, event) {
+            if (event) {
+                event.preventDefault();
+                const url = new URL(window.location);
+                url.searchParams.set('tab', id);
+                window.history.pushState({}, '', url);
+            }
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
-            document.getElementById(id).classList.add('active');
+            const targetSection = document.getElementById(id);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
 
             if (element) {
                 document.querySelectorAll('.nav-link').forEach(link => {
@@ -4616,19 +4877,39 @@
             if(menu&&d&&!menu.contains(ev.target)){d.style.display='none';}
         });
         function updateHeaderTitle(id){
-            var titleEl=document.getElementById('header-section-title');
-            if(!titleEl) return;
-            var section=document.getElementById(id);
-            var title='Dashboard';
-            if(section){
-                var h=section.querySelector('.section-title');
-                if(h){ title=h.textContent.trim(); }
-                else if(id==='course-details-view'){
-                    var dt=document.getElementById('detail-title');
-                    if(dt){ title=dt.textContent.trim(); }
-                } else if(id==='dashboard-home'){ title='Dashboard'; }
+            var titleEl = document.getElementById('header-section-title');
+            if (!titleEl) return;
+
+            const titles = {
+                'dashboard-home': 'Dashboard',
+                'my-courses': 'My Courses',
+                'course-utilities': 'Course Utilities',
+                'certification-management': 'Certifications',
+                'calendar': 'Calendar',
+                'announcements': 'Announcements',
+                'manual': 'Manual',
+                'profile': 'Profile Settings',
+                'help-support': 'Help & Support',
+                'notifications': 'Notifications'
+            };
+
+            var title = titles[id] || 'Dashboard';
+            
+            // Special handling for dynamic views
+            if (id === 'course-details-view') {
+                var dt = document.getElementById('detail-title');
+                if (dt) title = dt.textContent.trim();
+            } else if (id === 'course-create') {
+                title = 'Add Course';
+            } else if (id === 'pending-courses') {
+                title = 'Pending Courses';
+            } else if (id === 'archived-courses') {
+                title = 'Archived Courses';
+            } else if (id === 'course-library') {
+                title = 'Course Library';
             }
-            titleEl.textContent=title;
+
+            titleEl.textContent = title;
         }
         document.addEventListener('DOMContentLoaded',function(){
             var active=document.querySelector('.content-section.active');
@@ -4697,6 +4978,214 @@
 
                 applyFilters();
             })();
+        });
+        function switchCertTab(tab){
+            document.querySelectorAll('#certification-management .tab-btn').forEach(b=>b.classList.remove('active'));
+            const activeBtn = document.getElementById('certTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            ['Create','View','Certify'].forEach(p=>{
+                const pane = document.getElementById('certPane'+p);
+                if(pane) pane.style.display = (p.toLowerCase()===tab.toLowerCase())?'block':'none';
+            });
+        }
+        function openCertImagePreview(url){
+            const modal = document.getElementById('certImgModal');
+            const img = document.getElementById('certImgModalImg');
+            if(!modal || !img) return;
+            img.src = url;
+            modal.style.display = 'flex';
+        }
+        function closeCertImagePreview(){
+            const modal = document.getElementById('certImgModal');
+            if(modal) modal.style.display = 'none';
+        }
+        function toggleCertMenu(id){
+            const menu = document.getElementById('menu-'+id);
+            if(!menu) return;
+            const wasOpen = menu.classList.contains('open');
+            document.querySelectorAll('#certification-management .menu').forEach(m=>m.classList.remove('open'));
+            if(!wasOpen) menu.classList.add('open');
+            
+            const closeHandler = (e)=>{
+                if(!e.target.closest('.kebab') && !e.target.closest('.menu')){
+                    menu.classList.remove('open');
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            if(!wasOpen) document.addEventListener('click', closeHandler);
+        }
+        function loadCertifyCourse(courseId) {
+            const container = document.getElementById('certifyCourseContent');
+            if (!container) return;
+            container.innerHTML = '<div style="padding:100px 40px;text-align:center;color:#64748b;"><i class="fas fa-spinner fa-spin fa-3x" style="color:#0b3b8f"></i><p style="margin-top:20px;font-weight:800;font-size:1.1rem;color:#0b3b8f">Loading Certification Management...</p></div>';
+            const url = "{{ route('admin.certifications.course', ':id') }}".replace(':id', courseId);
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                const scripts = container.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+                document.getElementById('certification-management').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(error => {
+                console.error('Error loading certification page:', error);
+                container.innerHTML = '<div style="padding:60px 40px;text-align:center;color:#dc3545;"><i class="fas fa-exclamation-circle fa-3x"></i><p style="margin-top:20px;font-weight:800;">Failed to load certification details. Please try again.</p><button onclick="backToCertificates()" class="btn-pill" style="margin-top:20px">Back to Certificates</button></div>';
+            });
+        }
+        function backToCertificates() {
+            const container = document.getElementById('certifyCourseContent');
+            if (container) {
+                location.reload(); // Quickest way to reset the grid
+            }
+        }
+
+        // Live template preview for Create Certificate
+        document.addEventListener('DOMContentLoaded', function() {
+            const templateInput = document.getElementById('certTemplateInput');
+            const bgImg = document.getElementById('certBg');
+            const canvas = document.getElementById('certCanvas');
+            const uploadZone = document.getElementById('certUploadZone');
+            const controlsBox = document.getElementById('certControlsBox');
+            const modeStandard = document.getElementById('certModeStandard');
+            const modeCustom = document.getElementById('certModeCustom');
+            const STANDARD_CERT_URL = "{{ asset('images/capdev cert.jpg') }}";
+            
+            const ov = {
+                name: document.getElementById('ovName'),
+                course: document.getElementById('ovCourse'),
+                number: document.getElementById('ovNumber'),
+                date: document.getElementById('ovDate'),
+            };
+            const f = {
+                name: document.getElementById('certName'),
+                course: document.getElementById('certCourse'),
+                date: document.getElementById('certDate'),
+                number: document.getElementById('certNumber'),
+            };
+            const pos = {
+                nameX: document.getElementById('posNameX'),
+                nameY: document.getElementById('posNameY'),
+                courseX: document.getElementById('posCourseX'),
+                courseY: document.getElementById('posCourseY'),
+                numberX: document.getElementById('posNumberX'),
+                numberY: document.getElementById('posNumberY'),
+                dateX: document.getElementById('posDateX'),
+                dateY: document.getElementById('posDateY'),
+                fontName: document.getElementById('fontName'),
+                fontCourse: document.getElementById('fontCourse'),
+                fontNumber: document.getElementById('fontNumber'),
+                fontDate: document.getElementById('fontDate'),
+            };
+            const STD = {
+                nameX: 320, nameY: 285, fontName: 80,
+                courseX: 365, courseY: 465, fontCourse: 60,
+                numberX: 1120, numberY: 812, fontNumber: 25,
+                dateX: 1120, dateY: 840, fontDate: 25
+            };
+
+            function updateOverlay() {
+                if (!ov.name) return;
+                function fmtDate(val){
+                    if(!val) return '00/00/0000';
+                    try{
+                        const d = new Date(val);
+                        const mm = String(d.getMonth()+1).padStart(2,'0');
+                        const dd = String(d.getDate()).padStart(2,'0');
+                        const yyyy = d.getFullYear();
+                        if(isNaN(d.getTime())) return '00/00/0000';
+                        return mm+'/'+dd+'/'+yyyy;
+                    }catch(_){ return '00/00/0000'; }
+                }
+                ov.name.textContent = f.name.value || 'FULLNAME SAMPLE';
+                ov.course.textContent = f.course.value || 'COURSE NAME SAMPLE';
+                ov.number.textContent = f.number.value || 'CERT-0000';
+                ov.date.textContent = fmtDate(f.date.value);
+                const box = document.getElementById('certPreviewBox');
+                if (!box) return;
+                const w = 1400, h = 990;
+                const rect = box.getBoundingClientRect();
+                const rx = rect.width / w, ry = rect.height / h;
+                ov.name.style.left = (pos.nameX.value * rx) + 'px';
+                ov.name.style.top  = (pos.nameY.value * ry) + 'px';
+                ov.course.style.left = (pos.courseX.value * rx) + 'px';
+                ov.course.style.top  = (pos.courseY.value * ry) + 'px';
+                ov.number.style.left = (pos.numberX.value * rx) + 'px';
+                ov.number.style.top  = (pos.numberY.value * ry) + 'px';
+                ov.date.style.left = (pos.dateX.value * rx) + 'px';
+                ov.date.style.top  = (pos.dateY.value * ry) + 'px';
+                ov.name.style.fontSize = (pos.fontName.value * rx) + 'px';
+                ov.course.style.fontSize = (pos.fontCourse.value * rx) + 'px';
+                ov.number.style.fontSize = (pos.fontNumber.value * rx) + 'px';
+                ov.date.style.fontSize = (pos.fontDate.value * rx) + 'px';
+            }
+
+            ['input','change'].forEach(ev=>{
+                [f.name,f.course,f.date,f.number,pos.nameX,pos.nameY,pos.courseX,pos.courseY,pos.numberX,pos.numberY,pos.dateX,pos.dateY,pos.fontName,pos.fontCourse,pos.fontNumber,pos.fontDate].forEach(el=>{
+                    if(el){ el.addEventListener(ev, updateOverlay); }
+                });
+            });
+
+            async function setBackgroundFromUrl(url){
+                return new Promise((resolve)=>{
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = async ()=>{
+                        const c = document.createElement('canvas');
+                        const ctx = c.getContext('2d');
+                        c.width = img.naturalWidth || 1400;
+                        c.height = img.naturalHeight || 990;
+                        ctx.drawImage(img,0,0);
+                        const dataUrl = c.toDataURL('image/png');
+                        if (bgImg) {
+                            bgImg.src = dataUrl;
+                            bgImg.style.display='block';
+                        }
+                        if (canvas) canvas.style.display='none';
+                        updateOverlay();
+                        resolve();
+                    };
+                    img.onerror = ()=>resolve();
+                    img.src = url;
+                });
+            }
+
+            function applyModeUI(){
+                if(modeStandard && modeStandard.checked){
+                    if(uploadZone){ uploadZone.style.display = 'none'; }
+                    if(controlsBox){ controlsBox.style.display = 'none'; }
+                    setBackgroundFromUrl(STANDARD_CERT_URL);
+                    // Apply standard coordinates and sizes
+                    pos.nameX.value = STD.nameX; pos.nameY.value = STD.nameY; pos.fontName.value = STD.fontName;
+                    pos.courseX.value = STD.courseX; pos.courseY.value = STD.courseY; pos.fontCourse.value = STD.fontCourse;
+                    pos.numberX.value = STD.numberX; pos.numberY.value = STD.numberY; pos.fontNumber.value = STD.fontNumber;
+                    pos.dateX.value = STD.dateX; pos.dateY.value = STD.dateY; pos.fontDate.value = STD.fontDate;
+                    updateOverlay();
+                } else {
+                    if(uploadZone){ uploadZone.style.display = 'block'; }
+                    if(controlsBox){ controlsBox.style.display = 'grid'; }
+                    if (bgImg) {
+                        bgImg.src = '';
+                        bgImg.style.display='none';
+                    }
+                    if (canvas) canvas.style.display='none';
+                    updateOverlay();
+                }
+            }
+
+            if(modeStandard){ modeStandard.addEventListener('change', applyModeUI); }
+            if(modeCustom){ modeCustom.addEventListener('change', applyModeUI); }
+            
+            // Initial call
+            if (document.getElementById('certification-management')) {
+                applyModeUI();
+                updateOverlay();
+            }
         });
     </script>
 </body>

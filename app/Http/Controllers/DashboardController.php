@@ -612,7 +612,10 @@ class DashboardController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'rejectedCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear'));
+                $certifications = Certification::all();
+                $courses = $myCourses; // For certification course selection
+
+                return view('trainer.dashboard', compact('myCourses', 'activeCoachCourses', 'availableCourses', 'libraryCoachCourses', 'pendingCoachCourses', 'rejectedCoachCourses', 'archivedCoachCourses', 'courseStatuses', 'totalCoursesTeaching', 'totalStudents', 'announcements', 'calendarEvents', 'notifications', 'unreadNotificationsCount', 'forceProfile', 'academicYears', 'selectedYearId', 'selectedYear', 'certifications', 'courses'));
             case in_array($roleForView, $tmRoles, true):
                 if (!$user->hasPermission('view_training') && !$user->hasPermission('view_users_tm') && !$user->hasPermission('update_users_tm') && !$user->hasPermission('view_reports') && !$user->hasPermission('view_course_monitoring')) {
                     abort(403);

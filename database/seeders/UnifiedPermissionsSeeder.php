@@ -31,6 +31,7 @@ class UnifiedPermissionsSeeder extends Seeder
             'add_courses_coach', 'update_courses_coach', 'delete_courses_coach',
             'view_classes',
             'view_communication',
+            'view_certifications', 'create_certifications',
         ];
 
         $participantCore = [
