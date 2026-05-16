@@ -251,6 +251,11 @@ class CertificationController extends Controller
             $percent = $overallTotal ? round(($done/$overallTotal)*100) : 0;
             $progress[$u->id] = $percent;
         }
+
+        if (request()->ajax()) {
+            return view('admin.partials.certify-course-content', compact('course','trainers','trainees','certifications','progress'));
+        }
+
         return view('admin.certify-course', compact('course','trainers','trainees','certifications','progress'));
     }
 

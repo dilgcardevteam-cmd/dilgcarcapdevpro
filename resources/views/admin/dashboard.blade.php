@@ -7184,25 +7184,27 @@
                         </div>
                     </div>
                     <div id="certPaneCertify" style="display:none;padding:16px">
-                        <div class="cert-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">
-                            @foreach($courses as $course)
-                            <a href="{{ route('admin.certifications.course', $course) }}" style="text-decoration:none;color:inherit">
-                                <div class="cert-card">
-                                    @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                                    @php
-                                        $img = !empty($course->image_path) ? $course->image_url : null;
-                                        if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
-                                        if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
-                                        $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
-                                    @endphp
-                                    <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
-                                    <div class="cert-card-head" style="border:none">
-                                        <div class="cert-title">{{ $course->name }}</div>
-                                        <span class="cert-chip">{{ $course->subject_area ?? 'Uncategorized' }}</span>
+                        <div id="certifyCourseContent">
+                            <div class="cert-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));">
+                                @foreach($courses as $course)
+                                <a href="javascript:void(0)" onclick="loadCertifyCourse({{ $course->id }})" style="text-decoration:none;color:inherit">
+                                    <div class="cert-card">
+                                        @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
+                                        @php
+                                            $img = !empty($course->image_path) ? $course->image_url : null;
+                                            if (!$img) { $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>'); }
+                                            if (!$img && !empty($course->image_path) && \Illuminate\Support\Str::startsWith($course->image_path, ['http://','https://'])) { $img = $course->image_path; }
+                                            $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect width="600" height="300" rx="24" fill="#eef4ff"/><path d="M210 112h180a16 16 0 0 1 16 16v30a16 16 0 0 1-16 16H210a16 16 0 0 1-16-16v-30a16 16 0 0 1 16-16Z" fill="#dbe7fb"/><circle cx="244" cy="143" r="22" fill="#93c5fd"/><path d="M218 210l54-52 44 38 44-58 68 72H218Z" fill="#bfdbfe"/><text x="300" y="256" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="24" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 28, '')) . '</text></svg>');
+                                        @endphp
+                                        <img src="{{ $img }}" alt="{{ $course->name }}" style="width:100%;height:120px;object-fit:cover" onerror="this.onerror=null;this.src='{{ $ph }}'">
+                                        <div class="cert-card-head" style="border:none">
+                                            <div class="cert-title">{{ $course->name }}</div>
+                                            <span class="cert-chip">{{ $course->subject_area ?? 'Uncategorized' }}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                            @endforeach
+                                </a>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -11244,6 +11246,55 @@
             const frame = document.getElementById('courseCreateFrame');
             if (frame && !frame.getAttribute('src')) {
                 frame.setAttribute('src', buildCourseCreateFrameUrl());
+            }
+        }
+
+        let originalCertifyGridHtml = '';
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('certifyCourseContent');
+            if (container) {
+                originalCertifyGridHtml = container.innerHTML;
+            }
+        });
+
+        function loadCertifyCourse(courseId) {
+            const container = document.getElementById('certifyCourseContent');
+            if (!container) return;
+            
+            container.innerHTML = '<div style="padding:100px 40px;text-align:center;color:#64748b;"><i class="fas fa-spinner fa-spin fa-3x" style="color:#0b3b8f"></i><p style="margin-top:20px;font-weight:800;font-size:1.1rem;color:#0b3b8f">Loading Certification Management...</p></div>';
+            
+            const url = "{{ route('admin.certifications.course', ':id') }}".replace(':id', courseId);
+            
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                const scripts = container.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+                // Scroll to top of section
+                document.getElementById('certification-management').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(error => {
+                console.error('Error loading certification page:', error);
+                container.innerHTML = '<div style="padding:60px 40px;text-align:center;color:#dc3545;"><i class="fas fa-exclamation-circle fa-3x"></i><p style="margin-top:20px;font-weight:800;">Failed to load certification details. Please try again.</p><button onclick="backToCertificates()" class="btn-pill" style="margin-top:20px">Back to Certificates</button></div>';
+            });
+        }
+
+        function backToCertificates() {
+            const container = document.getElementById('certifyCourseContent');
+            if (container && originalCertifyGridHtml) {
+                container.innerHTML = originalCertifyGridHtml;
+                // Scroll back to certifications tab
+                document.getElementById('certification-management').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.location.href = "{{ route('dashboard', ['tab' => 'certification-management']) }}#certTabCertify";
             }
         }
 

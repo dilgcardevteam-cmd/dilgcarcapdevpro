@@ -1,0 +1,347 @@
+<div id="certifyCourseContainer" style="padding:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h1 style="margin:0;color:#0f3b8f">Certification <strong>Management</strong></h1>
+        <button type="button" onclick="backToCertificates()" style="display:inline-flex;align-items:center;gap:8px;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">
+            <i class="fas fa-arrow-left"></i> Back to Certificates
+        </button>
+    </div>
+
+    @if(session('success_certification'))
+        <div style="margin-bottom:12px;padding:10px 12px;border:1px solid #c1e7d2;background:#f0fff6;border-radius:10px;color:#065f46;font-weight:700">
+            {{ session('success_certification') }}
+        </div>
+    @endif
+    @if(session('error_certification'))
+        <div style="margin-bottom:12px;padding:10px 12px;border:1px solid #f5c2c7;background:#fff5f5;border-radius:10px;color:#842029;font-weight:700">
+            {{ session('error_certification') }}
+        </div>
+    @endif
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
+        <div style="display:flex;gap:12px">
+            @php 
+                $img = !empty($course->image_path) ? $course->image_url : null;
+                if (!$img) {
+                    $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
+                }
+            @endphp
+            <img src="{{ $img }}" alt="{{ $course->name }}" style="width:220px;height:140px;object-fit:cover;border-right:1px solid #e5e7eb">
+            <div style="padding:12px 16px;flex:1">
+                <div style="font-size:1.3rem;font-weight:800;color:#0f3b8f">{{ $course->name }}</div>
+                <div style="color:#6b7280;margin-top:6px">{{ $course->subject_area ?? 'Uncategorized' }}</div>
+                <div style="margin-top:8px;color:#334155"><strong>Trainer(s):</strong>
+                    @php $tn = $trainers->pluck('name')->implode(', '); @endphp
+                    {{ $tn ?: 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
+        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <div style="font-weight:800;color:#0f3b8f">Certificate Template</div>
+            <button type="button" onclick="openCertSelectModal()" style="display:inline-flex;align-items:center;gap:8px;background:#0f3b8f;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">
+                <i class="fas fa-list"></i> Select Certificate
+            </button>
+        </div>
+        <div style="padding:16px;display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">
+            <div style="flex:0 1 520px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:10px;position:relative;min-height:120px">
+                <div id="certSelectedPlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b7280">Select a certificate to preview</div>
+                <img id="certSelectedPreview" alt="Selected Certificate Preview" style="display:none;width:100%;height:auto;border-radius:8px">
+            </div>
+            <div style="flex:1;min-width:280px;display:flex;align-items:stretch;justify-content:center;align-self:stretch">
+                <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,.06);padding:18px 20px;text-align:center;max-width:520px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%">
+                    <div id="certSelectedName" style="font-weight:900;color:#0f3b8f;font-size:1.35rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No certificate selected yet</div>
+                    <div id="certSelectedTypeWrap" style="margin-top:10px">
+                        <span id="certSelectedType" style="display:none;align-self:center;background:#eef2ff;color:#0f3b8f;border:1px solid #dbeafe;border-radius:999px;padding:8px 14px;font-weight:800;font-size:1rem">—</span>
+                    </div>
+                    <div id="certSelectedNoPreview" style="display:none;margin-top:10px;color:#6b7280">Preview not available for this file type.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="selectedCertId" name="certification_id" form="bulkCertForm" value="">
+
+    <form method="POST" action="{{ route('admin.certifications.course.certify', $course) }}" id="bulkCertForm" onsubmit="handleBulkCertSubmit(event, this)" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
+        @csrf
+        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+            <label style="display:inline-flex;align-items:center;gap:8px;color:#0f3b8f">
+                <input type="checkbox" name="only_completed" value="1" onchange="filterOnlyCompleted(this)">
+                Only show 100% completed
+            </label>
+            <div style="margin-left:auto">
+                <button type="submit" style="padding:8px 14px;background:#0f3b8f;color:#fff;border:none;border-radius:8px;cursor:pointer"><i class="fas fa-certificate"></i> Certify Selected</button>
+            </div>
+        </div>
+        <div style="padding:0">
+            <table style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="background:#f8fafc;border-bottom:1px solid #e5e7eb;color:#0f3b8f">
+                        <th style="padding:10px;width:48px"><input type="checkbox" onclick="toggleAll(this)"></th>
+                        <th style="padding:10px;text-align:left">Name</th>
+                        <th style="padding:10px;text-align:left">Account ID</th>
+                        <th style="padding:10px;text-align:left">Email</th>
+                        <th style="padding:10px;text-align:right">Completion</th>
+                    </tr>
+                </thead>
+                <tbody id="traineeTbody">
+                    @forelse($trainees as $t)
+                        @php $pct = $progress[$t->id] ?? 0; @endphp
+                        <tr data-pct="{{ $pct }}" style="border-bottom:1px solid #f1f5f9">
+                            <td style="padding:10px;text-align:center">
+                                <input type="checkbox" name="user_ids[]" value="{{ $t->id }}" {{ $pct < 100 ? 'disabled' : '' }} title="{{ $pct < 100 ? 'Requires 100% completion' : '' }}">
+                            </td>
+                            <td style="padding:10px">{{ $t->name }}</td>
+                            <td style="padding:10px;font-family:monospace">{{ $t->account_id ?? '-' }}</td>
+                            <td style="padding:10px">{{ $t->email }}</td>
+                            <td style="padding:10px;text-align:right;font-weight:700;color:#0f3b8f">{{ $pct }}%</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="padding:12px;color:#6b7280">No enrolled trainees.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px">
+            <div style="font-weight:800;color:#0f3b8f">Already Certified</div>
+            <div id="certifiedCount" class="muted" style="color:#6b7280"></div>
+        </div>
+        <div style="padding:0">
+            <table style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="background:#f8fafc;border-bottom:1px solid #e5e7eb;color:#0f3b8f">
+                        <th style="padding:10px;text-align:left">Name</th>
+                        <th style="padding:10px;text-align:left">Account ID</th>
+                        <th style="padding:10px;text-align:left">Email</th>
+                        <th style="padding:10px;text-align:left">Certificate #</th>
+                        <th style="padding:10px;text-align:right">Date</th>
+                        <th style="padding:10px;text-align:right">Completion</th>
+                        <th style="padding:10px;text-align:right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="certifiedTbody">
+                    <tr><td colspan="7" style="padding:12px;color:#6b7280">Loading already-certified users for this course…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Modals --}}
+    <div id="selectCertModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:4000;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:14px;max-width:960px;width:92%;max-height:90vh;overflow:auto;box-shadow:0 16px 40px rgba(0,0,0,.2)">
+            <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+                <div style="font-weight:800;color:#0f3b8f">Select Certificate</div>
+                <button type="button" onclick="closeCertSelectModal()" style="border:none;background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer">×</button>
+            </div>
+            <div style="padding:14px">
+                @if(($certifications ?? collect())->isEmpty())
+                    <div style="color:#6b7280">No certificates available. Create one under Certificates → Create Certificate.</div>
+                @else
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+                        @foreach($certifications as $c)
+                            @php
+                                $ext = strtolower(pathinfo($c->file_path ?? '', PATHINFO_EXTENSION));
+                                $isImg = in_array($ext, ['png','jpg','jpeg']);
+                            @endphp
+                            <div onclick="chooseCert({{ $c->id }}, '{{ addslashes($c->name) }}', '{{ addslashes($c->category ?? '—') }}', '{{ route('media.public', ['path' => $c->file_path]) }}')" style="border:2px solid #e5e7eb;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .18s ease;background:#fff">
+                                <div style="height:140px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                                    @if($isImg)
+                                        <img src="{{ route('media.public', ['path' => $c->file_path]) }}" alt="{{ $c->name }}" style="max-width:100%;max-height:100%;object-fit:cover">
+                                    @else
+                                        <div style="text-align:center;color:#0f3b8f;font-weight:800">
+                                            <i class="fas fa-file-{{ $ext==='pdf'?'pdf':'alt' }}" style="font-size:2rem"></i><div>{{ strtoupper($ext) }}</div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                                    <div style="font-weight:800;color:#002C76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $c->name }}">{{ $c->name }}</div>
+                                    <span style="display:inline-block;background:#eef2ff;color:#0f3b8f;border-radius:6px;padding:4px 8px;font-weight:800;font-size:.75rem">{{ $c->category ?? '—' }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end">
+                <button type="button" onclick="closeCertSelectModal()" style="padding:8px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;cursor:pointer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="certModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:3000;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:12px;min-width:360px;max-width:90%;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden">
+            <div style="padding:16px;border-bottom:1px solid #e5e7eb">
+                <div style="font-weight:800;color:#0f3b8f">Certificate</div>
+            </div>
+            <div style="padding:16px;display:grid;gap:10px">
+                <div>
+                    <label style="font-weight:700;color:#0f3b8f">Certificate #</label>
+                    <input id="certNumberInput" type="text" maxlength="20" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </div>
+                <div>
+                    <label style="font-weight:700;color:#0f3b8f">Date</label>
+                    <input id="certDateInput" type="date" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px">
+                </div>
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px">
+                <button type="button" onclick="closeCertModal()" style="padding:8px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:8px;cursor:pointer">Close</button>
+                <button id="saveCertBtn" type="button" onclick="saveCertChanges()" style="padding:8px 12px;background:#0f3b8f;color:#fff;border:none;border-radius:8px;cursor:pointer">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var courseId = {{ $course->id }};
+            var statusUrl = "{{ route('admin.certifications.course.status', $course) }}";
+            var updateUrlTmpl = "{{ route('admin.certifications.course.cert.update', [$course, 'user' => '__UID__']) }}";
+            var deleteUrlTmpl = "{{ route('admin.certifications.course.cert.delete', [$course, 'user' => '__UID__']) }}";
+
+            window.loadStatus = function() {
+                fetch(statusUrl, {headers:{'Accept':'application/json'}}).then(function(r){ return r.ok ? r.json() : Promise.reject(); }).then(function(j){
+                    var notCert = Array.isArray(j.not_certified) ? j.not_certified : [];
+                    var have = Array.isArray(j.certified) ? j.certified : [];
+                    var tb = document.getElementById('traineeTbody');
+                    var html = '';
+                    if(!notCert.length){ html = '<tr><td colspan="5" style="padding:12px;color:#6b7280">No users to certify.</td></tr>'; }
+                    notCert.forEach(function(t){
+                        var name = (t.name||'').replace(/</g,'&lt;');
+                        var acct = (t.account_id||'-').replace(/</g,'&lt;');
+                        html += '<tr data-pct="'+(t.percent||0)+'" style="border-bottom:1px solid #f1f5f9">'+
+                                '<td style="padding:10px;text-align:center"><input type="checkbox" '+((t.percent||0)<100?'disabled title="Requires 100% completion"':'')+' name="user_ids[]" value="'+t.id+'"></td>'+
+                                '<td style="padding:10px">'+name+'</td>'+
+                                '<td style="padding:10px;font-family:monospace">'+acct+'</td>'+
+                                '<td style="padding:10px">'+(t.email||'')+'</td>'+
+                                '<td style="padding:10px;text-align:right;font-weight:700;color:#0f3b8f">'+(t.percent||0)+'%</td>'+
+                                '</tr>';
+                    });
+                    tb.innerHTML = html;
+                    var cb = document.getElementById('certifiedTbody');
+                    var ch = '';
+                    if(!have.length){ ch = '<tr><td colspan="7" style="padding:12px;color:#6b7280">No already-certified users for this course.</td></tr>'; }
+                    have.forEach(function(t){
+                        var name = (t.name||'').replace(/</g,'&lt;');
+                        var acct = (t.account_id||'-').replace(/</g,'&lt;');
+                        ch += '<tr style="border-bottom:1px solid #f1f5f9">'+
+                              '<td style="padding:10px">'+name+'</td>'+
+                              '<td style="padding:10px;font-family:monospace">'+acct+'</td>'+
+                              '<td style="padding:10px">'+(t.email||'')+'</td>'+
+                              '<td style="padding:10px;font-family:monospace">'+(t.certificate_number||'')+'</td>'+
+                              '<td style="padding:10px;text-align:right">'+(t.issued_at||'')+'</td>'+
+                              '<td style="padding:10px;text-align:right;font-weight:700;color:#0f3b8f">'+(t.percent||0)+'%</td>'+
+                              '<td style="padding:10px;text-align:right;white-space:nowrap">'+
+                                  '<button type="button" onclick=\'openCertModal(' + JSON.stringify(t.certificate_number||"") + ', ' + JSON.stringify(t.issued_at||"") + ', true, '+t.id+', '+(t.certification_id||'null')+')\' style="padding:6px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;margin-right:6px">View</button>'+
+                                  '<button type="button" onclick=\'openCertModal(' + JSON.stringify(t.certificate_number||"") + ', ' + JSON.stringify(t.issued_at||"") + ', false, '+t.id+', '+(t.certification_id||'null')+')\' style="padding:6px 10px;background:#0f3b8f;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:6px">Edit</button>'+
+                                  '<button type="button" onclick="confirmRevokeCert('+t.id+','+(t.certification_id||'null')+')" style="padding:6px 10px;background:#b91c1c;color:#fff;border:none;border-radius:6px;cursor:pointer">Revoke</button>'+
+                              '</td>'+
+                              '</tr>';
+                    });
+                    cb.innerHTML = ch;
+                    var cnt = document.getElementById('certifiedCount');
+                    if(cnt){ cnt.textContent = have.length ? have.length+' users' : ''; }
+                }).catch(function(){});
+            };
+
+            window.toggleAll = function(cb) {
+                document.querySelectorAll('#traineeTbody input[type="checkbox"][name="user_ids[]"]').forEach(function(x){
+                    if(!x.disabled){ x.checked = cb.checked; }
+                });
+            };
+
+            window.filterOnlyCompleted = function(box) {
+                var v = box && box.checked;
+                document.querySelectorAll('#traineeTbody tr[data-pct]').forEach(function(row){
+                    var pct = parseInt(row.getAttribute('data-pct') || '0', 10) || 0;
+                    row.style.display = (v && pct < 100) ? 'none' : '';
+                });
+            };
+
+            var EDIT_CTX = { userId: null, certId: null };
+            window.openCertModal = function(number, date, readOnly, userId, certId) {
+                if(!userId || !certId){ return; }
+                EDIT_CTX.userId = userId; EDIT_CTX.certId = certId;
+                var m = document.getElementById('certModal');
+                var n = document.getElementById('certNumberInput');
+                var d = document.getElementById('certDateInput');
+                var btn = document.getElementById('saveCertBtn');
+                n.value = number || '';
+                d.value = date || '';
+                n.disabled = !!readOnly;
+                d.disabled = !!readOnly;
+                btn.style.display = readOnly ? 'none' : 'inline-block';
+                m.style.display = 'flex';
+            };
+
+            window.closeCertModal = function() { var m=document.getElementById('certModal'); if(m){ m.style.display='none'; } };
+
+            window.saveCertChanges = function() {
+                if(!EDIT_CTX.userId || !EDIT_CTX.certId){ return; }
+                var url = updateUrlTmpl.replace('__UID__', EDIT_CTX.userId);
+                var num = document.getElementById('certNumberInput').value || '';
+                var dat = document.getElementById('certDateInput').value || '';
+                fetch(url, {
+                    method:'POST',
+                    headers:{'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept':'application/json','Content-Type':'application/json'},
+                    body: JSON.stringify({ certification_id: EDIT_CTX.certId, certificate_number: num, issued_at: dat })
+                }).then(function(r){ return r.json(); }).then(function(j){
+                    if(j && j.ok){ closeCertModal(); loadStatus(); }
+                    else { alert(j.message || 'Update failed'); }
+                }).catch(function(){ alert('Update failed'); });
+            };
+
+            window.confirmRevokeCert = async function(userId, certId) {
+                if(!userId || !certId){ return; }
+                if(!await window.capdevConfirm('Revoke this certification?', { title: 'Revoke Certification', confirmText: 'Revoke' })) return;
+                var url = deleteUrlTmpl.replace('__UID__', userId);
+                fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': CSRF_TOKEN,'Accept':'application/json','Content-Type':'application/json'}, body: JSON.stringify({ certification_id: certId }) })
+                    .then(function(r){ return r.json(); })
+                    .then(function(j){ if(j && j.ok){ loadStatus(); } else { alert(j.message || 'Revoke failed'); } })
+                    .catch(function(){ alert('Revoke failed'); });
+            };
+
+            window.openCertSelectModal = function() {
+                var m=document.getElementById('selectCertModal'); if(m){ m.style.display='flex'; }
+            };
+            window.closeCertSelectModal = function() {
+                var m=document.getElementById('selectCertModal'); if(m){ m.style.display='none'; }
+            };
+            window.chooseCert = function(id, name, category, url) {
+                var hid=document.getElementById('selectedCertId');
+                var nameEl=document.getElementById('certSelectedName');
+                var typeEl=document.getElementById('certSelectedType');
+                if(hid){ hid.value = id; }
+                if(nameEl){ nameEl.textContent = name || 'Certificate'; }
+                if(typeEl){ typeEl.textContent = category || '—'; typeEl.style.display='inline-flex'; }
+                var img=document.getElementById('certSelectedPreview');
+                var ph=document.getElementById('certSelectedPlaceholder');
+                var noPrev=document.getElementById('certSelectedNoPreview');
+                if(img){
+                    if(ph){ ph.style.display='flex'; }
+                    img.onerror = function(){ if(noPrev){ noPrev.style.display='block'; } img.style.display='none'; if(ph){ ph.style.display='none'; } };
+                    img.onload = function(){ img.style.display='block'; if(noPrev){ noPrev.style.display='none'; } if(ph){ ph.style.display='none'; } };
+                    img.src = url;
+                }
+                closeCertSelectModal();
+            };
+
+            window.handleBulkCertSubmit = function(e, form) {
+                e.preventDefault();
+                var formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' }
+                }).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+                    loadStatus();
+                    alert('Certification process completed.');
+                }).catch(() => alert('Failed to certify selected users.'));
+            };
+
+            loadStatus();
+        })();
+    </script>
+</div>

@@ -213,6 +213,282 @@
         background: #f8fafc;
     }
 
+    /* Manual Viewer Styles */
+    .manual-viewer-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin: 10px 0 20px 0;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .viewer-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .viewer-image-container {
+        width: 100%;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid #f1f5f9;
+        cursor: grab;
+    }
+
+    .viewer-image-container:active {
+        cursor: grabbing;
+    }
+
+    .viewer-image-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.1s linear; /* Faster transition for scroll zoom */
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .viewer-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .viewer-nav-btn:hover {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #3b82f6;
+    }
+
+    .viewer-nav-btn:disabled {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .viewer-nav-btn.prev { left: 15px; }
+    .viewer-nav-btn.next { right: 15px; }
+
+    .viewer-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px 0;
+    }
+
+    .viewer-nav-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .viewer-action-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .viewer-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .viewer-btn:hover {
+        background: #eff6ff;
+        color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .viewer-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f8fafc;
+    }
+
+    .viewer-counter {
+        font-size: 14px;
+        font-weight: 600;
+        color: #475569;
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 20px;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    /* Fullscreen Styles (Modal-like) */
+    .viewer-fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #0f172a !important; /* Solid dark blue/black */
+        z-index: 999999 !important;
+        padding: 0 !important; /* Remove padding to maximize space */
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .viewer-fullscreen .viewer-content {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .viewer-fullscreen .viewer-image-container {
+        flex: 1;
+        height: 100%;
+        width: 100%;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px; /* Space for nav arrows and close button */
+    }
+
+    .viewer-fullscreen .viewer-controls {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 41, 59, 0.8);
+        padding: 12px 24px;
+        border-radius: 40px;
+        width: auto;
+        min-width: 250px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        z-index: 1000001;
+    }
+
+    .viewer-fullscreen .viewer-counter {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .viewer-fullscreen .viewer-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+
+    .viewer-fullscreen .viewer-btn:hover {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .viewer-fullscreen .viewer-nav-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.4);
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        backdrop-filter: blur(4px);
+        position: fixed; /* Fix position relative to viewport */
+        top: 50%;
+        transform: translateY(-50%);
+        transition: all 0.3s ease;
+    }
+
+    .viewer-fullscreen .viewer-nav-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .viewer-fullscreen .viewer-nav-btn.prev {
+        left: 20px;
+    }
+
+    .viewer-fullscreen .viewer-nav-btn.next {
+        right: 20px;
+    }
+
+    .close-fullscreen {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 1000002;
+        transition: all 0.2s ease;
+        font-size: 20px;
+        backdrop-filter: blur(4px);
+    }
+
+    .viewer-fullscreen .close-fullscreen {
+        display: flex;
+    }
+
+    .close-fullscreen:hover {
+        background: #ef4444;
+        border-color: #ef4444;
+    }
+
     /* Sidebar cards */
     .manual-sidebar {
         display: flex;
@@ -412,16 +688,19 @@
                         <i class="fas fa-chevron-down manual-accordion-chevron"></i>
                     </div>
                     <div class="manual-accordion-content">
+                        <div id="viewer-user-adding" class="manual-viewer-box" style="display: none;"></div>
+
                         <div class="manual-sub-item">
                             <div class="manual-sub-info">
-                                <h4>Adding New Users</h4>
-                                <p>Learn how to create user profiles and assign appropriate system roles.</p>
+                                <h4>Editing Users</h4>
+                                <p>Manage existing user information, update roles, and modify account status.</p>
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="user-editing"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-user-editing" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -471,9 +750,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="course-management"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-course-management" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -497,9 +777,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="certifications"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-certifications" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -668,6 +949,257 @@
 </div>
 
 <script>
+    const manualImages = {
+        'user-editing': [
+            '/Manual/Admin Manual/User Management/8.png',
+            '/Manual/Admin Manual/User Management/9.png',
+            '/Manual/Admin Manual/User Management/10.png',
+            '/Manual/Admin Manual/User Management/11.png',
+            '/Manual/Admin Manual/User Management/12.png',
+            '/Manual/Admin Manual/User Management/13.png',
+            '/Manual/Admin Manual/User Management/14.png',
+            '/Manual/Admin Manual/User Management/15.png',
+            '/Manual/Admin Manual/User Management/16.png'
+        ],
+        'user-adding': [], // Placeholder
+        'course-management': [
+            '/Manual/Admin Manual/Course Management/17.png',
+            '/Manual/Admin Manual/Course Management/18.png',
+            '/Manual/Admin Manual/Course Management/19.png',
+            '/Manual/Admin Manual/Course Management/20.png',
+            '/Manual/Admin Manual/Course Management/21.png',
+            '/Manual/Admin Manual/Course Management/22.png',
+            '/Manual/Admin Manual/Course Management/23.png',
+            '/Manual/Admin Manual/Course Management/24.png',
+            '/Manual/Admin Manual/Course Management/25.png',
+            '/Manual/Admin Manual/Course Management/26.png',
+            '/Manual/Admin Manual/Course Management/27.png',
+            '/Manual/Admin Manual/Course Management/28.png',
+            '/Manual/Admin Manual/Course Management/29.png',
+            '/Manual/Admin Manual/Course Management/30.png',
+            '/Manual/Admin Manual/Course Management/31.png',
+            '/Manual/Admin Manual/Course Management/32.png',
+            '/Manual/Admin Manual/Course Management/33.png',
+            '/Manual/Admin Manual/Course Management/34.png',
+            '/Manual/Admin Manual/Course Management/35.png',
+            '/Manual/Admin Manual/Course Management/36.png',
+            '/Manual/Admin Manual/Course Management/37.png'
+        ],
+        'certifications': [
+            '/Manual/Admin Manual/Certifications/38.png',
+            '/Manual/Admin Manual/Certifications/39.png',
+            '/Manual/Admin Manual/Certifications/40.png',
+            '/Manual/Admin Manual/Certifications/41.png',
+            '/Manual/Admin Manual/Certifications/42.png'
+        ]
+    };
+
+    const viewers = {};
+
+    class ManualViewer {
+        constructor(id, images) {
+            this.container = document.getElementById(`viewer-${id}`);
+            this.images = images;
+            this.currentIndex = 0;
+            this.zoomLevel = 1;
+            this.isFullscreen = false;
+            this.init();
+        }
+
+        init() {
+            if (this.images.length === 0) {
+                this.container.innerHTML = '<p style="text-align:center;color:#64748b;padding:20px;">No images available for this section.</p>';
+                return;
+            }
+
+            this.render();
+            this.attachEvents();
+        }
+
+        render() {
+            this.container.innerHTML = `
+                <div class="viewer-content">
+                    <div class="close-fullscreen" title="Close Fullscreen"><i class="fas fa-times"></i></div>
+                    <div class="viewer-image-container">
+                        <button class="viewer-nav-btn prev" ${this.currentIndex === 0 ? 'disabled' : ''} title="Previous">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <img src="${this.images[this.currentIndex]}" alt="Step ${this.currentIndex + 1}" style="transform: translate(0px, 0px) scale(${this.zoomLevel})">
+                        <button class="viewer-nav-btn next" ${this.currentIndex === this.images.length - 1 ? 'disabled' : ''} title="Next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="viewer-controls">
+                        <div class="viewer-nav-group">
+                            <div class="viewer-counter">${this.currentIndex + 1} / ${this.images.length}</div>
+                        </div>
+                        <div class="viewer-action-group">
+                            <button class="viewer-btn zoom-out-btn" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                            <button class="viewer-btn zoom-in-btn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            <button class="viewer-btn fullscreen-btn" title="Toggle Fullscreen"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        attachEvents() {
+            const prevBtn = this.container.querySelector('.viewer-nav-btn.prev');
+            const nextBtn = this.container.querySelector('.viewer-nav-btn.next');
+            const zoomInBtn = this.container.querySelector('.zoom-in-btn');
+            const zoomOutBtn = this.container.querySelector('.zoom-out-btn');
+            const fullscreenBtn = this.container.querySelector('.fullscreen-btn');
+            const closeFullscreenBtn = this.container.querySelector('.close-fullscreen');
+            const imgContainer = this.container.querySelector('.viewer-image-container');
+            const img = this.container.querySelector('img');
+
+            prevBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.navigate(-1);
+            });
+            nextBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.navigate(1);
+            });
+            zoomInBtn?.addEventListener('click', () => this.zoom(0.2));
+            zoomOutBtn?.addEventListener('click', () => this.zoom(-0.2));
+            fullscreenBtn?.addEventListener('click', () => this.toggleFullscreen());
+            closeFullscreenBtn?.addEventListener('click', () => this.toggleFullscreen(false));
+
+            // Panning logic
+            let isDragging = false;
+            let startX, startY;
+            this.translateX = 0;
+            this.translateY = 0;
+
+            imgContainer.addEventListener('mousedown', (e) => {
+                if (this.zoomLevel <= 1 || e.target.closest('.viewer-nav-btn')) return;
+                isDragging = true;
+                startX = e.pageX - this.translateX;
+                startY = e.pageY - this.translateY;
+                imgContainer.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                this.translateX = e.pageX - startX;
+                this.translateY = e.pageY - startY;
+                this.updateImageTransform(this.translateX, this.translateY);
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                if (imgContainer) {
+                    imgContainer.style.cursor = this.zoomLevel > 1 ? 'grab' : 'default';
+                }
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (this.container.style.display === 'none') return;
+                
+                if (e.key === 'ArrowLeft') this.navigate(-1);
+                if (e.key === 'ArrowRight') this.navigate(1);
+                if (e.key === 'Escape' && this.isFullscreen) this.toggleFullscreen(false);
+            });
+        }
+
+        navigate(direction) {
+            const newIndex = this.currentIndex + direction;
+            if (newIndex >= 0 && newIndex < this.images.length) {
+                this.currentIndex = newIndex;
+                this.zoomLevel = 1;
+                this.resetPanning();
+                this.updateViewer();
+            }
+        }
+
+        zoom(delta) {
+            this.zoomLevel = Math.max(0.5, Math.min(5, this.zoomLevel + delta));
+            if (this.zoomLevel <= 1) this.resetPanning();
+            this.updateViewer();
+        }
+
+        resetPanning() {
+            this.translateX = 0;
+            this.translateY = 0;
+        }
+
+        updateImageTransform(tx = 0, ty = 0) {
+            const img = this.container.querySelector('img');
+            if (img) {
+                img.style.transform = `translate(${tx}px, ${ty}px) scale(${this.zoomLevel})`;
+            }
+        }
+
+        toggleFullscreen(force) {
+            this.isFullscreen = force !== undefined ? force : !this.isFullscreen;
+            if (this.isFullscreen) {
+                this.originalParent = this.container.parentElement;
+                this.nextSibling = this.container.nextSibling;
+                document.body.appendChild(this.container);
+                this.container.classList.add('viewer-fullscreen');
+                document.body.style.overflow = 'hidden';
+            } else {
+                if (this.originalParent) {
+                    this.originalParent.insertBefore(this.container, this.nextSibling);
+                }
+                this.container.classList.remove('viewer-fullscreen');
+                document.body.style.overflow = '';
+            }
+            this.resetPanning();
+            this.updateViewer();
+        }
+
+        updateViewer() {
+            const img = this.container.querySelector('img');
+            const counter = this.container.querySelector('.viewer-counter');
+            const prevBtn = this.container.querySelector('.viewer-nav-btn.prev');
+            const nextBtn = this.container.querySelector('.viewer-nav-btn.next');
+            const imgContainer = this.container.querySelector('.viewer-image-container');
+
+            if (img) {
+                img.src = this.images[this.currentIndex];
+                this.updateImageTransform(this.translateX || 0, this.translateY || 0);
+            }
+            if (counter) counter.innerText = `${this.currentIndex + 1} / ${this.images.length}`;
+            if (prevBtn) prevBtn.disabled = this.currentIndex === 0;
+            if (nextBtn) nextBtn.disabled = this.currentIndex === this.images.length - 1;
+            if (imgContainer) imgContainer.style.cursor = this.zoomLevel > 1 ? 'grab' : 'default';
+        }
+    }
+
+    document.querySelectorAll('.btn-view-manual').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const manualId = this.getAttribute('data-manual');
+            if (!manualId) return; // Ignore buttons without data-manual for now
+
+            const viewerContainer = document.getElementById(`viewer-${manualId}`);
+            if (!viewerContainer) return;
+            
+            // Toggle logic
+            if (viewerContainer.style.display === 'block') {
+                viewerContainer.style.display = 'none';
+                this.innerHTML = '<i class="fas fa-eye"></i> View';
+            } else {
+                // Close all other viewers first
+                document.querySelectorAll('.manual-viewer-box').forEach(v => {
+                    v.style.display = 'none';
+                    const correspondingBtn = document.querySelector(`.btn-view-manual[data-manual="${v.id.replace('viewer-', '')}"]`);
+                    if (correspondingBtn) correspondingBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+                });
+
+                viewerContainer.style.display = 'block';
+                this.innerHTML = '<i class="fas fa-eye-slash"></i> Close';
+
+                if (!viewers[manualId]) {
+                    viewers[manualId] = new ManualViewer(manualId, manualImages[manualId] || []);
+                }
+            }
+        });
+    });
+
     function toggleManualAccordion(header) {
         const item = header.parentElement;
         const list = item.parentElement;

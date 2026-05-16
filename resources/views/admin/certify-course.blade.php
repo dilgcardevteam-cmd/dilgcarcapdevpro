@@ -98,7 +98,7 @@
     <header class="header">
         <div class="header-left">
             <div class="header-title">
-                <img src="{{ asset('images/CAPDEV-PRO-LOGO.png') }}" alt="CapDev Pro">
+                <img src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro">
             </div>
         </div>
         <div class="header-right">
@@ -153,8 +153,13 @@
         @endif
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px">
             <div style="display:flex;gap:12px">
-                @php $ver = \Carbon\Carbon::parse($course->updated_at ?? now())->timestamp; @endphp
-                <img src="{{ $course->image_path ? asset('storage/'.$course->image_path).'?v='.$ver : 'https://via.placeholder.com/300x160?text=No+Image' }}" alt="{{ $course->name }}" style="width:220px;height:140px;object-fit:cover;border-right:1px solid #e5e7eb">
+                @php 
+                    $img = !empty($course->image_path) ? $course->image_url : null;
+                    if (!$img) {
+                        $img = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160"><rect width="300" height="160" rx="18" fill="#eef4ff"/><path d="M104 62h92a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10h-92a10 10 0 0 1-10-10V72a10 10 0 0 1 10-10Z" fill="#dbe7fb"/><circle cx="122" cy="80" r="12" fill="#93c5fd"/><path d="M116 108l22-21 18 16 18-24 28 29H116Z" fill="#bfdbfe"/><text x="150" y="138" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">' . e(\Illuminate\Support\Str::limit($course->name, 22, '')) . '</text></svg>');
+                    }
+                @endphp
+                <img src="{{ $img }}" alt="{{ $course->name }}" style="width:220px;height:140px;object-fit:cover;border-right:1px solid #e5e7eb">
                 <div style="padding:12px 16px;flex:1">
                     <div style="font-size:1.3rem;font-weight:800;color:#0f3b8f">{{ $course->name }}</div>
                     <div style="color:#6b7280;margin-top:6px">{{ $course->subject_area ?? 'Uncategorized' }}</div>
