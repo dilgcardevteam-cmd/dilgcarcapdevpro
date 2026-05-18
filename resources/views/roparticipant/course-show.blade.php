@@ -136,7 +136,7 @@
             content:'';
             display:block;
             height:72px;
-            background:url('{{ asset('images/CAPDEV PRO.png') }}') no-repeat center;
+            background:url('{{ asset('images/Capdev pro.png') }}') no-repeat center;
             background-size:160px auto;
             border-bottom:1px solid rgba(255,255,255,.12);
         }
@@ -218,17 +218,17 @@
     </style>
     </head>
 <body class="{{ isset($viewOnly) && $viewOnly ? 'view-only' : '' }}">
+    @php
+        $role = auth()->user()->role ?? null;
+        $isCoach = in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
+        $backUrl = $isCoach ? route('trainer.courses.enter', $course) : route('trainee.courses.show', $course);
+    @endphp
     <header class="app-header">
         <div class="app-header-left">
-            <img class="app-header-logo" src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro">
+            <img class="app-header-logo" src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro">
         </div>
         <div class="app-header-right" style="display:flex;align-items:center;gap:16px">
             <a href="{{ route('dashboard', ['tab' => 'manual']) }}" style="color:#0f3b8f"><i class="fas fa-book"></i> Manual</a>
-            @php
-                $role = auth()->user()->role ?? null;
-                $isCoach = in_array($role, ['trainer','coach'], true) || \Illuminate\Support\Str::endsWith((string) $role, '_coach');
-                $backUrl = $isCoach ? route('trainer.courses.enter', $course) : route('trainee.courses.show', $course);
-            @endphp
             <a href="{{ $backUrl }}" style="color:#0f3b8f"><i class="fas fa-arrow-left"></i> Back</a>
         </div>
     </header>
@@ -277,8 +277,12 @@
         </main>
     </div>
     <script>
-        const storageBaseUrl = "{{ asset('storage') }}";
-        const course = @json($course);
+    const storageBaseUrl = "{{ asset('storage') }}";
+        @php
+            $coursePayload = $course->toArray();
+            unset($coursePayload['access_code']);
+        @endphp
+        const course = @json($coursePayload);
         const status = @json($status);
         const isEnrolled = status === 'active';
         const viewOnly = @json($viewOnly ?? false);
@@ -952,5 +956,4 @@
     </script>
 </body>
 </html>
-
 

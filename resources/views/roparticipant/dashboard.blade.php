@@ -440,8 +440,8 @@
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:75px">
+            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center;">
+                <img id="sidebarLogo" src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
             <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
@@ -1248,13 +1248,18 @@
             <div style="margin-bottom: 20px;">
                 <i class="fas fa-question-circle" style="font-size: 4rem; color: var(--primary-blue);"></i>
             </div>
-            <h2 class="modal-title">Confirm Enrollment</h2>
-            <p style="color: #666; margin-bottom: 25px;">Are you sure you want to enroll in this course?</p>
+            <h2 class="modal-title" id="enrollModalTitle">Confirm Enrollment</h2>
+            <p id="enrollModalMessage" style="color: #666; margin-bottom: 25px;">Are you sure you want to enroll in this course?</p>
             <form id="enrollForm" method="POST" action="">
                 @csrf
+                <div id="accessCodeWrapper" style="display:none; margin-bottom:20px;">
+                    <label for="access_code" style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:8px; text-align:left;">Access Code</label>
+                    <input type="text" id="access_code" name="access_code" placeholder="Enter access code" style="width:100%; padding:12px; border:1px solid #d1d5db; border-radius:10px; font-size:1rem; outline:none; transition:border-color 0.2s; box-sizing:border-box;" onfocus="this.style.borderColor='#153E8A'" onblur="this.style.borderColor='#d1d5db'">
+                    <div id="enrollError" style="display:none; color:#dc2626; font-size:0.875rem; margin-top:8px; text-align:left;"></div>
+                </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-cancel" onclick="closeEnrollModal()">Cancel</button>
-                    <button type="submit" class="btn-confirm">Yes, Enroll</button>
+                    <button type="submit" class="btn-confirm" id="enrollSubmitBtn">Yes, Enroll</button>
                 </div>
             </form>
         </div>
@@ -1266,7 +1271,11 @@
         const coursesData = {};
         const courseStatuses = @json($courseStatuses);
         @foreach($availableCourses as $course)
-            coursesData[{{ $course->id }}] = @json($course);
+            @php
+                $coursePayload = $course->toArray();
+                unset($coursePayload['access_code']);
+            @endphp
+            coursesData[{{ $course->id }}] = @json($coursePayload);
         @endforeach
         const enrolledCourseIds = @json($myCourses->pluck('id'));
         const myCoursesFull = @json($myCourses);
@@ -2001,15 +2010,93 @@
             document.querySelectorAll('.classwork-subtab').forEach(content => content.classList.remove('active'));
             document.getElementById(`subtab-${subTabName}`).classList.add('active');
         }
-        function openEnrollModal(courseId) {
+        function openEnrollModal(courseId, courseName) {
             if (courseId) { currentCourseId = courseId; }
             if (!currentCourseId) return;
+
+            const course = coursesData[currentCourseId];
             const form = document.getElementById('enrollForm');
-            form.action = `/courses/${currentCourseId}/join`;
+            const title = document.getElementById('enrollModalTitle');
+            const message = document.getElementById('enrollModalMessage');
+            const accessCodeWrapper = document.getElementById('accessCodeWrapper');
+            const submitBtn = document.getElementById('enrollSubmitBtn');
+            const errorDiv = document.getElementById('enrollError');
+            const input = document.getElementById('access_code');
+
+            errorDiv.style.display = 'none';
+            input.value = '';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+
+            if (course && course.course_type === 'controlled') {
+                title.textContent = 'Join Controlled Course';
+                message.textContent = `Please enter the access code for "${courseName || course.name}" to join.`;
+                accessCodeWrapper.style.display = 'block';
+                submitBtn.textContent = 'Join Class';
+                form.onsubmit = handleControlledEnrollment;
+            } else {
+                title.textContent = 'Confirm Enrollment';
+                message.textContent = 'Are you sure you want to enroll in this course?';
+                accessCodeWrapper.style.display = 'none';
+                submitBtn.textContent = 'Yes, Enroll';
+                form.action = `/courses/${currentCourseId}/join`;
+                form.onsubmit = null;
+            }
+
             document.getElementById('enrollModal').style.display = 'flex';
+            if (course && course.course_type === 'controlled') {
+                setTimeout(() => input.focus(), 100);
+            }
         }
         function closeEnrollModal() {
             document.getElementById('enrollModal').style.display = 'none';
+            document.getElementById('access_code').value = '';
+            document.getElementById('enrollError').style.display = 'none';
+        }
+        async function handleControlledEnrollment(event) {
+            event.preventDefault();
+
+            const errorDiv = document.getElementById('enrollError');
+            const submitBtn = document.getElementById('enrollSubmitBtn');
+            const accessCode = document.getElementById('access_code').value.trim();
+
+            if (!accessCode) {
+                errorDiv.textContent = 'Please enter an access code.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`/courses/${currentCourseId}/enroll-controlled`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ access_code: accessCode })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = data.redirect || window.location.href;
+                    return;
+                }
+
+                errorDiv.textContent = data.message || 'Invalid code, please try again.';
+                errorDiv.style.display = 'block';
+            } catch (error) {
+                console.error('Enrollment error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
         }
         window.onclick = function(event) {
             const modal = document.getElementById('enrollModal');

@@ -99,6 +99,76 @@
         .sidebar.collapsed .nav-text{display:none}
         .sidebar.collapsed .nav-link{justify-content:center;padding:12px 0}
         .sidebar.collapsed .nav-icon{margin-right:0}
+
+        /* Portal Dropdown Styles */
+        .nav-portal {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-portal-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+        
+        .nav-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .nav-chevron::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            transform: rotate(45deg);
+        }
+        
+        .nav-portal.open .nav-chevron {
+            transform: translateY(-50%) rotate(180deg);
+            background-color: transparent;
+        }
+        
+        .nav-portal-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        
+        .nav-portal.open .nav-portal-list {
+            max-height: 420px;
+        }
+        
+        .nav-portal-list .nav-link {
+            padding: 12px 25px 12px 54px;
+        }
+        
+        .sidebar.collapsed .nav-portal-list {
+            max-height: 0 !important;
+        }
+
         .main-content{flex:1;padding:24px;overflow-y:auto;background:linear-gradient(180deg,#f7f9fc 0%,#f2f5fa 100%)}
         .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
         .back-link i{margin-right:8px}
@@ -1087,81 +1157,99 @@
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <div class="header-title" style="padding:12px 20px;display:flex;align-items:center;justify-content:center">
-                <img id="sidebarLogo" src="{{ !empty($asTrainer) ? asset('images/capdev_pro_w-removebg-preview.png') : asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
+            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center;">
+                <img id="sidebarLogo" src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
-            <div style="padding:8px 20px;display:flex;align-items:center;gap:12px;">
+            <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
             <ul class="nav-menu">
                 @if(!empty($asTrainer))
-                <li class="nav-item">
-                    <div class="nav-link" style="cursor:default;opacity:.95;font-weight:700">
+                <li class="nav-portal open" id="portal-dropdown-coach">
+                    <a href="#" class="nav-link nav-portal-toggle active" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
                         <i class="fas fa-layer-group nav-icon"></i>
                         <span class="nav-text">Coach Portal</span>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'coach']) }}" class="nav-link">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span class="nav-text">Dashboard</span>
+                        <span class="nav-chevron"></span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}" class="nav-link">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span class="nav-text">My Courses</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'course-utilities']) }}" class="nav-link">
-                        <i class="fas fa-screwdriver-wrench nav-icon"></i>
-                        <span class="nav-text">Course Utilities</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link">
-                        <i class="fas fa-certificate nav-icon"></i>
-                        <span class="nav-text">Certifications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}" class="nav-link">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span class="nav-text">Calendar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}" class="nav-link">
-                        <i class="fas fa-bullhorn nav-icon"></i>
-                        <span class="nav-text">Announcements</span>
-                    </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-coach">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'coach']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}" class="nav-link">
+                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                                <span class="nav-text">My Courses</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'course-utilities']) }}" class="nav-link">
+                                <i class="fas fa-screwdriver-wrench nav-icon"></i>
+                                <span class="nav-text">Course Utilities</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link">
+                                <i class="fas fa-certificate nav-icon"></i>
+                                <span class="nav-text">Certifications</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}" class="nav-link">
+                                <i class="fas fa-calendar-alt nav-icon"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}" class="nav-link">
+                                <i class="fas fa-bullhorn nav-icon"></i>
+                                <span class="nav-text">Announcements</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 @else
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span class="nav-text">Dashboard</span>
+                <li class="nav-portal open" id="portal-dropdown-participant">
+                    <a href="#" class="nav-link nav-portal-toggle active" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Participant Portal</span>
+                        <span class="nav-chevron"></span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span class="nav-text">Classroom</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span class="nav-text">Calendar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
-                        <i class="fas fa-bullhorn nav-icon"></i>
-                        <span class="nav-text">Announcements</span>
-                    </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-participant">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link active">
+                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                                <span class="nav-text">Classroom</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
+                                <i class="fas fa-calendar-alt nav-icon"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
+                                <i class="fas fa-bullhorn nav-icon"></i>
+                                <span class="nav-text">Announcements</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 @endif
+                <li class="nav-item">
+                    <a href="{{ route('dashboard', ['tab' => 'manual']) }}" class="nav-link">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span class="nav-text">Manual</span>
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="main-content">
@@ -1175,6 +1263,12 @@
                 <div id="flashSuccess" class="card" role="status" style="margin-bottom:12px;color:#0b7a33;border-color:#c1e7d2;background:#f0fff6;display:flex;justify-content:space-between;align-items:center">
                     <span>{{ session('success') }}</span>
                     <button type="button" aria-label="Close" onclick="var f=document.getElementById('flashSuccess'); if(f){f.remove();}" style="border:none;background:transparent;color:#065f46;font-weight:800;cursor:pointer;padding:6px 8px">×</button>
+                </div>
+            @endif
+            @if (session('error') || $errors->any())
+                <div id="flashError" class="card" role="alert" style="margin-bottom:12px;color:#991b1b;border-color:#fecaca;background:#fef2f2;display:flex;justify-content:space-between;align-items:center">
+                    <span>{{ session('error') ?: $errors->first() }}</span>
+                    <button type="button" aria-label="Close" onclick="var f=document.getElementById('flashError'); if(f){f.remove();}" style="border:none;background:transparent;color:#991b1b;font-weight:800;cursor:pointer;padding:6px 8px">×</button>
                 </div>
             @endif
             <div class="hero">
@@ -1291,6 +1385,15 @@
                                         <button class="hero-btn" style="background: #10b981; cursor: default;" disabled>
                                             <i class="fas fa-check"></i> Already Enrolled
                                         </button>
+                                    @elseif($course->course_type === 'controlled')
+                                        <form action="{{ route('courses.enroll.controlled', $course) }}" method="POST" style="display:grid;gap:8px;min-width:min(100%, 280px);">
+                                            @csrf
+                                            <label for="course_access_code" style="font-size:0.82rem;font-weight:800;color:#334155;">Access Code</label>
+                                            <input id="course_access_code" type="text" name="access_code" placeholder="Enter access code" required {{ !$course->isEnrollable() ? 'disabled' : '' }} style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font:inherit;">
+                                            <button type="submit" class="hero-btn {{ !$course->isEnrollable() ? 'disabled' : '' }}" {{ !$course->isEnrollable() ? 'disabled' : '' }}>
+                                                <i class="fas fa-key"></i> Join Class
+                                            </button>
+                                        </form>
                                     @else
                                         <form action="{{ route('courses.join', $course) }}" method="POST">
                                             @csrf
@@ -2578,8 +2681,16 @@
         }
     </script>
 
-<script>
-document.getElementById('notifyIncompleteBtn').addEventListener('click', async function() {
+    <script>
+        function togglePortalDropdown(ev, dropdownId){
+            if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+            if(document.body.classList.contains('sidebar-collapsed')) return;
+            var dd=document.getElementById(dropdownId || 'portal-dropdown-participant');
+            if(!dd) return;
+            dd.classList.toggle('open');
+        }
+
+        document.getElementById('notifyIncompleteBtn').addEventListener('click', async function() {
     // Show a confirmation dialog
     if (await window.capdevConfirm('Are you sure you want to send email reminders to all participants with incomplete activities?', { title: 'Send Reminders', confirmText: 'Send' })) {
         // Disable the button to prevent multiple clicks

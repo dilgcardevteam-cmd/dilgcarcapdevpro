@@ -92,8 +92,78 @@
         .nav-icon{width:25px;font-size:1.1rem;text-align:center;margin-right:15px}
         .nav-text{display:inline}
         .sidebar.collapsed .nav-text{display:none}
-        .sidebar.collapsed .nav-link{justify-content:center;padding:15px}
+        .sidebar.collapsed .nav-link{justify-content:center;padding:12px 0}
         .sidebar.collapsed .nav-icon{margin-right:0}
+
+        /* Portal Dropdown Styles */
+        .nav-portal {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-portal-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+        
+        .nav-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .nav-chevron::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            transform: rotate(45deg);
+        }
+        
+        .nav-portal.open .nav-chevron {
+            transform: translateY(-50%) rotate(180deg);
+            background-color: transparent;
+        }
+        
+        .nav-portal-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        
+        .nav-portal.open .nav-portal-list {
+            max-height: 420px;
+        }
+        
+        .nav-portal-list .nav-link {
+            padding: 12px 25px 12px 54px;
+        }
+        
+        .sidebar.collapsed .nav-portal-list {
+            max-height: 0 !important;
+        }
+
         .main-content{flex:1;padding:24px;overflow-y:auto;background:linear-gradient(180deg,#f7f9fc 0%,#f2f5fa 100%)}
         .back-link{display:inline-flex;align-items:center;color:var(--primary-blue);text-decoration:none;font-weight:500;cursor:pointer}
         .back-link i{margin-right:8px}
@@ -824,34 +894,49 @@
     </header>
     <div class="dashboard-container">
         <div class="sidebar" id="sidebar">
-            <div class="header-title" style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">
-                <img id="sidebarLogo" src="{{ asset('images/ddd-removebg-preview.png') }}" alt="CapDev Pro" style="height:60px">
+            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center;">
+                <img id="sidebarLogo" src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro" style="height:75px">
             </div>
-            <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1);">
+            <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
             </div>
             <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span class="nav-text">Dashboard</span>
+                <li class="nav-portal open" id="portal-dropdown-participant">
+                    <a href="#" class="nav-link nav-portal-toggle active" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <i class="fas fa-layer-group nav-icon"></i>
+                        <span class="nav-text">Participant Portal</span>
+                        <span class="nav-chevron"></span>
                     </a>
+                    <ul class="nav-portal-list" id="portal-dropdown-list-participant">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
+                                <i class="fas fa-tachometer-alt nav-icon"></i>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link active">
+                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                                <span class="nav-text">Classroom</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
+                                <i class="fas fa-calendar-alt nav-icon"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
+                                <i class="fas fa-bullhorn nav-icon"></i>
+                                <span class="nav-text">Announcements</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link">
-                        <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                        <span class="nav-text">Classroom</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span class="nav-text">Calendar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
-                        <i class="fas fa-bullhorn nav-icon"></i>
-                        <span class="nav-text">Announcements</span>
+                    <a href="{{ route('dashboard', ['tab' => 'manual']) }}" class="nav-link">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span class="nav-text">Manual</span>
                     </a>
                 </li>
             </ul>
@@ -1233,8 +1318,19 @@
         }
     </script>
     <script>
+        function togglePortalDropdown(ev, dropdownId){
+            if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+            if(document.body.classList.contains('sidebar-collapsed')) return;
+            var dd=document.getElementById(dropdownId || 'portal-dropdown-participant');
+            if(!dd) return;
+            dd.classList.toggle('open');
+        }
         const storageBaseUrl = "{{ asset('storage') }}";
-        const course = @json($course);
+        @php
+            $coursePayload = $course->toArray();
+            unset($coursePayload['access_code']);
+        @endphp
+        const course = @json($coursePayload);
         const status = @json($status);
         const isEnrolled = status === 'active';
         const csrf = "{{ csrf_token() }}";

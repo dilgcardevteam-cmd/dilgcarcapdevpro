@@ -4487,21 +4487,38 @@ class CourseController extends Controller
             'access_code' => 'required|string',
         ]);
 
+        $wantsJson = $request->expectsJson();
+
         if ($course->course_type !== 'controlled') {
-            return response()->json(['message' => 'This course does not require an access code.'], 400);
+            $message = 'This course does not require an access code.';
+            return $wantsJson
+                ? response()->json(['message' => $message], 400)
+                : redirect()->back()->with('error', $message);
         }
 
-        if ($course->access_code !== $request->access_code) {
-            return response()->json(['message' => 'Invalid code, please try again.'], 422);
+        $storedCode = trim((string) $course->access_code);
+        $submittedCode = trim((string) $request->input('access_code'));
+
+        if ($storedCode === '' || strcasecmp($storedCode, $submittedCode) !== 0) {
+            $message = 'Invalid code, please try again.';
+            return $wantsJson
+                ? response()->json(['message' => $message], 422)
+                : redirect()->back()->with('error', $message);
         }
 
         if (!$course->isEnrollable()) {
-            return response()->json(['message' => 'Enrollment for this course is currently closed.'], 403);
+            $message = 'Enrollment for this course is currently closed.';
+            return $wantsJson
+                ? response()->json(['message' => $message], 403)
+                : redirect()->back()->with('error', $message);
         }
 
         $userId = auth()->id();
         if ($course->users()->where('user_id', $userId)->exists()) {
-            return response()->json(['message' => 'You are already enrolled in this course.'], 200);
+            $message = 'You are already enrolled in this course.';
+            return $wantsJson
+                ? response()->json(['message' => $message], 200)
+                : redirect()->route('trainee.courses.show', $course)->with('info', $message);
         }
 
         $course->users()->attach($userId, [
@@ -4510,7 +4527,11 @@ class CourseController extends Controller
             'progress_percentage' => 0,
         ]);
 
-        return response()->json(['message' => 'Success! You have been enrolled.', 'redirect' => route('trainee.courses.show', $course)]);
+        $message = 'Success! You have been enrolled.';
+
+        return $wantsJson
+            ? response()->json(['message' => $message, 'redirect' => route('trainee.courses.show', $course)])
+            : redirect()->route('trainee.courses.show', $course)->with('success', $message);
     }
 
     public function enrollUser(Request $request, Course $course)
@@ -4678,7 +4699,11 @@ class CourseController extends Controller
     {
         $user = auth()->user();
 
-        if (!$course->can_enroll) {
+        if ($course->course_type === 'controlled') {
+            return redirect()->route('dashboard')->with('error', 'This is a controlled course. Please enter the access code to enroll.');
+        }
+
+        if (!$course->isEnrollable()) {
             return redirect()->route('dashboard')->with('error', 'Enrollment is not yet available for this course.');
         }
 

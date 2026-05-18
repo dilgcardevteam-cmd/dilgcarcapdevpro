@@ -643,41 +643,9 @@
 
             <div class="manual-accordion-list">
                 <!-- Getting Started (Always Visible) -->
-                <div class="manual-accordion-item">
-                    <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
-                        <div class="manual-accordion-icon"><i class="fas fa-play"></i></div>
-                        <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">Getting Started</h3>
-                            <p class="manual-accordion-desc">Learn the basics of the system and get started quickly.</p>
-                        </div>
-                        <i class="fas fa-chevron-down manual-accordion-chevron"></i>
-                    </div>
-                    <div class="manual-accordion-content">
-                        <div class="manual-sub-item">
-                            <div class="manual-sub-info">
-                                <h4>System Overview</h4>
-                                <p>A comprehensive overview of the CAPDEVPRO platform and its core functionalities.</p>
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
-                            </div>
-                        </div>
-                        <div class="manual-sub-item">
-                            <div class="manual-sub-info">
-                                <h4>Logging In</h4>
-                                <p>Step-by-step instructions on how to access your account securely.</p>
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 @if($isAdmin || $isTM)
-                <!-- User Management -->
+                <!-- Us er Management -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
                         <div class="manual-accordion-icon" style="background: #ecfdf5; color: #10b981;"><i class="fas fa-users-cog"></i></div>
@@ -791,29 +759,6 @@
                 @endif
 
                 @if($isCoach)
-                <!-- My Courses (Coach only) -->
-                <div class="manual-accordion-item">
-                    <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
-                        <div class="manual-accordion-icon" style="background: #f5f3ff; color: #8b5cf6;"><i class="fas fa-chalkboard-teacher"></i></div>
-                        <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">My Courses</h3>
-                            <p class="manual-accordion-desc">Access and manage your assigned training cohorts and sessions.</p>
-                        </div>
-                        <i class="fas fa-chevron-down manual-accordion-chevron"></i>
-                    </div>
-                    <div class="manual-accordion-content">
-                        <div class="manual-sub-item">
-                            <div class="manual-sub-info">
-                                <h4>Course Dashboard</h4>
-                                <p>Guide to using the specialized dashboard for course instructors.</p>
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <!-- Course Utilities (Coach only) -->
                 <div class="manual-accordion-item">
                     <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
@@ -838,29 +783,6 @@
                         <div id="viewer-coach-course-utilities" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
-                <!-- Announcements (Coach only) -->
-                <div class="manual-accordion-item">
-                    <div class="manual-accordion-header" onclick="toggleManualAccordion(this)">
-                        <div class="manual-accordion-icon" style="background: #fdf2f2; color: #ef4444;"><i class="fas fa-bullhorn"></i></div>
-                        <div class="manual-accordion-title-box">
-                            <h3 class="manual-accordion-title">Announcements</h3>
-                            <p class="manual-accordion-desc">Communicate important updates and alerts to your trainees.</p>
-                        </div>
-                        <i class="fas fa-chevron-down manual-accordion-chevron"></i>
-                    </div>
-                    <div class="manual-accordion-content">
-                        <div class="manual-sub-item">
-                            <div class="manual-sub-info">
-                                <h4>Creating Announcements</h4>
-                                <p>How to draft and broadcast notifications to specific course groups.</p>
-                            </div>
-                            <div style="display: flex; align-items: center;">
-                                <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 @endif
 
                 @if($isParticipant)
@@ -882,9 +804,10 @@
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="manual-role-badge">{{ $roleLabel }}</span>
-                                <button class="btn-view-manual"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-view-manual" data-manual="participant-classroom"><i class="fas fa-eye"></i> View</button>
                             </div>
                         </div>
+                        <div id="viewer-participant-classroom" class="manual-viewer-box" style="display: none;"></div>
                     </div>
                 </div>
                 @endif
@@ -1077,6 +1000,19 @@
             '/Manual/Coach Manual/Certifications/104.png',
             '/Manual/Coach Manual/Certifications/105.png',
             '/Manual/Coach Manual/Certifications/106.png'
+        ],
+        'participant-classroom': [
+            '/Manual/Participant Manual/Classroom Manual/108.png',
+            '/Manual/Participant Manual/Classroom Manual/109.png',
+            '/Manual/Participant Manual/Classroom Manual/110.png',
+            '/Manual/Participant Manual/Classroom Manual/111.png',
+            '/Manual/Participant Manual/Classroom Manual/112.png',
+            '/Manual/Participant Manual/Classroom Manual/113.png',
+            '/Manual/Participant Manual/Classroom Manual/114.png',
+            '/Manual/Participant Manual/Classroom Manual/115.png',
+            '/Manual/Participant Manual/Classroom Manual/116.png',
+            '/Manual/Participant Manual/Classroom Manual/117.png',
+            '/Manual/Participant Manual/Classroom Manual/118.png'
         ]
     };
 
