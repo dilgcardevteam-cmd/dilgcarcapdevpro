@@ -52,6 +52,10 @@
             transition: left .3s ease;
         }
 
+        body.sidebar-collapsed .header {
+            left: var(--sidebar-collapsed-width);
+        }
+
         /* Mobile Overlay */
         .sidebar-overlay {
             display: none;
@@ -538,6 +542,14 @@
             width: var(--sidebar-collapsed-width);
         }
 
+        .header, .dashboard-container{transition:margin-left .3s ease}
+        body.sidebar-collapsed .dashboard-container{margin-left:var(--sidebar-collapsed-width)}
+
+        .sidebar .header-title{display:flex;align-items:center;justify-content:center;padding:12px 0}
+        .sidebar .header-title img{display:block;height:60px}
+        .sidebar.collapsed .header-title{padding:12px 0}
+        .sidebar.collapsed .header-title img{height:40px;margin:0 auto}
+
         .sidebar-toggle {
             padding: 15px;
             text-align: right;
@@ -553,6 +565,107 @@
             list-style: none;
             padding: 0;
             margin: 0;
+        }
+
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .menu-icon {
+            width: 30px;
+            text-align: center;
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        .menu-text {
+            transition: opacity 0.3s;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar.collapsed .menu-text {
+            opacity: 0;
+            display: none;
+        }
+
+        .menu-dropdown {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu-dropdown-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+
+        .menu-chevron {
+            margin-left: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .menu-dropdown.open .menu-chevron {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .menu-dropdown-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .menu-dropdown.open .menu-dropdown-list {
+            max-height: 420px;
+        }
+
+        .menu-dropdown-list .menu-sub-item {
+            padding: 12px 25px 12px 54px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-list {
+            max-height: 0 !important;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle {
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle .menu-icon {
+            margin-right: 0;
         }
 
         .menu-item {
@@ -622,23 +735,41 @@
             transform: translateY(-50%);
         }
 
-        .menu-chevron i {
-            display: none;
+        .menu-dropdown {
+            list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
-        .menu-chevron::before {
-            content: "";
-            display: block;
-            width: 8px;
-            height: 8px;
-            border-right: 3px solid #ffffff;
-            border-bottom: 3px solid #ffffff;
-            transform: rotate(45deg);
+        .menu-dropdown-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+
+        .menu-chevron {
+            margin-left: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .menu-dropdown.open .menu-chevron {
             transform: translateY(-50%) rotate(180deg);
-            background-color: transparent;
         }
 
         .menu-dropdown-list {
@@ -654,8 +785,21 @@
             max-height: 420px;
         }
 
-        .menu-item.menu-sub-item {
-            padding: 12px 20px 12px 44px;
+        .menu-dropdown-list .menu-sub-item {
+            padding: 12px 25px 12px 54px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-list {
+            max-height: 0 !important;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle {
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle .menu-icon {
+            margin-right: 0;
         }
 
         .sidebar.collapsed .menu-dropdown-list {
@@ -2237,8 +2381,8 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <img class="sidebar-logo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
+            <div class="header-title">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 @php
@@ -2262,7 +2406,7 @@
                     <div class="menu-item menu-dropdown-toggle {{ $tmPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
                         <span class="menu-text">Training Manager Portal</span>
-                        <span class="menu-chevron"></span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
                         @if(Auth::user()->hasPermission('view_training'))
@@ -2302,7 +2446,7 @@
                     <div class="menu-item menu-dropdown-toggle {{ $coachPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
                         <span class="menu-text">Coach Portal</span>
-                        <span class="menu-chevron"></span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-coach">
                         <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach']) }}'">
@@ -2335,7 +2479,7 @@
                     <div class="menu-item menu-dropdown-toggle {{ $participantPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
                         <span class="menu-text">Participant Portal</span>
-                        <span class="menu-chevron"></span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
                         <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant']) }}'">
@@ -2362,7 +2506,7 @@
                     <div class="menu-item menu-dropdown-toggle {{ $adminPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
                         <span class="menu-text">Admin Portal</span>
-                        <span class="menu-chevron"></span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
                         <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin']) }}'">
@@ -5417,50 +5561,24 @@
     });
 
     function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
-        const isMobile = window.innerWidth <= 992;
+        var s = document.getElementById('sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
+        var isMobile = window.innerWidth <= 992;
 
         if (isMobile) {
-            sidebar.classList.toggle('mobile-open');
-            overlay.classList.toggle('mobile-open');
-            return;
-        }
-
-        sidebar.classList.toggle('collapsed');
-        const collapsed = sidebar.classList.contains('collapsed');
-        const header = document.querySelector('.header');
-        const container = document.querySelector('.dashboard-container');
-        const logo = document.querySelector('.sidebar-logo');
-        const brand = document.querySelector('.sidebar-brand');
-        if (collapsed) {
-            sidebar.style.width = '70px';
-            if (header) header.style.left = '70px';
-            if (container) container.style.marginLeft = '70px';
-            if (logo) {
-                logo.style.height = '44px';
-                logo.style.width = '44px';
-                logo.style.display = 'block';
-                logo.style.margin = '0 auto';
-                const small = logo.getAttribute('data-collapsed-src');
-                if (small) logo.src = small;
-            }
-            if (brand) brand.style.justifyContent = 'center';
-            document.querySelectorAll('.menu-dropdown').forEach(function(p){ p.classList.remove('open'); });
+            s.classList.toggle('mobile-open');
+            if(overlay) overlay.classList.toggle('mobile-open');
+            document.body.classList.toggle('sidebar-mobile-open');
         } else {
-            sidebar.style.width = '250px';
-            if (header) header.style.left = '250px';
-            if (container) container.style.marginLeft = '250px';
-            if (logo) {
-                logo.style.height = '70px';
-                logo.style.width = 'auto';
-                logo.style.display = '';
-                logo.style.margin = '';
-                const full = logo.getAttribute('data-full-src');
-                if (full) logo.src = full;
-            }
-            if (brand) brand.style.justifyContent = 'space-between';
+            s.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapsed');
+            var LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+            var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+            var sidebarLogo = document.getElementById('sidebarLogo');
+            var collapsed = document.body.classList.contains('sidebar-collapsed');
+            if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
         }
+        document.querySelectorAll('.menu-dropdown').forEach(function(p){ p.classList.remove('open'); });
     }
     
     function togglePortalDropdown(ev, dropdownId) {

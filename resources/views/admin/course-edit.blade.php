@@ -1325,7 +1325,7 @@
             const html = `
                 <figure class="vid-std" contenteditable="false" style="width:100%;max-width:100%;margin:6px 0;">
                     <div style="position:relative;width:100%;aspect-ratio:16/9;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;background:#000">
-                        <iframe src="${embed}" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+                        <iframe src="${embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
                     </div>
                 </figure><p><br></p>`;
             editor.focus();
@@ -1338,13 +1338,19 @@
             try{
                 const u = new URL(url);
                 if(u.hostname.includes('youtube.com')){
+                    if(u.pathname.includes('/embed/')) return url;
                     const id = u.searchParams.get('v');
                     if(id) return 'https://www.youtube.com/embed/'+id;
+                    const parts = u.pathname.split('/');
+                    if(parts.includes('shorts') || parts.includes('live') || parts.includes('v')){
+                        return 'https://www.youtube.com/embed/'+parts[parts.length-1];
+                    }
                 }
                 if(u.hostname==='youtu.be'){
                     return 'https://www.youtube.com/embed'+u.pathname;
                 }
                 if(u.hostname.includes('vimeo.com')){
+                    if(u.pathname.includes('/video/')) return url;
                     const id = u.pathname.split('/').filter(Boolean).pop();
                     return 'https://player.vimeo.com/video/'+id;
                 }

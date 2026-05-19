@@ -62,6 +62,10 @@
             transition: left .3s ease;
         }
 
+        body.sidebar-collapsed .header {
+            left: var(--sidebar-collapsed-width);
+        }
+
         .header-left {
             display: flex;
             align-items: center;
@@ -493,7 +497,7 @@
         .profile-trigger.open .profile-caret{transform:rotate(180deg);transition:transform .2s}
 
         .sidebar-brand{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
-        .sidebar-logo{height:70px}
+        .sidebar-logo{height:65px}
         .sidebar.collapsed .sidebar-brand{justify-content:center;padding:8px 0}
         .sidebar.collapsed .sidebar-logo{height:44px;width:44px;margin:0 auto;display:block;object-fit:contain}
         .header-toggle,
@@ -526,31 +530,127 @@
             margin-left: var(--sidebar-collapsed-width);
         }
 
+        .sidebar .header-title{display:flex;align-items:center;justify-content:center;padding:12px 0}
+        .sidebar .header-title img{display:block;height:60px}
+        .sidebar.collapsed .header-title{padding:12px 0}
+        .sidebar.collapsed .header-title img{height:40px;margin:0 auto}
+
         .sidebar-toggle {
-            background: none;
-            border: none;
-            color: white;
             padding: 15px;
-            cursor: pointer;
             text-align: right;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-toggle i {
             font-size: 1.2rem;
         }
 
-        .nav-menu {
+        .sidebar-menu {
             list-style: none;
             padding: 0;
             margin: 0;
-            flex: 1;
         }
 
-        .nav-link {
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            padding: 15px 25px;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            transition: all 0.3s;
-            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .menu-icon {
+            width: 30px;
+            text-align: center;
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        .menu-text {
+            transition: opacity 0.3s;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar.collapsed .menu-text {
+            opacity: 0;
+            display: none;
+        }
+
+        .menu-dropdown {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu-dropdown-toggle {
+            width: 100%;
+            position: relative;
+            overflow: visible;
+            padding-right: 58px;
+            box-sizing: border-box;
+        }
+
+        .menu-chevron {
+            margin-left: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: transparent;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .menu-dropdown.open .menu-chevron {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .menu-dropdown-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .menu-dropdown.open .menu-dropdown-list {
+            max-height: 420px;
+        }
+
+        .menu-dropdown-list .menu-sub-item {
+            padding: 12px 25px 12px 54px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-list {
+            max-height: 0 !important;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle {
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .sidebar.collapsed .menu-dropdown-toggle .menu-icon {
+            margin-right: 0;
         }
 
         /* Responsive Styles */
@@ -2093,11 +2193,11 @@
 
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <img class="sidebar-logo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
+        <aside class="sidebar" id="sidebar">
+            <div class="header-title">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
-            <ul class="nav-menu">
+            <ul class="sidebar-menu">
                 @php
                     $coachCreateCourseActive = request()->routeIs('trainer.courses.create') || request()->routeIs('courses.create');
                     $coachCreateCourseVisible = Auth::user()->hasPermission('add_courses_coach');
@@ -2109,123 +2209,99 @@
                         || !request('tab')
                         || in_array(request('tab'), ['dashboard-home','my-courses','calendar','announcements','certification-management'], true);
                 @endphp
-                <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-coach">
-                    <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Coach Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-coach">
+                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-coach">
+                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Coach Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-coach">
                         @if(Auth::user()->hasPermission('view_courses_coach'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard') }}" class="nav-link {{ (!request('tab') && ! $coachCreateCourseActive) || request('tab') === 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this, event)">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('dashboard-home', this, event)">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_courses_coach'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'my-courses']) }}" class="nav-link {{ request('tab') === 'my-courses' ? 'active' : '' }}" onclick="showContent('my-courses', this, event)">
-                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                                <span class="nav-text">My Courses</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('my-courses', this, event)">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">My Courses</span>
                         </li>
                         @endif
                         @if($coachCreateCourseVisible)
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'course-utilities']) }}" class="nav-link {{ request('tab') === 'course-utilities' ? 'active' : '' }}" onclick="showContent('course-utilities', this, event)">
-                                <i class="fas fa-screwdriver-wrench nav-icon"></i>
-                                <span class="nav-text">Course Utilities</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('course-utilities', this, event)">
+                            <div class="menu-icon"><i class="fas fa-screwdriver-wrench"></i></div>
+                            <span class="menu-text">Course Utilities</span>
                         </li>
                         @endif
                         @if($coachCertificationVisible)
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'certification-management']) }}" class="nav-link {{ request('tab') === 'certification-management' ? 'active' : '' }}" onclick="showContent('certification-management', this, event)">
-                                <i class="fas fa-certificate nav-icon"></i>
-                                <span class="nav-text">Certifications</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('certification-management', this, event)">
+                            <div class="menu-icon"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_classes'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'calendar']) }}" class="nav-link {{ request('tab') === 'calendar' ? 'active' : '' }}" onclick="showContent('calendar', this, event)">
-                                <i class="fas fa-calendar-alt nav-icon"></i>
-                                <span class="nav-text">Calendar</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('calendar', this, event)">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_communication'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['tab' => 'announcements']) }}" class="nav-link {{ request('tab') === 'announcements' ? 'active' : '' }}" onclick="showContent('announcements', this, event)">
-                                <i class="fas fa-bullhorn nav-icon"></i>
-                                <span class="nav-text">Announcements</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('announcements', this, event)">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
                         </li>
                         @endif
                     </ul>
                 </li>
                 @if(Auth::user()->role !== 'super_admin' && Auth::user()->hasPermission('view_modules'))
-                <li class="nav-portal" id="portal-dropdown-participant">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Participant Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-participant">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'participant']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown" id="portal-dropdown-participant">
+                    <div class="menu-item menu-dropdown-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Participant Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}" class="nav-link">
-                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                                <span class="nav-text">Classroom</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'classroom']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Classroom</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}" class="nav-link">
-                                <i class="fas fa-calendar-alt nav-icon"></i>
-                                <span class="nav-text">Calendar</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}" class="nav-link">
-                                <i class="fas fa-bullhorn nav-icon"></i>
-                                <span class="nav-text">Announcements</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'participant', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
                         </li>
                     </ul>
                 </li>
                 @endif
                 @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm')))
-                <li class="nav-portal" id="portal-dropdown-tm">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Training Manager Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-tm">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'tm']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown" id="portal-dropdown-tm">
+                    <div class="menu-item menu-dropdown-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Training Manager Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
                     </ul>
                 </li>
                 @endif
-                <li class="nav-item">
-                    <a href="#" class="nav-link {{ request('tab') == 'manual' ? 'active' : '' }}" onclick="showContent('manual', this)">
-                        <i class="fas fa-book nav-icon"></i>
-                        <span class="nav-text">Manual</span>
-                    </a>
+                <li class="menu-item" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
                 </li>
             </ul>
-        </div>
+        </aside>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -3820,20 +3896,18 @@
 
             if (isMobile) {
                 s.classList.toggle('mobile-open');
-                overlay.classList.toggle('mobile-open');
-                return;
+                if(overlay) overlay.classList.toggle('mobile-open');
+                document.body.classList.toggle('sidebar-mobile-open');
+            } else {
+                s.classList.toggle('collapsed');
+                document.body.classList.toggle('sidebar-collapsed');
+                var LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+                var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+                var sidebarLogo = document.getElementById('sidebarLogo');
+                var collapsed = document.body.classList.contains('sidebar-collapsed');
+                if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
             }
-
-            s.classList.toggle('collapsed');
-            var collapsed = s.classList.contains('collapsed');
-            document.body.classList.toggle('sidebar-collapsed', collapsed);
-            var logo = document.querySelector('.sidebar-logo');
-            if (logo) {
-                var full = logo.getAttribute('data-full-src');
-                var small = logo.getAttribute('data-collapsed-src');
-                logo.src = collapsed ? small : full;
-            }
-            if (collapsed) { document.querySelectorAll('.nav-portal').forEach(function(p){ p.classList.remove('open'); }); }
+            document.querySelectorAll('.menu-dropdown').forEach(function(p){ p.classList.remove('open'); });
         }
         
         function togglePortalDropdown(ev, dropdownId){

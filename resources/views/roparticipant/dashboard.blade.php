@@ -439,85 +439,67 @@
         </div>
     </header>
     <div class="dashboard-container">
-        <div class="sidebar" id="sidebar">
-            <div class="header-title" style="padding: 12px 25px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center;">
-                <img id="sidebarLogo" src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro" style="height:75px">
+        <aside class="sidebar" id="sidebar">
+            <div class="header-title">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
             </div>
-            <div style="padding: 12px 20px; display:flex; align-items:center; gap:12px; ">
-            </div>
-            <ul class="nav-menu">
+            <ul class="sidebar-menu">
                 @if(Auth::user()->hasPermission('view_modules'))
                 @php $portalActive = !request('tab') || in_array(request('tab'), ['dashboard-home','classroom','calendar','announcements'], true); @endphp
-                <li class="nav-portal {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-participant">
-                    <a href="#" class="nav-link nav-portal-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Participant Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-participant">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link active" onclick="showContent('dashboard-home', this)">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown {{ $portalActive ? 'open' : '' }}" id="portal-dropdown-participant">
+                    <div class="menu-item menu-dropdown-toggle {{ $portalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-participant')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Participant Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
+                        <li class="menu-item menu-sub-item">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('classroom', this)">
-                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                                <span class="nav-text">Classroom</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('classroom', this)">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">Classroom</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('calendar', this)">
-                                <i class="fas fa-calendar-alt nav-icon"></i>
-                                <span class="nav-text">Calendar</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('calendar', this)">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
                         </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" onclick="showContent('announcements', this)">
-                                <i class="fas fa-bullhorn nav-icon"></i>
-                                <span class="nav-text">Announcements</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="showContent('announcements', this)">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
                         </li>
                     </ul>
                 </li>
                 @endif
                 @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_courses_coach') || Auth::user()->hasPermission('view_classes') || Auth::user()->hasPermission('view_communication')))
-                <li class="nav-portal" id="portal-dropdown-coach">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Coach Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-coach">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'coach']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown" id="portal-dropdown-coach">
+                    <div class="menu-item menu-dropdown-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-coach')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Coach Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-coach">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
                         @if(Auth::user()->hasPermission('view_courses_coach'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}" class="nav-link">
-                                <i class="fas fa-chalkboard-teacher nav-icon"></i>
-                                <span class="nav-text">My Courses</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'my-courses']) }}'">
+                            <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <span class="menu-text">My Courses</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_classes'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}" class="nav-link">
-                                <i class="fas fa-calendar-alt nav-icon"></i>
-                                <span class="nav-text">Calendar</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'calendar']) }}'">
+                            <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="menu-text">Calendar</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_communication'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}" class="nav-link">
-                                <i class="fas fa-bullhorn nav-icon"></i>
-                                <span class="nav-text">Announcements</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'coach', 'tab' => 'announcements']) }}'">
+                            <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
+                            <span class="menu-text">Announcements</span>
                         </li>
                         @endif
                     </ul>
@@ -532,79 +514,65 @@
                     || Auth::user()->hasPermission('view_access_control')
                     || Auth::user()->hasPermission('edit_access_control')
                 )
-                <li class="nav-portal" id="portal-dropdown-admin">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Admin Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-admin">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown" id="portal-dropdown-admin">
+                    <div class="menu-item menu-dropdown-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Admin Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
                         @if(Auth::user()->hasPermission('view_users'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'user-management']) }}" class="nav-link">
-                                <i class="fas fa-users nav-icon"></i>
-                                <span class="nav-text">User Management</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'user-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-users"></i></div>
+                            <span class="menu-text">User Management</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_courses'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'course-management']) }}" class="nav-link">
-                                <i class="fas fa-book nav-icon"></i>
-                                <span class="nav-text">Course Management</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'course-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-book"></i></div>
+                            <span class="menu-text">Course Management</span>
                         </li>
                         @endif
                         @if(Auth::user()->hasPermission('view_certifications'))
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}" class="nav-link">
-                                <i class="fas fa-certificate nav-icon"></i>
-                                <span class="nav-text">Certifications</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'certification-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-certificate"></i></div>
+                            <span class="menu-text">Certifications</span>
                         </li>
                         @endif
                         @if(Auth::user()->role === 'super_admin')
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'admin', 'tab' => 'access-management']) }}" class="nav-link">
-                                <i class="fas fa-shield-alt nav-icon"></i>
-                                <span class="nav-text">Access Control</span>
-                            </a>
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'admin', 'tab' => 'access-management']) }}'">
+                            <div class="menu-icon"><i class="fas fa-shield-alt"></i></div>
+                            <span class="menu-text">Access Control</span>
                         </li>
                         @endif
                     </ul>
                 </li>
                 @endif
                 @if(Auth::user()->role !== 'super_admin' && (Auth::user()->hasPermission('view_training') || Auth::user()->hasPermission('view_users_tm') || Auth::user()->hasPermission('update_users_tm')))
-                <li class="nav-portal" id="portal-dropdown-tm">
-                    <a href="#" class="nav-link nav-portal-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
-                        <i class="fas fa-layer-group nav-icon"></i>
-                        <span class="nav-text">Training Manager Portal</span>
-                        <span class="nav-chevron"></span>
-                    </a>
-                    <ul class="nav-portal-list" id="portal-dropdown-list-tm">
-                        <li class="nav-item">
-                            <a href="{{ route('dashboard', ['portal' => 'tm']) }}" class="nav-link">
-                                <i class="fas fa-tachometer-alt nav-icon"></i>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
+                <li class="menu-dropdown" id="portal-dropdown-tm">
+                    <div class="menu-item menu-dropdown-toggle" onclick="togglePortalDropdown(event,'portal-dropdown-tm')">
+                        <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="menu-text">Training Manager Portal</span>
+                        <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <ul class="menu-dropdown-list" id="portal-dropdown-list-tm">
+                        <li class="menu-item menu-sub-item" onclick="window.location.href='{{ route('dashboard', ['portal' => 'tm']) }}'">
+                            <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            <span class="menu-text">Dashboard</span>
                         </li>
                     </ul>
                 </li>
                 @endif
-                <li class="nav-item">
-                    <a href="#" class="nav-link {{ request('tab') == 'manual' ? 'active' : '' }}" onclick="showContent('manual', this)">
-                        <i class="fas fa-book nav-icon"></i>
-                        <span class="nav-text">Manual</span>
-                    </a>
+                <li class="menu-item" onclick="showContent('manual', this)">
+                    <div class="menu-icon"><i class="fas fa-book"></i></div>
+                    <span class="menu-text">Manual</span>
                 </li>
             </ul>
-        </div>
+        </aside>
         <div class="main-content">
             <div id="dashboard-home" class="content-section {{ request('tab') ? '' : 'active' }}">
                 <div class="control-hero">
@@ -1486,14 +1454,23 @@
         })();
         function toggleSidebar() {
             var s = document.getElementById('sidebar');
-            if(s){ s.classList.toggle('collapsed'); }
-            document.body.classList.toggle('sidebar-collapsed');
-            var LOGO_MAIN = "{{ asset('images/ddd-removebg-preview.png') }}";
-            var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
-            var sidebarLogo = document.getElementById('sidebarLogo');
-            var collapsed = document.body.classList.contains('sidebar-collapsed');
-            if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
-            document.querySelectorAll('.nav-portal').forEach(function(p){ p.classList.remove('open'); });
+            var overlay = document.querySelector('.sidebar-overlay');
+            var isMobile = window.innerWidth <= 992;
+
+            if (isMobile) {
+                s.classList.toggle('mobile-open');
+                if(overlay) overlay.classList.toggle('mobile-open');
+                document.body.classList.toggle('sidebar-mobile-open');
+            } else {
+                s.classList.toggle('collapsed');
+                document.body.classList.toggle('sidebar-collapsed');
+                var LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+                var LOGO_SMALL = "{{ asset('images/logo1.png') }}";
+                var sidebarLogo = document.getElementById('sidebarLogo');
+                var collapsed = document.body.classList.contains('sidebar-collapsed');
+                if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }
+            }
+            document.querySelectorAll('.menu-dropdown').forEach(function(p){ p.classList.remove('open'); });
         }
         function togglePortalDropdown(ev, dropdownId){
             if(ev){ ev.preventDefault(); ev.stopPropagation(); }

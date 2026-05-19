@@ -4353,7 +4353,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="header-title">
-                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" alt="CapDev Pro">
+                <img id="sidebarLogo" src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-full-src="{{ asset('images/CAPDEV PRO WHITE.png') }}" data-collapsed-src="{{ asset('images/logo1.png') }}" alt="CapDev Pro">
             </div>
             <ul class="sidebar-menu">
                 @php
@@ -4389,7 +4389,7 @@
                 <li class="menu-dropdown {{ $adminPortalActive ? 'open' : '' }}" id="portal-dropdown-admin">
                     <div class="menu-item menu-dropdown-toggle {{ $adminPortalActive ? 'active' : '' }}" onclick="togglePortalDropdown(event,'portal-dropdown-admin')">
                         <div class="menu-icon"><i class="fas fa-layer-group"></i></div>
-                        <span class="menu-text">{{ Auth::user()->role === 'super_admin' ? 'Admin Portal' : 'Coach Portal' }}</span>
+                        <span class="menu-text">Admin Portal</span>
                         <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-admin">
@@ -10299,7 +10299,7 @@
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sidebar-collapsed');
             const LOGO_MAIN = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
-            const LOGO_SMALL = "{{ asset('images/CAPDEV PRO WHITE.png') }}";
+            const LOGO_SMALL = "{{ asset('images/logo1.png') }}";
             const sidebarLogo = document.getElementById('sidebarLogo');
             const collapsed = document.body.classList.contains('sidebar-collapsed');
             if(sidebarLogo){ sidebarLogo.src = collapsed ? LOGO_SMALL : LOGO_MAIN; }

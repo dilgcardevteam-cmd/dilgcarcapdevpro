@@ -57,7 +57,7 @@ class SecureHeaders
             "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
             "img-src 'self' data: blob: https://via.placeholder.com https://unpkg.com https://cdn.jsdelivr.net https://images.unsplash.com https://*.faeldon.com",
             "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com",
-            "frame-src 'self' https://view.officeapps.live.com https://*.officeapps.live.com",
+            "frame-src 'self' https://view.officeapps.live.com https://*.officeapps.live.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
             "frame-ancestors 'self'",
             "form-action 'self'",
             "connect-src 'self' https://psgc.gitlab.io https://raw.githubusercontent.com https://*.faeldon.com https://*.faeldon.io",
@@ -65,8 +65,7 @@ class SecureHeaders
             "object-src 'none'",
             "manifest-src 'self'",
             "worker-src 'self'",
-            "media-src 'self'",
-            "upgrade-insecure-requests",
+            "media-src 'self' https://www.youtube.com https://player.vimeo.com",
         ];
 
         $response->headers->set('Content-Security-Policy', implode('; ', $cspDirectives));
