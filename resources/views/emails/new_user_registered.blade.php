@@ -117,29 +117,53 @@
                     <span class="info-label">Field of Work:</span> {{ $user->field_of_work }}
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Agency:</span> {{ $user->agency }}
+                    <span class="info-label">Agency:</span> {{ $user->agency ?? 'DILG' }}
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Region:</span> {{ $user->region }}
-                </div>
+                
                 @php
-                    $isDILG = (\Illuminate\Support\Str::contains((string) ($user->province ?? ''), 'Office')) || (empty($user->city) && empty($user->barangay));
+                    $level = $user->region;
                 @endphp
-                @if($isDILG)
+
+                @if($level === 'DILG Central Office')
                     <div class="info-item">
-                        <span class="info-label">Provincial Office:</span> {{ $user->province }}
+                        <span class="info-label">Level:</span> {{ $level }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Office:</span> {{ $user->province }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Bureaus/Services:</span> {{ $user->city }}
+                    </div>
+                @elseif($level === 'DILG Regional Office')
+                    <div class="info-item">
+                        <span class="info-label">Level:</span> {{ $level }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Region:</span> {{ $user->province }}
+                    </div>
+                @elseif($level === 'DILG Provincial Office')
+                    <div class="info-item">
+                        <span class="info-label">Level:</span> {{ $level }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Region:</span> {{ $user->province }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Province:</span> {{ $user->city }}
                     </div>
                 @else
+                    {{-- Fallback for non-DILG or other cases --}}
+                    <div class="info-item">
+                        <span class="info-label">Region:</span> {{ $user->region }}
+                    </div>
                     <div class="info-item">
                         <span class="info-label">Province:</span> {{ $user->province }}
                     </div>
                     <div class="info-item">
                         <span class="info-label">City:</span> {{ $user->city }}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Barangay:</span> {{ $user->barangay }}
-                    </div>
                 @endif
+                
                 <div class="info-item">
                     <span class="info-label">Date:</span> {{ $user->created_at->format('F d, Y h:i A') }}
                 </div>

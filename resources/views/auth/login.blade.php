@@ -260,7 +260,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 9px 12px 9px 40px;
+        padding: 9px 12px 9px 14px;
         margin: 5px 0;
         background-color: #fff;
         border: 1px solid #ddd;
@@ -270,7 +270,7 @@
         color: #333;
         transition: all 0.2s ease;
         width: 100%;
-        min-height: 40px;
+        min-height: 35px;
         line-height: 1.3;
         overflow: hidden;
     }
@@ -285,7 +285,7 @@
     }
 
     #fow-selected-text.fow-placeholder {
-        color: #9ca3af;
+        color: #000000ff;
     }
 
     .fow-dropdown-trigger i {
@@ -332,7 +332,7 @@
         border-radius: 5px;
         cursor: pointer;
         font-size: 13px;
-        color: #475569;
+        color: #000000ff;
         transition: all 0.2s ease;
     }
 
@@ -343,7 +343,7 @@
 
     .fow-tooltip {
         position: absolute;
-        left: calc(100% + 20px);
+        right: calc(100% + 20px);
         top: 0;
         width: 280px;
         background: #002C76;
@@ -352,7 +352,7 @@
         border-radius: 12px;
         box-shadow: 0 10px 25px rgba(0, 44, 118, 0.2);
         display: none;
-        z-index: 2000;
+        z-index: 3000;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.2s ease;
@@ -366,11 +366,11 @@
     .fow-tooltip::before {
         content: '';
         position: absolute;
-        right: 100%;
+        left: 100%;
         top: 50%;
         transform: translateY(-50%);
         border: 8px solid transparent;
-        border-right-color: #002C76;
+        border-left-color: #002C76;
     }
 
     /* Tooltip visibility handled by JS */
@@ -1227,7 +1227,7 @@
                             <div class="fow-dropdown-container" id="fow-dropdown">
                                 <div class="fow-dropdown-trigger">
                                     <span id="fow-selected-text" class="{{ old('field_of_work') ? '' : 'fow-placeholder' }}">{{ old('field_of_work') ?: 'Select Field of Work' }}</span>
-                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; color: #000000ff;"></i>
                                 </div>
                                 <div class="fow-dropdown-options">
                                     @php
