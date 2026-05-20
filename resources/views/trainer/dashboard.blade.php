@@ -3384,58 +3384,96 @@
 
             <!-- Announcements Section -->
             <div id="announcements" class="content-section {{ request('tab') === 'announcements' ? 'active' : '' }}">
-                <div class="section-header">
-                    <h2 class="section-title">Announcements</h2>
+                <div class="section-header" style="margin-bottom: 24px;">
+                    <h2 class="section-title" style="font-size: 1.75rem; font-weight: 800; color: #0B2C74;">Announcements</h2>
+                    <p style="color: #64748b; margin-top: 4px;">Share important updates and information with your participants.</p>
                 </div>
                 
-                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                <div style="background: white; padding: 32px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; margin-bottom: 32px;">
                     <form action="{{ route('trainer.announcements.store') }}" method="POST">
                         @csrf
-                        <div class="form-group">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="title" class="form-control" required>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="pro-label" style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;">Announcement Title</label>
+                                <div style="position: relative;">
+                                    <i class="fas fa-heading" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                                    <input type="text" name="title" placeholder="What's this announcement about?" 
+                                           style="width: 100%; padding: 12px 16px 12px 44px; border: 2px solid #f1f5f9; border-radius: 14px; font-size: 0.95rem; transition: all 0.2s; box-sizing: border-box;" 
+                                           onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
+                                           onblur="this.style.borderColor='#f1f5f9'; this.style.boxShadow='none';"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="pro-label" style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;">Message Content</label>
+                                <div style="position: relative;">
+                                    <i class="fas fa-align-left" style="position: absolute; left: 16px; top: 18px; color: #94a3b8;"></i>
+                                    <textarea name="message" placeholder="Type your detailed message here..." rows="4" 
+                                              style="width: 100%; padding: 12px 16px 12px 44px; border: 2px solid #f1f5f9; border-radius: 14px; font-size: 0.95rem; transition: all 0.2s; box-sizing: border-box; resize: vertical;"
+                                              onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.1)';"
+                                              onblur="this.style.borderColor='#f1f5f9'; this.style.boxShadow='none';"
+                                              required></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Message</label>
-                            <textarea name="message" class="form-control" rows="4" required></textarea>
-                        </div>
-                        <div class="form-footer">
-                            <button type="submit" class="btn-action" style="margin-bottom: 0;">
-                                <i class="fas fa-bullhorn"></i> Post Announcement
+                        <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                            <button type="submit" style="background: #002C76; color: white; border: none; padding: 12px 32px; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0, 44, 118, 0.25);">
+                                <i class="fas fa-paper-plane"></i> Post Announcement
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.06); border:1px solid #e5e7eb;">
-                    @if(session('success'))
-                        <div style="background-color: #ecfdf3; color: #166534; padding: 12px 14px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #bbf7d0; font-weight:600;">
-                            <i class="fas fa-check-circle"></i> {{ session('success') }}
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: #0B2C74; margin: 0;">Recent Announcements</h3>
+                </div>
+
+                @if(session('success'))
+                    <div style="background: #f0fdf4; color: #166534; padding: 16px; border-radius: 14px; margin-bottom: 24px; border: 1px solid #dcfce7; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if($announcements->isEmpty())
+                    <div style="background: white; padding: 60px 20px; border-radius: 20px; text-align: center; border: 2px dashed #e2e8f0;">
+                        <div style="width: 80px; height: 80px; background: #f1f5f9; color: #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 20px;">
+                            <i class="fas fa-bullhorn"></i>
                         </div>
-                    @endif
-                    @if($announcements->isEmpty())
-                        <div class="empty-state">
-                            <i class="fas fa-bullhorn" style="font-size: 3rem; color: var(--primary-blue); margin-bottom: 10px;"></i>
-                            <h3>No Announcements</h3>
-                            <p style="color: #666;">Important updates will be posted here.</p>
-                        </div>
-                    @else
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                            @foreach($announcements as $a)
-                                <div style="border-left: 4px solid var(--primary-blue); border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; background:#fff; box-shadow:0 6px 14px rgba(0,0,0,.05);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; gap:12px; flex-wrap:wrap">
-                                        <h3 style="margin: 0; color: var(--primary-blue); font-weight:800; letter-spacing:-.01em">{{ $a->title }}</h3>
-                                        <span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:#374151;border:1px solid #e2e8f0;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700">{{ $a->created_at->format('M d, Y h:i A') }}</span>
+                        <h3 style="color: #1e293b; font-size: 1.25rem; font-weight: 700; margin: 0;">No Announcements Yet</h3>
+                        <p style="color: #64748b; margin: 8px 0 0;">Start by posting your first update for your participants.</p>
+                    </div>
+                @else
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                        @foreach($announcements as $a)
+                            <div style="background: white; border-radius: 20px; padding: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px -3px rgba(0,0,0,0.04); transition: transform 0.2s ease;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                            <i class="fas fa-bullhorn"></i>
+                                        </div>
+                                        <div>
+                                            <h3 style="margin: 0; color: #0f172a; font-size: 1.1rem; font-weight: 800;">{{ $a->title }}</h3>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px; color: #64748b; font-size: 0.8rem; font-weight: 600;">
+                                                <i class="far fa-clock"></i>
+                                                {{ $a->created_at->format('M d, Y • h:i A') }}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p style="margin-top: 10px; color: #444; white-space: pre-line; line-height:1.7">{{ $a->message }}</p>
-                                    <div style="margin-top: 8px; color: #777; font-size: 0.85rem; display:flex; align-items:center; gap:8px;">
-                                        <span style="display:inline-flex;align-items:center;gap:6px;background:#e8effd;color:#1e3a8a;border:1px solid #c7d2fe;padding:4px 10px;border-radius:999px;font-weight:700"><i class="fas fa-user"></i> {{ $a->user->name }}</span>
+                                    <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 10px; border: 1px solid #f1f5f9;">
+                                        <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #475569;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">{{ $a->user->name }}</span>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
+                                <div style="color: #334155; line-height: 1.7; font-size: 0.95rem; background: #f8fafc; padding: 16px; border-radius: 14px; border: 1px solid #f1f5f9; white-space: pre-line;">
+                                    {{ $a->message }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <!-- Profile Section -->

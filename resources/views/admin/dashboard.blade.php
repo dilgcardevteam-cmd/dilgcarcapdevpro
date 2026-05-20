@@ -2618,6 +2618,195 @@
             background: #fff;
         }
 
+        #addRoleModal {
+            background-color: rgba(15, 23, 42, 0.58);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pro-modal {
+            background: #ffffff;
+            border-radius: 24px;
+            width: min(500px, 94vw);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .pro-modal-header {
+            padding: 32px 32px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pro-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pro-modal-title .badge {
+            width: 48px;
+            height: 48px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
+        }
+
+        .pro-modal-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0B2C74;
+            letter-spacing: -0.02em;
+        }
+
+        .pro-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .pro-modal-close:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            transform: rotate(90deg);
+        }
+
+        .pro-modal-body {
+            padding: 16px 32px 32px;
+        }
+
+        .pro-field {
+            margin-bottom: 24px;
+        }
+
+        .pro-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            letter-spacing: 0.01em;
+        }
+
+        .pro-input-group {
+            position: relative;
+        }
+
+        .pro-input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .pro-modal-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1e293b;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .pro-modal-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .pro-modal-input::placeholder {
+            color: #cbd5e1;
+        }
+
+        .pro-modal-actions {
+            padding: 24px 32px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-ghost {
+            padding: 12px 24px;
+            border-radius: 14px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .btn-solid {
+            padding: 12px 32px;
+            border-radius: 14px;
+            border: none;
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-solid:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-solid:active {
+            transform: translateY(0);
+        }
+
+        .pro-field-hint {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
         .course-view-modal-header {
             display: flex;
             align-items: center;
@@ -5320,6 +5509,74 @@
                         .roles-form-card .panel-actions{display:flex;justify-content:flex-end}
                         @media (max-width: 1100px){
                             .roles-grid{grid-template-columns:1fr}
+                                                /* Footer Bar */
+                        .ac-footer {
+                            position: fixed;
+                            bottom: 24px;
+                            left: calc(var(--sidebar-width) + 40px);
+                            right: 40px;
+                            background: #fff;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 24px;
+                            padding: 20px 36px;
+                            display: none;
+                            align-items: center;
+                            justify-content: space-between;
+                            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.12);
+                            z-index: 1000;
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+                        body.sidebar-collapsed .ac-footer { 
+                            left: calc(var(--sidebar-collapsed-width) + 40px); 
+                        }
+                        .ac-footer-info { display: flex; align-items: center; gap: 20px; }
+                        .ac-footer-icon { 
+                            width: 48px; 
+                            height: 48px; 
+                            border-radius: 14px; 
+                            background: #eff6ff; 
+                            color: #2563eb; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            font-size: 1.4rem;
+                        }
+                        .ac-footer-text { font-weight: 800; color: #1e293b; font-size: 1.1rem; }
+                        .ac-footer-sub { font-size: 0.95rem; color: #64748b; font-weight: 500; margin-top: 2px; }
+                        
+                        .btn-discard-ac {
+                            background: #fff;
+                            color: #64748b;
+                            border: 1.5px solid #e2e8f0;
+                            padding: 14px 28px;
+                            border-radius: 14px;
+                            font-weight: 700;
+                            font-size: 0.95rem;
+                            transition: all 0.2s;
+                            cursor: pointer;
+                        }
+                        .btn-discard-ac:hover { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; }
+                        
+                        .btn-save-ac {
+                            background: #2563eb;
+                            color: #fff;
+                            border: none;
+                            padding: 14px 40px;
+                            border-radius: 14px;
+                            font-weight: 700;
+                            font-size: 0.95rem;
+                            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            cursor: pointer;
+                        }
+                        .btn-save-ac:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35); }
+
+                        .ac-summary-section {
+                            padding: 24px;
+                            background: #fff;
                         }
                     </style>
                     <div class="insight-panel-header">
@@ -6149,193 +6406,751 @@
             <!-- Access Management Section (Super Admin) -->
             <section id="access-management" class="content-section {{ request('tab') == 'access-management' ? 'active' : '' }}">
                 @php $canAccess = auth()->check() && auth()->user()->role === 'super_admin'; @endphp
-                <div class="insight-panel">
-                    <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                        <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
-                            <span class="muted">Assign system feature access per role</span>
-                            <div style="position:relative;max-width:380px;min-width:260px;flex:1">
-                                <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#64748b;font-size:0.95rem;pointer-events:none"></i>
-                                <input id="accessRoleSearch" type="text" placeholder="Search rolesâ€¦" 
-                                       style="width:100%;padding:10px 12px 10px 36px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff">
-                            </div>
+                
+                @if(!$canAccess)
+                    <div class="insight-panel">
+                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">Only Super Admin can manage access.</div>
+                    </div>
+                @else
+                    <style>
+                        /* Refined Access Control Styles */
+                        .ac-container {
+                            display: grid;
+                            grid-template-columns: 320px 1fr 340px;
+                            gap: 24px;
+                            height: calc(100vh - 200px);
+                            min-height: 700px;
+                            margin-top: 20px;
+                        }
+                        .ac-column {
+                            display: flex;
+                            flex-direction: column;
+                            background: #fff;
+                            border: 1px solid #eef2f7;
+                            border-radius: 20px;
+                            overflow: hidden;
+                            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02);
+                        }
+                        .ac-column-header {
+                            padding: 24px;
+                            border-bottom: 1px solid #f1f5f9;
+                        }
+                        .ac-column-title {
+                            font-weight: 800;
+                            color: #0B2C74;
+                            font-size: 1.1rem;
+                            margin: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                        }
+                        .ac-column-subtitle {
+                            font-size: 0.85rem;
+                            color: #64748b;
+                            margin-top: 4px;
+                        }
+                        .ac-scrollable {
+                            flex: 1;
+                            overflow-y: auto;
+                            padding: 16px;
+                        }
+                        /* Roles List */
+                        .ac-role-search-wrap {
+                            padding: 0 16px 16px;
+                            border-bottom: 1px solid #f1f5f9;
+                        }
+                        .ac-role-item {
+                            padding: 14px 16px;
+                            border-radius: 14px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            margin-bottom: 10px;
+                            display: flex;
+                            align-items: center;
+                            gap: 14px;
+                            border: 1px solid transparent;
+                            background: #fff;
+                        }
+                        .ac-role-item:hover { background: #f8fafc; transform: translateY(-1px); }
+                        .ac-role-item.active { 
+                            background: #fff; 
+                            border-color: #3b82f6; 
+                            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+                        }
+                        .ac-role-icon {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.1rem;
+                            background: #f1f5f9;
+                            color: #64748b;
+                        }
+                        .ac-role-item.active .ac-role-icon { background: #2563eb; color: #fff; }
+                        .ac-role-info { flex: 1; min-width: 0; }
+                        .ac-role-name { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+                        .ac-role-type { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
+                        .ac-role-badge { 
+                            background: #f1f5f9; 
+                            color: #475569; 
+                            font-size: 0.75rem; 
+                            font-weight: 700; 
+                            width: 28px;
+                            height: 28px;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        /* Permission Summary Cards */
+                        .ac-summary-grid {
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 20px;
+                            margin-bottom: 0;
+                        }
+                        .ac-summary-stat-card {
+                            padding: 24px 16px;
+                            border-radius: 20px;
+                            text-align: center;
+                            border: 1px solid #f1f5f9;
+                            transition: all 0.2s ease;
+                        }
+                        .ac-summary-stat-card:hover { transform: translateY(-2px); }
+                        .ac-summary-stat-card.blue { background: #eff6ff; border-color: #dbeafe; }
+                        .ac-summary-stat-card.green { background: #f0fdf4; border-color: #dcfce7; }
+                        .ac-summary-stat-card.orange { background: #fff7ed; border-color: #ffedd5; }
+                        .ac-summary-stat-card.purple { background: #faf5ff; border-color: #f3e8ff; }
+                        
+                        .ac-summary-stat-value { font-size: 1.25rem; font-weight: 800; color: #1e293b; display: block; }
+                        .ac-summary-stat-label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.02em; margin-top: 4px; display: block; }
+                        
+                        /* Permissions Accordion */
+                        .ac-perm-group { 
+                            background: #fff;
+                            border: 1.5px solid #f1f5f9; 
+                            border-radius: 16px; 
+                            margin-bottom: 12px; 
+                            overflow: hidden; 
+                            transition: all 0.2s;
+                        }
+                        .ac-perm-group:hover { border-color: #e2e8f0; }
+                        .ac-perm-group.open { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05); }
+                        .ac-perm-group-header { 
+                            padding: 16px 20px; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: space-between; 
+                            cursor: pointer; 
+                            font-weight: 700; 
+                            color: #334155;
+                        }
+                        .ac-perm-list { padding: 0 20px 16px; display: none; }
+                        .ac-perm-group.open .ac-perm-list { display: block; }
+                        .ac-perm-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f8fafc; }
+                        .ac-perm-item:last-child { border-bottom: none; }
+                        .ac-perm-info { flex: 1; padding-right: 16px; }
+                        .ac-perm-name { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+                        .ac-perm-desc { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+                        
+                        /* Role Overview */
+                        .ac-overview-card { padding: 32px 24px; text-align: center; }
+                        .ac-overview-avatar { 
+                            width: 100px; 
+                            height: 100px; 
+                            border-radius: 50%; 
+                            background: #eff6ff; 
+                            color: #2563eb; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            font-size: 2.5rem; 
+                            margin: 0 auto 20px;
+                            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.15);
+                        }
+                        .ac-overview-name { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+                        .ac-overview-badge { 
+                            display: inline-block; 
+                            padding: 6px 16px; 
+                            background: #e0f2fe; 
+                            color: #0369a1; 
+                            border-radius: 999px; 
+                            font-size: 0.8rem; 
+                            font-weight: 700; 
+                            margin-bottom: 24px; 
+                        }
+                        .ac-overview-stats { text-align: left; border-top: 1px solid #f1f5f9; padding-top: 24px; display: grid; gap: 16px; }
+                        .ac-overview-stat { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+                        .ac-overview-stat-label { color: #64748b; display: flex; align-items: center; gap: 10px; }
+                        .ac-overview-stat-value { font-weight: 700; color: #1e293b; }
+
+                        /* Pagination */
+                        .ac-pagination {
+                            padding: 16px;
+                            border-top: 1px solid #f1f5f9;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                            background: #f8fafc;
+                        }
+                        .ac-page-btn {
+                            min-width: 32px;
+                            height: 32px;
+                            padding: 0 8px;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.85rem;
+                            font-weight: 700;
+                            border: 1.5px solid #e2e8f0;
+                            color: #64748b;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            background: #fff;
+                        }
+                        .ac-page-btn:hover { 
+                            background: #eff6ff; 
+                            border-color: #3b82f6; 
+                            color: #3b82f6;
+                        }
+                        .ac-page-btn.active { 
+                            background: #2563eb; 
+                            border-color: #2563eb; 
+                            color: #fff; 
+                            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+                        }
+                        .ac-page-btn.disabled {
+                            opacity: 0.5;
+                            cursor: not-allowed;
+                            pointer-events: none;
+                        }
+
+                        /* Footer Bar Redesign */
+                        .ac-footer {
+                            position: fixed;
+                            bottom: 30px;
+                            left: calc(var(--sidebar-width) + (100% - var(--sidebar-width)) / 2);
+                            transform: translateX(-50%) translateY(100px);
+                            width: auto;
+                            min-width: 600px;
+                            max-width: 90%;
+                            background: rgba(255, 255, 255, 0.95);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 24px;
+                            padding: 16px 40px;
+                            display: none; /* Controlled by JS, but with flex when shown */
+                            align-items: center;
+                            justify-content: center;
+                            gap: 48px;
+                            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
+                            z-index: 1000;
+                            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        }
+                        .ac-footer.visible {
+                            display: flex;
+                            transform: translateX(-50%) translateY(0);
+                        }
+                        body.sidebar-collapsed .ac-footer { 
+                            left: calc(var(--sidebar-collapsed-width) + (100% - var(--sidebar-collapsed-width)) / 2);
+                        }
+                        .ac-footer-info { display: flex; align-items: center; gap: 16px; }
+                        .ac-footer-icon { 
+                            width: 44px; 
+                            height: 44px; 
+                            border-radius: 12px; 
+                            background: #2563eb; 
+                            color: #fff; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            font-size: 1.2rem;
+                            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+                        }
+                        .ac-footer-content { display: flex; flex-direction: column; }
+                        .ac-footer-text { font-weight: 800; color: #0f172a; font-size: 1rem; line-height: 1.2; }
+                        .ac-footer-sub { font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+                        
+                        .ac-footer-actions { display: flex; gap: 12px; }
+                        .btn-discard-ac {
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 14px;
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            transition: all 0.2s;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        .btn-discard-ac:hover { background: #e2e8f0; color: #1e293b; }
+                        
+                        .btn-save-ac {
+                            background: #2563eb;
+                            color: #fff;
+                            border: none;
+                            padding: 12px 32px;
+                            border-radius: 14px;
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            cursor: pointer;
+                        }
+                        .btn-save-ac:hover { 
+                            background: #1d4ed8; 
+                            transform: translateY(-2px); 
+                            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35); 
+                        }
+                        .btn-save-ac:active { transform: translateY(0); }
+
+                        /* Toggle Switch */
+                        .ac-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+                        .ac-toggle input { opacity: 0; width: 0; height: 0; }
+                        .ac-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 34px; }
+                        .ac-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+                        input:checked + .ac-slider { background-color: #2563eb; }
+                        input:checked + .ac-slider:before { transform: translateX(20px); }
+                    </style>
+
+                    <div class="insight-panel-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom: 10px;">
+                        <div>
+                            <h2 style="font-size: 1.75rem; font-weight: 800; color: #0B2C74; margin: 0;">Access Control</h2>
+                            <p style="color: #64748b; margin: 4px 0 0;">Manage roles and permissions across the system</p>
                         </div>
-                        @if($canAccess)
-                            <button type="button" onclick="openAddRoleModal()" class="btn-update" style="background:#002C76;color:#fff;border-color:#002C76;display:inline-flex;align-items:center;gap:8px; border-radius:8px">
+                        <div style="display:flex; align-items: center; gap: 24px;">
+                            <div style="position:relative; width: 220px;">
+                                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;pointer-events:none"></i>
+                                <input type="text" placeholder="Search roles, permissions..." 
+                                       style="width:85%;padding:0px 9px 0px 30px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff; height: 40px; font-weight: 500; font-size: 0.85rem;">
+                            </div>
+                            <button type="button" onclick="openAddRoleModal()" class="btn-blue" style="display:inline-flex;align-items:center;gap:8px; border-radius:10px; padding: 0 20px; font-weight: 700; height: 40px; font-size: 0.85rem;">
                                 <i class="fas fa-plus"></i> Add Role
                             </button>
-                        @endif
+                        </div>
                     </div>
+
                     @if(session('success_access'))
-                        <div style="background:#e6fffa;color:#065f46;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('success_access') }}</div>
+                        <div style="background:#f0fdf4;color:#166534;padding:14px;border-radius:12px;margin:12px 0;border:1px solid #dcfce7;font-weight:600">{{ session('success_access') }}</div>
                     @endif
                     @if(session('error_access'))
-                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px;margin-bottom:12px">{{ session('error_access') }}</div>
+                        <div style="background:#fef2f2;color:#991b1b;padding:14px;border-radius:12px;margin:12px 0;border:1px solid #fee2e2;font-weight:600">{{ session('error_access') }}</div>
                     @endif
-                    @if(!$canAccess)
-                        <div style="background:#fee2e2;color:#7f1d1d;padding:12px;border-radius:10px">Only Super Admin can manage access.</div>
-                    @else
-                        <style>
-                            .access-tabs{display:flex;gap:8px;margin-bottom:12px}
-                            .access-tab{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;color:#0B2C74;font-weight:800;cursor:pointer}
-                            .access-tab.active{background:#eef2ff;border-color:#cfe0ff}
-                            .accordion-item{border:1px solid #e5eef7;border-radius:12px;overflow:hidden;margin-bottom:10px}
-                            .accordion-header{background:#f8fafc;padding:10px 12px;font-weight:800;color:#0B2C74;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-                            .accordion-content{display:none;padding:12px;background:#fff}
-                            .accordion-item.open .accordion-content{display:block}
-                            /* Pro Modal Styles */
-                            .pro-modal{background:linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 24px 48px rgba(2,6,23,.18);width:520px;max-width:95vw;overflow:hidden}
-                            .pro-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e5e7eb;background:linear-gradient(180deg,rgba(243,246,255,.8),rgba(255,255,255,.6))}
-                            .pro-modal-title{display:flex;align-items:center;gap:10px;font-weight:800;color:#0B2C76}
-                            .pro-modal-title .badge{width:36px;height:36px;border-radius:10px;background:#0B2C76;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
-                            .pro-modal-close{background:#fff;border:1px solid #e5e7eb;border-radius:999px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer}
-                            .pro-modal-body{padding:18px;display:grid;gap:14px}
-                            .pro-field{display:grid;gap:6px}
-                            .pro-label{font-size:.78rem;color:#64748b;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-                            .pro-input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;font-size:.95rem}
-                            .pro-modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 18px;border-top:1px solid #e5e7eb;background:#f8fafc}
-                            .btn-ghost{background:#fff;border:1px solid #e2e8f0;color:#475569;border-radius:999px;padding:10px 16px;font-weight:700}
-                            .btn-solid{background:#00a859;border:1px solid #00a859;color:#fff;border-radius:999px;padding:10px 16px;font-weight:800}
-                        </style>
-                        <div class="access-tabs" style="display:none"></div>
-                        @php
-                            $permLabel = function($p){ return $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)); };
-                            $roleLabel = function($r){ return $r->display_name ?? ucfirst(str_replace('_',' ',$r->name)); };
-                            $allPerms = ($permissions ?? collect());
-                            $allRoles = ($roles ?? collect());
-                            $priority = ['admin', 'training_manager', 'coach', 'participant'];
-                            $sortedRoles = $allRoles->sort(function($a,$b) use ($priority){
-                                $pa = array_search($a->name, $priority); $pb = array_search($b->name, $priority);
-                                if ($pa !== false && $pb !== false) return $pa <=> $pb;
-                                if ($pa !== false) return -1;
-                                if ($pb !== false) return 1;
-                                return strcmp($a->display_name ?? $a->name, $b->display_name ?? $b->name);
-                            });
-                        @endphp
-                        <form method="POST" action="{{ route('admin.access.update') }}">
-                            @csrf
-                            @foreach($sortedRoles as $role)
-                                <div class="accordion-item">
-                                    <div class="accordion-header">
-                                        <span>{{ $roleLabel($role) }}</span>
-                                        <i class="fas fa-chevron-down"></i>
+
+                    @php
+                        $allPerms = ($permissions ?? collect());
+                        $allRoles = ($roles ?? collect());
+                        $priority = ['admin', 'training_manager', 'coach', 'participant'];
+                        $sortedRoles = $allRoles->sort(function($a,$b) use ($priority){
+                            $pa = array_search($a->name, $priority); $pb = array_search($b->name, $priority);
+                            if ($pa !== false && $pb !== false) return $pa <=> $pb;
+                            if ($pa !== false) return -1;
+                            if ($pb !== false) return 1;
+                            return strcmp($a->display_name ?? $a->name, $b->display_name ?? $b->name);
+                        });
+
+                        $roleUsersCount = \App\Models\User::groupBy('role')->select('role', \DB::raw('count(*) as count'))->pluck('count', 'role');
+
+                        $permGroups = [
+                            'User Management' => [
+                                'icon' => 'fas fa-users-cog',
+                                'desc' => 'Manage users, roles and user groups',
+                                'perms' => ['view_users', 'create_users', 'edit_users', 'delete_users', 'view_users_tm', 'update_users_tm']
+                            ],
+                            'Course Management' => [
+                                'icon' => 'fas fa-book',
+                                'desc' => 'Create, update and manage courses',
+                                'perms' => ['view_courses', 'create_courses', 'edit_courses', 'delete_courses', 'view_training', 'add_training', 'update_training', 'view_course_monitoring', 'view_courses_coach', 'add_courses_coach', 'update_courses_coach', 'delete_courses_coach', 'view_modules']
+                            ],
+                            'Certifications' => [
+                                'icon' => 'fas fa-certificate',
+                                'desc' => 'Manage certifications and requirements',
+                                'perms' => ['view_certifications', 'create_certifications', 'delete_certifications']
+                            ],
+                            'Reports & Analytics' => [
+                                'icon' => 'fas fa-chart-line',
+                                'desc' => 'View and generate system reports',
+                                'perms' => ['view_reports', 'view_progress', 'view_engagement', 'add_engagement', 'update_engagement', 'delete_engagement', 'view_monitoring']
+                            ],
+                            'System Settings' => [
+                                'icon' => 'fas fa-cog',
+                                'desc' => 'Configure system preferences',
+                                'perms' => ['view_system_settings', 'view_classes', 'view_communication', 'view_assessments', 'add_assessments']
+                            ],
+                            'Access Control' => [
+                                'icon' => 'fas fa-shield-alt',
+                                'desc' => 'Manage roles and permissions',
+                                'perms' => ['view_access_control', 'edit_access_control']
+                            ],
+                        ];
+
+                        $getRoleIcon = function($name) {
+                            if (str_contains($name, 'admin')) return 'fa-crown';
+                            if (str_contains($name, 'manager')) return 'fa-user-tie';
+                            if (str_contains($name, 'coach') || str_contains($name, 'trainer')) return 'fa-chalkboard-teacher';
+                            return 'fa-user';
+                        };
+
+                        $getRoleDescription = function($name) {
+                            if (str_contains($name, 'admin')) return 'Full system access and management capabilities for administrative tasks.';
+                            if (str_contains($name, 'manager')) return 'Oversees training programs, manages users and monitors overall progress.';
+                            if (str_contains($name, 'coach') || str_contains($name, 'trainer')) return 'Manages classes, communicates with participants and evaluates assessments.';
+                            return 'Access to learning modules, participates in courses and tracks personal progress.';
+                        };
+                    @endphp
+
+                    <form id="accessMatrixForm" method="POST" action="{{ route('admin.access.update') }}">
+                        @csrf
+                        <div class="ac-container">
+                            <!-- Roles Column -->
+                            <div class="ac-column">
+                                <div class="ac-column-header">
+                                    <h3 class="ac-column-title">
+                                        Roles
+                                        <span class="ac-role-badge" style="background:#eff6ff; color:#2563eb">{{ $sortedRoles->count() }}</span>
+                                    </h3>
+                                </div>
+                                <div class="ac-scrollable" id="acRolesList" style="overflow-y: hidden;">
+                                    @foreach($sortedRoles as $role)
+                                        <div class="ac-role-item {{ $loop->first ? 'active' : '' }}" 
+                                             data-role-id="{{ $role->id }}" 
+                                             data-role-name="{{ $role->display_name ?? $role->name }}"
+                                             style="{{ $loop->index >= 10 ? 'display:none' : '' }}">
+                                            <div class="ac-role-icon">
+                                                <i class="fas {{ $getRoleIcon($role->name) }}"></i>
+                                            </div>
+                                            <div class="ac-role-info">
+                                                <div class="ac-role-name">{{ $role->display_name ?? ucfirst($role->name) }}</div>
+                                                <div class="ac-role-type">System Role</div>
+                                            </div>
+                                            <div class="ac-role-badge">{{ count($rolePermissions[$role->id] ?? []) }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="ac-pagination" id="acRolesPagination">
+                                    <!-- Dynamic pagination will be inserted here by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Middle Area (Split Summary and Permissions) -->
+                            <div style="display: flex; flex-direction: column; gap: 24px; min-height: 0;">
+                                <!-- Permission Summary Card -->
+                                <div class="ac-column" style="flex: 0 0 auto;">
+                                    <div class="ac-column-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9;">
+                                        <h3 class="ac-column-title" style="font-size: 0.95rem;">Permission Summary</h3>
                                     </div>
-                                    <div class="accordion-content">
-                                        <div class="access-tabs">
-                                            <button type="button" class="access-tab active" data-target="perms-role-{{ $role->id }}">Permissions</button>
-                                        </div>
-                                        <div id="perms-role-{{ $role->id }}" class="tab-pane" style="">
-                                            <table class="table-pro">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width:120px">Clear All <input type="checkbox" class="clear-all-perms"></th>
-                                                        <th style="width:320px">Permissions</th>
-                                                        <th>Description</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @php $assigned = ($rolePermissions[$role->id] ?? []); @endphp
-                                                    @foreach($allPerms as $p)
-                                                        <tr>
-                                                            <td style="text-align:center">
-                                                                <input type="checkbox"
-                                                                       name="matrix[{{ $role->id }}][{{ $p->id }}]"
-                                                                       value="1"
-                                                                       class="perm-check"
-                                                                       {{ in_array($p->id, $assigned, true) ? 'checked' : '' }}>
-                                                            </td>
-                                                            <td>{{ $permLabel($p) }}</td>
-                                                            <td class="card-muted">System permission: {{ $p->name }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="panel-actions" style="margin-top:12px">
-                                            <button type="submit" class="btn btn-primary">Save Access</button>
-                                        </div>
-                                        <script>
-                                        (function(){
-                                            var wrap = document.currentScript.parentElement;
-                                            var tabBtn = wrap.querySelector('.access-tab');
-                                            if (tabBtn) {
-                                                tabBtn.addEventListener('click', function(){
-                                                    tabBtn.classList.add('active');
-                                                    wrap.querySelectorAll('.tab-pane').forEach(function(p){
-                                                        p.style.display = (p.id === tabBtn.getAttribute('data-target')) ? '' : 'none';
-                                                    });
-                                                });
-                                            }
-                                            var clearPerms = wrap.querySelector('.clear-all-perms');
-                                            var permChecks = wrap.querySelectorAll('.perm-check');
-                                            if(clearPerms){
-                                                clearPerms.addEventListener('change', function(){
-                                                    permChecks.forEach(function(c){ c.checked = clearPerms.checked; });
-                                                });
-                                            }
-                                        })();
-                                        </script>
+                                    <div class="ac-summary-section">
+                                        @foreach($sortedRoles as $role)
+                                            <div class="ac-role-summary-top-wrap" id="summary-top-{{ $role->id }}" style="{{ $loop->first ? '' : 'display:none' }}">
+                                                @php
+                                                    $total = $allPerms->count();
+                                                    $granted = count($rolePermissions[$role->id] ?? []);
+                                                    $notGranted = $total - $granted;
+                                                    $accessLevel = $total > 0 ? round(($granted / $total) * 100) : 0;
+                                                @endphp
+                                                <div class="ac-summary-grid" style="margin-bottom: 0;">
+                                                    <div class="ac-summary-stat-card blue">
+                                                        <span class="ac-summary-stat-value" id="stat-total-top-{{ $role->id }}">{{ $total }}</span>
+                                                        <span class="ac-summary-stat-label">Total Permissions</span>
+                                                    </div>
+                                                    <div class="ac-summary-stat-card green">
+                                                        <span class="ac-summary-stat-value" id="stat-granted-top-{{ $role->id }}">{{ $granted }}</span>
+                                                        <span class="ac-summary-stat-label">Granted</span>
+                                                    </div>
+                                                    <div class="ac-summary-stat-card orange">
+                                                        <span class="ac-summary-stat-value" id="stat-not-granted-top-{{ $role->id }}">{{ $notGranted }}</span>
+                                                        <span class="ac-summary-stat-label">Not Granted</span>
+                                                    </div>
+                                                    <div class="ac-summary-stat-card purple">
+                                                        <span class="ac-summary-stat-value" id="stat-level-top-{{ $role->id }}">{{ $accessLevel }}%</span>
+                                                        <span class="ac-summary-stat-label">Access Level</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
-                            @endforeach
-                        </form>
-                        @if(Auth::check() && Auth::user()->role === 'super_admin')
-                        @endif
-                        <script>
+
+                                <!-- Permissions Card -->
+                                <div class="ac-column" style="flex: 1 1 0; min-height: 0;">
+                                    <div class="ac-column-header">
+                                        <div style="display:flex; align-items:center; justify-content:space-between">
+                                            <h3 class="ac-column-title">Permissions</h3>
+                                            <button type="button" id="acExpandAll" class="btn" style="border:none; color: #2563eb; font-size: 0.85rem; font-weight:700; padding: 0;">Expand All <i class="fas fa-expand-arrows-alt"></i></button>
+                                        </div>
+                                        <p class="ac-column-subtitle">Configure permissions for the selected role</p>
+                                    </div>
+
+                                    <div class="ac-scrollable">
+                                        @foreach($sortedRoles as $role)
+                                            <div class="ac-role-perms-container" id="perms-for-role-{{ $role->id }}" style="{{ $loop->first ? '' : 'display:none' }}">
+                                                @foreach($permGroups as $groupName => $groupData)
+                                                    @php
+                                                        $groupPerms = $allPerms->filter(fn($p) => in_array($p->name, $groupData['perms']));
+                                                        if ($groupPerms->isEmpty()) continue;
+                                                        $assignedCount = $groupPerms->filter(fn($p) => in_array($p->id, $rolePermissions[$role->id] ?? []))->count();
+                                                    @endphp
+                                                    <div class="ac-perm-group {{ $loop->first ? 'open' : '' }}">
+                                                        <div class="ac-perm-group-header">
+                                                            <div style="display:flex; align-items:center; gap:14px;">
+                                                                <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:1rem">
+                                                                    <i class="{{ $groupData['icon'] }}"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <div style="font-size:0.95rem; font-weight:800">{{ $groupName }}</div>
+                                                                    <div style="font-size:0.75rem; color:#94a3b8; font-weight:500">{{ $groupData['desc'] }}</div>
+                                                                </div>
+                                                            </div>
+                                                            <div style="display:flex; align-items:center; gap:12px;">
+                                                                <span style="font-size: 0.8rem; color: #64748b; font-weight:700">{{ $assignedCount }} / {{ $groupPerms->count() }}</span>
+                                                                <i class="fas fa-chevron-down ac-chevron" style="font-size:0.8rem; color:#94a3b8"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ac-perm-list">
+                                                            @foreach($groupPerms as $p)
+                                                                <div class="ac-perm-item">
+                                                                    <div class="ac-perm-info">
+                                                                        <div class="ac-perm-name">{{ $p->display_name ?? ucfirst(str_replace('_',' ',$p->name)) }}</div>
+                                                                        <div class="ac-perm-desc">Permission key: {{ $p->name }}</div>
+                                                                    </div>
+                                                                    <label class="ac-toggle">
+                                                                        <input type="checkbox" 
+                                                                               name="matrix[{{ $role->id }}][{{ $p->id }}]" 
+                                                                               value="1" 
+                                                                               class="ac-perm-check" 
+                                                                               data-role-id="{{ $role->id }}"
+                                                                               {{ in_array($p->id, $rolePermissions[$role->id] ?? [], true) ? 'checked' : '' }}
+                                                                               onchange="handlePermChange(this)">
+                                                                        <span class="ac-slider"></span>
+                                                                    </label>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Role Overview Column -->
+                            <div class="ac-column">
+                                <div class="ac-column-header">
+                                    <h3 class="ac-column-title">Role Overview</h3>
+                                </div>
+                                <div class="ac-scrollable" id="acRoleSummary">
+                                    @foreach($sortedRoles as $role)
+                                        <div class="ac-role-summary-container" id="summary-for-role-{{ $role->id }}" style="{{ $loop->first ? '' : 'display:none' }}">
+                                            <div class="ac-overview-card">
+                                                <div class="ac-overview-avatar">
+                                                    <i class="fas {{ $getRoleIcon($role->name) }}"></i>
+                                                </div>
+                                                <h4 class="ac-overview-name">{{ $role->display_name ?? ucfirst($role->name) }}</h4>
+                                                <span class="ac-overview-badge">System Role</span>
+                                                
+                                                <p style="font-size:0.9rem; color:#64748b; line-height:1.6; margin-bottom:32px;">
+                                                    {{ $getRoleDescription($role->name) }}
+                                                </p>
+                                                
+                                                <div class="ac-overview-stats">
+                                                    <div class="ac-overview-stat">
+                                                        <span class="ac-overview-stat-label"><i class="fas fa-users" style="color:#2563eb"></i> Users with this role</span>
+                                                        <span class="ac-overview-stat-value">{{ $roleUsersCount[$role->name] ?? 0 }}</span>
+                                                    </div>
+                                                    <div class="ac-overview-stat">
+                                                        <span class="ac-overview-stat-label"><i class="fas fa-calendar" style="color:#2563eb"></i> Created</span>
+                                                        <span class="ac-overview-stat-value">{{ $role->created_at ? $role->created_at->format('M d, Y') : 'May 12, 2026' }}</span>
+                                                    </div>
+                                                    <div class="ac-overview-stat">
+                                                        <span class="ac-overview-stat-label"><i class="fas fa-history" style="color:#2563eb"></i> Last Updated</span>
+                                                        <div style="text-align:right">
+                                                            <div class="ac-overview-stat-value">{{ $role->updated_at ? $role->updated_at->format('M d, Y') : 'May 12, 2026' }}</div>
+                                                            <div style="font-size:0.75rem; color:#94a3b8">by Super Admin</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ac-overview-stat">
+                                                        <span class="ac-overview-stat-label"><i class="fas fa-shield-alt" style="color:#2563eb"></i> Permission Level</span>
+                                                        @php $pCount = count($rolePermissions[$role->id] ?? []); @endphp
+                                                        <span style="background:{{ $pCount > 10 ? '#eff6ff' : '#eff6ff' }}; color:{{ $pCount > 10 ? '#2563eb' : '#2563eb' }}; padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:700">
+                                                            {{ $pCount > 15 ? 'Full Access' : ($pCount > 5 ? 'Moderate Access' : 'Limited Access') }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="ac-overview-stat">
+                                                        <span class="ac-overview-stat-label"><i class="fas fa-info-circle" style="color:#2563eb"></i> Status</span>
+                                                        <span style="background:#f0fdf4; color:#166534; padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:700">Active</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Bar -->
+                        <div class="ac-footer" id="acFooter">
+                            <div class="ac-footer-info">
+                                <div class="ac-footer-icon"><i class="fas fa-shield-alt"></i></div>
+                                <div class="ac-footer-content">
+                                    <div class="ac-footer-text">You have unsaved changes</div>
+                                    <div class="ac-footer-sub">Some permissions have been modified. Please save your changes.</div>
+                                </div>
+                            </div>
+                            <div class="ac-footer-actions">
+                                <button type="button" class="btn-discard-ac" onclick="location.reload()">
+                                    <i class="fas fa-rotate-left"></i> Discard
+                                </button>
+                                <button type="submit" class="btn-save-ac">
+                                    <i class="fas fa-check-circle"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <script>
+                        function handlePermChange(checkbox) {
+                            const footer = document.getElementById('acFooter');
+                            footer.style.display = 'flex'; // Ensure it's in the DOM for the transition
+                            setTimeout(() => footer.classList.add('visible'), 10);
+                            
+                            // Dynamically update stats for the current role
+                            const roleId = checkbox.dataset.roleId;
+                            const container = document.getElementById('perms-for-role-' + roleId);
+                            if (!container) return;
+                            
+                            const allChecks = container.querySelectorAll('.ac-perm-check');
+                            const grantedCount = Array.from(allChecks).filter(c => c.checked).length;
+                            const totalCount = allChecks.length;
+                            const notGrantedCount = totalCount - grantedCount;
+                            const level = Math.round((grantedCount / totalCount) * 100);
+                            
+                            // Update values in the top summary cards
+                            const statGrantedTop = document.getElementById('stat-granted-top-' + roleId);
+                            const statNotGrantedTop = document.getElementById('stat-not-granted-top-' + roleId);
+                            const statLevelTop = document.getElementById('stat-level-top-' + roleId);
+                            
+                            if (statGrantedTop) statGrantedTop.textContent = grantedCount;
+                            if (statNotGrantedTop) statNotGrantedTop.textContent = notGrantedCount;
+                            if (statLevelTop) statLevelTop.textContent = level + '%';
+                            
+                            // Update badge count in the roles list
+                            const roleItem = document.querySelector(`.ac-role-item[data-role-id="${roleId}"] .ac-role-badge:last-child`);
+                            if (roleItem) roleItem.textContent = grantedCount;
+                        }
+
                         (function(){
-                            var section = document.getElementById('access-management');
-                            if(!section){ return; }
-                            var search = document.getElementById('accessRoleSearch');
-                            if(search){
-                                var searchWrap = search.parentElement;
-                                if(searchWrap){
-                                    searchWrap.style.maxWidth = '380px';
-                                    searchWrap.style.minWidth = '260px';
-                                    searchWrap.style.flex = '1';
-                                }
-                                search.placeholder = 'Search roles...';
-                                search.style.height = '52px';
-                                search.style.padding = '0 16px 0 42px';
-                                search.style.border = '1px solid #d6deeb';
-                                search.style.borderRadius = '16px';
-                                search.style.background = 'linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)';
-                                search.style.boxShadow = '0 4px 16px rgba(15,23,42,.05)';
-                                search.style.fontSize = '0.98rem';
-                                search.style.color = '#0f172a';
-                                search.style.outline = 'none';
-                                search.addEventListener('focus', function(){
-                                    search.style.borderColor = '#0b3b8f';
-                                    search.style.boxShadow = '0 0 0 4px rgba(11,59,143,.10), 0 8px 20px rgba(15,23,42,.06)';
-                                });
-                                search.addEventListener('blur', function(){
-                                    search.style.borderColor = '#d6deeb';
-                                    search.style.boxShadow = '0 4px 16px rgba(15,23,42,.05)';
-                                });
-                                search.addEventListener('input', function(){
-                                    var q = (this.value || '').toLowerCase().trim();
-                                    var items = section.querySelectorAll('.accordion-item');
-                                    items.forEach(function(it){
-                                        var name = (it.querySelector('.accordion-header span')?.textContent || '').toLowerCase();
-                                        it.style.display = q ? (name.indexOf(q) !== -1 ? '' : 'none') : '';
-                                    });
-                                });
+                            const section = document.getElementById('access-management');
+                            if (!section) return;
+                            const rolesList = section.querySelector('#acRolesList');
+                            const roles = Array.from(section.querySelectorAll('.ac-role-item'));
+                            const permContainers = section.querySelectorAll('.ac-role-perms-container');
+                            const summaryContainers = section.querySelectorAll('.ac-role-summary-container');
+                            const topSummaryContainers = section.querySelectorAll('.ac-role-summary-top-wrap');
+                            const expandAllBtn = document.getElementById('acExpandAll');
+                            const paginationContainer = document.getElementById('acRolesPagination');
+
+                            let currentPage = 1;
+                            const itemsPerPage = 10;
+                            let filteredRoles = [...roles];
+
+                            function renderRoles() {
+                                const start = (currentPage - 1) * itemsPerPage;
+                                const end = start + itemsPerPage;
+                                
+                                roles.forEach(r => r.style.display = 'none');
+                                filteredRoles.slice(start, end).forEach(r => r.style.display = 'flex');
+                                
+                                renderPagination();
                             }
-                            var headers = section.querySelectorAll('.accordion-header');
-                            headers.forEach(function(h){
-                                h.addEventListener('click', function(){
-                                    var item = h.closest('.accordion-item');
-                                    var isOpen = item.classList.contains('open');
-                                    section.querySelectorAll('.accordion-item').forEach(function(it){
-                                        it.classList.remove('open');
-                                    });
-                                    if(!isOpen){
-                                        item.classList.add('open');
+
+                            function renderPagination() {
+                                const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+                                if (totalPages <= 1) {
+                                    paginationContainer.innerHTML = '';
+                                    return;
+                                }
+
+                                let html = `<div class="ac-page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="window.changePage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></div>`;
+                                
+                                for (let i = 1; i <= totalPages; i++) {
+                                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                                        html += `<div class="ac-page-btn ${i === currentPage ? 'active' : ''}" onclick="window.changePage(${i})">${i}</div>`;
+                                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                                        html += `<div style="color:#94a3b8; padding:0 4px">...</div>`;
                                     }
+                                }
+
+                                html += `<div class="ac-page-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="window.changePage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></div>`;
+                                paginationContainer.innerHTML = html;
+                            }
+
+                            window.changePage = function(page) {
+                                const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+                                if (page < 1 || page > totalPages) return;
+                                currentPage = page;
+                                renderRoles();
+                                rolesList.scrollTop = 0;
+                            };
+
+                            // Role Selection
+                            roles.forEach(role => {
+                                role.addEventListener('click', () => {
+                                    roles.forEach(r => r.classList.remove('active'));
+                                    role.classList.add('active');
+                                    
+                                    const roleId = role.dataset.roleId;
+                                    permContainers.forEach(c => c.style.display = 'none');
+                                    summaryContainers.forEach(c => c.style.display = 'none');
+                                    topSummaryContainers.forEach(c => c.style.display = 'none');
+                                    
+                                    const targetPerms = document.getElementById('perms-for-role-' + roleId);
+                                    const targetSummary = document.getElementById('summary-for-role-' + roleId);
+                                    const targetTopSummary = document.getElementById('summary-top-' + roleId);
+
+                                    if (targetPerms) targetPerms.style.display = 'block';
+                                    if (targetSummary) targetSummary.style.display = 'block';
+                                    if (targetTopSummary) targetTopSummary.style.display = 'block';
                                 });
                             });
+
+                            // Group Accordion
+                            section.addEventListener('click', e => {
+                                const header = e.target.closest('.ac-perm-group-header');
+                                if (header) {
+                                    const group = header.closest('.ac-perm-group');
+                                    group.classList.toggle('open');
+                                }
+                            });
+
+                            // Expand All
+                            let allExpanded = false;
+                            if (expandAllBtn) {
+                                expandAllBtn.addEventListener('click', () => {
+                                    allExpanded = !allExpanded;
+                                    section.querySelectorAll('.ac-perm-group').forEach(g => {
+                                        if (allExpanded) g.classList.add('open');
+                                        else g.classList.remove('open');
+                                    });
+                                    expandAllBtn.innerHTML = allExpanded ? 'Collapse All <i class="fas fa-compress-arrows-alt"></i>' : 'Expand All <i class="fas fa-expand-arrows-alt"></i>';
+                                });
+                            }
+
+                            // Initial render
+                            renderRoles();
                         })();
-                        </script>
-                    @endif
-                </div>
+                    </script>
+                @endif
             </section>
             <!-- Course Management Section -->
             <section id="course-management" class="content-section {{ in_array(request('tab'), ['course-management','pending-courses','archived-courses','course-library'], true) ? 'active' : '' }}">
@@ -8695,12 +9510,12 @@
 
     <!-- Add Role Modal (global overlay) -->
     @if(Auth::check() && Auth::user()->role === 'super_admin')
-    <div id="addRoleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle" style="align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
-        <div class="modal-content pro-modal" style="margin:0;">
+    <div id="addRoleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addRoleTitle">
+        <div class="pro-modal">
             <div class="pro-modal-header">
                 <div class="pro-modal-title">
                     <div class="badge"><i class="fas fa-user-shield"></i></div>
-                    <div id="addRoleTitle">Add Role</div>
+                    <h2 id="addRoleTitle">Add New Role</h2>
                 </div>
                 <button type="button" class="pro-modal-close" onclick="closeAddRoleModal()" aria-label="Close">
                     <i class="fas fa-times"></i>
@@ -8709,18 +9524,32 @@
             <form method="POST" action="{{ route('admin.roles.store') }}">
                 @csrf
                 <div class="pro-modal-body">
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 24px;">Define a new system role to manage specific permissions and user access.</p>
+                    
                     <div class="pro-field">
-                        <label class="pro-label">Role Name</label>
-                        <input class="pro-input" type="text" name="name" placeholder="e.g. super_admin" required>
+                        <label class="pro-label">Role Identifier (System Name)</label>
+                        <div class="pro-input-group">
+                            <i class="fas fa-id-badge"></i>
+                            <input class="pro-modal-input" type="text" name="name" placeholder="e.g. training_coordinator" required>
+                        </div>
+                        <div class="pro-field-hint">Use lowercase with underscores (no spaces).</div>
                     </div>
-                    <div class="pro-field">
-                        <label class="pro-label">Display Name</label>
-                        <input class="pro-input" type="text" name="display_name" placeholder="e.g. Super Admin">
+
+                    <div class="pro-field" style="margin-bottom: 8px;">
+                        <label class="pro-label">Display Name (User Friendly)</label>
+                        <div class="pro-input-group">
+                            <i class="fas fa-tag"></i>
+                            <input class="pro-modal-input" type="text" name="display_name" placeholder="e.g. Training Coordinator">
+                        </div>
+                        <div class="pro-field-hint">How the role appears in menus and labels.</div>
                     </div>
                 </div>
                 <div class="pro-modal-actions">
                     <button type="button" class="btn-ghost" onclick="closeAddRoleModal()">Cancel</button>
-                    <button type="submit" class="btn-solid">Create Role</button>
+                    <button type="submit" class="btn-solid">
+                        <i class="fas fa-plus-circle"></i>
+                        Create Role
+                    </button>
                 </div>
             </form>
         </div>
