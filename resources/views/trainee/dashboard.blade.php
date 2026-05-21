@@ -1253,13 +1253,13 @@
                         <div class="dropdown-meta-name">{{ Auth::user()->name }}</div>
                         <div class="dropdown-meta-role">{{ ucfirst(Auth::user()->role) }}</div>
                     </div>
-                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'profile-section']) }}">
+                    <a class="dropdown-item" href="#" onclick="showContent('profile-section', null)">
                         <i class="fas fa-user-cog"></i> <span>Profile Settings</span>
                     </a>
                     <a class="dropdown-item" href="#" onclick="showContent('certificates', null)">
                         <i class="fas fa-certificate"></i> <span>Certificates</span>
                     </a>
-                    <a class="dropdown-item" href="{{ route('dashboard', ['tab' => 'help-support']) }}">
+                    <a class="dropdown-item" href="#" onclick="showContent('help-support', null)">
                         <i class="fas fa-life-ring"></i> <span>Help & Support</span>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
@@ -1289,19 +1289,19 @@
                         <span class="menu-chevron"><i class="fas fa-chevron-down"></i></span>
                     </div>
                     <ul class="menu-dropdown-list" id="portal-dropdown-list-participant">
-                        <li class="menu-item menu-sub-item">
+                        <li class="menu-item menu-sub-item {{ !request('tab') || request('tab') == 'dashboard-home' ? 'active' : '' }}" onclick="showContent('dashboard-home', this)">
                             <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                             <span class="menu-text">Dashboard</span>
                         </li>
-                        <li class="menu-item menu-sub-item" onclick="showContent('classroom', this)">
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'classroom' ? 'active' : '' }}" onclick="showContent('classroom', this)">
                             <div class="menu-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                             <span class="menu-text">Classroom</span>
                         </li>
-                        <li class="menu-item menu-sub-item" onclick="showContent('calendar', this)">
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'calendar' ? 'active' : '' }}" onclick="showContent('calendar', this)">
                             <div class="menu-icon"><i class="fas fa-calendar-alt"></i></div>
                             <span class="menu-text">Calendar</span>
                         </li>
-                        <li class="menu-item menu-sub-item" onclick="showContent('announcements', this)">
+                        <li class="menu-item menu-sub-item {{ request('tab') == 'announcements' ? 'active' : '' }}" onclick="showContent('announcements', this)">
                             <div class="menu-icon"><i class="fas fa-bullhorn"></i></div>
                             <span class="menu-text">Announcements</span>
                         </li>
@@ -2041,10 +2041,18 @@
                                     <div style="padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px">
                                         <i class="fas fa-certificate" style="font-size:3rem;color:var(--primary-blue)"></i>
                                         <div style="letter-spacing:.15em;color:#6b7280;font-weight:700">COURSE</div>
-                                        <div style="font-weight:800;color:#002C76;text-align:center">{{ $cert->name }}</div>
+                                        @php
+                                            $displayCourseName = $cert->course_name ?? $cert->name;
+                                        @endphp
+                                        <div style="font-weight:800;color:#002C76;text-align:center">{{ $displayCourseName }}</div>
                                     </div>
                                     <div style="padding:12px 16px;text-align:center">
-                                        <button class="btn-view" onclick="openCertificateModal('{{ asset('images/capdev cert.jpg') }}','{{ Auth::user()->name }}','{{ $cert->name }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_number ?? 'Cert 0001' }}','{{ route('admin.certifications.course.download.single', ['course' => optional($cert->pivot)->course_id, 'certification' => $cert->id, 'user' => Auth::id()]) }}')">View Certificate</button>
+                                        @php
+                                            $certImg = $cert->file_path 
+                                                ? route('media.public', ['path' => $cert->file_path]) 
+                                                : asset('images/capdev cert.jpg');
+                                        @endphp
+                                        <button class="btn-view" onclick="openCertificateModal('{{ $certImg }}','{{ Auth::user()->name }}','{{ $displayCourseName }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_number ?? 'Cert 0001' }}','{{ route('admin.certifications.course.download.single', ['course' => optional($cert->pivot)->course_id, 'certification' => $cert->id, 'user' => Auth::id()]) }}')">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -2321,10 +2329,7 @@
 
                 </div>
             </div>
-            @if(request('tab') == 'help-support' || request('tab') == 'help_support')
-                @include('dashboard.help-support')
-            @endif
-
+            @include('dashboard.help-support')
         </div>
     </div>
     <div id="certificateModal" class="modal-overlay">
@@ -2676,20 +2681,40 @@
             });
             
             // Show selected section
-            document.getElementById(sectionId).classList.add('active');
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
             
-            // Update nav active state
+            // Update sidebar active state
             if (element) {
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
                 });
                 element.classList.add('active');
+                
+                // Ensure parent dropdown is open
+                var portal = element.closest('.menu-dropdown');
+                if (portal && !document.body.classList.contains('sidebar-collapsed')) {
+                    portal.classList.add('open');
+                }
             }
-            var portal = element ? element.closest('.nav-portal') : null;
-            if (portal) portal.classList.add('open');
-            var titleMap={'dashboard-home':'Dashboard','classroom':'Classroom','calendar':'Calendar','announcements':'Announcements','profile-section':'My Profile','certificates':'Certificates','manual':'System Manual'};
-            var titleEl=document.getElementById('headerSectionTitle');
-            if(titleEl){ titleEl.textContent = titleMap[sectionId] || 'Dashboard'; }
+
+            var titleMap = {
+                'dashboard-home': 'Dashboard',
+                'classroom': 'Classroom',
+                'calendar': 'Calendar',
+                'announcements': 'Announcements',
+                'profile-section': 'My Profile',
+                'certificates': 'Certificates',
+                'manual': 'System Manual',
+                'help-support': 'Help & Support',
+                'help_support': 'Help & Support'
+            };
+            var titleEl = document.getElementById('headerSectionTitle');
+            if (titleEl) {
+                titleEl.textContent = titleMap[sectionId] || 'Dashboard';
+            }
 
             const url = new URL(window.location.href);
             if (sectionId === 'dashboard-home') {
@@ -2706,7 +2731,7 @@
                 var overlay = document.querySelector('.sidebar-overlay');
                 if (s && s.classList.contains('mobile-open')) {
                     s.classList.remove('mobile-open');
-                    overlay.classList.remove('mobile-open');
+                    if (overlay) overlay.classList.remove('mobile-open');
                     document.body.classList.remove('sidebar-mobile-open');
                 }
             }

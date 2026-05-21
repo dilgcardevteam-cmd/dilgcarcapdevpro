@@ -152,7 +152,7 @@
             
             <div class="nav-menu">
                 <a href="{{ url('/') }}" title="Back to Home">
-                    <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CapDev Pro" style="height: 70px;">
+                    <img src="{{ asset('images/Capdev pro.png') }}" alt="CapDev Pro" style="height: 70px;">
                 </a>
             </div>
         </div>

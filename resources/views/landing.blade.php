@@ -1239,7 +1239,7 @@
 
     <header class="header">
         <div class="header-left">
-            <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO" class="header-logo" onerror="this.style.display='none'">
+            <img src="{{ asset('images/Capdev pro.png') }}" alt="CAPDEV PRO" class="header-logo" onerror="this.style.display='none'">
         </div>
         <div class="nav-menu">
             <a href="#home" class="nav-item">Home</a>
@@ -1274,7 +1274,7 @@
         <!-- Welcome Section -->
         <section class="welcome-section" id="home">
             <div class="welcome-content">
-                <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="WELCOME TO CAPDEV PRO" class="welcome-image">
+                <img src="{{ asset('images/Capdev pro.png') }}" alt="WELCOME TO CAPDEV PRO" class="welcome-image">
             </div>
             <div class="scroll-indicator">
             </div>

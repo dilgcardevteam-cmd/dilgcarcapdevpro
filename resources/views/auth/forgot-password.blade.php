@@ -76,7 +76,7 @@
 <div class="auth-center">
     <div class="forgot-card">
         <div class="forgot-logo">
-            <img src="{{ asset('images/CAPDEV PRO.png') }}" alt="CAPDEV PRO">
+            <img src="{{ asset('images/Capdev pro.png') }}" alt="CAPDEV PRO">
         </div>
         @php 
             $otpEmail = session('otp_email'); 

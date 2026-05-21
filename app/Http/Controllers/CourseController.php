@@ -3653,7 +3653,8 @@ class CourseController extends Controller
         $user = auth()->user();
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-        $allowedRoles = array_merge($adminRoles, $coachRoles);
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $allowedRoles = array_merge($adminRoles, $coachRoles, $tmRoles);
 
         if (!$user || !in_array($user->role, $allowedRoles, true)) {
             return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);
@@ -3679,7 +3680,8 @@ class CourseController extends Controller
         $user = auth()->user();
         $adminRoles = ['admin','super_admin','central_office_admin','regional_office_admin','provincial_office_admin'];
         $coachRoles = ['coach','trainer','central_office_coach','regional_office_coach','provincial_office_coach'];
-        $allowedRoles = array_merge($adminRoles, $coachRoles);
+        $tmRoles = ['training_manager','central_office_training_manager','regional_office_training_manager','provincial_office_training_manager'];
+        $allowedRoles = array_merge($adminRoles, $coachRoles, $tmRoles);
 
         if (!$user || !in_array($user->role, $allowedRoles, true)) {
             return response()->json(['ok' => false, 'error' => 'Unauthorized'], 403);

@@ -1020,7 +1020,14 @@ class DashboardController extends Controller
                 
                 $activeCoursesCount = $myCourses->count();
                 
-                $earnedCertificates = $user->certifications()->with('users')->get();
+                $earnedCertificates = $user->certifications()
+                    ->with(['users'])
+                    ->get()
+                    ->each(function($cert) {
+                        if ($cert->pivot->course_id) {
+                            $cert->course_name = DB::table('courses')->where('id', $cert->pivot->course_id)->value('name');
+                        }
+                    });
                 
                 // Fetch Announcements (global or course specific - for now fetching all global)
                 $announcements = Announcement::with('user')->orderBy('created_at', 'desc')->take(5)->get();
