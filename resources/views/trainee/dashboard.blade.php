@@ -2085,7 +2085,20 @@
                                                 ? route('media.public', ['path' => $cert->file_path]) 
                                                 : asset('images/capdev cert.jpg');
                                         @endphp
-                                        <button class="btn-view" onclick="openCertificateModal('{{ $certImg }}','{{ Auth::user()->name }}','{{ $displayCourseName }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_number ?? 'Cert 0001' }}','{{ route('admin.certifications.course.download.single', ['course' => optional($cert->pivot)->course_id, 'certification' => $cert->id, 'user' => Auth::id()]) }}')">View Certificate</button>
+                                        <button class="btn-view" onclick="openCertificateModal('{{ $certImg }}','{{ Auth::user()->name }}','{{ $displayCourseName }}','{{ $issued ?? '—' }}','{{ optional($cert->pivot)->certificate_number ?? 'Cert 0001' }}','{{ route('admin.certifications.course.download.single', ['course' => optional($cert->pivot)->course_id, 'certification' => $cert->id, 'user' => Auth::id()]) }}', {
+                                            name_x: {{ $cert->name_x ?? 'null' }},
+                                            name_y: {{ $cert->name_y ?? 'null' }},
+                                            name_size: {{ $cert->name_size ?? 'null' }},
+                                            course_x: {{ $cert->course_x ?? 'null' }},
+                                            course_y: {{ $cert->course_y ?? 'null' }},
+                                            course_size: {{ $cert->course_size ?? 'null' }},
+                                            no_x: {{ $cert->no_x ?? 'null' }},
+                                            no_y: {{ $cert->no_y ?? 'null' }},
+                                            no_size: {{ $cert->no_size ?? 'null' }},
+                                            date_x: {{ $cert->date_x ?? 'null' }},
+                                            date_y: {{ $cert->date_y ?? 'null' }},
+                                            date_size: {{ $cert->date_size ?? 'null' }}
+                                        })">View Certificate</button>
                                     </div>
                                     <div style="background:#f3f4f6;border-top:1px solid #e5e7eb;padding:10px 16px;color:#374151;font-weight:600;text-align:center">
                                         Issued On: {{ $issued ?? '—' }}
@@ -2369,12 +2382,12 @@
         <div class="modal-container" style="max-width:900px; position:relative">
             <button type="button" class="btn-cancel" onclick="closeCertificateModal()" style="position:absolute;top:12px;right:12px;padding:6px 12px;border-radius:6px">Close</button>
             <h2 class="modal-title">Certificate</h2>
-            <div class="certificate-frame" style="position:relative">
+            <div class="certificate-frame" style="position:relative; width: 100%; height: auto; overflow: hidden;">
                 <img id="certificateImage" src="" alt="Certificate" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block">
-                <div id="overlayName" style="position:absolute;left:50%;top:29.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:800;font-size:3rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
-                <div id="overlayCourse" style="position:absolute;left:50%;top:46.5%;transform:translateX(-50%);color:#0b1e3a;font-weight:700;font-size:2.5rem;text-align:center;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis"></div>
-                <div id="overlayCertNo" style="position:absolute;right:10%;bottom:14.4%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
-                <div id="overlayCompletion" style="position:absolute;right:7.5%;bottom:11.3%;color:#0b1e3a;font-weight:800;font-size:1.1rem;text-align:right;white-space:nowrap"></div>
+                <div id="overlayName" style="position:absolute; color:#0b1e3a; font-weight:800; text-align:center; white-space:nowrap; transform: translate(-50%, -50%);"></div>
+                <div id="overlayCourse" style="position:absolute; color:#0b1e3a; font-weight:700; text-align:center; white-space:nowrap; transform: translate(-50%, -50%);"></div>
+                <div id="overlayCertNo" style="position:absolute; color:#0b1e3a; font-weight:800; text-align:center; white-space:nowrap; transform: translate(-50%, -50%);"></div>
+                <div id="overlayCompletion" style="position:absolute; color:#0b1e3a; font-weight:800; text-align:center; white-space:nowrap; transform: translate(-50%, -50%);"></div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:14px">
                 <a id="certificateDownloadBtn" href="#" onclick="downloadCertificateFramePDF(event)" style="display:inline-block;background-color:#002C76;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:700">Download PDF</a>
@@ -3480,7 +3493,7 @@
                 closeEnrollModal();
             }
         });
-        function openCertificateModal(url, traineeName, courseName, issuedOn, certNo, downloadUrl){
+        function openCertificateModal(url, traineeName, courseName, issuedOn, certNo, downloadUrl, posData){
             var m=document.getElementById('certificateModal');
             var img=document.getElementById('certificateImage');
             if(img){ img.src=url; }
@@ -3489,10 +3502,47 @@
             var cn=document.getElementById('overlayCertNo');
             var d=document.getElementById('overlayCompletion');
             var dl=document.getElementById('certificateDownloadBtn');
-            if(n && traineeName){ n.textContent = traineeName; }
-            if(c && courseName){ c.textContent = courseName; }
-            if(cn){ cn.textContent = (certNo || '').toString(); }
-            if(d){ d.textContent = issuedOn || '—'; }
+            
+            if(n && traineeName){ 
+                n.textContent = traineeName;
+                if(posData && posData.name_x) {
+                    n.style.left = (posData.name_x / 12.4).toFixed(2) + '%';
+                    n.style.top = (posData.name_y / 8.74).toFixed(2) + '%';
+                    n.style.fontSize = ((posData.name_size || 80) / 25).toFixed(2) + 'rem';
+                } else {
+                    n.style.left = '50%'; n.style.top = '29.5%'; n.style.fontSize = '3rem';
+                }
+            }
+            if(c && courseName){ 
+                c.textContent = courseName;
+                if(posData && posData.course_x) {
+                    c.style.left = (posData.course_x / 12.4).toFixed(2) + '%';
+                    c.style.top = (posData.course_y / 8.74).toFixed(2) + '%';
+                    c.style.fontSize = ((posData.course_size || 60) / 25).toFixed(2) + 'rem';
+                } else {
+                    c.style.left = '50%'; c.style.top = '46.5%'; c.style.fontSize = '2.5rem';
+                }
+            }
+            if(cn){ 
+                cn.textContent = (certNo || '').toString();
+                if(posData && posData.no_x) {
+                    cn.style.left = (posData.no_x / 12.4).toFixed(2) + '%';
+                    cn.style.top = (posData.no_y / 8.74).toFixed(2) + '%';
+                    cn.style.fontSize = ((posData.no_size || 25) / 25).toFixed(2) + 'rem';
+                } else {
+                    cn.style.left = '90%'; cn.style.top = '85.6%'; cn.style.fontSize = '1.1rem';
+                }
+            }
+            if(d){ 
+                d.textContent = issuedOn || '—';
+                if(posData && posData.date_x) {
+                    d.style.left = (posData.date_x / 12.4).toFixed(2) + '%';
+                    d.style.top = (posData.date_y / 8.74).toFixed(2) + '%';
+                    d.style.fontSize = ((posData.date_size || 25) / 25).toFixed(2) + 'rem';
+                } else {
+                    d.style.left = '92.5%'; d.style.top = '88.7%'; d.style.fontSize = '1.1rem';
+                }
+            }
             if(dl && downloadUrl){ dl.href = downloadUrl; }
             if(m){ m.style.display='flex'; }
         }
