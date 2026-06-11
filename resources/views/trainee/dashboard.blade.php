@@ -1765,8 +1765,14 @@
                                         @else background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
                                         @endif
                                     ">
-                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
-                                            Finished
+                                        @php
+                                            $cStatus = strtolower($course->course_status);
+                                            $progress = $progressData[$course->id]['percentage'] ?? 0;
+                                            $pivotStatus = $courseStatuses[$course->id] ?? '';
+                                            $isCompleted = ($cStatus === 'completed' || $progress >= 100 || $pivotStatus === 'completed');
+                                        @endphp
+                                        @if($isCompleted)
+                                            Completed
                                         @else
                                             {{ $courseActiveStatus }}
                                         @endif
@@ -1849,20 +1855,47 @@
                 </div>
 
                 <div class="course-stats">
+                    @php
+                        $pOngoingCount = 0;
+                        $pCompletedCount = 0;
+                        foreach($classroomCourses as $c) {
+                            $cStatus = strtolower($c->course_status);
+                            $progress = $progressData[$c->id]['percentage'] ?? 0;
+                            $pivotStatus = $courseStatuses[$c->id] ?? '';
+                            
+                            if ($cStatus === 'completed' || $progress >= 100 || $pivotStatus === 'completed') {
+                                $pCompletedCount++;
+                            } elseif ($cStatus === 'ongoing') {
+                                $pOngoingCount++;
+                            }
+                        }
+                    @endphp
                     <span>Total Courses: {{ $classroomCourses->count() }}</span>
-                    <span>Ongoing: {{ $classroomCourses->where('course_status', 'Ongoing')->count() }}</span>
-                    <span>Completed: {{ $classroomCourses->where('course_status', 'Completed')->count() }}</span>
+                    <span>Ongoing: {{ $pOngoingCount }}</span>
+                    <span>Completed: {{ $pCompletedCount }}</span>
                 </div>
 
                 <div class="course-grid">
                     @forelse($classroomCourses as $course)
-                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ strtolower($course->course_status) }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="70">
+                        @php
+                            $cStatus = strtolower($course->course_status);
+                            $progress = $progressData[$course->id]['percentage'] ?? 0;
+                            $pivotStatus = $courseStatuses[$course->id] ?? '';
+                            
+                            $displayStatus = $cStatus;
+                            if ($cStatus === 'completed' || $progress >= 100 || $pivotStatus === 'completed') {
+                                $displayStatus = 'completed';
+                            } elseif ($cStatus === 'ongoing') {
+                                $displayStatus = 'ongoing';
+                            }
+                        @endphp
+                        <a href="{{ route('trainee.courses.show', $course) }}" class="new-course-card-link" data-status="{{ $displayStatus }}" data-start-date="{{ $course->start_date ? $course->start_date->timestamp : 0 }}" data-progress="{{ $progress }}">
                             <div class="new-course-card">
                                 <div class="card-banner">
                                     <img src="{{ $course->image_url }}" alt="Course Image">
-                                    <div class="status-badge-new {{ strtolower($course->course_status) }}">
-                                        @if(strtolower($course->course_status) === 'ongoing' && isset($progressData[$course->id]) && ($progressData[$course->id]['percentage'] ?? 0) >= 100)
-                                            Finished
+                                    <div class="status-badge-new {{ $displayStatus }}">
+                                        @if($displayStatus === 'completed')
+                                            Completed
                                         @else
                                             {{ $course->course_status }}
                                         @endif

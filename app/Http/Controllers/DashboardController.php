@@ -1001,25 +1001,28 @@ class DashboardController extends Controller
                         ->where('academic_year_id', $selectedYearId)
                         ->count();
 
-                    $completedByStatus = $user->courses()
-                        ->wherePivot('status', 'completed')
-                        ->where('academic_year_id', $selectedYearId)
-                        ->count();
-                    $completedByCertification = $user->certifications()
-                        ->join('courses', 'certification_user.course_id', '=', 'courses.id')
-                        ->where('courses.academic_year_id', $selectedYearId)
-                        ->distinct('certification_user.course_id')
-                        ->count('certification_user.course_id');
-                    $completedCoursesCount = max($completedByStatus, $completedByCertification);
+                    $completedCoursesCount = 0;
+                    $ongoingCoursesCount = 0;
+                    foreach ($classroomCourses as $course) {
+                        $cStatus = strtolower($course->course_status);
+                        $progress = $progressData[$course->id]['percentage'] ?? 0;
+                        $pivotStatus = $courseStatuses[$course->id] ?? '';
+                        
+                        if ($cStatus === 'completed' || $progress >= 100 || $pivotStatus === 'completed') {
+                            $completedCoursesCount++;
+                        } elseif ($cStatus === 'ongoing') {
+                            $ongoingCoursesCount++;
+                        }
+                    }
+                    $activeCoursesCount = $ongoingCoursesCount;
                 } else {
                     $availableCourses = collect([]);
                     $totalAvailableCourses = 0;
                     $totalCoursesJoined = 0;
                     $completedCoursesCount = 0;
+                    $activeCoursesCount = 0;
                 }
-                
-                $activeCoursesCount = $myCourses->count();
-                
+
                 $earnedCertificates = $user->certifications()
                     ->with(['users'])
                     ->get()
@@ -1029,7 +1032,6 @@ class DashboardController extends Controller
                         }
                     });
                 
-                // Fetch Announcements (global or course specific - for now fetching all global)
                 $announcements = Announcement::with('user')->orderBy('created_at', 'desc')->take(5)->get();
 
                 // Fetch Calendar Events
